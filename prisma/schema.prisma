@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  uuid                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subUuid              String  @unique @map("sub_uuid")
+  username             String  @unique @map("username")
+  status               String  @default("active") @map("status") // ENUM: active, disabled, limimted, expired
+  usedTrafficBytes     Int     @default(0) @map("used_traffic_bytes")
+  trafficLimitBytes    Int     @default(0) @map("traffic_limit_bytes")
+  trafficLimitStrategy String  @default("fixed") @map("traffic_limit_strategy") // ENUM: no_reset, day, week, month, year
+  subLastUserAgent     String? @map("sub_last_user_agent")
+  subLastIp            String? @map("sub_last_ip")
+
+  expireAt     DateTime  @map("expire_at")
+  onlineAt     DateTime? @map("online_at")
+  subRevokedAt DateTime? @map("sub_revoked_at")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model ApiTokens {
+  uuid             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token            String  @unique @map("token")
+  tokenName        String  @map("token_name")
+  tokenDescription String? @map("token_description")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@map("api_tokens")
+}
+
+model Keygen {
+  uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  privKey String @map("priv_key")
+  pubKey  String @map("pub_key")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@map("keygen")
+}
