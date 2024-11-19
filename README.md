@@ -1,6 +1,5 @@
 ## Remnawave Backend
 1
-2
 
 ## Creators
 
