@@ -19,6 +19,9 @@
       "@libs/contracts/*": [
         "./libs/contract/*"
       ],
+      "@contract/*": [
+        "./libs/contract/*"
+      ]
     },
     "incremental": true,
     "skipLibCheck": true,

@@ -20,4 +20,29 @@ export const ERRORS = {
         message: 'Get public key error',
         httpCode: 500,
     },
+    ENABLE_NODE_ERROR: {
+        code: 'A010',
+        message: 'Enable node error',
+        httpCode: 500,
+    },
+    NODE_NOT_FOUND: {
+        code: 'A011',
+        message: 'Node not found',
+        httpCode: 404,
+    },
+    CONFIG_NOT_FOUND: {
+        code: 'A012',
+        message: 'Configuration not found',
+        httpCode: 404,
+    },
+    UPDATE_CONFIG_ERROR: {
+        code: 'A013',
+        message: 'Error updating configuration',
+        httpCode: 500,
+    },
+    GET_CONFIG_ERROR: {
+        code: 'A014',
+        message: 'Error retrieving configuration',
+        httpCode: 500,
+    },
 } as const;

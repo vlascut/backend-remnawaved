@@ -15,9 +15,10 @@ datasource db {
 
 model Users {
   uuid                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subUuid              String  @unique @map("sub_uuid")
+  subscriptionUuid     String  @default(dbgenerated("gen_random_uuid()")) @map("subscription_uuid") @db.Uuid
+  shortUuid            String  @unique @map("short_uuid")
   username             String  @unique @map("username")
-  status               String  @default("active") @map("status") // ENUM: active, disabled, limimted, expired
+  status               String  @default("active") @map("status") // ENUM: active, disabled, limimted, expired, temporary_blocked
   usedTrafficBytes     Int     @default(0) @map("used_traffic_bytes")
   trafficLimitBytes    Int     @default(0) @map("traffic_limit_bytes")
   trafficLimitStrategy String  @default("fixed") @map("traffic_limit_strategy") // ENUM: no_reset, day, week, month, year
@@ -28,8 +29,11 @@ model Users {
   onlineAt     DateTime? @map("online_at")
   subRevokedAt DateTime? @map("sub_revoked_at")
 
-  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
-  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+  createdAt             DateTime                @default(dbgenerated("now()")) @map("created_at")
+  updatedAt             DateTime                @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+  // Proxies       Proxies[]
+  // ActiveProxies ActiveProxies[]
+  nodesUserUsageHistory NodesUserUsageHistory[]
 
   @@map("users")
 }
@@ -56,3 +60,139 @@ model Keygen {
 
   @@map("keygen")
 }
+
+model Nodes {
+  uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String @map("name")
+  address String @map("address")
+  port    Int?   @map("port")
+
+  isConnected  Boolean @default(false) @map("is_connected")
+  isConnecting Boolean @default(false) @map("is_connecting")
+  isDisabled   Boolean @default(false) @map("is_disabled")
+
+  lastStatusChange  DateTime? @map("last_status_change")
+  lastStatusMessage String?   @map("last_status_message")
+  xrayVersion       String?   @map("xray_version")
+
+  isBillTrackingActive Boolean   @default(false) @map("is_bill_tracking_active")
+  billDate             DateTime? @map("bill_date") @db.Date
+  billCycle            String?   @map("bill_cycle") // ENUM: month, year
+  trafficLimitBytes    Int?      @map("traffic_limit_bytes")
+  trafficUsedBytes     Int?      @map("traffic_used_bytes")
+  notifyPercent        Int?      @map("notify_percent")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  nodesTrafficUsageHistory NodesTrafficUsageHistory[]
+  nodesUserUsageHistory    NodesUserUsageHistory[]
+  nodesUsageHistory        NodesUsageHistory[]
+
+  @@map("nodes")
+}
+
+model NodesTrafficUsageHistory {
+  uuid         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nodeUuid     String   @map("node_uuid") @db.Uuid
+  trafficBytes BigInt   @map("traffic_bytes")
+  resetAt      DateTime @default(dbgenerated("now()")) @map("reset_at")
+
+  node Nodes @relation(fields: [nodeUuid], references: [uuid])
+
+  @@map("nodes_traffic_usage_history")
+}
+
+model NodesUserUsageHistory {
+  uuid          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nodeUuid      String @map("node_uuid") @db.Uuid
+  userUuid      String @map("user_uuid") @db.Uuid
+  downloadBytes BigInt @map("download_bytes")
+  uploadBytes   BigInt @map("upload_bytes")
+  totalBytes    BigInt @map("total_bytes")
+
+  createdAt DateTime @default(dbgenerated("date_trunc('hour', now())")) @map("created_at")
+
+  node Nodes @relation(fields: [nodeUuid], references: [uuid])
+  user Users @relation(fields: [userUuid], references: [uuid])
+
+  @@map("nodes_user_usage_history")
+}
+
+model NodesUsageHistory {
+  uuid          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nodeUuid      String @map("node_uuid") @db.Uuid
+  downloadBytes BigInt @map("download_bytes")
+  uploadBytes   BigInt @map("upload_bytes")
+  totalBytes    BigInt @map("total_bytes")
+
+  createdAt DateTime @default(dbgenerated("date_trunc('hour', now())")) @map("created_at")
+
+  node Nodes @relation(fields: [nodeUuid], references: [uuid])
+
+  @@map("nodes_usage_history")
+}
+
+model XrayConfig {
+  uuid      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  config    Json?    @map("config")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@map("xray_config")
+}
+
+// model Inbounds {
+//   uuid String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   tag  String @unique @map("tag")
+
+//   hosts         Hosts[]
+//   ActiveProxies ActiveProxies[]
+
+//   @@map("inbounds")
+// }
+
+// model Hosts {
+//   uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   viewPosition  Int      @default(0) @map("view_position")
+//   remark        String   @map("remark")
+//   address       String   @map("address")
+//   port          Int      @map("port")
+//   inboundUuid   String   @map("inbound_uuid")
+//   sni           String?  @map("sni")
+//   host          String?  @map("host")
+//   security      String   @default("inbound_default") @map("security") // ENUM: inbound_default, none, tls
+//   alpn          String   @default("none") @map("alpn") // ENUM: none, h2, http/1.1, h2,http/1.1
+//   fingerprint   String   @default("none") @map("fingerprint") // ENUM: none, chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
+//   allowInsecure Boolean? @map("allowinsecure")
+//   isDisabled    Boolean? @map("is_disabled")
+//   path          String?  @map("path")
+
+//   inboundTag Inbounds @relation(fields: [inboundUuid], references: [uuid])
+
+//   @@map("hosts")
+// }
+
+// model Proxies {
+//   uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   inboundType String @map("inbound_type") // ENUM: trojan, vless
+//   userUuid    String @map("user_uuid")
+//   settings    Json   @map("settings")
+
+//   user          Users           @relation(fields: [userUuid], references: [uuid])
+//   ActiveProxies ActiveProxies[]
+
+//   @@map("proxies")
+// }
+
+// model ActiveProxies {
+//   uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   userUuid    String @map("user_uuid")
+//   proxyUuid   String @map("proxy_uuid")
+//   inboundUuid String @map("inbound_uuid")
+
+//   user    Users    @relation(fields: [userUuid], references: [uuid])
+//   proxy   Proxies  @relation(fields: [proxyUuid], references: [uuid])
+//   inbound Inbounds @relation(fields: [inboundUuid], references: [uuid])
+
+//   @@map("active_proxies")
+// }

@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 import { IApiTokenDeleteResponse, ICreateApiTokenRequest } from './interfaces';
@@ -9,8 +8,8 @@ import { randomUUID } from 'crypto';
 import { ApiTokenEntity } from './entities/api-token.entity';
 import { ApiTokensRepository } from './repositories/api-tokens.repository';
 import { Prisma } from '@prisma/client';
-import { SignApiTokenCommand } from 'src/modules/auth/commands/sign-api-token/sign-api-token.command';
 import { CommandBus } from '@nestjs/cqrs';
+import { SignApiTokenCommand } from '../auth/commands/sign-api-token/sign-api-token.command';
 
 @Injectable()
 export class ApiTokensService {
