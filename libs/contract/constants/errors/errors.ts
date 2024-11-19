@@ -45,4 +45,14 @@ export const ERRORS = {
         message: 'Error retrieving configuration',
         httpCode: 500,
     },
+    DELETE_MANY_INBOUNDS_ERROR: {
+        code: 'A015',
+        message: 'Delete many inbounds error',
+        httpCode: 500,
+    },
+    CREATE_MANY_INBOUNDS_ERROR: {
+        code: 'A016',
+        message: 'Create many inbounds error',
+        httpCode: 500,
+    },
 } as const;

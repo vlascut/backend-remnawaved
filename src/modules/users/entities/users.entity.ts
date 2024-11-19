@@ -2,7 +2,8 @@ import { Users } from '@prisma/client';
 
 export class UserEntity implements Users {
     uuid: string;
-    subUuid: string;
+    subscriptionUuid: string;
+    shortUuid: string;
     username: string;
     status: string;
     usedTrafficBytes: number;

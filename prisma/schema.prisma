@@ -29,11 +29,11 @@ model Users {
   onlineAt     DateTime? @map("online_at")
   subRevokedAt DateTime? @map("sub_revoked_at")
 
-  createdAt             DateTime                @default(dbgenerated("now()")) @map("created_at")
-  updatedAt             DateTime                @default(dbgenerated("now()")) @updatedAt @map("updated_at")
-  // Proxies       Proxies[]
-  // ActiveProxies ActiveProxies[]
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
   nodesUserUsageHistory NodesUserUsageHistory[]
+  activeProxies         ActiveProxies[]
 
   @@map("users")
 }
@@ -141,58 +141,44 @@ model XrayConfig {
   @@map("xray_config")
 }
 
-// model Inbounds {
-//   uuid String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   tag  String @unique @map("tag")
+model Inbounds {
+  uuid String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tag  String @unique @map("tag")
 
-//   hosts         Hosts[]
-//   ActiveProxies ActiveProxies[]
+  hosts         Hosts[]
+  activeProxies ActiveProxies[]
 
-//   @@map("inbounds")
-// }
+  @@map("inbounds")
+}
 
-// model Hosts {
-//   uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   viewPosition  Int      @default(0) @map("view_position")
-//   remark        String   @map("remark")
-//   address       String   @map("address")
-//   port          Int      @map("port")
-//   inboundUuid   String   @map("inbound_uuid")
-//   sni           String?  @map("sni")
-//   host          String?  @map("host")
-//   security      String   @default("inbound_default") @map("security") // ENUM: inbound_default, none, tls
-//   alpn          String   @default("none") @map("alpn") // ENUM: none, h2, http/1.1, h2,http/1.1
-//   fingerprint   String   @default("none") @map("fingerprint") // ENUM: none, chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
-//   allowInsecure Boolean? @map("allowinsecure")
-//   isDisabled    Boolean? @map("is_disabled")
-//   path          String?  @map("path")
+model Hosts {
+  uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  viewPosition  Int      @default(0) @map("view_position")
+  remark        String   @map("remark")
+  address       String   @map("address")
+  port          Int      @map("port")
+  inboundUuid   String   @map("inbound_uuid") @db.Uuid
+  sni           String?  @map("sni")
+  host          String?  @map("host")
+  security      String   @default("inbound_default") @map("security") // ENUM: inbound_default, none, tls
+  alpn          String   @default("none") @map("alpn") // ENUM: none, h2, http/1.1, h2,http/1.1
+  fingerprint   String   @default("none") @map("fingerprint") // ENUM: none, chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
+  allowInsecure Boolean? @map("allowinsecure")
+  isDisabled    Boolean? @map("is_disabled")
+  path          String?  @map("path")
 
-//   inboundTag Inbounds @relation(fields: [inboundUuid], references: [uuid])
+  inboundTag Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 
-//   @@map("hosts")
-// }
+  @@map("hosts")
+}
 
-// model Proxies {
-//   uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   inboundType String @map("inbound_type") // ENUM: trojan, vless
-//   userUuid    String @map("user_uuid")
-//   settings    Json   @map("settings")
+model ActiveProxies {
+  uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userUuid    String @map("user_uuid") @db.Uuid
+  inboundUuid String @map("inbound_uuid") @db.Uuid
 
-//   user          Users           @relation(fields: [userUuid], references: [uuid])
-//   ActiveProxies ActiveProxies[]
+  user    Users    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+  inbound Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 
-//   @@map("proxies")
-// }
-
-// model ActiveProxies {
-//   uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   userUuid    String @map("user_uuid")
-//   proxyUuid   String @map("proxy_uuid")
-//   inboundUuid String @map("inbound_uuid")
-
-//   user    Users    @relation(fields: [userUuid], references: [uuid])
-//   proxy   Proxies  @relation(fields: [proxyUuid], references: [uuid])
-//   inbound Inbounds @relation(fields: [inboundUuid], references: [uuid])
-
-//   @@map("active_proxies")
-// }
+  @@map("active_proxies")
+}

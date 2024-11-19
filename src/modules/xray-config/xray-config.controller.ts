@@ -1,34 +1,56 @@
-import { Body, Controller, Get, Param, Put, UseFilters } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, UseFilters } from '@nestjs/common';
 import { XrayConfigService } from './xray-config.service';
-// import { XRAY_CONFIG_CONTROLLER } from '@contract/api';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
-import { ROLE } from '@contract/constants';
+import { ERRORS, ROLE } from '@contract/constants';
 import { Roles } from '@common/decorators/roles/roles';
-import { errorHandler } from '@common/helpers/error-handler.helper';
+import { XRAY_CONTROLLER, XRAY_ROUTES } from '@contract/api';
+import { JwtDefaultGuard } from '../../common/guards/jwt-guards/def-jwt-guard';
+import { RolesGuard } from '../../common/guards/roles';
+import { errorHandler } from '../../common/helpers/error-handler.helper';
+import { GetConfigResponseDto } from './dtos/get-config.dto';
+import { GetConfigResponseModel } from './models/get-config.response.model';
 
-// @ApiTags('Xray Config Controller')
-// @UseFilters(HttpExceptionFilter)
-// @Controller(XRAY_CONFIG_CONTROLLER)
-@Controller('xray-config')
+@ApiTags('Xray Config Controller')
+@UseFilters(HttpExceptionFilter)
+@Controller(XRAY_CONTROLLER)
+// @UseGuards(JwtDefaultGuard, RolesGuard) // ! Turn on when we need auth
 export class XrayConfigController {
     constructor(private readonly xrayConfigService: XrayConfigService) {}
 
-    @Get('123')
-    @ApiOperation({ summary: 'Get Xray Config', description: 'Get xray configuration' })
-    @ApiOkResponse({ description: 'Configuration retrieved successfully' })
-    async getConfig(): Promise<any> {
+    @Get(XRAY_ROUTES.GET_CONFIG)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get Xray Config', description: 'Get Xray Config' })
+    @ApiOkResponse({
+        type: GetConfigResponseDto,
+        description: 'Configuration retrieved successfully',
+    })
+    @ApiBadRequestResponse({ description: ERRORS.GET_CONFIG_ERROR.message })
+    // @Roles(ROLE.ADMIN) // ! Turn on when we need auth
+    async getConfig(): Promise<GetConfigResponseDto> {
         const result = await this.xrayConfigService.getConfig();
-        return result;
+
+        const data = errorHandler(result);
+        return {
+            response: new GetConfigResponseModel(data),
+        };
     }
 
-    // @Get(':uuid')
-    // @ApiOperation({ summary: 'Get Xray Config', description: 'Get xray configuration by UUID' })
-    // @ApiOkResponse({ description: 'Configuration retrieved successfully' })
+    // @Get(KEYGEN_ROUTES.GET)
+    // @HttpCode(HttpStatus.OK)
+    // @ApiOperation({ summary: 'Get Public Key', description: 'Get public key' })
+    // @ApiOkResponse({
+    //     type: [GetPubKeyResponseDto],
+    //     description: 'Access token for further requests',
+    // })
     // @Roles(ROLE.ADMIN)
-    // async getConfig(@Param('uuid') uuid: string) {
-    //     const result = await this.xrayConfigService.getConfig(uuid);
-    //     return errorHandler(result);
+    // async generateKey(): Promise<GetPubKeyResponseDto> {
+    //     const result = await this.keygenService.generateKey();
+
+    //     const data = errorHandler(result);
+    //     return {
+    //         response: new KeygenResponseModel(data),
+    //     };
     // }
 
     // @Put(':uuid')

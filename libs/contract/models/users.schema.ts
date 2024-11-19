@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const UsersSchema = z.object({
     uuid: z.string().uuid(),
-    subUuid: z.string(),
+    subscriptionUuid: z.string().uuid(),
+    shortUuid: z.string(),
     username: z.string(),
 
     status: z.enum(['active', 'disabled', 'limimted', 'expired']).default('active'),

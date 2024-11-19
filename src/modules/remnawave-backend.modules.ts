@@ -8,6 +8,7 @@ import { NodesTrafficUsageHistoryModule } from './nodes-traffic-usage-history/no
 import { NodesUserUsageHistoryModule } from './nodes-user-usage-history/nodes-user-usage-history.module';
 import { NodesUsageHistoryModule } from './nodes-usage-history/nodes-usage-history.module';
 import { XrayConfigModule } from './xray-config';
+import { InboundsModule } from './inbounds/inbounds.module';
 
 @Module({
     imports: [
@@ -19,6 +20,7 @@ import { XrayConfigModule } from './xray-config';
         NodesTrafficUsageHistoryModule,
         NodesUserUsageHistoryModule,
         NodesUsageHistoryModule,
+        InboundsModule,
         XrayConfigModule,
     ],
 })
