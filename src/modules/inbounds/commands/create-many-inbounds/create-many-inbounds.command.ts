@@ -1,3 +1,5 @@
+import { InboundsWithTagsAndType } from '../../interfaces/inboubds-with-tags-and-type.interface';
+
 export class CreateManyInboundsCommand {
-    constructor(public readonly tags: string[]) {}
+    constructor(public readonly inbounds: InboundsWithTagsAndType[]) {}
 }

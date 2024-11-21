@@ -21,6 +21,18 @@ export class NodesRepository implements ICrud<NodesEntity> {
         return this.nodesConverter.fromPrismaModelToEntity(result);
     }
 
+    public async findConnectedNodes(): Promise<NodesEntity[]> {
+        const nodesList = await this.prisma.tx.nodes.findMany({
+            where: {
+                isConnected: true,
+                isXrayRunning: true,
+                isNodeOnline: true,
+                isDisabled: false,
+            },
+        });
+        return this.nodesConverter.fromPrismaModelsToEntities(nodesList);
+    }
+
     public async findByUUID(uuid: string): Promise<NodesEntity | null> {
         const result = await this.prisma.tx.nodes.findUnique({
             where: { uuid },

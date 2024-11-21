@@ -8,16 +8,16 @@ import { ClsModule } from 'nestjs-cls';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { PrismaService } from '@common/database/prisma.service';
+import { AxiosModule } from './common/axios/axios.module';
 
 @Module({
     imports: [
+        AxiosModule,
         ConfigModule.forRoot({
             isGlobal: true,
             envFilePath: '.env',
-
             validate: (config) => validateEnvConfig<Env>(configSchema, config),
         }),
-
         PrismaModule,
         ClsModule.forRoot({
             plugins: [

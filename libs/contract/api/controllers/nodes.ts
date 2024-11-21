@@ -7,6 +7,7 @@ export const NODES_ROUTES = {
 
     DISABLE: 'disable',
     ENABLE: 'enable',
+    RESTART: 'restart',
 
     GET_ALL: 'get-all',
     GET_ONE: 'get-one',

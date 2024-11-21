@@ -1,3 +1,5 @@
+import path from 'node:path';
+import fs from 'node:fs/promises';
 import { Injectable, Logger } from '@nestjs/common';
 import { XrayConfigRepository } from './repositories/xray-config.repository';
 import { ICommandResponse } from '@common/types/command-response.type';
@@ -11,14 +13,13 @@ import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
 import { GetAllInboundsQuery } from '../inbounds/queries/get-all-inbounds';
 import { XRayConfig } from '../../common/helpers/xray-config';
 import { IXrayConfig } from '../../common/helpers/xray-config/interfaces';
-
-import path from 'path';
-import fs from 'fs/promises';
+import { UserForConfigEntity } from '../users/entities/users-for-config';
+import { InboundsWithTagsAndType } from '../inbounds/interfaces/inboubds-with-tags-and-type.interface';
+import { isDevelopment } from '../../common/utils/startup-app';
 
 @Injectable()
 export class XrayConfigService {
     private readonly logger = new Logger(XrayConfigService.name);
-    private readonly isDev: boolean;
     private readonly configPath: string;
 
     constructor(
@@ -27,8 +28,7 @@ export class XrayConfigService {
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus,
     ) {
-        this.isDev = this.configService.get('NODE_ENV') === 'development';
-        this.configPath = this.isDev
+        this.configPath = isDevelopment()
             ? path.join(__dirname, '../../../../configs/xray/config/xray_config.json')
             : path.join('/var/lib/remnawave/configs/xray/config/xray_config.json');
     }
@@ -61,29 +61,6 @@ export class XrayConfigService {
         }
     }
 
-    // public async getConfig(): Promise<ICommandResponse<XrayConfigEntity>> {
-    //     try {
-    //         const config = await this.xrayConfigRepository.findFirst();
-    //         if (!config) {
-    //             return {
-    //                 isOk: false,
-    //                 ...ERRORS.CONFIG_NOT_FOUND,
-    //             };
-    //         }
-
-    //         return {
-    //             isOk: true,
-    //             response: config,
-    //         };
-    //     } catch (error) {
-    //         this.logger.error(error);
-    //         return {
-    //             isOk: false,
-    //             ...ERRORS.GET_CONFIG_ERROR,
-    //         };
-    //     }
-    // }
-
     public async getConfig(): Promise<ICommandResponse<IXrayConfig>> {
         try {
             let config: object | string;
@@ -113,6 +90,32 @@ export class XrayConfigService {
         }
     }
 
+    public async getConfigWithUsers(
+        users: UserForConfigEntity[],
+    ): Promise<ICommandResponse<IXrayConfig>> {
+        try {
+            const config = await this.getConfig();
+            if (!config.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_CONFIG_ERROR,
+                };
+            }
+            const parsedConf = new XRayConfig(config.response);
+            const configWithUsers = parsedConf.prepareConfigForNode(users);
+            return {
+                isOk: true,
+                response: configWithUsers,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.GET_CONFIG_WITH_USERS_ERROR,
+            };
+        }
+    }
+
     public async syncInbounds(): Promise<void> {
         try {
             const config = await this.getConfig();
@@ -122,37 +125,39 @@ export class XrayConfigService {
             }
 
             const parsedConf = new XRayConfig(config.response);
-
-            // const users: UserWithSettings[] = [
-            //     {
-            //         username: 'test',
-            //         password: 'test',
-            //         tag: 'Rex',
-            //     },
-            // ];
-
-            // const configWithUsers = parsedConf.prepareConfigForNode(users);
-            // this.logger.debug(JSON.stringify(configWithUsers, null, 2));
-
-            const configTags = parsedConf.getAllTags();
+            const configInbounds = parsedConf.getAllInbounds();
 
             const existingInbounds = await this.getAllInbounds();
             if (!existingInbounds.isOk || !existingInbounds.response) {
                 throw new Error('Failed to get existing inbounds');
             }
-            const existingTags = existingInbounds.response.map((inbound) => inbound.tag);
 
-            const tagsToRemove = existingTags.filter((tag) => !configTags.includes(tag));
-            const tagsToAdd = configTags.filter((tag) => !existingTags.includes(tag));
+            const inboundsToRemove = existingInbounds.response.filter((existingInbound) => {
+                const configInbound = configInbounds.find((ci) => ci.tag === existingInbound.tag);
+                return !configInbound || configInbound.type !== existingInbound.type;
+            });
 
-            if (tagsToRemove.length > 0) {
+            const inboundsToAdd = configInbounds.filter((configInbound) => {
+                if (!existingInbounds.response) {
+                    return false;
+                }
+                const existingInbound = existingInbounds.response.find(
+                    (ei) => ei.tag === configInbound.tag,
+                );
+                return !existingInbound || existingInbound.type !== configInbound.type;
+            });
+
+            if (inboundsToRemove.length) {
+                const tagsToRemove = inboundsToRemove.map((inbound) => inbound.tag);
                 this.logger.log(`Removing inbounds: ${tagsToRemove.join(', ')}`);
-                await this.deleteManyInbounds(tagsToRemove);
+                await this.deleteManyInbounds({
+                    tags: tagsToRemove,
+                });
             }
 
-            if (tagsToAdd.length > 0) {
-                this.logger.log(`Adding inbounds: ${tagsToAdd.join(', ')}`);
-                await this.createManyInbounds(tagsToAdd);
+            if (inboundsToAdd.length) {
+                this.logger.log(`Adding inbounds: ${inboundsToAdd.map((i) => i.tag).join(', ')}`);
+                await this.createManyInbounds(inboundsToAdd);
             }
 
             this.logger.log('Inbounds synced successfully');
@@ -166,45 +171,19 @@ export class XrayConfigService {
         }
     }
 
-    // private async syncInbounds(config: { inbounds?: { tag: string }[] }): Promise<void> {
-    //     try {
-    //         const configTags = config.inbounds?.map((inbound) => inbound.tag) || [];
-
-    //         const existingInbounds = await this.getAllInbounds();
-    //         if (!existingInbounds.isOk || !existingInbounds.response) {
-    //             throw new Error('Failed to get existing inbounds');
-    //         }
-    //         const existingTags = existingInbounds.response.map((inbound) => inbound.tag);
-
-    //         const tagsToRemove = existingTags.filter((tag) => !configTags.includes(tag));
-    //         const tagsToAdd = configTags.filter((tag) => !existingTags.includes(tag));
-
-    //         if (tagsToRemove.length > 0) {
-    //             this.logger.log(`Removing inbounds: ${tagsToRemove.join(', ')}`);
-    //             await this.deleteManyInbounds(tagsToRemove);
-    //         }
-
-    //         if (tagsToAdd.length > 0) {
-    //             this.logger.log(`Adding inbounds: ${tagsToAdd.join(', ')}`);
-    //             await this.createManyInbounds(tagsToAdd);
-    //         }
-
-    //         this.logger.log('Inbounds synced successfully');
-    //     } catch (error) {
-    //         this.logger.error('Failed to sync inbounds:', error);
-    //         throw error;
-    //     }
-    // }
-
-    private async deleteManyInbounds(tags: string[]): Promise<ICommandResponse<void>> {
+    private async deleteManyInbounds(
+        dto: DeleteManyInboundsCommand,
+    ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<DeleteManyInboundsCommand, ICommandResponse<void>>(
-            new DeleteManyInboundsCommand(tags),
+            new DeleteManyInboundsCommand(dto.tags),
         );
     }
 
-    private async createManyInbounds(tags: string[]): Promise<ICommandResponse<void>> {
+    private async createManyInbounds(
+        inbounds: InboundsWithTagsAndType[],
+    ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<CreateManyInboundsCommand, ICommandResponse<void>>(
-            new CreateManyInboundsCommand(tags),
+            new CreateManyInboundsCommand(inbounds),
         );
     }
 

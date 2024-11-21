@@ -1,27 +1,34 @@
 import { Nodes } from '@prisma/client';
+import { TNodesCycle } from '@contract/constants';
 
 export class NodesEntity implements Nodes {
-    uuid: string;
-    name: string;
-    address: string;
-    port: number | null;
-    isConnected: boolean;
-    isConnecting: boolean;
-    isDisabled: boolean;
-    lastStatusChange: Date | null;
-    lastStatusMessage: string | null;
-    xrayVersion: string | null;
-    isBillTrackingActive: boolean;
-    billDate: Date | null;
-    billCycle: string | null;
-    trafficLimitBytes: number | null;
-    trafficUsedBytes: number | null;
-    notifyPercent: number | null;
-    createdAt: Date;
-    updatedAt: Date;
+    public uuid: string;
+    public name: string;
+    public address: string;
+    public port: number | null;
+    public isConnected: boolean;
+    public isConnecting: boolean;
+    public isDisabled: boolean;
+    public isNodeOnline: boolean;
+    public isXrayRunning: boolean;
+    public lastStatusChange: Date | null;
+    public lastStatusMessage: string | null;
+    public xrayVersion: string | null;
+    public isBillTrackingActive: boolean;
+    public billDate: Date | null;
+    public billCycle: TNodesCycle | null;
+    public trafficLimitBytes: number | null;
+    public trafficUsedBytes: number | null;
+    public notifyPercent: number | null;
+    public createdAt: Date;
+    public updatedAt: Date;
 
     constructor(nodes: Partial<Nodes>) {
         Object.assign(this, nodes);
         return this;
+    }
+
+    public updateStatus(status: Partial<NodesEntity>): void {
+        Object.assign(this, status);
     }
 }

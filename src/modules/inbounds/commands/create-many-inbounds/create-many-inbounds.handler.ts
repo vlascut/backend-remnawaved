@@ -18,7 +18,7 @@ export class CreateManyInboundsHandler
     @Transactional()
     async execute(command: CreateManyInboundsCommand): Promise<ICommandResponse<void>> {
         try {
-            await this.inboundsRepository.createMany(command.tags);
+            await this.inboundsRepository.createMany(command.inbounds);
             return {
                 isOk: true,
             };

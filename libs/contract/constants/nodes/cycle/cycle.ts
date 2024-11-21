@@ -1,6 +1,6 @@
 export const NODES_CYCLE = {
-    MONTH: 'month',
-    YEAR: 'year',
+    MONTH: 'MONTH',
+    YEAR: 'YEAR',
 } as const;
 
 export type TNodesCycle = [keyof typeof NODES_CYCLE][number];

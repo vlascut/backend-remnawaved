@@ -15,7 +15,7 @@ datasource db {
 
 model Users {
   uuid                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscriptionUuid     String  @default(dbgenerated("gen_random_uuid()")) @map("subscription_uuid") @db.Uuid
+  subscriptionUuid     String  @unique @default(dbgenerated("gen_random_uuid()")) @map("subscription_uuid") @db.Uuid
   shortUuid            String  @unique @map("short_uuid")
   username             String  @unique @map("username")
   status               String  @default("active") @map("status") // ENUM: active, disabled, limimted, expired, temporary_blocked
@@ -29,11 +29,15 @@ model Users {
   onlineAt     DateTime? @map("online_at")
   subRevokedAt DateTime? @map("sub_revoked_at")
 
+  trojanPassword String @map("trojan_password")
+  vlessUuid      String @map("vless_uuid") @db.Uuid
+  ssPassword     String @map("ss_password")
+
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   nodesUserUsageHistory NodesUserUsageHistory[]
-  activeProxies         ActiveProxies[]
+  activeUserInbounds    ActiveUserInbounds[]
 
   @@map("users")
 }
@@ -63,13 +67,16 @@ model Keygen {
 
 model Nodes {
   uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name    String @map("name")
-  address String @map("address")
+  name    String @unique @map("name")
+  address String @unique @map("address")
   port    Int?   @map("port")
 
   isConnected  Boolean @default(false) @map("is_connected")
   isConnecting Boolean @default(false) @map("is_connecting")
   isDisabled   Boolean @default(false) @map("is_disabled")
+
+  isNodeOnline  Boolean @default(false) @map("is_node_online")
+  isXrayRunning Boolean @default(false) @map("is_xray_running")
 
   lastStatusChange  DateTime? @map("last_status_change")
   lastStatusMessage String?   @map("last_status_message")
@@ -98,7 +105,7 @@ model NodesTrafficUsageHistory {
   trafficBytes BigInt   @map("traffic_bytes")
   resetAt      DateTime @default(dbgenerated("now()")) @map("reset_at")
 
-  node Nodes @relation(fields: [nodeUuid], references: [uuid])
+  node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
 
   @@map("nodes_traffic_usage_history")
 }
@@ -113,8 +120,8 @@ model NodesUserUsageHistory {
 
   createdAt DateTime @default(dbgenerated("date_trunc('hour', now())")) @map("created_at")
 
-  node Nodes @relation(fields: [nodeUuid], references: [uuid])
-  user Users @relation(fields: [userUuid], references: [uuid])
+  node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
+  user Users @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
 
   @@map("nodes_user_usage_history")
 }
@@ -128,7 +135,7 @@ model NodesUsageHistory {
 
   createdAt DateTime @default(dbgenerated("date_trunc('hour', now())")) @map("created_at")
 
-  node Nodes @relation(fields: [nodeUuid], references: [uuid])
+  node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
 
   @@map("nodes_usage_history")
 }
@@ -144,9 +151,10 @@ model XrayConfig {
 model Inbounds {
   uuid String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tag  String @unique @map("tag")
+  type String @map("type")
 
-  hosts         Hosts[]
-  activeProxies ActiveProxies[]
+  hosts              Hosts[]
+  activeUserInbounds ActiveUserInbounds[]
 
   @@map("inbounds")
 }
@@ -172,7 +180,7 @@ model Hosts {
   @@map("hosts")
 }
 
-model ActiveProxies {
+model ActiveUserInbounds {
   uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userUuid    String @map("user_uuid") @db.Uuid
   inboundUuid String @map("inbound_uuid") @db.Uuid
@@ -180,5 +188,6 @@ model ActiveProxies {
   user    Users    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
   inbound Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 
-  @@map("active_proxies")
+  @@unique([userUuid, inboundUuid])
+  @@map("active_user_inbounds")
 }

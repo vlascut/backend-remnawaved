@@ -10,7 +10,6 @@ export const configSchema = z.object({
     SUPERADMIN_USERNAME: z.string(),
     SUPERADMIN_PASSWORD: z.string(),
     API_PREFIX: z.string().default('api/v1'),
-    NODE_ENV: z.string(),
     JWT_AUTH_SECRET: z.string(),
     TELEGRAM_BOT_TOKEN: z.string(),
     TELEGRAM_HEADERS_SECRET: z.string(),

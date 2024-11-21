@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { InboundsEntity } from '../entities/inbounds.entity';
-import { InboundsConverter } from '../inbounds.converter';
+import { InboundsConverter } from '../converters/inbounds.converter';
 import { ICrud } from '@common/types/crud-port';
+import { InboundsWithTagsAndType } from '../interfaces/inboubds-with-tags-and-type.interface';
 
 @Injectable()
 export class InboundsRepository implements ICrud<InboundsEntity> {
@@ -28,9 +29,9 @@ export class InboundsRepository implements ICrud<InboundsEntity> {
         return result.count;
     }
 
-    public async createMany(tags: string[]): Promise<number> {
+    public async createMany(inbounds: InboundsWithTagsAndType[]): Promise<number> {
         const result = await this.prisma.tx.inbounds.createMany({
-            data: tags.map((tag) => ({ tag })),
+            data: inbounds,
         });
         return result.count;
     }

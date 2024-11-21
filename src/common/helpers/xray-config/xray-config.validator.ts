@@ -1,11 +1,20 @@
 import { readFileSync } from 'fs';
-import { IXrayConfig, InboundSettings, Certificate, UserWithSettings } from './interfaces';
+import {
+    IXrayConfig,
+    CertificateObject as Certificate,
+    InboundObject as Inbound,
+    TrojanSettings,
+    VLessSettings,
+    TCtrXRayConfig,
+} from './interfaces';
+import { UserForConfigEntity } from '../../../modules/users/entities/users-for-config';
+import { InboundsWithTagsAndType } from '../../../modules/inbounds/interfaces/inboubds-with-tags-and-type.interface';
 
 export class XRayConfig {
     private config: IXrayConfig;
-    private inbounds: InboundSettings[] = [];
-    private inboundsByProtocol: Record<string, InboundSettings[]> = {};
-    private inboundsByTag: Record<string, InboundSettings> = {};
+    private inbounds: Inbound[] = [];
+    private inboundsByProtocol: Record<string, Inbound[]> = {};
+    private inboundsByTag: Record<string, Inbound> = {};
     private readonly CONFIG_KEY_ORDER = [
         'log',
         'api',
@@ -23,25 +32,30 @@ export class XRayConfig {
         'burstObservatory',
     ];
 
-    constructor(configInput: string | Record<string, any>) {
-        let config: Record<string, any>;
+    constructor(configInput: TCtrXRayConfig) {
+        this.config = this.prevValidateConfig(configInput);
+        this.validate();
+        this.resolveInbounds();
+    }
+
+    private prevValidateConfig(configInput: TCtrXRayConfig): IXrayConfig {
+        let config: IXrayConfig | undefined;
 
         if (typeof configInput === 'string') {
             try {
-                config = JSON.parse(configInput);
+                config = JSON.parse(configInput) as IXrayConfig;
             } catch (error) {
                 throw new Error('Invalid JSON input or file path.');
             }
         } else if (typeof configInput === 'object') {
-            config = { ...configInput };
+            config = configInput as IXrayConfig;
         } else {
             throw new Error('Invalid configuration format.');
         }
 
-        this.config = config as IXrayConfig;
-        this.validate();
-        this.resolveInbounds();
+        return config;
     }
+
     private validate(): void {
         if (!this.config.inbounds || this.config.inbounds.length === 0) {
             throw new Error("Config doesn't have inbounds.");
@@ -69,10 +83,10 @@ export class XRayConfig {
 
     private resolveInbounds(): void {
         for (const inbound of this.config.inbounds) {
-            const settings: InboundSettings = {
+            const settings: Inbound = {
+                ...inbound,
                 tag: inbound.tag,
                 protocol: inbound.protocol,
-                ...inbound,
             };
 
             this.inbounds.push(settings);
@@ -84,66 +98,46 @@ export class XRayConfig {
         }
     }
 
-    getInbound(tag: string): any {
+    private getInbound(tag: string): any {
         return this.config.inbounds.find((inbound) => inbound.tag === tag);
     }
 
-    getInbounds(): InboundSettings[] {
+    private getInbounds(): Inbound[] {
         return this.inbounds;
     }
 
-    getOutbound(tag: string): any {
+    private getOutbound(tag: string): any {
         return this.config.outbounds.find((outbound) => outbound.tag === tag);
     }
 
-    getConfig(): IXrayConfig {
+    private getConfig(): IXrayConfig {
         return this.config;
     }
 
-    getAllTags(): string[] {
-        return this.inbounds.map((inbound) => inbound.tag);
-    }
-
-    getInboundByProtocol(protocol: string): InboundSettings[] {
+    private getInboundByProtocol(protocol: string): Inbound[] {
         return this.inboundsByProtocol[protocol] || [];
     }
 
-    toJSON(): string {
+    private toJSON(): string {
         return JSON.stringify(this.config, null, 2);
     }
 
-    public includeUsers(users: UserWithSettings[]): IXrayConfig {
-        const config = structuredClone(this.config);
+    private sortObjectByKeys<T extends IXrayConfig>(obj: T): T {
+        const sortedObj = {} as Record<string, unknown>;
 
-        const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
-
-        for (const user of users) {
-            const inbound = inboundMap.get(user.tag);
-            if (!inbound) continue;
-
-            inbound.settings ??= {};
-            inbound.settings.clients ??= [];
-
-            switch (inbound.protocol) {
-                case 'trojan':
-                    inbound.settings.clients.push({
-                        password: user.password,
-                        email: `${user.username}`,
-                    });
-                    break;
-                case 'vless':
-                    inbound.settings.clients.push({
-                        id: user.password,
-                        email: `${user.username}`,
-                        flow: user.flowXtlsVision ? 'xtls-rprx-vision' : '',
-                    });
-                    break;
-                default:
-                    throw new Error(`Protocol ${inbound.protocol} is not supported.`);
+        for (const key of this.CONFIG_KEY_ORDER) {
+            if (key in obj) {
+                sortedObj[key] = obj[key as keyof T];
             }
         }
 
-        return config;
+        for (const key in obj) {
+            if (!(key in sortedObj)) {
+                sortedObj[key] = obj[key];
+            }
+        }
+
+        return sortedObj as T;
     }
 
     private processCertificates(config: IXrayConfig): IXrayConfig {
@@ -189,31 +183,64 @@ export class XRayConfig {
         return newConfig;
     }
 
-    public prepareConfigForNode(users: UserWithSettings[]): IXrayConfig {
-        const configWithUsers = this.includeUsers(users);
-        const configWithCertificatesAndUsers = this.processCertificates(configWithUsers);
-        return configWithCertificatesAndUsers;
+    public getAllInbounds(): InboundsWithTagsAndType[] {
+        return this.inbounds.map((inbound) => ({
+            tag: inbound.tag,
+            type: inbound.protocol,
+        }));
     }
 
-    private sortObjectByKeys<T extends { [key: string]: any }>(obj: T): T {
-        const sortedObj: { [key: string]: any } = {};
+    public includeUsers(users: UserForConfigEntity[]): IXrayConfig {
+        const config = structuredClone(this.config);
 
-        for (const key of this.CONFIG_KEY_ORDER) {
-            if (key in obj) {
-                sortedObj[key] = obj[key];
+        const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
+
+        for (const user of users) {
+            const inbound = inboundMap.get(user.tag);
+            if (!inbound) {
+                continue;
+            }
+
+            inbound.settings ??= {};
+            // inbound.settings.clients ??= [];
+
+            switch (inbound.protocol) {
+                case 'trojan':
+                    (inbound.settings as TrojanSettings).clients ??= [];
+                    (inbound.settings as TrojanSettings).clients.push({
+                        password: user.trojanPassword,
+                        email: `${user.username}`,
+                    });
+                    break;
+                case 'vless':
+                    (inbound.settings as VLessSettings).clients ??= [];
+                    (inbound.settings as VLessSettings).clients.push({
+                        id: user.vlessUuid,
+                        email: `${user.username}`,
+                        flow: 'xtls-rprx-vision',
+                    });
+                    break;
+                // case 'shadowsocks':
+                //     inbound.settings.clients.push({
+                //         password: user.ssPassword,
+                //         email: `${user.username}`,
+                //     });
+                //     break;
+                // TODO: add support for other protocols
+                default:
+                    throw new Error(`Protocol ${inbound.protocol} is not supported.`);
             }
         }
 
-        for (const key in obj) {
-            if (!(key in sortedObj)) {
-                sortedObj[key] = obj[key];
-            }
-        }
+        return config;
+    }
 
-        return sortedObj as T;
+    public prepareConfigForNode(users: UserForConfigEntity[]): IXrayConfig {
+        const configWithUsers = this.includeUsers(users);
+        return this.processCertificates(configWithUsers);
     }
 
     public getSortedConfig(): IXrayConfig {
-        return this.sortObjectByKeys(this.config);
+        return this.sortObjectByKeys<IXrayConfig>(this.config);
     }
 }

@@ -18,9 +18,7 @@ import {
     ApiBody,
     ApiParam,
 } from '@nestjs/swagger';
-
 import { ApiTokensService } from './api-tokens.service';
-
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { API_TOKENS_ROUTES } from '@libs/contracts/api/controllers';
 import { API_TOKENS_CONTROLLER } from '@libs/contracts/api';

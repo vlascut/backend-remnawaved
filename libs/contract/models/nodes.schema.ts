@@ -9,6 +9,8 @@ export const NodesSchema = z.object({
     isConnected: z.boolean().default(false),
     isDisabled: z.boolean().default(false),
     isConnecting: z.boolean().default(false),
+    isNodeOnline: z.boolean().default(false),
+    isXrayRunning: z.boolean().default(false),
     lastStatusChange: z.date().nullable(),
     lastStatusMessage: z.string().nullable(),
     xrayVersion: z.string().nullable(),

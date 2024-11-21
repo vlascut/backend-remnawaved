@@ -24,6 +24,10 @@ const entityToModel = (entity: UserEntity): UserEntity => {
         expireAt: entity.expireAt,
         subRevokedAt: entity.subRevokedAt,
 
+        trojanPassword: entity.trojanPassword,
+        vlessUuid: entity.vlessUuid,
+        ssPassword: entity.ssPassword,
+
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };

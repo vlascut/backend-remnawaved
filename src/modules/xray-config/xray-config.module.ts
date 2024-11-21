@@ -4,11 +4,11 @@ import { XrayConfigConverter } from './xray-config.converter';
 import { XrayConfigRepository } from './repositories/xray-config.repository';
 import { XrayConfigController } from './xray-config.controller';
 import { XrayConfigService } from './xray-config.service';
-
+import { QUERIES } from './queries';
 @Module({
     imports: [CqrsModule],
     controllers: [XrayConfigController],
-    providers: [XrayConfigRepository, XrayConfigConverter, XrayConfigService],
+    providers: [...QUERIES, XrayConfigRepository, XrayConfigConverter, XrayConfigService],
 })
 export class XrayConfigModule implements OnApplicationBootstrap {
     constructor(private readonly xrayConfigService: XrayConfigService) {}

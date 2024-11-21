@@ -1,0 +1,1946 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "Login to the system",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access token for further requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LoginResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "Auth Controller"
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "post": {
+        "description": "Create a new user",
+        "operationId": "UsersController_createUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Create User",
+        "tags": [
+          "Users Controller"
+        ]
+      },
+      "get": {
+        "description": "Get all users",
+        "operationId": "UsersController_getAllUsers",
+        "parameters": [
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Offset of users, default is 0",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Limit of users, default is 10",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllUsersResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Get All Users",
+        "tags": [
+          "Users Controller"
+        ]
+      }
+    },
+    "/api/v1/users/short-uuid/{shortUuid}": {
+      "get": {
+        "description": "Get user by short UUID",
+        "operationId": "UsersController_getUserByShortUuid",
+        "parameters": [
+          {
+            "name": "shortUuid",
+            "required": true,
+            "in": "path",
+            "description": "Short UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserByShortUuidResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Get User By Short UUID",
+        "tags": [
+          "Users Controller"
+        ]
+      }
+    },
+    "/api/v1/users/sub-uuid/{subscriptionUuid}": {
+      "get": {
+        "description": "Get user by subscription UUID",
+        "operationId": "UsersController_getUserBySubscriptionUuid",
+        "parameters": [
+          {
+            "name": "subscriptionUuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the subscription",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserBySubscriptionUuidResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Get User By Subscription UUID",
+        "tags": [
+          "Users Controller"
+        ]
+      }
+    },
+    "/api/v1/users/{uuid}": {
+      "get": {
+        "description": "Get user by UUID",
+        "operationId": "UsersController_getUserByUuid",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserByUuidResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Get User By UUID",
+        "tags": [
+          "Users Controller"
+        ]
+      }
+    },
+    "/api/v1/users/revoke/{uuid}": {
+      "patch": {
+        "description": "Revoke user subscription",
+        "operationId": "UsersController_revokeUserSubscription",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User subscription revoked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeUserSubscriptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Revoke User Subscription",
+        "tags": [
+          "Users Controller"
+        ]
+      }
+    },
+    "/api/v1/users/disable/{uuid}": {
+      "patch": {
+        "description": "Disable user",
+        "operationId": "UsersController_disableUser",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User disabled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisableUserResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Disable User",
+        "tags": [
+          "Users Controller"
+        ]
+      }
+    },
+    "/api/v1/users/enable/{uuid}": {
+      "patch": {
+        "description": "Enable user",
+        "operationId": "UsersController_enableUser",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User enabled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnableUserResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Enable User",
+        "tags": [
+          "Users Controller"
+        ]
+      }
+    },
+    "/api/v1/tokens": {
+      "post": {
+        "operationId": "ApiTokensController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiTokenRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Token created successfully"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Create new API token",
+        "tags": [
+          "API Tokens Management"
+        ]
+      },
+      "get": {
+        "operationId": "ApiTokensController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tokens fetched successfully"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Get all API tokens",
+        "tags": [
+          "API Tokens Management"
+        ]
+      }
+    },
+    "/api/v1/tokens/{uuid}": {
+      "delete": {
+        "operationId": "ApiTokensController_delete",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the API token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token deleted successfully"
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Delete API token",
+        "tags": [
+          "API Tokens Management"
+        ]
+      }
+    },
+    "/api/v1/keygen/get": {
+      "get": {
+        "description": "Get public key",
+        "operationId": "KeygenController_generateKey",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Access token for further requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetPubKeyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Public Key",
+        "tags": [
+          "Keygen Controller"
+        ]
+      }
+    },
+    "/api/v1/keygen/test": {
+      "get": {
+        "operationId": "KeygenController_test",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Keygen Controller"
+        ]
+      }
+    },
+    "/api/v1/nodes/create": {
+      "post": {
+        "description": "Create a new node",
+        "operationId": "NodesController_createNode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNodeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Node created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateNodeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Create Node",
+        "tags": [
+          "Nodes Controller"
+        ]
+      }
+    },
+    "/api/v1/nodes/enable/{uuid}": {
+      "get": {
+        "description": "Enable node to further use",
+        "operationId": "NodesController_enableNode",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "Node UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node enabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnableNodeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Enable Node",
+        "tags": [
+          "Nodes Controller"
+        ]
+      }
+    },
+    "/api/v1/nodes/restart/{uuid}": {
+      "get": {
+        "description": "Restart node",
+        "operationId": "NodesController_restartNode",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "Node UUID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node restarted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RestartNodeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Restart Node",
+        "tags": [
+          "Nodes Controller"
+        ]
+      }
+    },
+    "/api/v1/inbounds": {
+      "get": {
+        "description": "Get inbounds",
+        "operationId": "InboundsController_getInbounds",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Get inbounds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetInboundsResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "summary": "Get Inbounds",
+        "tags": [
+          "Inbounds Controller"
+        ]
+      }
+    },
+    "/api/v1/xray/get-config": {
+      "get": {
+        "description": "Get Xray Config",
+        "operationId": "XrayConfigController_getConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetConfigResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error retrieving configuration"
+          }
+        },
+        "summary": "Get Xray Config",
+        "tags": [
+          "Xray Config Controller"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Remnawave API Schema",
+    "description": "API for Remnawave",
+    "version": "0.0.1",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "Authorization": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "Authorization",
+        "description": "JWT obtained login."
+      }
+    },
+    "schemas": {
+      "LoginRequestDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "accessToken"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "CreateUserRequestDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "maxLength": 32,
+            "minLength": 6
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "ACTIVE",
+              "DISABLED",
+              "LIMITED",
+              "EXPIRED"
+            ],
+            "default": "ACTIVE"
+          },
+          "subscriptionUuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "shortUuid": {
+            "type": "string"
+          },
+          "trafficLimitBytes": {
+            "description": "Traffic limit in bytes. 0 - unlimited",
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false
+          },
+          "trafficLimitStrategy": {
+            "description": "Available reset periods",
+            "type": "string",
+            "enum": [
+              "NO_RESET",
+              "NO_RESET",
+              "DAY",
+              "WEEK",
+              "MONTH",
+              "YEAR"
+            ],
+            "default": "NO_RESET"
+          },
+          "enabledInbounds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "required": [
+                "uuid"
+              ]
+            }
+          },
+          "expireAt": {}
+        },
+        "required": [
+          "username",
+          "trafficLimitStrategy",
+          "expireAt"
+        ]
+      },
+      "CreateUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subscriptionUuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "shortUuid": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ACTIVE",
+                  "DISABLED",
+                  "LIMITED",
+                  "EXPIRED"
+                ],
+                "default": "ACTIVE"
+              },
+              "usedTrafficBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitStrategy": {
+                "description": "Available reset periods",
+                "type": "string",
+                "enum": [
+                  "NO_RESET",
+                  "NO_RESET",
+                  "DAY",
+                  "WEEK",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "default": "NO_RESET"
+              },
+              "subLastUserAgent": {
+                "type": "string",
+                "nullable": true
+              },
+              "subLastIp": {
+                "type": "string",
+                "nullable": true
+              },
+              "expireAt": {},
+              "onlineAt": {
+                "nullable": true
+              },
+              "subRevokedAt": {
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "activeUserInbounds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uuid",
+                    "tag"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "uuid",
+              "subscriptionUuid",
+              "shortUuid",
+              "username",
+              "subLastUserAgent",
+              "subLastIp",
+              "expireAt",
+              "onlineAt",
+              "subRevokedAt",
+              "createdAt",
+              "updatedAt",
+              "activeUserInbounds"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "GetAllUsersResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "subscriptionUuid": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "shortUuid": {
+                  "type": "string"
+                },
+                "username": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ACTIVE",
+                    "ACTIVE",
+                    "DISABLED",
+                    "LIMITED",
+                    "EXPIRED"
+                  ],
+                  "default": "ACTIVE"
+                },
+                "usedTrafficBytes": {
+                  "type": "integer",
+                  "default": 0
+                },
+                "trafficLimitBytes": {
+                  "type": "integer",
+                  "default": 0
+                },
+                "trafficLimitStrategy": {
+                  "description": "Available reset periods",
+                  "type": "string",
+                  "enum": [
+                    "NO_RESET",
+                    "NO_RESET",
+                    "DAY",
+                    "WEEK",
+                    "MONTH",
+                    "YEAR"
+                  ],
+                  "default": "NO_RESET"
+                },
+                "subLastUserAgent": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "subLastIp": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "expireAt": {},
+                "onlineAt": {
+                  "nullable": true
+                },
+                "subRevokedAt": {
+                  "nullable": true
+                },
+                "createdAt": {},
+                "updatedAt": {},
+                "activeUserInbounds": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "tag": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "uuid",
+                      "tag"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "uuid",
+                "subscriptionUuid",
+                "shortUuid",
+                "username",
+                "subLastUserAgent",
+                "subLastIp",
+                "expireAt",
+                "onlineAt",
+                "subRevokedAt",
+                "createdAt",
+                "updatedAt",
+                "activeUserInbounds"
+              ]
+            }
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "GetUserByShortUuidResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subscriptionUuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "shortUuid": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ACTIVE",
+                  "DISABLED",
+                  "LIMITED",
+                  "EXPIRED"
+                ],
+                "default": "ACTIVE"
+              },
+              "usedTrafficBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitStrategy": {
+                "description": "Available reset periods",
+                "type": "string",
+                "enum": [
+                  "NO_RESET",
+                  "NO_RESET",
+                  "DAY",
+                  "WEEK",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "default": "NO_RESET"
+              },
+              "subLastUserAgent": {
+                "type": "string",
+                "nullable": true
+              },
+              "subLastIp": {
+                "type": "string",
+                "nullable": true
+              },
+              "expireAt": {},
+              "onlineAt": {
+                "nullable": true
+              },
+              "subRevokedAt": {
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "activeUserInbounds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uuid",
+                    "tag"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "uuid",
+              "subscriptionUuid",
+              "shortUuid",
+              "username",
+              "subLastUserAgent",
+              "subLastIp",
+              "expireAt",
+              "onlineAt",
+              "subRevokedAt",
+              "createdAt",
+              "updatedAt",
+              "activeUserInbounds"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "GetUserBySubscriptionUuidResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subscriptionUuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "shortUuid": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ACTIVE",
+                  "DISABLED",
+                  "LIMITED",
+                  "EXPIRED"
+                ],
+                "default": "ACTIVE"
+              },
+              "usedTrafficBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitStrategy": {
+                "description": "Available reset periods",
+                "type": "string",
+                "enum": [
+                  "NO_RESET",
+                  "NO_RESET",
+                  "DAY",
+                  "WEEK",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "default": "NO_RESET"
+              },
+              "subLastUserAgent": {
+                "type": "string",
+                "nullable": true
+              },
+              "subLastIp": {
+                "type": "string",
+                "nullable": true
+              },
+              "expireAt": {},
+              "onlineAt": {
+                "nullable": true
+              },
+              "subRevokedAt": {
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "activeUserInbounds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uuid",
+                    "tag"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "uuid",
+              "subscriptionUuid",
+              "shortUuid",
+              "username",
+              "subLastUserAgent",
+              "subLastIp",
+              "expireAt",
+              "onlineAt",
+              "subRevokedAt",
+              "createdAt",
+              "updatedAt",
+              "activeUserInbounds"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "GetUserByUuidResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subscriptionUuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "shortUuid": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ACTIVE",
+                  "DISABLED",
+                  "LIMITED",
+                  "EXPIRED"
+                ],
+                "default": "ACTIVE"
+              },
+              "usedTrafficBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitStrategy": {
+                "description": "Available reset periods",
+                "type": "string",
+                "enum": [
+                  "NO_RESET",
+                  "NO_RESET",
+                  "DAY",
+                  "WEEK",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "default": "NO_RESET"
+              },
+              "subLastUserAgent": {
+                "type": "string",
+                "nullable": true
+              },
+              "subLastIp": {
+                "type": "string",
+                "nullable": true
+              },
+              "expireAt": {},
+              "onlineAt": {
+                "nullable": true
+              },
+              "subRevokedAt": {
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "activeUserInbounds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uuid",
+                    "tag"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "uuid",
+              "subscriptionUuid",
+              "shortUuid",
+              "username",
+              "subLastUserAgent",
+              "subLastIp",
+              "expireAt",
+              "onlineAt",
+              "subRevokedAt",
+              "createdAt",
+              "updatedAt",
+              "activeUserInbounds"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "RevokeUserSubscriptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subscriptionUuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "shortUuid": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ACTIVE",
+                  "DISABLED",
+                  "LIMITED",
+                  "EXPIRED"
+                ],
+                "default": "ACTIVE"
+              },
+              "usedTrafficBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitStrategy": {
+                "description": "Available reset periods",
+                "type": "string",
+                "enum": [
+                  "NO_RESET",
+                  "NO_RESET",
+                  "DAY",
+                  "WEEK",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "default": "NO_RESET"
+              },
+              "subLastUserAgent": {
+                "type": "string",
+                "nullable": true
+              },
+              "subLastIp": {
+                "type": "string",
+                "nullable": true
+              },
+              "expireAt": {},
+              "onlineAt": {
+                "nullable": true
+              },
+              "subRevokedAt": {
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "activeUserInbounds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uuid",
+                    "tag"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "uuid",
+              "subscriptionUuid",
+              "shortUuid",
+              "username",
+              "subLastUserAgent",
+              "subLastIp",
+              "expireAt",
+              "onlineAt",
+              "subRevokedAt",
+              "createdAt",
+              "updatedAt",
+              "activeUserInbounds"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "DisableUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subscriptionUuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "shortUuid": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ACTIVE",
+                  "DISABLED",
+                  "LIMITED",
+                  "EXPIRED"
+                ],
+                "default": "ACTIVE"
+              },
+              "usedTrafficBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitStrategy": {
+                "description": "Available reset periods",
+                "type": "string",
+                "enum": [
+                  "NO_RESET",
+                  "NO_RESET",
+                  "DAY",
+                  "WEEK",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "default": "NO_RESET"
+              },
+              "subLastUserAgent": {
+                "type": "string",
+                "nullable": true
+              },
+              "subLastIp": {
+                "type": "string",
+                "nullable": true
+              },
+              "expireAt": {},
+              "onlineAt": {
+                "nullable": true
+              },
+              "subRevokedAt": {
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "activeUserInbounds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uuid",
+                    "tag"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "uuid",
+              "subscriptionUuid",
+              "shortUuid",
+              "username",
+              "subLastUserAgent",
+              "subLastIp",
+              "expireAt",
+              "onlineAt",
+              "subRevokedAt",
+              "createdAt",
+              "updatedAt",
+              "activeUserInbounds"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "EnableUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subscriptionUuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "shortUuid": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ACTIVE",
+                  "DISABLED",
+                  "LIMITED",
+                  "EXPIRED"
+                ],
+                "default": "ACTIVE"
+              },
+              "usedTrafficBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "default": 0
+              },
+              "trafficLimitStrategy": {
+                "description": "Available reset periods",
+                "type": "string",
+                "enum": [
+                  "NO_RESET",
+                  "NO_RESET",
+                  "DAY",
+                  "WEEK",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "default": "NO_RESET"
+              },
+              "subLastUserAgent": {
+                "type": "string",
+                "nullable": true
+              },
+              "subLastIp": {
+                "type": "string",
+                "nullable": true
+              },
+              "expireAt": {},
+              "onlineAt": {
+                "nullable": true
+              },
+              "subRevokedAt": {
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "activeUserInbounds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "uuid",
+                    "tag"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "uuid",
+              "subscriptionUuid",
+              "shortUuid",
+              "username",
+              "subLastUserAgent",
+              "subLastIp",
+              "expireAt",
+              "onlineAt",
+              "subRevokedAt",
+              "createdAt",
+              "updatedAt",
+              "activeUserInbounds"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "CreateApiTokenRequestDto": {
+        "type": "object",
+        "properties": {
+          "tokenName": {
+            "type": "string"
+          },
+          "tokenDescription": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "tokenName",
+          "tokenDescription"
+        ]
+      },
+      "GetPubKeyResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "pubKey": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "pubKey"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "CreateNodeRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 5
+          },
+          "address": {
+            "type": "string",
+            "minLength": 2
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false
+          },
+          "isBillTrackingActive": {
+            "type": "boolean",
+            "default": false
+          },
+          "trafficLimitBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false
+          },
+          "notifyPercent": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false
+          },
+          "billDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "billCycle": {
+            "description": "Bill cycle",
+            "type": "string",
+            "enum": [
+              "MONTH",
+              "MONTH",
+              "YEAR"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "address",
+          "billCycle"
+        ]
+      },
+      "CreateNodeResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "port": {
+                "type": "integer",
+                "nullable": true
+              },
+              "isConnected": {
+                "type": "boolean",
+                "default": false
+              },
+              "isDisabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "isConnecting": {
+                "type": "boolean",
+                "default": false
+              },
+              "isNodeOnline": {
+                "type": "boolean",
+                "default": false
+              },
+              "isXrayRunning": {
+                "type": "boolean",
+                "default": false
+              },
+              "lastStatusChange": {
+                "nullable": true
+              },
+              "lastStatusMessage": {
+                "type": "string",
+                "nullable": true
+              },
+              "xrayVersion": {
+                "type": "string",
+                "nullable": true
+              },
+              "isBillTrackingActive": {
+                "type": "boolean",
+                "default": false
+              },
+              "billDate": {
+                "nullable": true
+              },
+              "billCycle": {
+                "type": "string",
+                "enum": [
+                  "MONTH",
+                  "MONTH",
+                  "YEAR"
+                ],
+                "nullable": true
+              },
+              "trafficLimitBytes": {
+                "type": "integer",
+                "nullable": true
+              },
+              "trafficUsedBytes": {
+                "type": "integer",
+                "nullable": true
+              },
+              "notifyPercent": {
+                "type": "integer",
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {}
+            },
+            "required": [
+              "uuid",
+              "name",
+              "address",
+              "port",
+              "lastStatusChange",
+              "lastStatusMessage",
+              "xrayVersion",
+              "billDate",
+              "billCycle",
+              "trafficLimitBytes",
+              "trafficUsedBytes",
+              "notifyPercent",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "EnableNodeResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "isDisabled": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "required": [
+              "uuid"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "RestartNodeResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "eventSent": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "eventSent"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "GetInboundsResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tag": {
+                  "type": "string"
+                },
+                "uuid": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "required": [
+                "tag",
+                "uuid"
+              ]
+            }
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "GetConfigResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "config": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "config"
+            ]
+          }
+        },
+        "required": [
+          "response"
+        ]
+      }
+    }
+  }
+}

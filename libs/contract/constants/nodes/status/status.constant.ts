@@ -1,7 +1,7 @@
 export const NODES_STATUS = {
-    CONNECTED: 'connected',
-    DISCONNECTED: 'disconnected',
-    DISABLED: 'disabled',
+    CONNECTED: 'CONNECTED',
+    DISCONNECTED: 'DISCONNECTED',
+    DISABLED: 'DISABLED',
 } as const;
 
 export type TNodesStatus = [keyof typeof NODES_STATUS][number];

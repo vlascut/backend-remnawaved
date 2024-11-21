@@ -4,9 +4,12 @@ import { ICrud } from '@common/types/crud-port';
 import { UserConverter } from '../users.converter';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
+import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
+import { UserForConfigEntity } from '../entities/users-for-config';
+import { USERS_STATUS } from '../../../../libs/contract';
 
 @Injectable()
-export class UserRepository implements ICrud<UserEntity> {
+export class UsersRepository implements ICrud<UserEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly userConverter: UserConverter,
@@ -19,6 +22,198 @@ export class UserRepository implements ICrud<UserEntity> {
         });
 
         return this.userConverter.fromPrismaModelToEntity(result);
+    }
+
+    public async getUserWithActiveInbounds(
+        uuid: string,
+    ): Promise<UserWithActiveInboundsEntity | null> {
+        const result = await this.prisma.tx.users.findUnique({
+            where: { uuid },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsEntity(result);
+    }
+
+    public async getUsersForConfig(): Promise<UserForConfigEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            where: {
+                status: USERS_STATUS.ACTIVE,
+            },
+            select: {
+                subscriptionUuid: true,
+                username: true,
+                trojanPassword: true,
+                vlessUuid: true,
+                ssPassword: true,
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                tag: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return result.flatMap((user) =>
+            user.activeUserInbounds.map(
+                (activeInbound) =>
+                    new UserForConfigEntity({
+                        subscriptionUuid: user.subscriptionUuid,
+                        username: user.username,
+                        trojanPassword: user.trojanPassword,
+                        vlessUuid: user.vlessUuid,
+                        ssPassword: user.ssPassword,
+                        tag: activeInbound.inbound.tag,
+                    }),
+            ),
+        );
+    }
+
+    public async getAllUsersWithActiveInbounds(): Promise<UserWithActiveInboundsEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
+    public async getAllUsersWithActiveInboundsWithPagination(
+        limit: number,
+        offset: number,
+    ): Promise<UserWithActiveInboundsEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            skip: offset,
+            take: limit,
+            orderBy: {
+                createdAt: 'asc',
+            },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
+    public async getUserByShortUuid(
+        shortUuid: string,
+    ): Promise<UserWithActiveInboundsEntity | null> {
+        const result = await this.prisma.tx.users.findUnique({
+            where: { shortUuid },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsEntity(result);
+    }
+
+    public async getUserByUUID(uuid: string): Promise<UserWithActiveInboundsEntity | null> {
+        const result = await this.prisma.tx.users.findUnique({
+            where: { uuid },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsEntity(result);
+    }
+
+    public async getUserBySubscriptionUuid(
+        subscriptionUuid: string,
+    ): Promise<UserWithActiveInboundsEntity | null> {
+        const result = await this.prisma.tx.users.findUnique({
+            where: { subscriptionUuid },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsEntity(result);
     }
 
     public async findByUUID(uuid: string): Promise<UserEntity | null> {
@@ -40,6 +235,34 @@ export class UserRepository implements ICrud<UserEntity> {
         });
 
         return this.userConverter.fromPrismaModelToEntity(result);
+    }
+
+    public async updateUserWithActiveInbounds({
+        uuid,
+        ...data
+    }: Partial<UserWithActiveInboundsEntity>): Promise<UserWithActiveInboundsEntity> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { activeUserInbounds: _, ...updateData } = data;
+
+        const result = await this.prisma.tx.users.update({
+            where: { uuid },
+            data: updateData,
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return new UserWithActiveInboundsEntity(result);
     }
 
     public async findByCriteria(dto: Partial<UserEntity>): Promise<UserEntity[]> {
