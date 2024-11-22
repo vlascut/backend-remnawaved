@@ -17,6 +17,8 @@ import {
     RemoveUserCommand,
     GetInboundUsersCommand,
     GetInboundUsersCountCommand,
+    GetAllInboundsStatsCommand,
+    GetAllOutboundsStatsCommand,
 } from '@remnawave/node-contract';
 
 @Injectable()
@@ -56,20 +58,6 @@ export class AxiosService implements OnApplicationBootstrap {
         );
     }
 
-    private sanitizeErrorForLogs(error: unknown): unknown {
-        if (error instanceof AxiosError) {
-            const sanitizedError = { ...error };
-            if (sanitizedError.config?.headers) {
-                sanitizedError.config.headers = new axios.AxiosHeaders({
-                    ...sanitizedError.config.headers,
-                    Authorization: '[REDACTED]',
-                });
-            }
-            return sanitizedError;
-        }
-        return error;
-    }
-
     private getNodeUrl(url: string, path: string, port: number | null): string {
         const protocol = port ? 'http' : 'https';
         const portSuffix = port ? `:${port}` : '';
@@ -99,10 +87,10 @@ export class AxiosService implements OnApplicationBootstrap {
             };
         } catch (error) {
             if (error instanceof AxiosError) {
-                this.logger.error(
-                    'Error in Axios StartXray Request:',
-                    JSON.stringify(error.message),
-                );
+                // this.logger.error(
+                //     'Error in Axios StartXray Request:',
+                //     JSON.stringify(error.message),
+                // );
 
                 return {
                     isOk: false,
@@ -245,26 +233,36 @@ export class AxiosService implements OnApplicationBootstrap {
             };
         } catch (error) {
             if (error instanceof AxiosError) {
-                this.logger.error('Error in getUsersStats:', error.response?.data);
-            } else {
-                this.logger.error('Error in getUsersStats:', error);
-            }
+                this.logger.error(`Error in Axios getUsersStats: ${error.message}`);
 
-            return {
-                isOk: false,
-                ...ERRORS.INTERNAL_SERVER_ERROR,
-            };
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
+                };
+            } else {
+                this.logger.error('Error in getXrayStatus:', error);
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(
+                        JSON.stringify(error) ?? 'Unknown error',
+                    ),
+                };
+            }
         }
     }
 
     public async getSystemStats(
         url: string,
         port: number | null,
+        timeout: number = 10000,
     ): Promise<ICommandResponse<GetSystemStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetSystemStatsCommand.url, port);
 
         try {
-            const response = await this.axiosInstance.get<GetSystemStatsCommand.Response>(nodeUrl);
+            const response = await this.axiosInstance.get<GetSystemStatsCommand.Response>(nodeUrl, {
+                timeout,
+            });
 
             return {
                 isOk: true,
@@ -272,15 +270,31 @@ export class AxiosService implements OnApplicationBootstrap {
             };
         } catch (error) {
             if (error instanceof AxiosError) {
-                this.logger.error('Error in getSystemStats:', error.response?.data);
-            } else {
-                this.logger.error('Error in getSystemStats:', error);
-            }
+                // this.logger.error(`Error in axios request: ${JSON.stringify(error.message)}`);
 
-            return {
-                isOk: false,
-                ...ERRORS.INTERNAL_SERVER_ERROR,
-            };
+                if (error.code === '500') {
+                    return {
+                        isOk: false,
+                        ...ERRORS.NODE_ERROR_500_WITH_MSG.withMessage(
+                            JSON.stringify(error.message),
+                        ),
+                    };
+                }
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
+                };
+            } else {
+                this.logger.error('Error in getXrayStatus:', error);
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(
+                        JSON.stringify(error) ?? 'Unknown error',
+                    ),
+                };
+            }
         }
     }
 
@@ -312,6 +326,104 @@ export class AxiosService implements OnApplicationBootstrap {
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,
             };
+        }
+    }
+
+    public async getAllInboundStats(
+        data: GetAllInboundsStatsCommand.Request,
+        url: string,
+        port: number | null,
+        timeout: number = 10000,
+    ): Promise<ICommandResponse<GetAllInboundsStatsCommand.Response>> {
+        const nodeUrl = this.getNodeUrl(url, GetAllInboundsStatsCommand.url, port);
+
+        try {
+            const response = await this.axiosInstance.post<GetAllInboundsStatsCommand.Response>(
+                nodeUrl,
+                data,
+                { timeout },
+            );
+
+            return {
+                isOk: true,
+                response: response.data,
+            };
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                // this.logger.error(`Error in axios request: ${JSON.stringify(error.message)}`);
+
+                if (error.code === '500') {
+                    return {
+                        isOk: false,
+                        ...ERRORS.NODE_ERROR_500_WITH_MSG.withMessage(
+                            JSON.stringify(error.message),
+                        ),
+                    };
+                }
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
+                };
+            } else {
+                this.logger.error('Error in getXrayStatus:', error);
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(
+                        JSON.stringify(error) ?? 'Unknown error',
+                    ),
+                };
+            }
+        }
+    }
+
+    public async getAllOutboundStats(
+        data: GetAllOutboundsStatsCommand.Request,
+        url: string,
+        port: number | null,
+        timeout: number = 10000,
+    ): Promise<ICommandResponse<GetAllOutboundsStatsCommand.Response>> {
+        const nodeUrl = this.getNodeUrl(url, GetAllOutboundsStatsCommand.url, port);
+
+        try {
+            const response = await this.axiosInstance.post<GetAllOutboundsStatsCommand.Response>(
+                nodeUrl,
+                data,
+                { timeout },
+            );
+
+            return {
+                isOk: true,
+                response: response.data,
+            };
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                // this.logger.error(`Error in axios request: ${JSON.stringify(error.message)}`);
+
+                if (error.code === '500') {
+                    return {
+                        isOk: false,
+                        ...ERRORS.NODE_ERROR_500_WITH_MSG.withMessage(
+                            JSON.stringify(error.message),
+                        ),
+                    };
+                }
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
+                };
+            } else {
+                this.logger.error('Error in getXrayStatus:', error);
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(
+                        JSON.stringify(error) ?? 'Unknown error',
+                    ),
+                };
+            }
         }
     }
 

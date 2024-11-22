@@ -27,7 +27,7 @@ export class GetPreparedConfigWithUsersHandler
             }
 
             const config = await this.xrayService.getConfigWithUsers(users.response);
-            this.logger.log(JSON.stringify(config.response, null, 2));
+
             return {
                 isOk: true,
                 response: config.response,

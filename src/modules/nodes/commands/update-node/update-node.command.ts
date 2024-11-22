@@ -1,5 +1,5 @@
 import { NodesEntity } from '../../entities/nodes.entity';
 
-export class NodeCreatedEvent {
+export class UpdateNodeCommand {
     constructor(public readonly node: NodesEntity) {}
 }

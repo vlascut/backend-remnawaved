@@ -27,6 +27,7 @@ import {
     CreateNodeRequestDto,
     CreateNodeResponseDto,
     EnableNodeResponseDto,
+    RestartAllNodesResponseDto,
     RestartNodeResponseDto,
 } from './dtos';
 import { EnableNodeRequestParamDto } from './dtos';
@@ -90,6 +91,21 @@ export class NodesController {
     @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
     async restartNode(@Param() uuid: EnableNodeRequestParamDto): Promise<RestartNodeResponseDto> {
         const res = await this.nodesService.restartNode(uuid.uuid);
+        const data = errorHandler(res);
+        return {
+            response: data,
+        };
+    }
+
+    @Get(NODES_ROUTES.RESTART_ALL)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Restart All Nodes', description: 'Restart all nodes' })
+    @ApiOkResponse({
+        type: [RestartNodeResponseDto],
+        description: 'Node restarted',
+    })
+    async restartAllNodes(): Promise<RestartAllNodesResponseDto> {
+        const res = await this.nodesService.restartAllNodes();
         const data = errorHandler(res);
         return {
             response: data,

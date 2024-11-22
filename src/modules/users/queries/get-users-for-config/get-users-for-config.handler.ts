@@ -16,7 +16,7 @@ export class GetUsersForConfigHandler
     async execute(): Promise<ICommandResponse<UserForConfigEntity[]>> {
         try {
             const users = await this.usersRepository.getUsersForConfig();
-            this.logger.debug(users);
+
             return {
                 isOk: true,
                 response: users,

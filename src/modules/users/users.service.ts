@@ -12,6 +12,8 @@ import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { UserWithActiveInboundsEntity } from './entities/user-with-active-inbounds.entity';
 import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
 import { Transactional } from '@nestjs-cls/transactional';
+import { DeleteUserResponseModel } from './models/delete-user.response.model';
+import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);
@@ -63,7 +65,7 @@ export class UsersService {
                 vlessUuid: vlessUuid || this.createUuid(),
                 ssPassword: ssPassword || this.createTrojanPassword(),
                 status,
-                trafficLimitBytes,
+                trafficLimitBytes: BigInt(trafficLimitBytes || 0),
                 trafficLimitStrategy,
                 expireAt: new Date(expireAt),
             });
@@ -242,6 +244,7 @@ export class UsersService {
             user.trojanPassword = this.createTrojanPassword();
             user.vlessUuid = this.createUuid();
             user.ssPassword = this.createTrojanPassword();
+            user.subRevokedAt = new Date();
 
             await this.userRepository.updateUserWithActiveInbounds(user);
 
@@ -258,6 +261,30 @@ export class UsersService {
                 isOk: false,
                 ...ERRORS.REVOKE_USER_SUBSCRIPTION_ERROR,
             };
+        }
+    }
+
+    public async deleteUser(userUuid: string): Promise<ICommandResponse<DeleteUserResponseModel>> {
+        try {
+            const user = await this.userRepository.getUserByUUID(userUuid);
+            if (!user) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+            const result = await this.userRepository.deleteByUUID(user.uuid);
+
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user));
+
+            return {
+                isOk: true,
+                response: new DeleteUserResponseModel(result),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            this.logger.error(JSON.stringify(error));
+            return { isOk: false, ...ERRORS.DELETE_USER_ERROR };
         }
     }
 

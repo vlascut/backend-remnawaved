@@ -4,6 +4,7 @@ import { NodesUserUsageHistoryConverter } from './nodes-user-usage-history.conve
 import { NodesUserUsageHistoryRepository } from './repositories/nodes-user-usage-history.repository';
 import { NodesUserUsageHistoryController } from './nodes-user-usage-history.controller';
 import { NodesUserUsageHistoryService } from './nodes-user-usage-history.service';
+import { COMMANDS } from './commands';
 
 @Module({
     imports: [CqrsModule],
@@ -12,6 +13,7 @@ import { NodesUserUsageHistoryService } from './nodes-user-usage-history.service
         NodesUserUsageHistoryRepository,
         NodesUserUsageHistoryConverter,
         NodesUserUsageHistoryService,
+        ...COMMANDS,
     ],
 })
 export class NodesUserUsageHistoryModule {}

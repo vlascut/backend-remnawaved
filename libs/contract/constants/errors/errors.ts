@@ -155,6 +155,16 @@ export const ERRORS = {
             httpCode: 500,
         }),
     },
+    NODE_ERROR_500_WITH_MSG: {
+        code: 'N002',
+        message: '',
+        httpCode: 500,
+        withMessage: (message: string) => ({
+            code: 'N002',
+            message,
+            httpCode: 500,
+        }),
+    },
     RESTART_NODE_ERROR: {
         code: 'A035',
         message: 'Restart node error',
@@ -163,6 +173,26 @@ export const ERRORS = {
     GET_CONFIG_WITH_USERS_ERROR: {
         code: 'A036',
         message: 'Get config with users error',
+        httpCode: 500,
+    },
+    DELETE_USER_ERROR: {
+        code: 'A037',
+        message: 'Delete user error',
+        httpCode: 500,
+    },
+    UPDATE_NODE_ERROR: {
+        code: 'A038',
+        message: 'Update node error',
+        httpCode: 500,
+    },
+    UPDATE_USER_ERROR: {
+        code: 'A039',
+        message: 'Update user error',
+        httpCode: 500,
+    },
+    INCREMENT_USED_TRAFFIC_ERROR: {
+        code: 'A040',
+        message: 'Increment used traffic error',
         httpCode: 500,
     },
 } as const;

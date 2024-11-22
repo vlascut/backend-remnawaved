@@ -9,4 +9,5 @@ export const USERS_ROUTES = {
     REVOKE_SUBSCRIPTION: '/revoke/:uuid',
     DISABLE_USER: '/disable/:uuid',
     ENABLE_USER: '/enable/:uuid',
+    DELETE_USER: '/delete/:uuid',
 } as const;

@@ -21,6 +21,10 @@ export const NodesSchema = z.object({
     trafficUsedBytes: z.number().int().nullable(),
     notifyPercent: z.number().int().nullable(),
 
+    cpuCount: z.number().int().nullable(),
+    cpuModel: z.string().nullable(),
+    totalRam: z.string().nullable(),
+
     createdAt: z.date(),
     updatedAt: z.date(),
 });

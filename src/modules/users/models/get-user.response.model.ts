@@ -18,6 +18,7 @@ export class GetUserResponseModel {
     public readonly subLastIp: string | null;
     public readonly onlineAt: Date | null;
     public readonly subRevokedAt: Date | null;
+    public readonly lastTrafficResetAt: Date | null;
     public readonly trojanPassword: string;
     public readonly vlessUuid: string;
     public readonly ssPassword: string;
@@ -32,13 +33,14 @@ export class GetUserResponseModel {
         this.createdAt = entity.createdAt;
         this.updatedAt = entity.updatedAt;
         this.subscriptionUuid = entity.subscriptionUuid;
-        this.usedTrafficBytes = entity.usedTrafficBytes;
-        this.trafficLimitBytes = entity.trafficLimitBytes;
+        this.usedTrafficBytes = Number(entity.usedTrafficBytes);
+        this.trafficLimitBytes = Number(entity.trafficLimitBytes);
         this.trafficLimitStrategy = entity.trafficLimitStrategy;
         this.subLastUserAgent = entity.subLastUserAgent;
         this.subLastIp = entity.subLastIp;
         this.onlineAt = entity.onlineAt;
         this.subRevokedAt = entity.subRevokedAt;
+        this.lastTrafficResetAt = entity.lastTrafficResetAt;
         this.activeUserInbounds = entity.activeUserInbounds;
         this.trojanPassword = entity.trojanPassword;
         this.vlessUuid = entity.vlessUuid;

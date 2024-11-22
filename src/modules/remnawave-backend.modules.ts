@@ -9,6 +9,8 @@ import { NodesUserUsageHistoryModule } from './nodes-user-usage-history/nodes-us
 import { NodesUsageHistoryModule } from './nodes-usage-history/nodes-usage-history.module';
 import { XrayConfigModule } from './xray-config';
 import { InboundsModule } from './inbounds/inbounds.module';
+import { JobsModule } from './jobs/jobs.module';
+import { UserTrafficHistoryModule } from './user-traffic-history/user-traffic-history.module';
 
 @Module({
     imports: [
@@ -18,10 +20,12 @@ import { InboundsModule } from './inbounds/inbounds.module';
         KeygenModule,
         NodesModule,
         NodesTrafficUsageHistoryModule,
+        UserTrafficHistoryModule,
         NodesUserUsageHistoryModule,
         NodesUsageHistoryModule,
         InboundsModule,
         XrayConfigModule,
+        JobsModule,
     ],
 })
 export class RemnawaveModules {}

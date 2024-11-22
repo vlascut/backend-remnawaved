@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Delete,
     Get,
     HttpCode,
     HttpStatus,
@@ -17,6 +18,8 @@ import { errorHandler } from '@common/helpers/error-handler.helper';
 import {
     CreateUserRequestDto,
     CreateUserResponseDto,
+    DeleteUserRequestDto,
+    DeleteUserResponseDto,
     DisableUserRequestDto,
     DisableUserResponseDto,
     EnableUserRequestDto,
@@ -233,6 +236,29 @@ export class UsersController {
         const data = errorHandler(result);
         return {
             response: new GetUserResponseModel(data),
+        };
+    }
+
+    @Delete(USERS_ROUTES.DELETE_USER)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Delete User',
+        description: 'Delete user',
+    })
+    @ApiOkResponse({
+        type: DeleteUserResponseDto,
+        description: 'User deleted successfully',
+    })
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    async deleteUser(@Param() paramData: DeleteUserRequestDto): Promise<DeleteUserResponseDto> {
+        const result = await this.usersService.deleteUser(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
         };
     }
 

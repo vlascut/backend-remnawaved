@@ -9,6 +9,8 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { PrismaService } from '@common/database/prisma.service';
 import { AxiosModule } from './common/axios/axios.module';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
     imports: [
@@ -31,6 +33,7 @@ import { AxiosModule } from './common/axios/axios.module';
             global: true,
             middleware: { mount: true },
         }),
+        ScheduleModule.forRoot(),
         RemnawaveModules,
     ],
 })

@@ -25,6 +25,7 @@ export const UsersSchema = z.object({
     expireAt: z.date(),
     onlineAt: z.date().nullable(),
     subRevokedAt: z.date().nullable(),
+    lastTrafficResetAt: z.date().nullable(),
 
     trojanPassword: z.string(),
     vlessUuid: z.string().uuid(),

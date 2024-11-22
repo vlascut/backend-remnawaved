@@ -5,7 +5,7 @@ import { RestartNodeResponseModel } from './models';
 import { ERRORS } from '@contract/constants';
 import { NodesEntity } from './entities/nodes.entity';
 import { CreateNodeRequestDto } from './dtos';
-import { NodeCreatedEvent } from './events/node-created';
+import { StartNodeEvent } from './events/start-node';
 import { EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
 
@@ -31,7 +31,7 @@ export class NodesService {
             const result = await this.nodesRepository.create(nodeEntity);
 
             // ! TODO: emit node created event
-            this.eventBus.publish(new NodeCreatedEvent(result));
+            this.eventBus.publish(new StartNodeEvent(result));
 
             return {
                 isOk: true,
@@ -68,7 +68,36 @@ export class NodesService {
                 };
             }
 
-            this.eventBus.publish(new NodeCreatedEvent(node));
+            this.eventBus.publish(new StartNodeEvent(node));
+
+            return {
+                isOk: true,
+                response: new RestartNodeResponseModel(true),
+            };
+        } catch (error) {
+            this.logger.error(JSON.stringify(error));
+            return {
+                isOk: false,
+                ...ERRORS.RESTART_NODE_ERROR,
+            };
+        }
+    }
+
+    public async restartAllNodes(): Promise<ICommandResponse<RestartNodeResponseModel>> {
+        try {
+            const nodes = await this.nodesRepository.findByCriteria({
+                isDisabled: false,
+            });
+            if (nodes.length === 0) {
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_NOT_FOUND,
+                };
+            }
+
+            nodes.forEach((node) => {
+                this.eventBus.publish(new StartNodeEvent(node));
+            });
 
             return {
                 isOk: true,

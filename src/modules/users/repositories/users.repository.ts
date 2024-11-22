@@ -6,7 +6,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { UserForConfigEntity } from '../entities/users-for-config';
-import { USERS_STATUS } from '../../../../libs/contract';
+import { TUsersStatus, USERS_STATUS } from '@contract/constants';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -22,6 +22,58 @@ export class UsersRepository implements ICrud<UserEntity> {
         });
 
         return this.userConverter.fromPrismaModelToEntity(result);
+    }
+
+    public async incrementUsedTraffic(userUuid: string, bytes: bigint): Promise<void> {
+        await this.prisma.tx.users.update({
+            where: { uuid: userUuid },
+            data: { usedTrafficBytes: { increment: bytes }, onlineAt: new Date() },
+        });
+    }
+
+    public async changeUserStatus(userUuid: string, status: TUsersStatus): Promise<void> {
+        await this.prisma.tx.users.update({
+            where: { uuid: userUuid },
+            data: { status },
+        });
+    }
+
+    public async updateStatusAndTrafficAndResetAt(
+        userUuid: string,
+        lastResetAt: Date,
+        status?: TUsersStatus,
+    ): Promise<void> {
+        await this.prisma.tx.users.update({
+            where: { uuid: userUuid },
+            data: { lastTrafficResetAt: lastResetAt, status, usedTrafficBytes: 0 },
+        });
+    }
+
+    public async findUserByUsername(
+        username: string,
+    ): Promise<UserWithActiveInboundsEntity | null> {
+        const result = await this.prisma.tx.users.findUnique({
+            where: { username },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsEntity(result);
     }
 
     public async getUserWithActiveInbounds(
@@ -49,6 +101,28 @@ export class UsersRepository implements ICrud<UserEntity> {
         }
 
         return new UserWithActiveInboundsEntity(result);
+    }
+
+    public async findAllActiveUsers(): Promise<UserWithActiveInboundsEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            where: {
+                status: USERS_STATUS.ACTIVE,
+            },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
     public async getUsersForConfig(): Promise<UserForConfigEntity[]> {

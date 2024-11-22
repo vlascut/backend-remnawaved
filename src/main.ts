@@ -7,6 +7,7 @@ import { initLogs } from './common/utils/startup-app/init-log.util';
 import { isDevelopment } from './common/utils/startup-app/is-development';
 import { getSwagger } from './common/utils/startup-app/swagger';
 import morgan from 'morgan';
+import compression from 'compression';
 
 patchNestJsSwagger();
 
@@ -18,7 +19,8 @@ async function bootstrap(): Promise<void> {
     const config = app.get(ConfigService);
 
     app.use(helmet());
-    app.use(morgan('combined'));
+    app.use(compression());
+    app.use(morgan('short'));
 
     app.setGlobalPrefix(config.getOrThrow<string>('API_PREFIX'));
     app.enableCors({

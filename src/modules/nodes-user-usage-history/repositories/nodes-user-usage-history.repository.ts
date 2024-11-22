@@ -21,6 +21,35 @@ export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHist
         return this.converter.fromPrismaModelToEntity(result);
     }
 
+    public async upsertUsageHistory(
+        entity: NodesUserUsageHistoryEntity,
+    ): Promise<NodesUserUsageHistoryEntity> {
+        const model = this.converter.fromEntityToPrismaModel(entity);
+        const result = await this.prisma.tx.nodesUserUsageHistory.upsert({
+            create: model,
+            update: {
+                downloadBytes: {
+                    increment: model.downloadBytes,
+                },
+                uploadBytes: {
+                    increment: model.uploadBytes,
+                },
+                totalBytes: {
+                    increment: model.totalBytes,
+                },
+            },
+            where: {
+                nodeUuid_userUuid_createdAt: {
+                    nodeUuid: entity.nodeUuid,
+                    userUuid: entity.userUuid,
+                    createdAt: entity.createdAt,
+                },
+            },
+        });
+
+        return this.converter.fromPrismaModelToEntity(result);
+    }
+
     public async findByUUID(uuid: string): Promise<NodesUserUsageHistoryEntity | null> {
         const result = await this.prisma.tx.nodesUserUsageHistory.findUnique({
             where: { uuid },

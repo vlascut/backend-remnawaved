@@ -1,4 +1,5 @@
 export * from './create-user.command';
+export * from './delete-user.command';
 export * from './disable-user.command.ts';
 export * from './enable-user.command';
 export * from './get-all-users.command';

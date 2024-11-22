@@ -14,12 +14,18 @@ export class NodesEntity implements Nodes {
     public lastStatusChange: Date | null;
     public lastStatusMessage: string | null;
     public xrayVersion: string | null;
+
     public isBillTrackingActive: boolean;
     public billDate: Date | null;
     public billCycle: TNodesCycle | null;
     public trafficLimitBytes: number | null;
     public trafficUsedBytes: number | null;
     public notifyPercent: number | null;
+
+    public cpuCount: number | null;
+    public cpuModel: string | null;
+    public totalRam: string | null;
+
     public createdAt: Date;
     public updatedAt: Date;
 

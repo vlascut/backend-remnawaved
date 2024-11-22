@@ -1,6 +1,6 @@
 import { IEventHandler, QueryBus } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
-import { NodeCreatedEvent } from './node-created.event';
+import { StartNodeEvent } from './start-node.event';
 import { Logger } from '@nestjs/common';
 import { AxiosService } from '@common/axios';
 import { NodesRepository } from '../../repositories/nodes.repository';
@@ -8,16 +8,16 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 
-@EventsHandler(NodeCreatedEvent)
-export class NodeCreatedHandler implements IEventHandler<NodeCreatedEvent> {
-    public readonly logger = new Logger(NodeCreatedHandler.name);
+@EventsHandler(StartNodeEvent)
+export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
+    public readonly logger = new Logger(StartNodeHandler.name);
 
     constructor(
         private readonly axios: AxiosService,
         private readonly nodesRepository: NodesRepository,
         private readonly queryBus: QueryBus,
     ) {}
-    async handle(event: NodeCreatedEvent) {
+    async handle(event: StartNodeEvent) {
         try {
             const nodeEntity = event.node;
 
@@ -66,6 +66,9 @@ export class NodeCreatedHandler implements IEventHandler<NodeCreatedEvent> {
                 lastStatusChange: new Date(),
                 isDisabled: false,
                 isConnecting: false,
+                cpuCount: nodeResponse.systemInformation?.cpuCores ?? null,
+                cpuModel: nodeResponse.systemInformation?.cpuModel ?? null,
+                totalRam: nodeResponse.systemInformation?.memoryTotal ?? null,
             });
 
             await this.nodesRepository.update(nodeEntity);

@@ -1,4 +1,5 @@
 export * from './create-user.dto';
+export * from './delete-user.dto';
 export * from './disable-user.dto';
 export * from './enable-user.dto';
 export * from './get-all-users.dto';

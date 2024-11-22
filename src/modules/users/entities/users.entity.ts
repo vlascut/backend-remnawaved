@@ -6,8 +6,8 @@ export class UserEntity implements Users {
     shortUuid: string;
     username: string;
     status: TUsersStatus;
-    usedTrafficBytes: number;
-    trafficLimitBytes: number;
+    usedTrafficBytes: bigint;
+    trafficLimitBytes: bigint;
     trafficLimitStrategy: TResetPeriods;
     subLastUserAgent: string;
     subLastIp: string;
@@ -15,6 +15,7 @@ export class UserEntity implements Users {
     expireAt: Date;
     onlineAt: Date;
     subRevokedAt: Date | null;
+    lastTrafficResetAt: Date | null;
 
     trojanPassword: string;
     vlessUuid: string;

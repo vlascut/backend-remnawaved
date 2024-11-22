@@ -18,6 +18,10 @@ export class CreateNodeResponseModel {
     public billDate: Date | null;
     public billCycle: TNodesCycle | null;
 
+    public cpuCount: number | null;
+    public cpuModel: string | null;
+    public totalRam: string | null;
+
     public trafficLimitBytes: number | null;
     public trafficUsedBytes: number | null;
     public notifyPercent: number | null;
@@ -44,6 +48,10 @@ export class CreateNodeResponseModel {
         this.trafficLimitBytes = data.trafficLimitBytes;
         this.trafficUsedBytes = data.trafficUsedBytes;
         this.notifyPercent = data.notifyPercent;
+
+        this.cpuCount = data.cpuCount;
+        this.cpuModel = data.cpuModel;
+        this.totalRam = data.totalRam;
 
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;

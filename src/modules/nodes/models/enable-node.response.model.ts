@@ -22,6 +22,10 @@ export class EnableNodeResponseModel implements Omit<NodesEntity, 'updateStatus'
     public trafficUsedBytes: number | null;
     public notifyPercent: number | null;
 
+    public cpuCount: number | null;
+    public cpuModel: string | null;
+    public totalRam: string | null;
+
     public createdAt: Date;
     public updatedAt: Date;
 

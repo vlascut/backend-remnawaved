@@ -5,10 +5,12 @@ import { NodesRepository } from './repositories/nodes.repository';
 import { NodesController } from './nodes.controller';
 import { NodesService } from './nodes.service';
 import { EVENTS } from './events';
+import { QUERIES } from './queries';
+import { COMMANDS } from './commands';
 
 @Module({
     imports: [CqrsModule],
     controllers: [NodesController],
-    providers: [NodesRepository, NodesConverter, NodesService, ...EVENTS],
+    providers: [NodesRepository, NodesConverter, NodesService, ...EVENTS, ...QUERIES, ...COMMANDS],
 })
 export class NodesModule {}
