@@ -1,6 +1,6 @@
 import * as CONTROLLERS from './controllers';
 
-export const ROOT = '/api/v1' as const;
+export const ROOT = '/api' as const;
 
 export const REST_API = {
     AUTH: {
@@ -19,8 +19,7 @@ export const REST_API = {
         CREATE: `${ROOT}/${CONTROLLERS.NODES_CONTROLLER}/${CONTROLLERS.NODES_ROUTES.CREATE}`,
         DELETE: (uuid: string) =>
             `${ROOT}/${CONTROLLERS.NODES_CONTROLLER}/${CONTROLLERS.NODES_ROUTES.DELETE}/${uuid}`,
-        UPDATE: (uuid: string) =>
-            `${ROOT}/${CONTROLLERS.NODES_CONTROLLER}/${CONTROLLERS.NODES_ROUTES.UPDATE}/${uuid}`,
+        UPDATE: `${ROOT}/${CONTROLLERS.NODES_CONTROLLER}/${CONTROLLERS.NODES_ROUTES.UPDATE}`,
         GET_ALL: `${ROOT}/${CONTROLLERS.NODES_CONTROLLER}/${CONTROLLERS.NODES_ROUTES.GET_ALL}`,
         RESTART: (uuid: string) =>
             `${ROOT}/${CONTROLLERS.NODES_CONTROLLER}/${CONTROLLERS.NODES_ROUTES.RESTART}/${uuid}`,
@@ -53,5 +52,9 @@ export const REST_API = {
             `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.DISABLE_USER}/${uuid}`,
         ENABLE_USER: (uuid: string) =>
             `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.ENABLE_USER}/${uuid}`,
+    },
+    SUBSCRIPTION: {
+        GET: (shortUuid: string) =>
+            `${ROOT}/${CONTROLLERS.SUBSCRIPTION_CONTROLLER}/${CONTROLLERS.SUBSCRIPTION_ROUTES.GET}/${shortUuid}`,
     },
 } as const;

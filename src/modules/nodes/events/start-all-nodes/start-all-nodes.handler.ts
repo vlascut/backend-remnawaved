@@ -41,7 +41,8 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                 const response = await this.axios.startXray(config, node.address, node.port);
                 switch (response.isOk) {
                     case false:
-                        node.updateStatus({
+                        await this.nodesRepository.update({
+                            uuid: node.uuid,
                             isXrayRunning: false,
                             isNodeOnline: false,
                             lastStatusMessage: response.message ?? null,
@@ -50,7 +51,6 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                             isConnecting: false,
                             isDisabled: false,
                         });
-                        await this.nodesRepository.update(node);
 
                         return;
                     case true:
@@ -59,7 +59,8 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                         }
                         const nodeResponse = response.response.response;
 
-                        node.updateStatus({
+                        await this.nodesRepository.update({
+                            uuid: node.uuid,
                             isXrayRunning: nodeResponse.isStarted,
                             xrayVersion: nodeResponse.version,
                             isNodeOnline: true,
@@ -72,8 +73,6 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                             cpuModel: nodeResponse.systemInformation?.cpuModel ?? null,
                             totalRam: nodeResponse.systemInformation?.memoryTotal ?? null,
                         });
-
-                        await this.nodesRepository.update(node);
 
                         return;
                 }

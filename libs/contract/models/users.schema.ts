@@ -20,7 +20,7 @@ export const UsersSchema = z.object({
         })
         .default(RESET_PERIODS_VALUES[0]),
     subLastUserAgent: z.nullable(z.string()),
-    subLastIp: z.string().nullable(),
+    subLastOpenedAt: z.nullable(z.date()),
 
     expireAt: z.date(),
     onlineAt: z.date().nullable(),

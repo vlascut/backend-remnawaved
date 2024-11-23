@@ -71,6 +71,7 @@ export interface RealityObject {
     maxClientVer?: string;
     maxTimeDiff?: number;
     shortIds?: string[];
+    spiderX?: string;
 }
 
 export interface TransportObject {

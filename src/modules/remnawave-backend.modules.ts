@@ -11,15 +11,19 @@ import { XrayConfigModule } from './xray-config';
 import { InboundsModule } from './inbounds/inbounds.module';
 import { JobsModule } from './jobs/jobs.module';
 import { UserTrafficHistoryModule } from './user-traffic-history/user-traffic-history.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { HostsModule } from './hosts/hosts.module';
 
 @Module({
     imports: [
         AuthModule,
         UsersModule,
+        SubscriptionModule,
         ApiTokensModule,
         KeygenModule,
         NodesModule,
         NodesTrafficUsageHistoryModule,
+        HostsModule,
         UserTrafficHistoryModule,
         NodesUserUsageHistoryModule,
         NodesUsageHistoryModule,

@@ -19,6 +19,27 @@ export const configSchema = z.object({
     IS_SWAGGER_ENABLED: z.string().default('false'),
     SWAGGER_PATH: z.string().default('/docs'),
     JWT_API_TOKENS_SECRET: z.string(),
+    EXPIRED_USER_REMARKS: z.string().transform((str) => {
+        try {
+            return JSON.parse(str) as string[];
+        } catch {
+            throw new Error('EXPIRED_USER_REMARKS must be a valid JSON array of strings');
+        }
+    }),
+    DISABLED_USER_REMARKS: z.string().transform((str) => {
+        try {
+            return JSON.parse(str) as string[];
+        } catch {
+            throw new Error('DISABLED_USER_REMARKS must be a valid JSON array of strings');
+        }
+    }),
+    LIMITED_USER_REMARKS: z.string().transform((str) => {
+        try {
+            return JSON.parse(str) as string[];
+        } catch {
+            throw new Error('LIMITED_USER_REMARKS must be a valid JSON array of strings');
+        }
+    }),
 });
 
 export type ConfigSchema = z.infer<typeof configSchema>;

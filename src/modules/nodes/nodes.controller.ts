@@ -8,6 +8,8 @@ import {
     Body,
     UseFilters,
     UseGuards,
+    Delete,
+    Patch,
 } from '@nestjs/common';
 import { NodesService } from './nodes.service';
 import { NODES_CONTROLLER, NODES_ROUTES } from '@contract/api';
@@ -26,13 +28,26 @@ import { Roles } from '@common/decorators/roles/roles';
 import {
     CreateNodeRequestDto,
     CreateNodeResponseDto,
+    DeleteNodeRequestParamDto,
+    DeleteNodeResponseDto,
+    DisableNodeRequestParamDto,
+    DisableNodeResponseDto,
     EnableNodeResponseDto,
+    GetAllNodesResponseDto,
+    GetOneNodeRequestParamDto,
+    GetOneNodeResponseDto,
     RestartAllNodesResponseDto,
     RestartNodeResponseDto,
+    UpdateNodeRequestDto,
+    UpdateNodeResponseDto,
 } from './dtos';
 import { EnableNodeRequestParamDto } from './dtos';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { EnableNodeResponseModel, CreateNodeResponseModel } from './models';
+import {
+    CreateNodeResponseModel,
+    GetAllNodesResponseModel,
+    GetOneNodeResponseModel,
+} from './models';
 import { RolesGuard } from '@common/guards/roles/roles.guard';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 
@@ -65,6 +80,37 @@ export class NodesController {
         };
     }
 
+    @Get(NODES_ROUTES.GET_ALL)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get All Nodes', description: 'Get all nodes' })
+    @ApiOkResponse({
+        type: [GetAllNodesResponseDto],
+        description: 'Nodes fetched',
+    })
+    async getAllNodes(): Promise<GetAllNodesResponseDto> {
+        const res = await this.nodesService.getAllNodes();
+        const data = errorHandler(res);
+        return {
+            response: data.map((node) => new GetAllNodesResponseModel(node)),
+        };
+    }
+
+    @Get(NODES_ROUTES.GET_ONE + '/:uuid')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get One Node', description: 'Get one node' })
+    @ApiOkResponse({
+        type: [GetOneNodeResponseDto],
+        description: 'Node fetched',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
+    async getOneNode(@Param() uuid: GetOneNodeRequestParamDto): Promise<GetOneNodeResponseDto> {
+        const res = await this.nodesService.getOneNode(uuid.uuid);
+        const data = errorHandler(res);
+        return {
+            response: new GetOneNodeResponseModel(data),
+        };
+    }
+
     @Get(NODES_ROUTES.ENABLE + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Enable Node', description: 'Enable node to further use' })
@@ -77,7 +123,54 @@ export class NodesController {
         const res = await this.nodesService.enableNode(uuid.uuid);
         const data = errorHandler(res);
         return {
-            response: new EnableNodeResponseModel(data),
+            response: new GetOneNodeResponseModel(data),
+        };
+    }
+
+    @Get(NODES_ROUTES.DISABLE + '/:uuid')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Disable Node', description: 'Disable node' })
+    @ApiOkResponse({
+        type: [DisableNodeResponseDto],
+        description: 'Node disabled',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
+    async disableNode(@Param() uuid: DisableNodeRequestParamDto): Promise<DisableNodeResponseDto> {
+        const res = await this.nodesService.disableNode(uuid.uuid);
+        const data = errorHandler(res);
+        return {
+            response: new GetOneNodeResponseModel(data),
+        };
+    }
+
+    @Delete(NODES_ROUTES.DELETE + '/:uuid')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Delete Node', description: 'Delete node' })
+    @ApiOkResponse({
+        type: [DeleteNodeResponseDto],
+        description: 'Node deleted',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
+    async deleteNode(@Param() uuid: DeleteNodeRequestParamDto): Promise<DeleteNodeResponseDto> {
+        const res = await this.nodesService.deleteNode(uuid.uuid);
+        const data = errorHandler(res);
+        return {
+            response: data,
+        };
+    }
+
+    @Patch(NODES_ROUTES.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Update Node', description: 'Update node' })
+    @ApiOkResponse({
+        type: [UpdateNodeResponseDto],
+        description: 'Node updated',
+    })
+    async updateNode(@Body() body: UpdateNodeRequestDto): Promise<UpdateNodeResponseDto> {
+        const res = await this.nodesService.updateNode(body);
+        const data = errorHandler(res);
+        return {
+            response: new GetOneNodeResponseModel(data),
         };
     }
 

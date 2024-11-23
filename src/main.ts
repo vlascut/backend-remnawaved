@@ -8,6 +8,7 @@ import { isDevelopment } from './common/utils/startup-app/is-development';
 import { getSwagger } from './common/utils/startup-app/swagger';
 import morgan from 'morgan';
 import compression from 'compression';
+import { ROOT } from '../libs/contract';
 
 patchNestJsSwagger();
 
@@ -22,7 +23,7 @@ async function bootstrap(): Promise<void> {
     app.use(compression());
     app.use(morgan('short'));
 
-    app.setGlobalPrefix(config.getOrThrow<string>('API_PREFIX'));
+    app.setGlobalPrefix(ROOT);
     app.enableCors({
         origin: isDevelopment() ? '*' : config.getOrThrow<string>('FRONT_END_DOMAIN'),
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

@@ -96,30 +96,35 @@ export class NodeHealthCheckService {
             return;
         }
 
-        node.updateStatus({
-            isConnected: true,
-            isNodeOnline: true,
-            isXrayRunning: true,
-            lastStatusChange: new Date(),
-            lastStatusMessage: '',
-            isDisabled: false,
+        await this.updateNode({
+            node: {
+                uuid: node.uuid,
+                isConnected: true,
+                isConnecting: false,
+                isNodeOnline: true,
+                isXrayRunning: true,
+                lastStatusChange: new Date(),
+                lastStatusMessage: '',
+                isDisabled: false,
+            },
         });
-
-        await this.updateNode({ node });
     }
 
     private async handleDisconnectedNode(node: NodesEntity, message: string | undefined) {
         this.logger.debug(`Node ${node.uuid} is disconnected: ${message}`);
-        node.updateStatus({
-            isDisabled: false,
-            isConnected: false,
-            lastStatusChange: new Date(),
-            isNodeOnline: false,
-            isXrayRunning: false,
-            lastStatusMessage: message,
-        });
 
-        await this.updateNode({ node });
+        await this.updateNode({
+            node: {
+                uuid: node.uuid,
+                isConnected: false,
+                isNodeOnline: false,
+                isXrayRunning: false,
+                lastStatusChange: new Date(),
+                lastStatusMessage: message,
+                isDisabled: false,
+                isConnecting: false,
+            },
+        });
 
         this.eventBus.publish(new StartNodeEvent(node));
     }

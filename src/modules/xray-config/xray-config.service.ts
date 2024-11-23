@@ -90,6 +90,22 @@ export class XrayConfigService {
         }
     }
 
+    public async getConfigInstance(): Promise<XRayConfig | null> {
+        try {
+            let config: object | string;
+            const dbConfig = await this.xrayConfigRepository.findFirst();
+            if (!dbConfig?.config) {
+                config = await fs.readFile(this.configPath, 'utf-8');
+            } else {
+                config = dbConfig.config;
+            }
+
+            return XRayConfig.getXrayConfigInstance(config);
+        } catch (error) {
+            return null;
+        }
+    }
+
     public async getConfigWithUsers(
         users: UserForConfigEntity[],
     ): Promise<ICommandResponse<IXrayConfig>> {

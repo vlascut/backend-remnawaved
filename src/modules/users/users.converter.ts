@@ -18,7 +18,7 @@ const entityToModel = (entity: UserEntity): UserEntity => {
         trafficLimitBytes: entity.trafficLimitBytes,
         trafficLimitStrategy: entity.trafficLimitStrategy,
         subLastUserAgent: entity.subLastUserAgent,
-        subLastIp: entity.subLastIp,
+        subLastOpenedAt: entity.subLastOpenedAt,
 
         onlineAt: entity.onlineAt,
         expireAt: entity.expireAt,

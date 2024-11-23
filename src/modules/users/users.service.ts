@@ -239,14 +239,15 @@ export class UsersService {
                     ...ERRORS.USER_NOT_FOUND,
                 };
             }
-            user.shortUuid = this.createNanoId();
-            user.subscriptionUuid = this.createUuid();
-            user.trojanPassword = this.createTrojanPassword();
-            user.vlessUuid = this.createUuid();
-            user.ssPassword = this.createTrojanPassword();
-            user.subRevokedAt = new Date();
-
-            await this.userRepository.updateUserWithActiveInbounds(user);
+            await this.userRepository.updateUserWithActiveInbounds({
+                uuid: user.uuid,
+                shortUuid: this.createNanoId(),
+                subscriptionUuid: this.createUuid(),
+                trojanPassword: this.createTrojanPassword(),
+                vlessUuid: this.createUuid(),
+                ssPassword: this.createTrojanPassword(),
+                subRevokedAt: new Date(),
+            });
 
             // ! TODO: add event emitter for revoked subscription
 
@@ -307,11 +308,12 @@ export class UsersService {
                 };
             }
 
-            user.status = USERS_STATUS.DISABLED;
+            await this.userRepository.updateUserWithActiveInbounds({
+                uuid: user.uuid,
+                status: USERS_STATUS.DISABLED,
+            });
 
-            await this.userRepository.updateUserWithActiveInbounds(user);
-
-            // !TDOO: add event emitter for revoked subscription
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user));
 
             return {
                 isOk: true,
@@ -346,11 +348,12 @@ export class UsersService {
                 };
             }
 
-            user.status = USERS_STATUS.ACTIVE;
+            await this.userRepository.updateUserWithActiveInbounds({
+                uuid: user.uuid,
+                status: USERS_STATUS.ACTIVE,
+            });
 
-            await this.userRepository.updateUserWithActiveInbounds(user);
-
-            // !TDOO: add event emitter for enabled user
+            this.eventBus.publish(new AddUserToNodeEvent(user));
 
             return {
                 isOk: true,

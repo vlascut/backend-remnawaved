@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { NODES_CYCLE_VALUES } from '../constants';
 
 export const NodesSchema = z.object({
     uuid: z.string().uuid(),
@@ -14,11 +13,10 @@ export const NodesSchema = z.object({
     lastStatusChange: z.date().nullable(),
     lastStatusMessage: z.string().nullable(),
     xrayVersion: z.string().nullable(),
-    isBillTrackingActive: z.boolean().default(false),
-    billDate: z.date().nullable(),
-    billCycle: z.enum([NODES_CYCLE_VALUES[0], ...NODES_CYCLE_VALUES]).nullable(),
-    trafficLimitBytes: z.number().int().nullable(),
-    trafficUsedBytes: z.number().int().nullable(),
+    isTrafficTrackingActive: z.boolean().default(false),
+    trafficResetDay: z.number().int().nullable(),
+    trafficLimitBytes: z.number().nullable(),
+    trafficUsedBytes: z.number().nullable(),
     notifyPercent: z.number().int().nullable(),
 
     cpuCount: z.number().int().nullable(),

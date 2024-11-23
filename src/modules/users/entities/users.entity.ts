@@ -10,7 +10,7 @@ export class UserEntity implements Users {
     trafficLimitBytes: bigint;
     trafficLimitStrategy: TResetPeriods;
     subLastUserAgent: string;
-    subLastIp: string;
+    subLastOpenedAt: Date;
 
     expireAt: Date;
     onlineAt: Date;

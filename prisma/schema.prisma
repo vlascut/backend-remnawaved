@@ -14,16 +14,16 @@ datasource db {
 }
 
 model Users {
-  uuid                 String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscriptionUuid     String  @unique @default(dbgenerated("gen_random_uuid()")) @map("subscription_uuid") @db.Uuid
-  shortUuid            String  @unique @map("short_uuid")
-  username             String  @unique @map("username")
-  status               String  @default("active") @map("status") // ENUM: active, disabled, limimted, expired
-  usedTrafficBytes     BigInt  @default(0) @map("used_traffic_bytes")
-  trafficLimitBytes    BigInt  @default(0) @map("traffic_limit_bytes")
-  trafficLimitStrategy String  @default("fixed") @map("traffic_limit_strategy") // ENUM: no_reset, day, week, month, year
-  subLastUserAgent     String? @map("sub_last_user_agent")
-  subLastIp            String? @map("sub_last_ip")
+  uuid                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionUuid     String    @unique @default(dbgenerated("gen_random_uuid()")) @map("subscription_uuid") @db.Uuid
+  shortUuid            String    @unique @map("short_uuid")
+  username             String    @unique @map("username")
+  status               String    @default("active") @map("status") // ENUM: active, disabled, limimted, expired
+  usedTrafficBytes     BigInt    @default(0) @map("used_traffic_bytes")
+  trafficLimitBytes    BigInt    @default(0) @map("traffic_limit_bytes")
+  trafficLimitStrategy String    @default("fixed") @map("traffic_limit_strategy") // ENUM: no_reset, day, week, month, year
+  subLastUserAgent     String?   @map("sub_last_user_agent")
+  subLastOpenedAt      DateTime? @map("sub_last_opened_at")
 
   expireAt           DateTime  @map("expire_at")
   onlineAt           DateTime? @map("online_at")
@@ -84,12 +84,11 @@ model Nodes {
   lastStatusMessage String?   @map("last_status_message")
   xrayVersion       String?   @map("xray_version")
 
-  isBillTrackingActive Boolean   @default(false) @map("is_bill_tracking_active")
-  billDate             DateTime? @map("bill_date") @db.Date
-  billCycle            String?   @map("bill_cycle") // ENUM: month, year
-  trafficLimitBytes    Int?      @map("traffic_limit_bytes")
-  trafficUsedBytes     Int?      @map("traffic_used_bytes")
-  notifyPercent        Int?      @map("notify_percent")
+  isTrafficTrackingActive Boolean @default(false) @map("is_traffic_tracking_active")
+  trafficResetDay         Int?    @default(0) @map("traffic_reset_day")
+  trafficLimitBytes       Int?    @default(0) @map("traffic_limit_bytes")
+  trafficUsedBytes        Int?    @default(0) @map("traffic_used_bytes")
+  notifyPercent           Int?    @default(0) @map("notify_percent")
 
   cpuCount Int?    @map("cpu_count")
   cpuModel String? @map("cpu_model")
@@ -179,20 +178,19 @@ model Inbounds {
 }
 
 model Hosts {
-  uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  viewPosition  Int      @default(0) @map("view_position")
-  remark        String   @map("remark")
-  address       String   @map("address")
-  port          Int      @map("port")
-  inboundUuid   String   @map("inbound_uuid") @db.Uuid
-  sni           String?  @map("sni")
-  host          String?  @map("host")
-  security      String   @default("inbound_default") @map("security") // ENUM: inbound_default, none, tls
-  alpn          String   @default("none") @map("alpn") // ENUM: none, h2, http/1.1, h2,http/1.1
-  fingerprint   String   @default("none") @map("fingerprint") // ENUM: none, chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
-  allowInsecure Boolean? @map("allowinsecure")
-  isDisabled    Boolean? @map("is_disabled")
-  path          String?  @map("path")
+  uuid          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  inboundUuid   String  @map("inbound_uuid") @db.Uuid
+  viewPosition  Int     @default(0) @map("view_position")
+  remark        String  @unique @map("remark")
+  address       String  @map("address")
+  port          Int     @map("port")
+  path          String? @map("path")
+  sni           String? @map("sni")
+  host          String? @map("host")
+  alpn          String? @map("alpn") // ENUM: h2, http/1.1, h2,http/1.1
+  fingerprint   String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
+  allowInsecure Boolean @default(false) @map("allowinsecure")
+  isDisabled    Boolean @default(false) @map("is_disabled")
 
   inboundTag Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 

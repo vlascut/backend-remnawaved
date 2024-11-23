@@ -14,9 +14,8 @@ export class CreateNodeResponseModel {
     public lastStatusChange: Date | null;
     public lastStatusMessage: string | null;
     public xrayVersion: string | null;
-    public isBillTrackingActive: boolean;
-    public billDate: Date | null;
-    public billCycle: TNodesCycle | null;
+    public isTrafficTrackingActive: boolean;
+    public trafficResetDay: number | null;
 
     public cpuCount: number | null;
     public cpuModel: string | null;
@@ -42,9 +41,8 @@ export class CreateNodeResponseModel {
         this.lastStatusChange = data.lastStatusChange;
         this.lastStatusMessage = data.lastStatusMessage;
         this.xrayVersion = data.xrayVersion;
-        this.isBillTrackingActive = data.isBillTrackingActive;
-        this.billDate = data.billDate;
-        this.billCycle = data.billCycle;
+        this.isTrafficTrackingActive = data.isTrafficTrackingActive;
+        this.trafficResetDay = data.trafficResetDay;
         this.trafficLimitBytes = data.trafficLimitBytes;
         this.trafficUsedBytes = data.trafficUsedBytes;
         this.notifyPercent = data.notifyPercent;

@@ -15,7 +15,7 @@ export class CreateUserResponseModel {
     public readonly trafficLimitBytes: number;
     public readonly trafficLimitStrategy: TResetPeriods;
     public readonly subLastUserAgent: string | null;
-    public readonly subLastIp: string | null;
+    public readonly subLastOpenedAt: Date | null;
     public readonly onlineAt: Date | null;
     public readonly subRevokedAt: Date | null;
     public readonly lastTrafficResetAt: Date | null;
@@ -37,7 +37,7 @@ export class CreateUserResponseModel {
         this.trafficLimitBytes = Number(entity.trafficLimitBytes);
         this.trafficLimitStrategy = entity.trafficLimitStrategy;
         this.subLastUserAgent = entity.subLastUserAgent;
-        this.subLastIp = entity.subLastIp;
+        this.subLastOpenedAt = entity.subLastOpenedAt;
         this.onlineAt = entity.onlineAt;
         this.subRevokedAt = entity.subRevokedAt;
         this.lastTrafficResetAt = entity.lastTrafficResetAt;

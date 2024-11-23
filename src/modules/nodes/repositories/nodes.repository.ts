@@ -33,6 +33,13 @@ export class NodesRepository implements ICrud<NodesEntity> {
         return this.nodesConverter.fromPrismaModelsToEntities(nodesList);
     }
 
+    public async incrementUsedTraffic(nodeUuid: string, bytes: number): Promise<void> {
+        await this.prisma.tx.nodes.update({
+            where: { uuid: nodeUuid },
+            data: { trafficUsedBytes: { increment: bytes } },
+        });
+    }
+
     public async findByUUID(uuid: string): Promise<NodesEntity | null> {
         const result = await this.prisma.tx.nodes.findUnique({
             where: { uuid },
@@ -57,6 +64,9 @@ export class NodesRepository implements ICrud<NodesEntity> {
     public async findByCriteria(dto: Partial<NodesEntity>): Promise<NodesEntity[]> {
         const nodesList = await this.prisma.tx.nodes.findMany({
             where: dto,
+            orderBy: {
+                createdAt: 'asc',
+            },
         });
         return this.nodesConverter.fromPrismaModelsToEntities(nodesList);
     }

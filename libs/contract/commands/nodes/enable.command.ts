@@ -9,10 +9,7 @@ export namespace EnableNodeCommand {
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({
-        response: NodesSchema.pick({
-            uuid: true,
-            isDisabled: true,
-        }),
+        response: NodesSchema,
     });
 
     export type Response = z.infer<typeof ResponseSchema>;

@@ -98,7 +98,11 @@ export class XRayConfig {
         }
     }
 
-    private getInbound(tag: string): any {
+    public static getXrayConfigInstance(config: TCtrXRayConfig): XRayConfig {
+        return new XRayConfig(config);
+    }
+
+    public getInbound(tag: string): Inbound | undefined {
         return this.config.inbounds.find((inbound) => inbound.tag === tag);
     }
 

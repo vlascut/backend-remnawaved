@@ -40,7 +40,8 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
             this.logger.debug(`Started node in ${Date.now() - reqStartTime}ms`);
 
             if (!res.isOk || !res.response) {
-                nodeEntity.updateStatus({
+                await this.nodesRepository.update({
+                    uuid: nodeEntity.uuid,
                     isXrayRunning: false,
                     isNodeOnline: false,
                     lastStatusMessage: res.message ?? null,
@@ -49,7 +50,6 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                     isConnecting: false,
                     isDisabled: false,
                 });
-                await this.nodesRepository.update(nodeEntity);
                 return;
             }
 
@@ -57,7 +57,8 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
 
             this.logger.debug(`Node created: ${JSON.stringify(nodeResponse)}`);
 
-            nodeEntity.updateStatus({
+            await this.nodesRepository.update({
+                uuid: nodeEntity.uuid,
                 isXrayRunning: nodeResponse.isStarted,
                 xrayVersion: nodeResponse.version,
                 isNodeOnline: true,
@@ -70,8 +71,6 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                 cpuModel: nodeResponse.systemInformation?.cpuModel ?? null,
                 totalRam: nodeResponse.systemInformation?.memoryTotal ?? null,
             });
-
-            await this.nodesRepository.update(nodeEntity);
 
             return;
         } catch (error) {

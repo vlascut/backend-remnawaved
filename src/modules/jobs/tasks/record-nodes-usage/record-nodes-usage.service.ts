@@ -11,6 +11,7 @@ import { UpsertHistoryEntryCommand } from '../../../nodes-usage-history/commands
 import { NodesUsageHistoryEntity } from '../../../nodes-usage-history/entities/nodes-usage-history.entity';
 import pMap from '@cjs-exporter/p-map';
 import { JOBS_INTERVALS } from '../../intervals';
+import { IncrementUsedTrafficCommand } from '../../../nodes/commands/increment-used-traffic';
 
 @Injectable()
 export class RecordNodesUsageService {
@@ -91,6 +92,10 @@ export class RecordNodesUsageService {
             totalUplink += outbound.uplink;
         }
 
+        if (totalDownlink === 0 && totalUplink === 0) {
+            return;
+        }
+
         totalBytes = totalDownlink + totalUplink;
 
         await this.reportUsageHistory({
@@ -101,6 +106,11 @@ export class RecordNodesUsageService {
                 downloadBytes: BigInt(totalDownlink),
                 createdAt: new Date(),
             }),
+        });
+
+        await this.incrementUsedTraffic({
+            nodeUuid: node.uuid,
+            bytes: totalBytes,
         });
     }
 
@@ -115,6 +125,14 @@ export class RecordNodesUsageService {
     ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<UpsertHistoryEntryCommand, ICommandResponse<void>>(
             new UpsertHistoryEntryCommand(dto.nodeUsageHistory),
+        );
+    }
+
+    private async incrementUsedTraffic(
+        dto: IncrementUsedTrafficCommand,
+    ): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<IncrementUsedTrafficCommand, ICommandResponse<void>>(
+            new IncrementUsedTrafficCommand(dto.nodeUuid, dto.bytes),
         );
     }
 }

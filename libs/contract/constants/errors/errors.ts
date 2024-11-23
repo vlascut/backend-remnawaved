@@ -195,4 +195,19 @@ export const ERRORS = {
         message: 'Increment used traffic error',
         httpCode: 500,
     },
+    GET_ALL_NODES_ERROR: {
+        code: 'A041',
+        message: 'Get all nodes error',
+        httpCode: 500,
+    },
+    GET_ONE_NODE_ERROR: {
+        code: 'A042',
+        message: 'Get one node error',
+        httpCode: 500,
+    },
+    DELETE_NODE_ERROR: {
+        code: 'A043',
+        message: 'Delete node error',
+        httpCode: 500,
+    },
 } as const;

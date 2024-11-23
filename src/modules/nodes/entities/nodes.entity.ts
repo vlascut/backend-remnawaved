@@ -1,5 +1,4 @@
 import { Nodes } from '@prisma/client';
-import { TNodesCycle } from '@contract/constants';
 
 export class NodesEntity implements Nodes {
     public uuid: string;
@@ -15,9 +14,8 @@ export class NodesEntity implements Nodes {
     public lastStatusMessage: string | null;
     public xrayVersion: string | null;
 
-    public isBillTrackingActive: boolean;
-    public billDate: Date | null;
-    public billCycle: TNodesCycle | null;
+    public isTrafficTrackingActive: boolean;
+    public trafficResetDay: number | null;
     public trafficLimitBytes: number | null;
     public trafficUsedBytes: number | null;
     public notifyPercent: number | null;
@@ -32,9 +30,5 @@ export class NodesEntity implements Nodes {
     constructor(nodes: Partial<Nodes>) {
         Object.assign(this, nodes);
         return this;
-    }
-
-    public updateStatus(status: Partial<NodesEntity>): void {
-        Object.assign(this, status);
     }
 }

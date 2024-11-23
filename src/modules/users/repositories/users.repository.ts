@@ -49,6 +49,17 @@ export class UsersRepository implements ICrud<UserEntity> {
         });
     }
 
+    public async updateSubLastOpenedAndUserAgent(
+        userUuid: string,
+        subLastOpenedAt: Date,
+        subLastUserAgent: string,
+    ): Promise<void> {
+        await this.prisma.tx.users.update({
+            where: { uuid: userUuid },
+            data: { subLastOpenedAt, subLastUserAgent },
+        });
+    }
+
     public async findUserByUsername(
         username: string,
     ): Promise<UserWithActiveInboundsEntity | null> {
