@@ -1,6 +1,8 @@
 import { z } from 'zod';
-
+import { REST_API } from '../../api';
 export namespace DeleteUserCommand {
+    export const url = REST_API.USERS.DELETE_USER;
+
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),
     });

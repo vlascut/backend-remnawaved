@@ -210,4 +210,24 @@ export const ERRORS = {
         message: 'Delete node error',
         httpCode: 500,
     },
+    CREATE_HOST_ERROR: {
+        code: 'A044',
+        message: 'Create host error',
+        httpCode: 500,
+    },
+    HOST_REMARK_ALREADY_EXISTS: {
+        code: 'A045',
+        message: 'Host remark already exists',
+        httpCode: 400,
+    },
+    HOST_NOT_FOUND: {
+        code: 'A046',
+        message: 'Host not found',
+        httpCode: 404,
+    },
+    DELETE_HOST_ERROR: {
+        code: 'A047',
+        message: 'Delete host error',
+        httpCode: 500,
+    },
 } as const;

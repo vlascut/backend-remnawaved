@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { TransactionHost } from '@nestjs-cls/transactional';
-import { InboundsEntity } from '../entities/inbounds.entity';
-import { InboundsConverter } from '../converters/inbounds.converter';
 import { ICrud } from '@common/types/crud-port';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { Injectable } from '@nestjs/common';
+import { InboundsConverter } from '../converters/inbounds.converter';
+import { InboundsEntity } from '../entities/inbounds.entity';
 import { InboundsWithTagsAndType } from '../interfaces/inboubds-with-tags-and-type.interface';
 
 @Injectable()

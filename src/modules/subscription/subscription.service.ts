@@ -1,25 +1,25 @@
+import { XRayConfig } from '@common/helpers/xray-config';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
 import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { ICommandResponse } from '../../common/types/command-response.type';
-import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active-inbounds.entity';
-import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
-import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
-import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
-import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
-import { XRayConfig } from '../../common/helpers/xray-config';
-import { generateSubscription } from './generators/generate-subscription';
-import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
-import { UpdateSubLastOpenedAndUserAgentCommand } from '../users/commands/update-sub-last-opened-and-user-agent';
 import { ConfigService } from '@nestjs/config';
-import {
-    SubscriptionRawResponse,
-    SubscriptionNotFoundResponse,
-    SubscriptionWithConfigResponse,
-} from './models';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import dayjs from 'dayjs';
 import prettyBytes from 'pretty-bytes';
-import { USERS_STATUS } from '../../../libs/contract';
+import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
+import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
+import { UpdateSubLastOpenedAndUserAgentCommand } from '../users/commands/update-sub-last-opened-and-user-agent';
+import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active-inbounds.entity';
+import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
+import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
+import { generateSubscription } from './generators/generate-subscription';
 import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
+import {
+    SubscriptionNotFoundResponse,
+    SubscriptionRawResponse,
+    SubscriptionWithConfigResponse,
+} from './models';
+import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
 
 @Injectable()
 export class SubscriptionService {
@@ -80,6 +80,30 @@ export class SubscriptionService {
             });
         } catch (error) {
             return new SubscriptionNotFoundResponse();
+        }
+    }
+
+    public async getSubscriptionInfoByShortUuid(
+        shortUuid: string,
+    ): Promise<ICommandResponse<SubscriptionRawResponse>> {
+        try {
+            const user = await this.getUserByShortUuid({ shortUuid });
+            if (!user.isOk || !user.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: await this.getUserInfo(user.response),
+            };
+        } catch (error) {
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
         }
     }
 

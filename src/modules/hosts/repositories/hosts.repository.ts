@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { TransactionHost } from '@nestjs-cls/transactional';
 import { ICrud } from '@common/types/crud-port';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { Injectable } from '@nestjs/common';
+import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
 import { HostsEntity } from '../entities/hosts.entity';
 import { HostsConverter } from '../hosts.converter';
-import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
 
 @Injectable()
 export class HostsRepository implements ICrud<HostsEntity> {

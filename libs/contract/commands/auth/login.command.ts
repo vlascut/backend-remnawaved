@@ -1,6 +1,8 @@
 import { z } from 'zod';
-
+import { REST_API } from '../../api';
 export namespace LoginCommand {
+    export const url = REST_API.AUTH.LOGIN;
+
     export const RequestSchema = z.object({
         username: z.string(),
         password: z.string(),

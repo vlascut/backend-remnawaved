@@ -1,11 +1,13 @@
-import { Controller, Get, Param, UseFilters, Res, Req } from '@nestjs/common';
-import { Request, Response } from 'express';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
+import { errorHandler } from '@common/helpers/error-handler.helper';
+import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
+import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
-import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '../../../libs/contract';
+import { Request, Response } from 'express';
+import { GetSubscriptionInfoRequestDto, GetSubscriptionInfoResponseDto } from './dto';
 import { GetSubscriptionByShortUuidRequestDto } from './dto/get-subscription.dto';
-import { SubscriptionService } from './subscription.service';
 import { SubscriptionNotFoundResponse, SubscriptionRawResponse } from './models';
+import { SubscriptionService } from './subscription.service';
 
 @ApiTags('Subscription Controller')
 @UseFilters(HttpExceptionFilter)
@@ -40,5 +42,23 @@ export class SubscriptionController {
         }
 
         return response.set(result.headers).type(result.contentType).send(result.body);
+    }
+
+    @Get('/:shortUuid' + SUBSCRIPTION_ROUTES.GET_INFO)
+    @ApiParam({
+        name: 'shortUuid',
+        type: String,
+        description: 'Short UUID of the user',
+        required: true,
+    })
+    async getSubscriptionInfoByShortUuid(
+        @Param() { shortUuid }: GetSubscriptionInfoRequestDto,
+    ): Promise<GetSubscriptionInfoResponseDto> {
+        const result = await this.subscriptionService.getSubscriptionInfoByShortUuid(shortUuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
     }
 }

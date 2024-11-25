@@ -1,19 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
-import { UsersRepository } from './repositories/users.repository';
-import { UserEntity } from './entities/users.entity';
-import { CreateUserRequestDto } from './dtos';
-import { v4 as uuidv4 } from 'uuid';
-import { nanoid } from 'nanoid';
-import { Prisma } from '@prisma/client';
-import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
-import { UserWithActiveInboundsEntity } from './entities/user-with-active-inbounds.entity';
-import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
 import { Transactional } from '@nestjs-cls/transactional';
-import { DeleteUserResponseModel } from './models/delete-user.response.model';
+import { Injectable, Logger } from '@nestjs/common';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { Prisma } from '@prisma/client';
+import { nanoid } from 'nanoid';
+import { v4 as uuidv4 } from 'uuid';
+import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
+import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
 import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
+import { CreateUserRequestDto } from './dtos';
+import { UserWithActiveInboundsEntity } from './entities/user-with-active-inbounds.entity';
+import { UserEntity } from './entities/users.entity';
+import { DeleteUserResponseModel } from './models/delete-user.response.model';
+import { UsersRepository } from './repositories/users.repository';
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);

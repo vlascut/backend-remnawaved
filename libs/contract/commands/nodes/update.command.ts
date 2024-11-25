@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 import { NodesSchema } from '../../models';
 
 export namespace UpdateNodeCommand {
+    export const url = REST_API.NODES.UPDATE;
+
     export const RequestSchema = NodesSchema.pick({
         uuid: true,
     }).extend({

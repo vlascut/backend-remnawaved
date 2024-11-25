@@ -1,10 +1,10 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { Transactional } from '@nestjs-cls/transactional';
-import { UpdateStatusAndTrafficAndResetAtCommand } from './update-status-and-traffic-and-reset-at.command';
 import { ERRORS } from '@contract/constants';
+import { Transactional } from '@nestjs-cls/transactional';
+import { Logger } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../repositories/users.repository';
+import { UpdateStatusAndTrafficAndResetAtCommand } from './update-status-and-traffic-and-reset-at.command';
 
 @CommandHandler(UpdateStatusAndTrafficAndResetAtCommand)
 export class UpdateStatusAndTrafficAndResetAtHandler

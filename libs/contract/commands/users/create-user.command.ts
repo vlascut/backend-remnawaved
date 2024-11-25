@@ -1,8 +1,11 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 import { RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { InboundsSchema, UsersSchema } from '../../models';
 
 export namespace CreateUserCommand {
+    export const url = REST_API.USERS.CREATE;
+
     export const RequestSchema = UsersSchema.pick({}).extend({
         username: z
             .string({

@@ -1,5 +1,5 @@
 {
-  "name": "@remnawave/contracts",
+  "name": "@remnawave/backend-contract",
   "version": "0.0.1",
   "description": "A contract library for Remnawave",
   "main": "index.js",

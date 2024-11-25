@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 import { NodesSchema } from '../../models';
 
 export namespace CreateNodeCommand {
+    export const url = REST_API.NODES.CREATE;
+
     export const RequestSchema = NodesSchema.pick({}).extend({
         name: z.string().min(5, 'Name is required'),
         address: z.string().min(2, 'Address is required'),

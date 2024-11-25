@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 import { UsersSchema } from '../../models/users.schema';
 
 export namespace GetAllUsersCommand {
+    export const url = REST_API.USERS.GET_ALL;
+
     export const RequestQuerySchema = z.object({
         limit: z
             .string()

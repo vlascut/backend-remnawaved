@@ -1,14 +1,14 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { initLogs } from '@common/utils/startup-app/init-log.util';
+import { isDevelopment } from '@common/utils/startup-app/is-development';
+import { getSwagger } from '@common/utils/startup-app/swagger';
+import { ROOT } from '@contract/api';
 import { ConfigService } from '@nestjs/config';
-import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
-import helmet from 'helmet';
-import { initLogs } from './common/utils/startup-app/init-log.util';
-import { isDevelopment } from './common/utils/startup-app/is-development';
-import { getSwagger } from './common/utils/startup-app/swagger';
-import morgan from 'morgan';
+import { NestFactory } from '@nestjs/core';
 import compression from 'compression';
-import { ROOT } from '../libs/contract';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
+import { AppModule } from './app.module';
 
 patchNestJsSwagger();
 

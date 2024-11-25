@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 import { UsersSchema } from '../../models/users.schema';
 
 export namespace EnableUserCommand {
+    export const url = REST_API.USERS.ENABLE_USER;
+
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),
     });

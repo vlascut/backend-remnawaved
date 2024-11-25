@@ -1,6 +1,9 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 
 export namespace DeleteApiTokenCommand {
+    export const url = REST_API.API_TOKENS.DELETE;
+
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),
     });

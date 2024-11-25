@@ -1,6 +1,9 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 
 export namespace RestartNodeCommand {
+    export const url = REST_API.NODES.RESTART;
+
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),
     });

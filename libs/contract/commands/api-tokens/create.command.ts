@@ -1,6 +1,9 @@
 import { z } from 'zod';
+import { REST_API } from '../../api';
 
 export namespace CreateApiTokenCommand {
+    export const url = REST_API.API_TOKENS.CREATE;
+
     export const RequestSchema = z.object({
         tokenName: z.string(),
         tokenDescription: z.string().nullable(),

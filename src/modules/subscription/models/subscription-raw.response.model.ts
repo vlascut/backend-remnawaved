@@ -1,4 +1,4 @@
-import { TUsersStatus } from '../../../../libs/contract';
+import { TUsersStatus } from '@libs/contracts/constants';
 
 export class SubscriptionRawResponse {
     public isFound: boolean;
