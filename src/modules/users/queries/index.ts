@@ -3,6 +3,7 @@ import { GetUserByUsernameHandler } from './get-user-by-username';
 import { GetActiveUsersHandler } from './get-active-users';
 import { GetAllUsersHandler } from './get-all-users';
 import { GetUserByShortUuidHandler } from './get-user-by-short-uuid';
+import { GetShortUserStatsHandler } from './get-short-user-stats';
 
 export const QUERIES = [
     GetUsersForConfigHandler,
@@ -10,4 +11,5 @@ export const QUERIES = [
     GetActiveUsersHandler,
     GetAllUsersHandler,
     GetUserByShortUuidHandler,
+    GetShortUserStatsHandler,
 ];

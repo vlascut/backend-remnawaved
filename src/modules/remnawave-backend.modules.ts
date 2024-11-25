@@ -13,6 +13,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { UserTrafficHistoryModule } from './user-traffic-history/user-traffic-history.module';
 import { UsersModule } from './users/users.module';
 import { XrayConfigModule } from './xray-config';
+import { SystemModule } from './system/system.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { XrayConfigModule } from './xray-config';
         InboundsModule,
         XrayConfigModule,
         JobsModule,
+        SystemModule,
     ],
 })
 export class RemnawaveModules {}

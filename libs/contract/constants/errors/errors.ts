@@ -230,4 +230,9 @@ export const ERRORS = {
         message: 'Delete host error',
         httpCode: 500,
     },
+    GET_USER_STATS_ERROR: {
+        code: 'A048',
+        message: 'Get user stats error',
+        httpCode: 500,
+    },
 } as const;

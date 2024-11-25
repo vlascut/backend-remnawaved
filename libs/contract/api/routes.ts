@@ -70,4 +70,7 @@ export const REST_API = {
         DELETE: (uuid: string) =>
             `${ROOT}/${CONTROLLERS.HOSTS_CONTROLLER}/${CONTROLLERS.HOSTS_ROUTES.DELETE}/${uuid}`,
     },
+    SYSTEM: {
+        STATS: `${ROOT}/${CONTROLLERS.SYSTEM_CONTROLLER}/${CONTROLLERS.SYSTEM_ROUTES.STATS}`,
+    },
 } as const;

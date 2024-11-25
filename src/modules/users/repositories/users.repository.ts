@@ -7,6 +7,8 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { UserForConfigEntity } from '../entities/users-for-config';
 import { TUsersStatus, USERS_STATUS } from '@contract/constants';
+import { UserStats } from '../interfaces/user-stats.interface';
+import { IUserStatusCount } from '../interfaces/user-status-count.interface';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -372,5 +374,58 @@ export class UsersRepository implements ICrud<UserEntity> {
     public async deleteByUUID(uuid: string): Promise<boolean> {
         const result = await this.prisma.tx.users.delete({ where: { uuid } });
         return !!result;
+    }
+
+    public async getUserStats(): Promise<UserStats> {
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+
+        const [onlineCount, statusCounts, totalTraffic] = await Promise.all([
+            this.prisma.tx.users.count({
+                where: {
+                    onlineAt: {
+                        gte: oneMinuteAgo,
+                    },
+                },
+            }),
+
+            this.prisma.tx.users.groupBy({
+                by: ['status'],
+                _count: {
+                    status: true,
+                },
+                where: {
+                    status: {
+                        in: Object.values(USERS_STATUS),
+                    },
+                },
+            }),
+
+            this.prisma.tx.nodesUserUsageHistory.aggregate({
+                _sum: {
+                    totalBytes: true,
+                },
+            }),
+        ]);
+
+        // Transform into object with all statuses
+        const formattedStatusCounts = Object.values(USERS_STATUS).reduce(
+            (acc, status) => ({
+                ...acc,
+                [status]: statusCounts.find((item) => item.status === status)?._count.status || 0,
+            }),
+            {} as Record<TUsersStatus, number>,
+        );
+
+        const totalUsers = Object.values(formattedStatusCounts).reduce(
+            (acc, count) => acc + count,
+            0,
+        );
+
+        return {
+            onlineLastMinute: onlineCount,
+            statusCounts: formattedStatusCounts,
+            totalUsers,
+            totalTrafficBytes: totalTraffic._sum.totalBytes || BigInt(0),
+        };
     }
 }
