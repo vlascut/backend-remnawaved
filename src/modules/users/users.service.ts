@@ -15,6 +15,7 @@ import { UserEntity } from './entities/users.entity';
 import { DeleteUserResponseModel } from './models/delete-user.response.model';
 import { UsersRepository } from './repositories/users.repository';
 import { IGetUsersOptions } from './interfaces';
+import { UserWithLifetimeTrafficEntity } from './entities/user-with-lifetime-traffic.entity';
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);
@@ -128,9 +129,12 @@ export class UsersService {
         }
     }
 
-    public async getAllUsers(
-        options: IGetUsersOptions,
-    ): Promise<ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>> {
+    public async getAllUsers(options: IGetUsersOptions): Promise<
+        ICommandResponse<{
+            users: UserWithLifetimeTrafficEntity[];
+            total: number;
+        }>
+    > {
         try {
             const [users, total] =
                 await this.userRepository.getAllUsersWithActiveInboundsWithPagination(options);
@@ -143,6 +147,7 @@ export class UsersService {
                 },
             };
         } catch (error) {
+            this.logger.error(error);
             this.logger.error(JSON.stringify(error));
             return {
                 isOk: false,

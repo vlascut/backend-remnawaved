@@ -6,9 +6,10 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { UserForConfigEntity } from '../entities/users-for-config';
-import { TUsersStatus, USERS_STATUS } from '@contract/constants';
+import { TResetPeriods, TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { UserStats } from '../interfaces/user-stats.interface';
 import { IGetUsersOptions } from '../interfaces';
+import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -196,6 +197,56 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
+    // public async getAllUsersWithActiveInboundsWithPagination({
+    //     limit,
+    //     offset,
+    //     orderBy,
+    //     orderDir,
+    //     search,
+    //     searchBy,
+    // }: IGetUsersOptions): Promise<[UserWithActiveInboundsEntity[], number]> {
+    //     const where = search
+    //         ? {
+    //               [searchBy as string]: {
+    //                   contains: search,
+    //                   mode: 'insensitive' as const,
+    //               },
+    //           }
+    //         : {};
+
+    //     const [result, total] = await Promise.all([
+    //         this.prisma.tx.users.findMany({
+    //             skip: offset,
+    //             take: limit,
+    //             where,
+    //             orderBy: {
+    //                 [orderBy]: orderDir,
+    //             },
+    //             include: {
+    //                 activeUserInbounds: {
+    //                     select: {
+    //                         inbound: {
+    //                             select: {
+    //                                 uuid: true,
+    //                                 tag: true,
+    //                                 type: true,
+    //                             },
+    //                         },
+    //                     },
+    //                 },
+    //                 userTrafficHistory: {
+    //                     _sum: {
+    //                         usedBytes: true,
+    //                     },
+    //                 },
+    //             },
+    //         }),
+    //         this.prisma.tx.users.count({ where }),
+    //     ]);
+
+    //     return [result.map((value) => new UserWithActiveInboundsEntity(value)), total];
+    // }
+
     public async getAllUsersWithActiveInboundsWithPagination({
         limit,
         offset,
@@ -203,7 +254,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         orderDir,
         search,
         searchBy,
-    }: IGetUsersOptions): Promise<[UserWithActiveInboundsEntity[], number]> {
+    }: IGetUsersOptions): Promise<[UserWithLifetimeTrafficEntity[], number]> {
         const where = search
             ? {
                   [searchBy as string]: {
@@ -213,7 +264,14 @@ export class UsersRepository implements ICrud<UserEntity> {
               }
             : {};
 
-        const [result, total] = await Promise.all([
+        const [trafficByUser, users, total] = await Promise.all([
+            this.prisma.tx.users.groupBy({
+                where,
+                by: ['uuid'],
+                _sum: {
+                    usedTrafficBytes: true,
+                },
+            }),
             this.prisma.tx.users.findMany({
                 skip: offset,
                 take: limit,
@@ -238,7 +296,19 @@ export class UsersRepository implements ICrud<UserEntity> {
             this.prisma.tx.users.count({ where }),
         ]);
 
-        return [result.map((value) => new UserWithActiveInboundsEntity(value)), total];
+        const trafficMap = new Map(
+            trafficByUser.map((item) => [item.uuid, item._sum.usedTrafficBytes || BigInt(0)]),
+        );
+
+        const result = users.map((user) => {
+            const totalUsedBytes = trafficMap.get(user.uuid) || BigInt(0);
+            return new UserWithLifetimeTrafficEntity({
+                ...user,
+                totalUsedBytes,
+            });
+        });
+
+        return [result, total];
     }
 
     public async getUserByShortUuid(

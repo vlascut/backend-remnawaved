@@ -1,28 +1,29 @@
 import { Users } from '@prisma/client';
 import { TResetPeriods, TUsersStatus } from '@contract/constants';
+
 export class UserEntity implements Users {
-    uuid: string;
-    subscriptionUuid: string;
-    shortUuid: string;
-    username: string;
-    status: TUsersStatus;
-    usedTrafficBytes: bigint;
-    trafficLimitBytes: bigint;
-    trafficLimitStrategy: TResetPeriods;
-    subLastUserAgent: string;
-    subLastOpenedAt: Date;
+    public uuid: string;
+    public subscriptionUuid: string;
+    public shortUuid: string;
+    public username: string;
+    public status: TUsersStatus;
+    public usedTrafficBytes: bigint;
+    public trafficLimitBytes: bigint;
+    public trafficLimitStrategy: TResetPeriods;
+    public subLastUserAgent: string;
+    public subLastOpenedAt: Date;
 
-    expireAt: Date;
-    onlineAt: Date;
-    subRevokedAt: Date | null;
-    lastTrafficResetAt: Date | null;
+    public expireAt: Date;
+    public onlineAt: Date;
+    public subRevokedAt: Date | null;
+    public lastTrafficResetAt: Date | null;
 
-    trojanPassword: string;
-    vlessUuid: string;
-    ssPassword: string;
+    public trojanPassword: string;
+    public vlessUuid: string;
+    public ssPassword: string;
 
-    createdAt: Date;
-    updatedAt: Date;
+    public createdAt: Date;
+    public updatedAt: Date;
 
     constructor(user: Partial<Users>) {
         Object.assign(this, user);

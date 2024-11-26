@@ -35,7 +35,12 @@ import {
     RevokeUserSubscriptionRequestDto,
     RevokeUserSubscriptionResponseDto,
 } from './dtos';
-import { CreateUserResponseModel, GetUserResponseModel } from './models';
+import {
+    CreateUserResponseModel,
+    GetAllUsersResponseModel,
+    GetUserResponseModel,
+    UserWithLifetimeTrafficResponseModel,
+} from './models';
 import {
     ApiBearerAuth,
     ApiBody,
@@ -134,10 +139,10 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: {
-                users: data.users.map((value) => new GetUserResponseModel(value)),
+            response: new GetAllUsersResponseModel({
                 total: data.total,
-            },
+                users: data.users.map((item) => new UserWithLifetimeTrafficResponseModel(item)),
+            }),
         };
     }
 

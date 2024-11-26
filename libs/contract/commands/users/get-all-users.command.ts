@@ -47,7 +47,12 @@ export namespace GetAllUsersCommand {
 
     export const ResponseSchema = z.object({
         response: z.object({
-            users: z.array(UsersSchema),
+            users: z.array(
+                UsersSchema.extend({
+                    totalUsedBytes: z.string(),
+                }),
+            ),
+
             total: z.number(),
         }),
     });
