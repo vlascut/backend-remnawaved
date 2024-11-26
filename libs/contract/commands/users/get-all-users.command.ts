@@ -15,7 +15,13 @@ export namespace GetAllUsersCommand {
         'trafficLimitBytes',
     ] as const;
 
-    export const SearchableFields = ['username', 'shortUuid', 'subscriptionUuid', 'uuid'] as const;
+    export const SearchableFields = [
+        'username',
+        'shortUuid',
+        'subscriptionUuid',
+        'uuid',
+        'status',
+    ] as const;
 
     export type SortableField = (typeof SortableFields)[number];
     export type SearchableField = (typeof SearchableFields)[number];
