@@ -14,6 +14,7 @@ import { UserWithActiveInboundsEntity } from './entities/user-with-active-inboun
 import { UserEntity } from './entities/users.entity';
 import { DeleteUserResponseModel } from './models/delete-user.response.model';
 import { UsersRepository } from './repositories/users.repository';
+import { IGetUsersOptions } from './interfaces';
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);
@@ -128,18 +129,18 @@ export class UsersService {
     }
 
     public async getAllUsers(
-        limit: number,
-        offset: number,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
+        options: IGetUsersOptions,
+    ): Promise<ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>> {
         try {
-            const result = await this.userRepository.getAllUsersWithActiveInboundsWithPagination(
-                limit,
-                offset,
-            );
+            const [users, total] =
+                await this.userRepository.getAllUsersWithActiveInboundsWithPagination(options);
 
             return {
                 isOk: true,
-                response: result,
+                response: {
+                    users,
+                    total,
+                },
             };
         } catch (error) {
             this.logger.error(JSON.stringify(error));

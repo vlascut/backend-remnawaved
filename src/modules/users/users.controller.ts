@@ -97,13 +97,47 @@ export class UsersController {
         description: 'Offset of users, default is 0',
         required: false,
     })
+    @ApiQuery({
+        name: 'orderBy',
+        type: String,
+        description: 'Order by field, default is createdAt',
+        required: false,
+    })
+    @ApiQuery({
+        name: 'orderDir',
+        type: String,
+        description: 'Order direction, default is desc',
+        required: false,
+    })
+    @ApiQuery({
+        name: 'search',
+        type: String,
+        description: 'Search by field value',
+        required: false,
+    })
+    @ApiQuery({
+        name: 'searchBy',
+        type: String,
+        description: 'Search by field name',
+        required: false,
+    })
     async getAllUsers(@Query() query: GetAllUsersQueryDto): Promise<GetAllUsersResponseDto> {
-        const { limit, offset } = query;
-        const result = await this.usersService.getAllUsers(limit, offset);
+        const { limit, offset, orderBy, orderDir, search, searchBy } = query;
+        const result = await this.usersService.getAllUsers({
+            limit,
+            offset,
+            orderBy,
+            orderDir,
+            search,
+            searchBy,
+        });
 
         const data = errorHandler(result);
         return {
-            response: data.map((value) => new GetUserResponseModel(value)),
+            response: {
+                users: data.users.map((value) => new GetUserResponseModel(value)),
+                total: data.total,
+            },
         };
     }
 

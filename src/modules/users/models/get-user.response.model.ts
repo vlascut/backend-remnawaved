@@ -1,4 +1,4 @@
-import { TResetPeriods, TUsersStatus } from '../../../../libs/contract';
+import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 

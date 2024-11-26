@@ -8,7 +8,7 @@ import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbou
 import { UserForConfigEntity } from '../entities/users-for-config';
 import { TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { UserStats } from '../interfaces/user-stats.interface';
-import { IUserStatusCount } from '../interfaces/user-status-count.interface';
+import { IGetUsersOptions } from '../interfaces';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -196,32 +196,49 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
-    public async getAllUsersWithActiveInboundsWithPagination(
-        limit: number,
-        offset: number,
-    ): Promise<UserWithActiveInboundsEntity[]> {
-        const result = await this.prisma.tx.users.findMany({
-            skip: offset,
-            take: limit,
-            orderBy: {
-                createdAt: 'asc',
-            },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
+    public async getAllUsersWithActiveInboundsWithPagination({
+        limit,
+        offset,
+        orderBy,
+        orderDir,
+        search,
+        searchBy,
+    }: IGetUsersOptions): Promise<[UserWithActiveInboundsEntity[], number]> {
+        const where = search
+            ? {
+                  [searchBy as string]: {
+                      contains: search,
+                      mode: 'insensitive' as const,
+                  },
+              }
+            : {};
+
+        const [result, total] = await Promise.all([
+            this.prisma.tx.users.findMany({
+                skip: offset,
+                take: limit,
+                where,
+                orderBy: {
+                    [orderBy]: orderDir,
+                },
+                include: {
+                    activeUserInbounds: {
+                        select: {
+                            inbound: {
+                                select: {
+                                    uuid: true,
+                                    tag: true,
+                                    type: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
+            }),
+            this.prisma.tx.users.count({ where }),
+        ]);
 
-        return result.map((value) => new UserWithActiveInboundsEntity(value));
+        return [result.map((value) => new UserWithActiveInboundsEntity(value)), total];
     }
 
     public async getUserByShortUuid(
