@@ -79,7 +79,7 @@ export class UsersService {
                 trafficLimitBytes,
                 trafficLimitStrategy,
                 status,
-                enabledInbounds,
+                activeUserInbounds,
             } = dto;
 
             const user = await this.userRepository.getUserByUUID(uuid);
@@ -101,8 +101,8 @@ export class UsersService {
             let inboundsChanged = false;
             let oldInboundTags: string[] = [];
 
-            if (enabledInbounds) {
-                const newInboundUuids = enabledInbounds.map((inbound) => inbound.uuid);
+            if (activeUserInbounds) {
+                const newInboundUuids = activeUserInbounds;
 
                 const currentInboundUuids =
                     user.activeUserInbounds?.map((inbound) => inbound.uuid) || [];
@@ -192,7 +192,7 @@ export class UsersService {
                 trojanPassword,
                 vlessUuid,
                 ssPassword,
-                enabledInbounds,
+                activeUserInbounds,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -210,11 +210,10 @@ export class UsersService {
 
             const result = await this.userRepository.create(userEntity);
 
-            if (enabledInbounds) {
-                const inboundUuids = enabledInbounds.map((inbound) => inbound.uuid);
+            if (activeUserInbounds) {
                 const inboundResult = await this.createManyUserActiveInbounds({
                     userUuid: result.uuid,
-                    inboundUuids,
+                    inboundUuids: activeUserInbounds,
                 });
                 if (!inboundResult.isOk) {
                     return {

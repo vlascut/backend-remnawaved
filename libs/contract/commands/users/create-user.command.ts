@@ -73,15 +73,10 @@ export namespace CreateUserCommand {
                     });
                 }
             }),
-        enabledInbounds: z
-            .array(
-                InboundsSchema.pick({
-                    uuid: true,
-                }),
-                {
-                    invalid_type_error: 'Enabled inbounds must be an array',
-                },
-            )
+        activeUserInbounds: z
+            .array(z.string().uuid(), {
+                invalid_type_error: 'Enabled inbounds must be an array',
+            })
             .optional(),
         expireAt: z.coerce
             .date({
