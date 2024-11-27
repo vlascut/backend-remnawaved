@@ -1,6 +1,6 @@
 {
   "name": "@remnawave/backend-contract",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "A contract library for Remnawave",
   "main": "index.js",
   "scripts": {
