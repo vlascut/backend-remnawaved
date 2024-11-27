@@ -3,6 +3,6 @@ import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-
 export class ReaddUserToNodeEvent {
     constructor(
         public readonly user: UserWithActiveInboundsEntity,
-        public readonly oldInboundTags: string[],
+        public readonly oldInboundTags?: string[],
     ) {}
 }

@@ -71,4 +71,18 @@ export class HostsService {
             return { isOk: false, ...ERRORS.DELETE_HOST_ERROR };
         }
     }
+
+    public async getAllHosts(): Promise<ICommandResponse<HostsEntity[]>> {
+        try {
+            const result = await this.hostsRepository.findAll();
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(JSON.stringify(error));
+            return { isOk: false, ...ERRORS.GET_ALL_HOSTS_ERROR };
+        }
+    }
 }

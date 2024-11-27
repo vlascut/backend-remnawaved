@@ -1,9 +1,10 @@
 export const HOSTS_CONTROLLER = 'hosts' as const;
 
 export const HOSTS_ROUTES = {
-    CREATE: '',
-    DELETE: ':uuid',
-    GET_ALL: '',
-    UPDATE: '',
+    CREATE: 'create',
+    DELETE: 'delete',
+    GET_ALL: 'all',
+    UPDATE: 'update',
     UPDATE_MANY: 'many',
+    REORDER: 'reorder',
 } as const;

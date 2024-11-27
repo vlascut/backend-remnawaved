@@ -240,4 +240,9 @@ export const ERRORS = {
         message: 'Update user with inbounds error',
         httpCode: 500,
     },
+    GET_ALL_HOSTS_ERROR: {
+        code: 'A050',
+        message: 'Get all hosts error',
+        httpCode: 500,
+    },
 } as const;

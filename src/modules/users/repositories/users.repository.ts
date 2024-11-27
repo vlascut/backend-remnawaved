@@ -6,7 +6,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { UserForConfigEntity } from '../entities/users-for-config';
-import { TResetPeriods, TUsersStatus, USERS_STATUS } from '@contract/constants';
+import { TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { UserStats } from '../interfaces/user-stats.interface';
 import { IGetUsersOptions } from '../interfaces';
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';

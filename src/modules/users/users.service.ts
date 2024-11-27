@@ -380,7 +380,7 @@ export class UsersService {
                     ...ERRORS.USER_NOT_FOUND,
                 };
             }
-            await this.userRepository.updateUserWithActiveInbounds({
+            const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
                 uuid: user.uuid,
                 shortUuid: this.createNanoId(),
                 subscriptionUuid: this.createUuid(),
@@ -391,10 +391,13 @@ export class UsersService {
             });
 
             // ! TODO: add event emitter for revoked subscription
+            if (updatedUser.status === USERS_STATUS.ACTIVE) {
+                await this.eventBus.publish(new ReaddUserToNodeEvent(updatedUser));
+            }
 
             return {
                 isOk: true,
-                response: user,
+                response: updatedUser,
             };
         } catch (error) {
             this.logger.error(error);
@@ -449,7 +452,7 @@ export class UsersService {
                 };
             }
 
-            await this.userRepository.updateUserWithActiveInbounds({
+            const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
                 uuid: user.uuid,
                 status: USERS_STATUS.DISABLED,
             });
@@ -458,7 +461,7 @@ export class UsersService {
 
             return {
                 isOk: true,
-                response: user,
+                response: updatedUser,
             };
         } catch (error) {
             this.logger.error(error);
@@ -489,7 +492,7 @@ export class UsersService {
                 };
             }
 
-            await this.userRepository.updateUserWithActiveInbounds({
+            const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
                 uuid: user.uuid,
                 status: USERS_STATUS.ACTIVE,
             });
@@ -498,7 +501,7 @@ export class UsersService {
 
             return {
                 isOk: true,
-                response: user,
+                response: updatedUser,
             };
         } catch (error) {
             this.logger.error(error);

@@ -31,11 +31,18 @@ export class ReaddUserToNodeHandler implements IEventHandler<ReaddUserToNodeEven
                 throw new Error('No connected nodes found');
             }
 
+            let oldInboundTags: string[] = [];
+            if (event.oldInboundTags === undefined) {
+                oldInboundTags = event.user.activeUserInbounds.map((inbound) => inbound.tag);
+            } else {
+                oldInboundTags = event.oldInboundTags;
+            }
+
             /// REMOVING USER FROM NODE
 
             const removeUserData: RemoveUserFromNodeCommandSdk.Request = {
                 username: userEntity.username,
-                tags: event.oldInboundTags,
+                tags: oldInboundTags,
             };
 
             const removeMapper = async (node: NodesEntity) => {

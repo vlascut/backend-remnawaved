@@ -50,6 +50,15 @@ export class HostsRepository implements ICrud<HostsEntity> {
         return this.hostsConverter.fromPrismaModelsToEntities(list);
     }
 
+    public async findAll(): Promise<HostsEntity[]> {
+        const list = await this.prisma.tx.hosts.findMany({
+            orderBy: {
+                viewPosition: 'asc',
+            },
+        });
+        return this.hostsConverter.fromPrismaModelsToEntities(list);
+    }
+
     public async deleteByUUID(uuid: string): Promise<boolean> {
         const result = await this.prisma.tx.hosts.delete({ where: { uuid } });
         return !!result;

@@ -9,6 +9,7 @@ import {
     Body,
     Controller,
     Delete,
+    Get,
     HttpCode,
     HttpStatus,
     Param,
@@ -29,6 +30,8 @@ import { CreateHostRequestDto, CreateHostResponseDto } from './dtos/create-host.
 import { DeleteHostRequestDto, DeleteHostResponseDto } from './dtos/delete-host.dto';
 import { HostsService } from './hosts.service';
 import { CreateHostResponseModel } from './models/create-host.response.model';
+import { GetAllHostsResponseDto } from './dtos/get-all-hosts.dto';
+import { GetAllHostsResponseModel } from './models/get-all-hosts.response.model';
 
 @ApiTags('Hosts Controller')
 @ApiBearerAuth('Authorization')
@@ -53,6 +56,22 @@ export class HostsController {
         const data = errorHandler(result);
         return {
             response: new CreateHostResponseModel(data),
+        };
+    }
+
+    @Get(HOSTS_ROUTES.GET_ALL)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get All Hosts', description: 'Get all hosts' })
+    @ApiOkResponse({
+        type: GetAllHostsResponseDto,
+        description: 'Hosts fetched successfully',
+    })
+    async getAllHosts(): Promise<GetAllHostsResponseDto> {
+        const result = await this.hostsService.getAllHosts();
+
+        const data = errorHandler(result);
+        return {
+            response: data.map((host) => new GetAllHostsResponseModel(host)),
         };
     }
 
