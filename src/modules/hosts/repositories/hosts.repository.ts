@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
 import { HostsEntity } from '../entities/hosts.entity';
 import { HostsConverter } from '../hosts.converter';
+import { IReorderHost } from '../interfaces/reorder-host.interface';
 
 @Injectable()
 export class HostsRepository implements ICrud<HostsEntity> {
@@ -90,5 +91,12 @@ export class HostsRepository implements ICrud<HostsEntity> {
                     ...host,
                 }),
         );
+    }
+
+    public async reorderMany(dto: IReorderHost[]): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            data: dto,
+        });
+        return !!result;
     }
 }

@@ -32,6 +32,7 @@ import { HostsService } from './hosts.service';
 import { CreateHostResponseModel } from './models/create-host.response.model';
 import { GetAllHostsResponseDto } from './dtos/get-all-hosts.dto';
 import { GetAllHostsResponseModel } from './models/get-all-hosts.response.model';
+import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-hots.dto';
 
 @ApiTags('Hosts Controller')
 @ApiBearerAuth('Authorization')
@@ -72,6 +73,25 @@ export class HostsController {
         const data = errorHandler(result);
         return {
             response: data.map((host) => new GetAllHostsResponseModel(host)),
+        };
+    }
+
+    @Post(HOSTS_ROUTES.REORDER)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Reorder Hosts', description: 'Reorder hosts' })
+    @ApiOkResponse({
+        type: ReorderHostResponseDto,
+        description: 'Hosts reordered successfully',
+    })
+    @ApiBody({ type: ReorderHostRequestDto })
+    async reorderHosts(@Body() body: ReorderHostRequestDto): Promise<ReorderHostResponseDto> {
+        const result = await this.hostsService.reorderHosts(body);
+
+        const data = errorHandler(result);
+        return {
+            response: {
+                isUpdated: data.isUpdated,
+            },
         };
     }
 

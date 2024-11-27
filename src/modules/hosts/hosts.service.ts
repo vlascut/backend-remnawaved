@@ -7,6 +7,7 @@ import { CreateHostRequestDto } from './dtos/create-host.dto';
 import { HostsEntity } from './entities/hosts.entity';
 import { DeleteHostResponseModel } from './models/delete-host.response.model';
 import { HostsRepository } from './repositories/hosts.repository';
+import { ReorderHostRequestDto } from 'src/modules/hosts/dtos/reorder-hots.dto';
 
 @Injectable()
 export class HostsService {
@@ -83,6 +84,28 @@ export class HostsService {
         } catch (error) {
             this.logger.error(JSON.stringify(error));
             return { isOk: false, ...ERRORS.GET_ALL_HOSTS_ERROR };
+        }
+    }
+
+    public async reorderHosts(dto: ReorderHostRequestDto): Promise<
+        ICommandResponse<{
+            isUpdated: boolean;
+        }>
+    > {
+        try {
+            const result = await this.hostsRepository.reorderMany({
+                ...dto.hosts,
+            });
+
+            return {
+                isOk: true,
+                response: {
+                    isUpdated: result,
+                },
+            };
+        } catch (error) {
+            this.logger.error(JSON.stringify(error));
+            return { isOk: false, ...ERRORS.REORDER_HOSTS_ERROR };
         }
     }
 }

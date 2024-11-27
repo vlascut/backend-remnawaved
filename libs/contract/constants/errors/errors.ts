@@ -245,4 +245,9 @@ export const ERRORS = {
         message: 'Get all hosts error',
         httpCode: 500,
     },
+    REORDER_HOSTS_ERROR: {
+        code: 'A051',
+        message: 'Reorder hosts error',
+        httpCode: 500,
+    },
 } as const;
