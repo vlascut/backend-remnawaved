@@ -165,7 +165,7 @@ export class UsersController {
         };
     }
 
-    @Get(USERS_ROUTES.GET_BY_SHORT_UUID)
+    @Get(USERS_ROUTES.GET_BY_SHORT_UUID + '/:shortUuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Get User By Short UUID', description: 'Get user by short UUID' })
     @ApiOkResponse({
@@ -192,7 +192,7 @@ export class UsersController {
         };
     }
 
-    @Get(USERS_ROUTES.GET_BY_SUBSCRIPTION_UUID)
+    @Get(USERS_ROUTES.GET_BY_SUBSCRIPTION_UUID + '/:subscriptionUuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Get User By Subscription UUID',
@@ -249,7 +249,7 @@ export class UsersController {
         };
     }
 
-    @Patch(USERS_ROUTES.REVOKE_SUBSCRIPTION)
+    @Patch(USERS_ROUTES.REVOKE_SUBSCRIPTION + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Revoke User Subscription',
@@ -274,7 +274,7 @@ export class UsersController {
         };
     }
 
-    @Patch(USERS_ROUTES.DISABLE_USER)
+    @Patch(USERS_ROUTES.DISABLE_USER + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Disable User',
@@ -297,7 +297,7 @@ export class UsersController {
         };
     }
 
-    @Delete(USERS_ROUTES.DELETE_USER)
+    @Delete(USERS_ROUTES.DELETE_USER + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Delete User',
@@ -320,7 +320,7 @@ export class UsersController {
         };
     }
 
-    @Patch(USERS_ROUTES.ENABLE_USER)
+    @Patch(USERS_ROUTES.ENABLE_USER + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Enable User',
