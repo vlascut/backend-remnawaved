@@ -224,7 +224,7 @@ export class UsersController {
         };
     }
 
-    @Get(USERS_ROUTES.GET_BY_UUID)
+    @Get(USERS_ROUTES.GET_BY_UUID + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Get User By UUID',
