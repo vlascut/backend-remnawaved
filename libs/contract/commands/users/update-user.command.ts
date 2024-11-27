@@ -33,16 +33,35 @@ export namespace UpdateUserCommand {
                     });
                 }
             }),
-        enabledInbounds: z
-            .array(
-                InboundsSchema.pick({
-                    uuid: true,
-                }),
-                {
-                    invalid_type_error: 'Enabled inbounds must be an array',
-                },
-            )
-            .optional(),
+        // enabledInbounds: z
+        //     .array(
+        //         InboundsSchema.pick({
+        //             uuid: true,
+        //         }),
+        //         {
+        //             invalid_type_error: 'Enabled inbounds must be an array',
+        //         },
+        //     )
+        //     .optional(),
+        enabledInbounds: z.preprocess(
+            (val) => {
+                if (Array.isArray(val)) {
+                    return val.map((uuid) => ({ uuid }));
+                }
+                return [];
+            },
+            z
+                .array(
+                    InboundsSchema.pick({
+                        uuid: true,
+                    }),
+                    {
+                        invalid_type_error:
+                            'Enabled inbounds must be an array of objects with uuid',
+                    },
+                )
+                .optional(),
+        ),
         expireAt: z.coerce
             .date({
                 required_error: 'Expiration date is required',
