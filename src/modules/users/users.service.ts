@@ -101,8 +101,6 @@ export class UsersService {
             let inboundsChanged = false;
             let oldInboundTags: string[] = [];
 
-            console.log('activeUserInbounds', activeUserInbounds);
-
             if (activeUserInbounds) {
                 const newInboundUuids = activeUserInbounds;
 
@@ -155,7 +153,7 @@ export class UsersService {
                 },
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             if (
                 error instanceof Prisma.PrismaClientKnownRequestError &&
                 error.code === 'P2002' &&
