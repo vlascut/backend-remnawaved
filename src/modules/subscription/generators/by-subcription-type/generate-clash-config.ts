@@ -1,5 +1,5 @@
 import { dump as yamlDump } from 'js-yaml';
-import { isDevelopment } from '../../../../common/utils/startup-app';
+import { isDevelopment } from '@common/utils/startup-app';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';

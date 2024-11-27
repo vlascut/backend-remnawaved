@@ -10,4 +10,5 @@ export const USERS_ROUTES = {
     DISABLE_USER: '/disable/:uuid',
     ENABLE_USER: '/enable/:uuid',
     DELETE_USER: '/delete/:uuid',
+    UPDATE: '/update',
 } as const;

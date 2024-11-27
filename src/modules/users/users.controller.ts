@@ -34,6 +34,8 @@ import {
     GetUserByUuidResponseDto,
     RevokeUserSubscriptionRequestDto,
     RevokeUserSubscriptionResponseDto,
+    UpdateUserRequestDto,
+    UpdateUserResponseDto,
 } from './dtos';
 import {
     CreateUserResponseModel,
@@ -80,6 +82,23 @@ export class UsersController {
         const data = errorHandler(result);
         return {
             response: new CreateUserResponseModel(data),
+        };
+    }
+
+    @Patch(USERS_ROUTES.UPDATE)
+    @HttpCode(HttpStatus.CREATED)
+    @ApiOperation({ summary: 'Update User', description: 'Update a user' })
+    @ApiOkResponse({
+        type: UpdateUserResponseDto,
+        description: 'User updated successfully',
+    })
+    @ApiBody({ type: UpdateUserRequestDto })
+    async updateUser(@Body() body: UpdateUserRequestDto): Promise<UpdateUserResponseDto> {
+        const result = await this.usersService.updateUser(body);
+
+        const data = errorHandler(result);
+        return {
+            response: new GetUserResponseModel(data.user),
         };
     }
 

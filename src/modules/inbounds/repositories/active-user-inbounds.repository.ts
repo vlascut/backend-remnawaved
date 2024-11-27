@@ -28,6 +28,15 @@ export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEnti
         return result.count;
     }
 
+    public async deleteManyActiveByUserUuid(userUuid: string): Promise<number> {
+        const result = await this.prisma.tx.activeUserInbounds.deleteMany({
+            where: {
+                userUuid,
+            },
+        });
+        return result.count;
+    }
+
     public async createMany(userUuid: string, inboundUuids: string[]): Promise<number> {
         const result = await this.prisma.tx.activeUserInbounds.createMany({
             data: inboundUuids.map((inboundUuid) => ({ userUuid, inboundUuid })),

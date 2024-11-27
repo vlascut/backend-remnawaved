@@ -10,6 +10,7 @@ import { TResetPeriods, TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { UserStats } from '../interfaces/user-stats.interface';
 import { IGetUsersOptions } from '../interfaces';
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
+import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -265,13 +266,9 @@ export class UsersRepository implements ICrud<UserEntity> {
             : {};
 
         const [trafficByUser, users, total] = await Promise.all([
-            this.prisma.tx.users.groupBy({
-                where,
-                by: ['uuid'],
-                _sum: {
-                    usedTrafficBytes: true,
-                },
-            }),
+            this.prisma.tx.$queryRaw<{ uuid: string; usedTrafficBytes: bigint }[]>(
+                new SumLifetimeUsageBuilder().query,
+            ),
             this.prisma.tx.users.findMany({
                 skip: offset,
                 take: limit,
@@ -297,7 +294,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         ]);
 
         const trafficMap = new Map(
-            trafficByUser.map((item) => [item.uuid, item._sum.usedTrafficBytes || BigInt(0)]),
+            trafficByUser.map((item) => [item.uuid, item.usedTrafficBytes || BigInt(0)]),
         );
 
         const result = users.map((user) => {
@@ -307,6 +304,8 @@ export class UsersRepository implements ICrud<UserEntity> {
                 totalUsedBytes,
             });
         });
+
+        console.log(trafficByUser);
 
         return [result, total];
     }

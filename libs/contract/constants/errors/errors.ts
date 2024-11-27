@@ -235,4 +235,9 @@ export const ERRORS = {
         message: 'Get user stats error',
         httpCode: 500,
     },
+    UPDATE_USER_WITH_INBOUNDS_ERROR: {
+        code: 'A049',
+        message: 'Update user with inbounds error',
+        httpCode: 500,
+    },
 } as const;

@@ -9,13 +9,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
 import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
 import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
-import { CreateUserRequestDto } from './dtos';
+import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
 import { UserWithActiveInboundsEntity } from './entities/user-with-active-inbounds.entity';
 import { UserEntity } from './entities/users.entity';
 import { DeleteUserResponseModel } from './models/delete-user.response.model';
 import { UsersRepository } from './repositories/users.repository';
 import { IGetUsersOptions } from './interfaces';
 import { UserWithLifetimeTrafficEntity } from './entities/user-with-lifetime-traffic.entity';
+import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
+import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-user-to-node.event';
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);
@@ -38,6 +40,140 @@ export class UsersService {
         this.eventBus.publish(new AddUserToNodeEvent(user.response));
 
         return user;
+    }
+
+    public async updateUser(dto: UpdateUserRequestDto): Promise<
+        ICommandResponse<{
+            user: UserWithActiveInboundsEntity;
+            inboubdsChanged: boolean;
+            oldInboundTags: string[];
+        }>
+    > {
+        const user = await this.updateUserTransactional(dto);
+
+        if (!user.isOk || !user.response) {
+            return user;
+        }
+
+        if (user.response.inboubdsChanged) {
+            this.eventBus.publish(
+                new ReaddUserToNodeEvent(user.response.user, user.response.oldInboundTags),
+            );
+        }
+
+        return user;
+    }
+
+    @Transactional()
+    public async updateUserTransactional(dto: UpdateUserRequestDto): Promise<
+        ICommandResponse<{
+            user: UserWithActiveInboundsEntity;
+            inboubdsChanged: boolean;
+            oldInboundTags: string[];
+        }>
+    > {
+        try {
+            const {
+                uuid,
+                expireAt,
+                trafficLimitBytes,
+                trafficLimitStrategy,
+                status,
+                enabledInbounds,
+            } = dto;
+
+            const user = await this.userRepository.getUserByUUID(uuid);
+            if (!user) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            const result = await this.userRepository.update({
+                uuid: user.uuid,
+                expireAt: expireAt ? new Date(expireAt) : undefined,
+                trafficLimitBytes: trafficLimitBytes ? BigInt(trafficLimitBytes) : undefined,
+                trafficLimitStrategy: trafficLimitStrategy || undefined,
+                status: status || undefined,
+            });
+
+            let inboundsChanged = false;
+            let oldInboundTags: string[] = [];
+
+            if (enabledInbounds) {
+                const newInboundUuids = enabledInbounds.map((inbound) => inbound.uuid);
+
+                const currentInboundUuids =
+                    user.activeUserInbounds?.map((inbound) => inbound.uuid) || [];
+
+                oldInboundTags = user.activeUserInbounds?.map((inbound) => inbound.tag) || [];
+
+                const hasChanges =
+                    newInboundUuids.length !== currentInboundUuids.length ||
+                    !newInboundUuids.every((uuid) => currentInboundUuids.includes(uuid));
+
+                if (hasChanges) {
+                    inboundsChanged = true;
+                    await this.deleteManyActiveInboubdsByUserUuid({
+                        userUuid: result.uuid,
+                    });
+
+                    const inboundResult = await this.createManyUserActiveInbounds({
+                        userUuid: result.uuid,
+                        inboundUuids: newInboundUuids,
+                    });
+
+                    if (!inboundResult.isOk) {
+                        return {
+                            isOk: false,
+                            ...ERRORS.UPDATE_USER_WITH_INBOUNDS_ERROR,
+                        };
+                    }
+                }
+            }
+
+            const userWithInbounds = await this.userRepository.getUserWithActiveInbounds(
+                result.uuid,
+            );
+
+            if (!userWithInbounds) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CANT_GET_CREATED_USER_WITH_INBOUNDS,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: {
+                    user: userWithInbounds,
+                    inboubdsChanged: inboundsChanged,
+                    oldInboundTags: oldInboundTags,
+                },
+            };
+        } catch (error) {
+            this.logger.error(JSON.stringify(error));
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2002' &&
+                error.meta?.modelName === 'Users' &&
+                Array.isArray(error.meta.target)
+            ) {
+                const fields = error.meta.target as string[];
+                if (fields.includes('username')) {
+                    return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
+                }
+                if (fields.includes('shortUuid')) {
+                    return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
+                }
+                if (fields.includes('subscriptionUuid')) {
+                    return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
+                }
+            }
+
+            return { isOk: false, ...ERRORS.CREATE_NODE_ERROR };
+        }
     }
 
     @Transactional()
@@ -394,5 +530,14 @@ export class UsersService {
             CreateManyUserActiveInboundsCommand,
             ICommandResponse<number>
         >(new CreateManyUserActiveInboundsCommand(dto.userUuid, dto.inboundUuids));
+    }
+
+    private async deleteManyActiveInboubdsByUserUuid(
+        dto: DeleteManyActiveInboubdsByUserUuidCommand,
+    ): Promise<ICommandResponse<number>> {
+        return this.commandBus.execute<
+            DeleteManyActiveInboubdsByUserUuidCommand,
+            ICommandResponse<number>
+        >(new DeleteManyActiveInboubdsByUserUuidCommand(dto.userUuid));
     }
 }
