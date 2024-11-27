@@ -6,7 +6,7 @@ export namespace GetInboundsCommand {
     export const url = REST_API.INBOUNDS.GET_INBOUNDS;
 
     export const ResponseSchema = z.object({
-        response: z.array(InboundsSchema.pick({ tag: true, uuid: true })),
+        response: z.array(InboundsSchema),
     });
 
     export type Response = z.infer<typeof ResponseSchema>;

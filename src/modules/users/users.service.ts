@@ -101,6 +101,8 @@ export class UsersService {
             let inboundsChanged = false;
             let oldInboundTags: string[] = [];
 
+            console.log('activeUserInbounds', activeUserInbounds);
+
             if (activeUserInbounds) {
                 const newInboundUuids = activeUserInbounds;
 
