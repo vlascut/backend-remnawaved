@@ -35,8 +35,8 @@ export namespace CreateHostCommand {
         fingerprint: z.optional(
             z.enum([FINGERPRINTS_VALUES[0], ...FINGERPRINTS_VALUES]).nullable(),
         ),
-        allowInsecure: z.boolean().optional().default(false),
-        isDisabled: z.boolean().optional().default(false),
+        allowInsecure: z.optional(z.boolean().default(false)),
+        isDisabled: z.optional(z.boolean().default(false)),
     });
     export type Request = z.infer<typeof RequestSchema>;
 
