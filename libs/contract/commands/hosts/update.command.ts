@@ -35,13 +35,13 @@ export namespace UpdateHostCommand {
             })
             .int()
             .optional(),
-        path: z.string().optional(),
-        sni: z.string().optional(),
-        host: z.string().optional(),
-        alpn: z.nativeEnum(ALPN).optional(),
-        fingerprint: z.nativeEnum(FINGERPRINTS).optional(),
-        allowInsecure: z.boolean().optional(),
-        isDisabled: z.boolean().optional(),
+        path: z.optional(z.string()),
+        sni: z.optional(z.string()),
+        host: z.optional(z.string()),
+        alpn: z.optional(z.nativeEnum(ALPN)),
+        fingerprint: z.optional(z.nativeEnum(FINGERPRINTS)),
+        allowInsecure: z.optional(z.boolean()),
+        isDisabled: z.optional(z.boolean()),
     });
     export type Request = z.infer<typeof RequestSchema>;
 

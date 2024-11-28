@@ -115,7 +115,7 @@ export class HostsController {
         };
     }
 
-    @Delete(HOSTS_ROUTES.DELETE)
+    @Delete(HOSTS_ROUTES.DELETE + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Delete Host',
