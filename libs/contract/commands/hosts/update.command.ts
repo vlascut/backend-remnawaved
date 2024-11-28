@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { REST_API } from '../../api';
-import { ALPN } from '../../constants/hosts/alpn';
-import { FINGERPRINTS } from '../../constants/hosts/fingerprints';
+import { ALPN, ALPN_VALUES } from '../../constants/hosts/alpn';
+import { FINGERPRINTS, FINGERPRINTS_VALUES } from '../../constants/hosts/fingerprints';
 import { HostsSchema } from '../../models';
 
 export namespace UpdateHostCommand {
@@ -38,8 +38,10 @@ export namespace UpdateHostCommand {
         path: z.optional(z.string()),
         sni: z.optional(z.string()),
         host: z.optional(z.string()),
-        alpn: z.optional(z.nativeEnum(ALPN).nullable()),
-        fingerprint: z.optional(z.nativeEnum(FINGERPRINTS).nullable()),
+        alpn: z.optional(z.enum([ALPN_VALUES[0], ...ALPN_VALUES]).nullable()),
+        fingerprint: z.optional(
+            z.enum([FINGERPRINTS_VALUES[0], ...FINGERPRINTS_VALUES]).nullable(),
+        ),
         allowInsecure: z.optional(z.boolean()),
         isDisabled: z.optional(z.boolean()),
     });
