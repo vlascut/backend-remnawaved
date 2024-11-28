@@ -7,7 +7,7 @@ import { HostsSchema } from '../../models';
 export namespace CreateHostCommand {
     export const url = REST_API.HOSTS.CREATE;
 
-    export const RequestSchema = HostsSchema.pick({}).extend({
+    export const RequestSchema = z.object({
         inboundUuid: z
             .string({
                 invalid_type_error: 'Inbound UUID must be a string',
