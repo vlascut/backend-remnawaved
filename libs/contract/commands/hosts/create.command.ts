@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { REST_API } from '../../api';
-import { ALPN } from '../../constants/hosts/alpn';
-import { FINGERPRINTS } from '../../constants/hosts/fingerprints';
+import { ALPN_VALUES } from '../../constants/hosts/alpn';
+import { FINGERPRINTS_VALUES } from '../../constants/hosts/fingerprints';
 import { HostsSchema } from '../../models';
 
 export namespace CreateHostCommand {
@@ -13,12 +13,6 @@ export namespace CreateHostCommand {
                 invalid_type_error: 'Inbound UUID must be a string',
             })
             .uuid('Inbound UUID must be a valid UUID'),
-        viewPosition: z
-            .number({
-                invalid_type_error: 'View position must be an integer',
-            })
-            .int()
-            .optional(),
         remark: z
             .string({
                 invalid_type_error: 'Remark must be a string',
@@ -37,8 +31,10 @@ export namespace CreateHostCommand {
         path: z.string().optional(),
         sni: z.string().optional(),
         host: z.string().optional(),
-        alpn: z.nativeEnum(ALPN).optional(),
-        fingerprint: z.nativeEnum(FINGERPRINTS).optional(),
+        alpn: z.optional(z.enum([ALPN_VALUES[0], ...ALPN_VALUES]).nullable()),
+        fingerprint: z.optional(
+            z.enum([FINGERPRINTS_VALUES[0], ...FINGERPRINTS_VALUES]).nullable(),
+        ),
         allowInsecure: z.boolean().optional().default(false),
         isDisabled: z.boolean().optional().default(false),
     });
