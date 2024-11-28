@@ -38,8 +38,8 @@ export namespace UpdateHostCommand {
         path: z.optional(z.string()),
         sni: z.optional(z.string()),
         host: z.optional(z.string()),
-        alpn: z.optional(z.nativeEnum(ALPN)),
-        fingerprint: z.optional(z.nativeEnum(FINGERPRINTS)),
+        alpn: z.optional(z.nativeEnum(ALPN).nullable()),
+        fingerprint: z.optional(z.nativeEnum(FINGERPRINTS).nullable()),
         allowInsecure: z.optional(z.boolean()),
         isDisabled: z.optional(z.boolean()),
     });

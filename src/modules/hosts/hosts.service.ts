@@ -130,7 +130,6 @@ export class HostsService {
         }>
     > {
         try {
-            console.log(dto.hosts);
             const result = await this.hostsRepository.reorderMany(dto.hosts);
 
             return {
@@ -140,7 +139,6 @@ export class HostsService {
                 },
             };
         } catch (error) {
-            console.log(error);
             this.logger.error(JSON.stringify(error));
             return { isOk: false, ...ERRORS.REORDER_HOSTS_ERROR };
         }
