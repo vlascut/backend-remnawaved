@@ -33,6 +33,9 @@ import { CreateHostResponseModel } from './models/create-host.response.model';
 import { GetAllHostsResponseDto } from './dtos/get-all-hosts.dto';
 import { GetAllHostsResponseModel } from './models/get-all-hosts.response.model';
 import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-hots.dto';
+import { UpdateHostRequestDto } from './dtos/update-host.dto';
+import { UpdateHostResponseDto } from './dtos/update-host.dto';
+import { UpdateHostResponseModel } from './models/update-host.response.model';
 
 @ApiTags('Hosts Controller')
 @ApiBearerAuth('Authorization')
@@ -57,6 +60,23 @@ export class HostsController {
         const data = errorHandler(result);
         return {
             response: new CreateHostResponseModel(data),
+        };
+    }
+
+    @Post(HOSTS_ROUTES.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Update Host', description: 'Update a host' })
+    @ApiOkResponse({
+        type: UpdateHostResponseDto,
+        description: 'Host updated successfully',
+    })
+    @ApiBody({ type: UpdateHostRequestDto })
+    async updateHost(@Body() body: UpdateHostRequestDto): Promise<UpdateHostResponseDto> {
+        const result = await this.hostsService.updateHost(body);
+
+        const data = errorHandler(result);
+        return {
+            response: new UpdateHostResponseModel(data),
         };
     }
 

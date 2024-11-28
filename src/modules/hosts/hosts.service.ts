@@ -8,6 +8,7 @@ import { HostsEntity } from './entities/hosts.entity';
 import { DeleteHostResponseModel } from './models/delete-host.response.model';
 import { HostsRepository } from './repositories/hosts.repository';
 import { ReorderHostRequestDto } from 'src/modules/hosts/dtos/reorder-hots.dto';
+import { UpdateHostRequestDto } from './dtos';
 
 @Injectable()
 export class HostsService {
@@ -46,6 +47,42 @@ export class HostsService {
             }
 
             return { isOk: false, ...ERRORS.CREATE_HOST_ERROR };
+        }
+    }
+
+    public async updateHost(dto: UpdateHostRequestDto): Promise<ICommandResponse<HostsEntity>> {
+        try {
+            const host = await this.hostsRepository.findByUUID(dto.uuid);
+            if (!host) {
+                return {
+                    isOk: false,
+                    ...ERRORS.HOST_NOT_FOUND,
+                };
+            }
+
+            const result = await this.hostsRepository.update({
+                ...dto,
+            });
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2002' &&
+                error.meta?.modelName === 'Hosts' &&
+                Array.isArray(error.meta.target)
+            ) {
+                const fields = error.meta.target as string[];
+                if (fields.includes('remark')) {
+                    return { isOk: false, ...ERRORS.HOST_REMARK_ALREADY_EXISTS };
+                }
+            }
+
+            return { isOk: false, ...ERRORS.UPDATE_HOST_ERROR };
         }
     }
 
@@ -93,9 +130,8 @@ export class HostsService {
         }>
     > {
         try {
-            const result = await this.hostsRepository.reorderMany({
-                ...dto.hosts,
-            });
+            console.log(dto.hosts);
+            const result = await this.hostsRepository.reorderMany(dto.hosts);
 
             return {
                 isOk: true,
@@ -104,6 +140,7 @@ export class HostsService {
                 },
             };
         } catch (error) {
+            console.log(error);
             this.logger.error(JSON.stringify(error));
             return { isOk: false, ...ERRORS.REORDER_HOSTS_ERROR };
         }

@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
 import { HostsEntity } from '../entities/hosts.entity';
 import { HostsConverter } from '../hosts.converter';
-import { IReorderHost } from '../interfaces/reorder-host.interface';
+import { IReorderHost } from 'src/modules/hosts/interfaces/reorder-host.interface';
 
 @Injectable()
 export class HostsRepository implements ICrud<HostsEntity> {
@@ -92,11 +92,19 @@ export class HostsRepository implements ICrud<HostsEntity> {
                 }),
         );
     }
-
     public async reorderMany(dto: IReorderHost[]): Promise<boolean> {
-        const result = await this.prisma.tx.hosts.updateMany({
-            data: dto,
+        await this.prisma.withTransaction(async () => {
+            for (const { uuid, viewPosition } of dto) {
+                await this.prisma.tx.hosts.updateMany({
+                    where: { uuid },
+                    data: { viewPosition },
+                });
+            }
         });
-        return !!result;
+
+        await this.prisma.tx
+            .$executeRaw`SELECT setval('hosts_view_position_seq', (SELECT MAX(view_position) FROM hosts) + 1)`;
+
+        return true;
     }
 }
