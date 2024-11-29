@@ -7,6 +7,11 @@ import { UserStats } from '../users/interfaces/user-stats.interface';
 import { QueryBus } from '@nestjs/cqrs';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
 import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class SystemService {
@@ -15,9 +20,10 @@ export class SystemService {
 
     async getStats(query: GetStatsRequestQueryDto): Promise<ICommandResponse<any>> {
         try {
-            if (query.dt) {
-                const timezone = new Date(query.dt).getTimezoneOffset();
-                console.log(timezone);
+            if (query.tz) {
+                const timezone = dayjs.tz.guess();
+                const date = dayjs(query.tz).tz(timezone);
+                console.log(date);
             }
             const userStats = await this.getShortUserStats();
 

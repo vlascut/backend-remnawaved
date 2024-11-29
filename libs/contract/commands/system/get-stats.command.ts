@@ -6,7 +6,7 @@ export namespace GetStatsCommand {
     export const url = REST_API.SYSTEM.STATS;
 
     export const RequestQuerySchema = z.object({
-        dt: z.string().datetime({ offset: true }).optional(),
+        tz: z.string().optional(),
     });
 
     export type Request = z.infer<typeof RequestQuerySchema>;
