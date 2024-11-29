@@ -169,6 +169,8 @@ export class NodesService {
 
             const result = await this.nodesRepository.deleteByUUID(node.uuid);
 
+            this.eventBus.publish(new StopNodeEvent(node));
+
             return {
                 isOk: true,
                 response: new DeleteNodeResponseModel({
@@ -273,6 +275,10 @@ export class NodesService {
             const result = await this.nodesRepository.update({
                 uuid: node.uuid,
                 isDisabled: true,
+                isConnected: false,
+                isConnecting: false,
+                isNodeOnline: false,
+                isXrayRunning: false,
             });
 
             if (!result) {

@@ -111,7 +111,7 @@ export class NodesController {
         };
     }
 
-    @Get(NODES_ROUTES.ENABLE + '/:uuid')
+    @Patch(NODES_ROUTES.ENABLE + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Enable Node', description: 'Enable node to further use' })
     @ApiOkResponse({
@@ -127,7 +127,7 @@ export class NodesController {
         };
     }
 
-    @Get(NODES_ROUTES.DISABLE + '/:uuid')
+    @Patch(NODES_ROUTES.DISABLE + '/:uuid')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Disable Node', description: 'Disable node' })
     @ApiOkResponse({

@@ -16,7 +16,6 @@ export function prettyBytesUtil(
     }
 
     const res = xbytes.parseBytes(bytesInput, { iec: true, sticky, prefixIndex });
-    console.log(res);
 
     return String(res.size);
 }
