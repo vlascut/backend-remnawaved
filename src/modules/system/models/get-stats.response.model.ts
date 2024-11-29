@@ -1,5 +1,4 @@
 import { TUsersStatus } from '@libs/contracts/constants';
-import { IUserStatusCount } from '../../users/interfaces/user-status-count.interface';
 
 interface IGetStatsResponseData {
     cpu: {
@@ -20,6 +19,13 @@ interface IGetStatsResponseData {
         statusCounts: Record<TUsersStatus, number>;
         totalUsers: number;
         totalTrafficBytes: bigint;
+    };
+    stats: {
+        nodesUsageLastTwoDays: {
+            current: string;
+            previous: string;
+            percentage: number;
+        };
     };
 }
 
@@ -43,6 +49,13 @@ export class GetStatsResponseModel {
         totalUsers: number;
         totalTrafficBytes: string;
     };
+    stats: {
+        nodesUsageLastTwoDays: {
+            current: string;
+            previous: string;
+            percentage: number;
+        };
+    };
 
     constructor(data: IGetStatsResponseData) {
         this.cpu = data.cpu;
@@ -53,5 +66,6 @@ export class GetStatsResponseModel {
             ...data.users,
             totalTrafficBytes: data.users.totalTrafficBytes.toString(),
         };
+        this.stats = data.stats;
     }
 }

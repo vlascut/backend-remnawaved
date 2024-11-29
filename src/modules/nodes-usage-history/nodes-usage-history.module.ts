@@ -5,6 +5,7 @@ import { NodesUsageHistoryRepository } from './repositories/nodes-usage-history.
 import { NodesUsageHistoryController } from './nodes-usage-history.controller';
 import { NodesUsageHistoryService } from './nodes-usage-history.service';
 import { COMMANDS } from './commands';
+import { QUERIES } from './queries';
 
 @Module({
     imports: [CqrsModule],
@@ -14,6 +15,7 @@ import { COMMANDS } from './commands';
         NodesUsageHistoryConverter,
         NodesUsageHistoryService,
         ...COMMANDS,
+        ...QUERIES,
     ],
 })
 export class NodesUsageHistoryModule {}

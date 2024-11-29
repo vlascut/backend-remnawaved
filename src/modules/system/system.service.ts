@@ -10,6 +10,10 @@ import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
+import { getDateRange } from '@common/utils/get-date-ranges.uti';
+import { calcPercentDiff } from '@common/utils/calc-percent-diff.util';
+import { prettyBytesUtil } from '@common/utils/bytes';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -20,11 +24,6 @@ export class SystemService {
 
     async getStats(query: GetStatsRequestQueryDto): Promise<ICommandResponse<any>> {
         try {
-            if (query.tz) {
-                const timezone = dayjs.tz.guess();
-                const date = dayjs(query.tz).tz(timezone);
-                console.log(date);
-            }
             const userStats = await this.getShortUserStats();
 
             if (!userStats.isOk || !userStats.response) {
@@ -35,6 +34,8 @@ export class SystemService {
             }
 
             const [cpu, mem, time] = await Promise.all([si.cpu(), si.mem(), si.time()]);
+
+            const rangeStats = await this.getRangeStats(query.tz);
 
             return {
                 isOk: true,
@@ -53,6 +54,9 @@ export class SystemService {
                     uptime: time.uptime,
                     timestamp: Date.now(),
                     users: userStats.response,
+                    stats: {
+                        nodesUsageLastTwoDays: rangeStats,
+                    },
                 }),
             };
         } catch (error) {
@@ -65,5 +69,45 @@ export class SystemService {
         return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<UserStats>>(
             new GetShortUserStatsQuery(),
         );
+    }
+
+    private async getNodesUsageByDtRange(
+        query: GetSumByDtRangeQuery,
+    ): Promise<ICommandResponse<bigint>> {
+        return this.queryBus.execute<GetSumByDtRangeQuery, ICommandResponse<bigint>>(
+            new GetSumByDtRangeQuery(query.start, query.end),
+        );
+    }
+
+    private async getRangeStats(
+        timezone: string | undefined,
+    ): Promise<{ current: string; previous: string; percentage: number }> {
+        let tz = 'UTC';
+        if (timezone) {
+            tz = timezone;
+        }
+
+        const [todayStartDate, todayEndDate] = getDateRange(tz);
+        const nodesUsageToday = await this.getNodesUsageByDtRange({
+            start: todayStartDate,
+            end: todayEndDate,
+        });
+
+        const [yesterdayStartDate, yesterdayEndDate] = getDateRange(tz, 1);
+        const nodesUsageYesterday = await this.getNodesUsageByDtRange({
+            start: yesterdayStartDate,
+            end: yesterdayEndDate,
+        });
+
+        const currentUsage = nodesUsageToday.response || 0;
+        const previousUsage = nodesUsageYesterday.response || 0;
+
+        const [cur, prev, perc] = calcPercentDiff(currentUsage, previousUsage);
+
+        return {
+            current: prettyBytesUtil(cur),
+            previous: prettyBytesUtil(prev),
+            percentage: perc,
+        };
     }
 }

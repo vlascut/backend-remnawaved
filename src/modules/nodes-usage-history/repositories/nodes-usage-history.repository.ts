@@ -86,4 +86,15 @@ export class NodesUsageHistoryRepository implements ICrud<NodesUsageHistoryEntit
         const result = await this.prisma.tx.nodesUsageHistory.delete({ where: { uuid } });
         return !!result;
     }
+
+    public async getStatsByDatetimeRange(start: Date, end: Date): Promise<bigint> {
+        const result = await this.prisma.tx.nodesUsageHistory.aggregate({
+            where: { createdAt: { gte: start, lte: end } },
+            _sum: { totalBytes: true },
+        });
+
+        console.log(result);
+
+        return result._sum.totalBytes ?? BigInt(0);
+    }
 }
