@@ -6,14 +6,19 @@ import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
 import { UserStats } from '../users/interfaces/user-stats.interface';
 import { QueryBus } from '@nestjs/cqrs';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
+import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 
 @Injectable()
 export class SystemService {
     private readonly logger = new Logger(SystemService.name);
     constructor(private readonly queryBus: QueryBus) {}
 
-    async getStats(): Promise<ICommandResponse<any>> {
+    async getStats(query: GetStatsRequestQueryDto): Promise<ICommandResponse<any>> {
         try {
+            if (query.dt) {
+                const timezone = new Date(query.dt).getTimezoneOffset();
+                console.log(timezone);
+            }
             const userStats = await this.getShortUserStats();
 
             if (!userStats.isOk || !userStats.response) {

@@ -5,7 +5,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import dayjs from 'dayjs';
-import prettyBytes from 'pretty-bytes';
 import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
 import { UpdateSubLastOpenedAndUserAgentCommand } from '../users/commands/update-sub-last-opened-and-user-agent';
@@ -20,6 +19,7 @@ import {
     SubscriptionWithConfigResponse,
 } from './models';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
+import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 
 @Injectable()
 export class SubscriptionService {
@@ -115,8 +115,8 @@ export class SubscriptionService {
             user: {
                 shortUuid: user.shortUuid,
                 daysLeft: dayjs(user.expireAt).diff(dayjs(), 'day'),
-                trafficUsed: prettyBytes(Number(user.usedTrafficBytes)),
-                trafficLimit: prettyBytes(Number(user.trafficLimitBytes)),
+                trafficUsed: prettyBytesUtil(user.usedTrafficBytes),
+                trafficLimit: prettyBytesUtil(user.trafficLimitBytes),
                 username: user.username,
                 expiresAt: user.expireAt,
                 isActive: user.status === USERS_STATUS.ACTIVE,

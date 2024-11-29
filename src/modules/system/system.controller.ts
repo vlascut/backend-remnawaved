@@ -1,9 +1,9 @@
-import { Controller, Get, UseFilters, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseFilters, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SystemService } from './system.service';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { SYSTEM_CONTROLLER, SYSTEM_ROUTES } from '@libs/contracts/api';
-import { GetStatsResponseDto } from './dtos/get-stats.dto';
+import { GetStatsRequestQueryDto, GetStatsResponseDto } from './dtos/get-stats.dto';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { RolesGuard } from '@common/guards/roles';
 import { Roles } from '@common/decorators/roles/roles';
@@ -26,8 +26,8 @@ export class SystemController {
         description: 'Returns system statistics',
         type: GetStatsResponseDto,
     })
-    async getStats(): Promise<GetStatsResponseDto> {
-        const result = await this.systemService.getStats();
+    async getStats(@Query() query: GetStatsRequestQueryDto): Promise<GetStatsResponseDto> {
+        const result = await this.systemService.getStats(query);
 
         const data = errorHandler(result);
         return {

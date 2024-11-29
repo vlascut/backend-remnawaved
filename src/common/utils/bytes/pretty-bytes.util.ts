@@ -1,0 +1,19 @@
+import xbytes from 'xbytes';
+
+export function prettyBytesUtil(
+    bytesInput: number | undefined | string | bigint,
+    returnZero: boolean = false,
+): string {
+    if (!bytesInput) {
+        return returnZero ? '0' : '0';
+    }
+    if (typeof bytesInput === 'string') {
+        bytesInput = Number(bytesInput);
+    } else if (typeof bytesInput === 'bigint') {
+        bytesInput = Number(bytesInput);
+    }
+
+    const res = xbytes.parseBytes(bytesInput, { iec: true });
+
+    return String(res.size);
+}

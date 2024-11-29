@@ -5,6 +5,12 @@ import { USERS_STATUS } from '../../constants';
 export namespace GetStatsCommand {
     export const url = REST_API.SYSTEM.STATS;
 
+    export const RequestQuerySchema = z.object({
+        dt: z.string().datetime({ offset: true }).optional(),
+    });
+
+    export type Request = z.infer<typeof RequestQuerySchema>;
+
     export const ResponseSchema = z.object({
         response: z.object({
             cpu: z.object({

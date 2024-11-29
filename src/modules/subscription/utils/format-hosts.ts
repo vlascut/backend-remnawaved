@@ -4,11 +4,11 @@ import { TemplateEngine } from '@common/utils/templates/replace-templates-values
 import { HostWithInboundTagEntity } from '../../hosts/entities/host-with-inbound-tag.entity';
 import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
 import { FormattedHosts } from '../generators/interfaces/formatted-hosts.interface';
-import prettyBytes from 'pretty-bytes';
 import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
 import { ConfigService } from '@nestjs/config';
 import { USERS_STATUS } from '@libs/contracts/constants';
 import { v4 as uuidv4 } from 'uuid';
+import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 export class FormatHosts {
     private config: XRayConfig;
     private hosts: HostWithInboundTagEntity[];
@@ -81,9 +81,9 @@ export class FormatHosts {
 
             const remark = TemplateEngine.replace(inputHost.remark, {
                 DAYS_LEFT: dayjs(this.user.expireAt).diff(dayjs(), 'day'),
-                TRAFFIC_USED: prettyBytes(Number(this.user.usedTrafficBytes)),
-                TRAFFIC_LEFT: prettyBytes(
-                    Number(this.user.trafficLimitBytes) - Number(this.user.usedTrafficBytes),
+                TRAFFIC_USED: prettyBytesUtil(this.user.usedTrafficBytes),
+                TRAFFIC_LEFT: prettyBytesUtil(
+                    this.user.trafficLimitBytes - this.user.usedTrafficBytes,
                 ),
                 STATUS: USER_STATUSES_TEMPLATE[this.user.status],
             });
