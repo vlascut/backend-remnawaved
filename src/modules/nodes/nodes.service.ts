@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NodesRepository } from './repositories/nodes.repository';
-import { ICommandResponse } from '../../common/types/command-response.type';
+import { ICommandResponse } from '@common/types/command-response.type';
 import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
 import { ERRORS } from '@contract/constants';
 import { NodesEntity } from './entities/nodes.entity';
@@ -29,6 +29,9 @@ export class NodesService {
                 isDisabled: false,
                 isNodeOnline: false,
                 isXrayRunning: false,
+                trafficLimitBytes: body.trafficLimitBytes
+                    ? BigInt(body.trafficLimitBytes)
+                    : undefined,
             });
             const result = await this.nodesRepository.create(nodeEntity);
 
@@ -193,6 +196,9 @@ export class NodesService {
 
             const result = await this.nodesRepository.update({
                 ...body,
+                trafficLimitBytes: body.trafficLimitBytes
+                    ? BigInt(body.trafficLimitBytes)
+                    : undefined,
             });
 
             if (!result) {

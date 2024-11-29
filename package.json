@@ -25,7 +25,7 @@
     "docs:serve": "compodoc -p tsconfig.json -s"
   },
   "dependencies": {
-    "@cjs-exporter/p-map": "^5.5.0",
+    "@cjs-exporter/p-map": "7.0.2",
     "@minikit/pretty-ms": "^0.2.0",
     "@nestjs-cls/transactional": "^2.4.2",
     "@nestjs-cls/transactional-adapter-prisma": "^1.2.4",

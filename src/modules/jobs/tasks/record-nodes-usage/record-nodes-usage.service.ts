@@ -110,7 +110,7 @@ export class RecordNodesUsageService {
 
         await this.incrementUsedTraffic({
             nodeUuid: node.uuid,
-            bytes: totalBytes,
+            bytes: BigInt(totalBytes),
         });
     }
 

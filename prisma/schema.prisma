@@ -86,8 +86,8 @@ model Nodes {
 
   isTrafficTrackingActive Boolean @default(false) @map("is_traffic_tracking_active")
   trafficResetDay         Int?    @default(0) @map("traffic_reset_day")
-  trafficLimitBytes       Int?    @default(0) @map("traffic_limit_bytes")
-  trafficUsedBytes        Int?    @default(0) @map("traffic_used_bytes")
+  trafficLimitBytes       BigInt? @default(0) @map("traffic_limit_bytes")
+  trafficUsedBytes        BigInt? @default(0) @map("traffic_used_bytes")
   notifyPercent           Int?    @default(0) @map("notify_percent")
 
   cpuCount Int?    @map("cpu_count")

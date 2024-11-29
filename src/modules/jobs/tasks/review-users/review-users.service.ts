@@ -5,7 +5,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { AxiosService } from '@common/axios';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ChangeUserStatusCommand } from '../../../users/commands/change-user-status/change-user-status.command';
-import { TUsersStatus, USERS_STATUS } from '../../../../../libs/contract';
+import { TUsersStatus, USERS_STATUS } from '@libs/contracts/constants';
 import { RemoveUserFromNodeEvent } from '../../../nodes/events/remove-user-from-node';
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
 import { GetActiveUsersQuery } from '../../../users/queries/get-active-users/get-active-users.query';
@@ -78,7 +78,9 @@ export class ReviewUsersService {
                         status: USERS_STATUS.EXPIRED,
                     });
                     shouldRemoveFromNode = true;
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     newStatus = USERS_STATUS.EXPIRED;
+                    // for notification emitter
                 }
 
                 if (shouldRemoveFromNode) {

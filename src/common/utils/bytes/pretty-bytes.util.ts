@@ -2,6 +2,8 @@ import xbytes from 'xbytes';
 
 export function prettyBytesUtil(
     bytesInput: number | undefined | string | bigint,
+    sticky: boolean = false,
+    prefixIndex?: number,
     returnZero: boolean = false,
 ): string {
     if (!bytesInput) {
@@ -13,7 +15,8 @@ export function prettyBytesUtil(
         bytesInput = Number(bytesInput);
     }
 
-    const res = xbytes.parseBytes(bytesInput, { iec: true });
+    const res = xbytes.parseBytes(bytesInput, { iec: true, sticky, prefixIndex });
+    console.log(res);
 
     return String(res.size);
 }

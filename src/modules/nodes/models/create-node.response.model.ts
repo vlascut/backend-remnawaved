@@ -43,8 +43,8 @@ export class CreateNodeResponseModel {
         this.xrayVersion = data.xrayVersion;
         this.isTrafficTrackingActive = data.isTrafficTrackingActive;
         this.trafficResetDay = data.trafficResetDay;
-        this.trafficLimitBytes = data.trafficLimitBytes;
-        this.trafficUsedBytes = data.trafficUsedBytes;
+        this.trafficLimitBytes = Number(data.trafficLimitBytes);
+        this.trafficUsedBytes = Number(data.trafficUsedBytes);
         this.notifyPercent = data.notifyPercent;
 
         this.cpuCount = data.cpuCount;

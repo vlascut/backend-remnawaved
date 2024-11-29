@@ -5,14 +5,18 @@ CREATE TABLE "users" (
     "short_uuid" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'active',
-    "used_traffic_bytes" INTEGER NOT NULL DEFAULT 0,
-    "traffic_limit_bytes" INTEGER NOT NULL DEFAULT 0,
+    "used_traffic_bytes" BIGINT NOT NULL DEFAULT 0,
+    "traffic_limit_bytes" BIGINT NOT NULL DEFAULT 0,
     "traffic_limit_strategy" TEXT NOT NULL DEFAULT 'fixed',
     "sub_last_user_agent" TEXT,
-    "sub_last_ip" TEXT,
+    "sub_last_opened_at" TIMESTAMP(3),
     "expire_at" TIMESTAMP(3) NOT NULL,
     "online_at" TIMESTAMP(3),
     "sub_revoked_at" TIMESTAMP(3),
+    "last_traffic_reset_at" TIMESTAMP(3),
+    "trojan_password" TEXT NOT NULL,
+    "vless_uuid" UUID NOT NULL,
+    "ss_password" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT now(),
 
@@ -51,15 +55,19 @@ CREATE TABLE "nodes" (
     "is_connected" BOOLEAN NOT NULL DEFAULT false,
     "is_connecting" BOOLEAN NOT NULL DEFAULT false,
     "is_disabled" BOOLEAN NOT NULL DEFAULT false,
+    "is_node_online" BOOLEAN NOT NULL DEFAULT false,
+    "is_xray_running" BOOLEAN NOT NULL DEFAULT false,
     "last_status_change" TIMESTAMP(3),
     "last_status_message" TEXT,
     "xray_version" TEXT,
-    "is_bill_tracking_active" BOOLEAN NOT NULL DEFAULT false,
-    "bill_date" DATE,
-    "bill_cycle" TEXT,
-    "traffic_limit_bytes" INTEGER,
-    "traffic_used_bytes" INTEGER,
-    "notify_percent" INTEGER,
+    "is_traffic_tracking_active" BOOLEAN NOT NULL DEFAULT false,
+    "traffic_reset_day" INTEGER DEFAULT 0,
+    "traffic_limit_bytes" BIGINT DEFAULT 0,
+    "traffic_used_bytes" BIGINT DEFAULT 0,
+    "notify_percent" INTEGER DEFAULT 0,
+    "cpu_count" INTEGER,
+    "cpu_model" TEXT,
+    "total_ram" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT now(),
 
@@ -102,6 +110,16 @@ CREATE TABLE "nodes_usage_history" (
 );
 
 -- CreateTable
+CREATE TABLE "user_traffic_history" (
+    "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_uuid" UUID NOT NULL,
+    "used_bytes" BIGINT NOT NULL,
+    "reset_at" TIMESTAMP(3) NOT NULL DEFAULT now(),
+
+    CONSTRAINT "user_traffic_history_pkey" PRIMARY KEY ("uuid")
+);
+
+-- CreateTable
 CREATE TABLE "xray_config" (
     "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
     "config" JSONB,
@@ -114,6 +132,7 @@ CREATE TABLE "xray_config" (
 CREATE TABLE "inbounds" (
     "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
     "tag" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
 
     CONSTRAINT "inbounds_pkey" PRIMARY KEY ("uuid")
 );
@@ -121,31 +140,33 @@ CREATE TABLE "inbounds" (
 -- CreateTable
 CREATE TABLE "hosts" (
     "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "view_position" INTEGER NOT NULL DEFAULT 0,
+    "inbound_uuid" UUID NOT NULL,
+    "view_position" SERIAL NOT NULL,
     "remark" TEXT NOT NULL,
     "address" TEXT NOT NULL,
     "port" INTEGER NOT NULL,
-    "inbound_uuid" UUID NOT NULL,
+    "path" TEXT,
     "sni" TEXT,
     "host" TEXT,
-    "security" TEXT NOT NULL DEFAULT 'inbound_default',
-    "alpn" TEXT NOT NULL DEFAULT 'none',
-    "fingerprint" TEXT NOT NULL DEFAULT 'none',
-    "allowinsecure" BOOLEAN,
-    "is_disabled" BOOLEAN,
-    "path" TEXT,
+    "alpn" TEXT,
+    "fingerprint" TEXT,
+    "allowinsecure" BOOLEAN NOT NULL DEFAULT false,
+    "is_disabled" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "hosts_pkey" PRIMARY KEY ("uuid")
 );
 
 -- CreateTable
-CREATE TABLE "active_proxies" (
+CREATE TABLE "active_user_inbounds" (
     "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_uuid" UUID NOT NULL,
     "inbound_uuid" UUID NOT NULL,
 
-    CONSTRAINT "active_proxies_pkey" PRIMARY KEY ("uuid")
+    CONSTRAINT "active_user_inbounds_pkey" PRIMARY KEY ("uuid")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_subscription_uuid_key" ON "users"("subscription_uuid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_short_uuid_key" ON "users"("short_uuid");
@@ -157,25 +178,46 @@ CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 CREATE UNIQUE INDEX "api_tokens_token_key" ON "api_tokens"("token");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "nodes_name_key" ON "nodes"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "nodes_address_key" ON "nodes"("address");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "nodes_user_usage_history_node_uuid_user_uuid_created_at_key" ON "nodes_user_usage_history"("node_uuid", "user_uuid", "created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "nodes_usage_history_node_uuid_created_at_key" ON "nodes_usage_history"("node_uuid", "created_at");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "inbounds_tag_key" ON "inbounds"("tag");
 
--- AddForeignKey
-ALTER TABLE "nodes_traffic_usage_history" ADD CONSTRAINT "nodes_traffic_usage_history_node_uuid_fkey" FOREIGN KEY ("node_uuid") REFERENCES "nodes"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "hosts_remark_key" ON "hosts"("remark");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "active_user_inbounds_user_uuid_inbound_uuid_key" ON "active_user_inbounds"("user_uuid", "inbound_uuid");
 
 -- AddForeignKey
-ALTER TABLE "nodes_user_usage_history" ADD CONSTRAINT "nodes_user_usage_history_node_uuid_fkey" FOREIGN KEY ("node_uuid") REFERENCES "nodes"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "nodes_traffic_usage_history" ADD CONSTRAINT "nodes_traffic_usage_history_node_uuid_fkey" FOREIGN KEY ("node_uuid") REFERENCES "nodes"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "nodes_user_usage_history" ADD CONSTRAINT "nodes_user_usage_history_user_uuid_fkey" FOREIGN KEY ("user_uuid") REFERENCES "users"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "nodes_user_usage_history" ADD CONSTRAINT "nodes_user_usage_history_node_uuid_fkey" FOREIGN KEY ("node_uuid") REFERENCES "nodes"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "nodes_usage_history" ADD CONSTRAINT "nodes_usage_history_node_uuid_fkey" FOREIGN KEY ("node_uuid") REFERENCES "nodes"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "nodes_user_usage_history" ADD CONSTRAINT "nodes_user_usage_history_user_uuid_fkey" FOREIGN KEY ("user_uuid") REFERENCES "users"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "nodes_usage_history" ADD CONSTRAINT "nodes_usage_history_node_uuid_fkey" FOREIGN KEY ("node_uuid") REFERENCES "nodes"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_traffic_history" ADD CONSTRAINT "user_traffic_history_user_uuid_fkey" FOREIGN KEY ("user_uuid") REFERENCES "users"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "hosts" ADD CONSTRAINT "hosts_inbound_uuid_fkey" FOREIGN KEY ("inbound_uuid") REFERENCES "inbounds"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "active_proxies" ADD CONSTRAINT "active_proxies_user_uuid_fkey" FOREIGN KEY ("user_uuid") REFERENCES "users"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "active_user_inbounds" ADD CONSTRAINT "active_user_inbounds_user_uuid_fkey" FOREIGN KEY ("user_uuid") REFERENCES "users"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "active_proxies" ADD CONSTRAINT "active_proxies_inbound_uuid_fkey" FOREIGN KEY ("inbound_uuid") REFERENCES "inbounds"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "active_user_inbounds" ADD CONSTRAINT "active_user_inbounds_inbound_uuid_fkey" FOREIGN KEY ("inbound_uuid") REFERENCES "inbounds"("uuid") ON DELETE CASCADE ON UPDATE CASCADE;

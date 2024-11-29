@@ -16,8 +16,8 @@ export class NodesEntity implements Nodes {
 
     public isTrafficTrackingActive: boolean;
     public trafficResetDay: number | null;
-    public trafficLimitBytes: number | null;
-    public trafficUsedBytes: number | null;
+    public trafficLimitBytes: bigint | null;
+    public trafficUsedBytes: bigint | null;
     public notifyPercent: number | null;
 
     public cpuCount: number | null;

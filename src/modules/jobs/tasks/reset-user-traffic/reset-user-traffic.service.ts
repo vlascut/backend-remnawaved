@@ -6,11 +6,11 @@ import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
 import { JOBS_INTERVALS } from '../../intervals';
 import { GetAllUsersQuery } from '../../../users/queries/get-all-users/get-all-users.query';
-import { RESET_PERIODS, TResetPeriods, USERS_STATUS } from '../../../../../libs/contract';
+import { RESET_PERIODS, TResetPeriods, USERS_STATUS } from '@libs/contracts/constants';
 import dayjs from 'dayjs';
-import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../users/commands/update-status-and-traffic-and-reset-at/update-status-and-traffic-and-reset-at.command';
 import { AddUserToNodeEvent } from '../../../nodes/events/add-user-to-node';
-import { CreateUserTrafficHistoryCommand } from '../../../user-traffic-history/commands/create-user-traffic-history/create-user-traffic-history.command';
+import { CreateUserTrafficHistoryCommand } from '../../../user-traffic-history/commands/create-user-traffic-history';
+import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../users/commands/update-status-and-traffic-and-reset-at';
 import { UserTrafficHistoryEntity } from '../../../user-traffic-history';
 
 @Injectable()

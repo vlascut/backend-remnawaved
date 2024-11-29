@@ -7,15 +7,10 @@ import { UserStats } from '../users/interfaces/user-stats.interface';
 import { QueryBus } from '@nestjs/cqrs';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
 import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
 import { getDateRange } from '@common/utils/get-date-ranges.uti';
 import { calcPercentDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 @Injectable()
 export class SystemService {

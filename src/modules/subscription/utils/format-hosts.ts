@@ -81,10 +81,13 @@ export class FormatHosts {
 
             const remark = TemplateEngine.replace(inputHost.remark, {
                 DAYS_LEFT: dayjs(this.user.expireAt).diff(dayjs(), 'day'),
-                TRAFFIC_USED: prettyBytesUtil(this.user.usedTrafficBytes),
+                TRAFFIC_USED: prettyBytesUtil(this.user.usedTrafficBytes, true, 3),
                 TRAFFIC_LEFT: prettyBytesUtil(
                     this.user.trafficLimitBytes - this.user.usedTrafficBytes,
+                    true,
+                    3,
                 ),
+                TOTAL_TRAFFIC: prettyBytesUtil(this.user.trafficLimitBytes, true, 3),
                 STATUS: USER_STATUSES_TEMPLATE[this.user.status],
             });
             const address = inputHost.address;

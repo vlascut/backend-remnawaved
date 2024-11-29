@@ -9,9 +9,9 @@ import { GetSystemStatsCommand } from '@remnawave/node-contract';
 import { UpdateNodeCommand } from '../../../nodes/commands/update-node/update-node.command';
 import { StartNodeEvent } from '../../../nodes/events/start-node';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
-import pMap from '@cjs-exporter/p-map';
 import { StartAllNodesEvent } from '../../../nodes/events/start-all-nodes';
 import { JOBS_INTERVALS } from '../../intervals';
+import pMap from '@cjs-exporter/p-map';
 
 @Injectable()
 export class NodeHealthCheckService {

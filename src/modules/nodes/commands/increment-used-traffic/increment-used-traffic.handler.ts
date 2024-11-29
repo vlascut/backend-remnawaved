@@ -25,7 +25,12 @@ export class IncrementUsedTrafficHandler
                 isOk: true,
             };
         } catch (error: unknown) {
-            this.logger.error(`Error: ${JSON.stringify(error)}`);
+            this.logger.error('Error:', {
+                message: (error as Error).message,
+                name: (error as Error).name,
+                stack: (error as Error).stack,
+                ...(error as object),
+            });
             return {
                 isOk: false,
                 ...ERRORS.INCREMENT_USED_TRAFFIC_ERROR,

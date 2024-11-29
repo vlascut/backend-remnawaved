@@ -33,7 +33,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
         return this.nodesConverter.fromPrismaModelsToEntities(nodesList);
     }
 
-    public async incrementUsedTraffic(nodeUuid: string, bytes: number): Promise<void> {
+    public async incrementUsedTraffic(nodeUuid: string, bytes: bigint): Promise<void> {
         await this.prisma.tx.nodes.update({
             where: { uuid: nodeUuid },
             data: { trafficUsedBytes: { increment: bytes } },
