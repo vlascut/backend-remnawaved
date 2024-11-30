@@ -11,11 +11,11 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateManyInboundsCommand } from '../inbounds/commands/create-many-inbounds';
 import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
 import { GetAllInboundsQuery } from '../inbounds/queries/get-all-inbounds';
-import { XRayConfig } from '../../common/helpers/xray-config';
-import { IXrayConfig } from '../../common/helpers/xray-config/interfaces';
+import { XRayConfig } from '@common/helpers/xray-config';
+import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { UserForConfigEntity } from '../users/entities/users-for-config';
 import { InboundsWithTagsAndType } from '../inbounds/interfaces/inboubds-with-tags-and-type.interface';
-import { isDevelopment } from '../../common/utils/startup-app';
+import { isDevelopment } from '@common/utils/startup-app';
 
 @Injectable()
 export class XrayConfigService {
@@ -37,10 +37,7 @@ export class XrayConfigService {
         try {
             const existingConfig = await this.xrayConfigRepository.findFirst();
             if (!existingConfig) {
-                return {
-                    isOk: false,
-                    ...ERRORS.CONFIG_NOT_FOUND,
-                };
+                return await this.createConfig(config);
             }
 
             const result = await this.xrayConfigRepository.update({
@@ -61,6 +58,23 @@ export class XrayConfigService {
         }
     }
 
+    public async createConfig(config: object): Promise<ICommandResponse<XrayConfigEntity>> {
+        try {
+            const result = await this.xrayConfigRepository.create(new XrayConfigEntity(config));
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.CREATE_CONFIG_ERROR,
+            };
+        }
+    }
+
     public async getConfig(): Promise<ICommandResponse<IXrayConfig>> {
         try {
             let config: object | string;
@@ -72,6 +86,11 @@ export class XrayConfigService {
             }
 
             const validatedConfig = new XRayConfig(config);
+
+            const writeDBConfig = await this.updateConfig(validatedConfig.getSortedConfig());
+            if (!writeDBConfig.isOk) {
+                throw new Error('Failed to write config to DB');
+            }
 
             return {
                 isOk: true,

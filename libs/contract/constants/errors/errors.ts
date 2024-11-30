@@ -255,4 +255,9 @@ export const ERRORS = {
         message: 'Update host error',
         httpCode: 500,
     },
+    CREATE_CONFIG_ERROR: {
+        code: 'A053',
+        message: 'Create config error',
+        httpCode: 500,
+    },
 } as const;
