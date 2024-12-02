@@ -41,6 +41,13 @@ export namespace GetStatsCommand {
                     previous: z.string(),
                     percentage: z.number(),
                 }),
+                sevenDaysStats: z.array(
+                    z.object({
+                        nodeName: z.string(),
+                        totalBytes: z.string(),
+                        date: z.string(),
+                    }),
+                ),
             }),
         }),
     });

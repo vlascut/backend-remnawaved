@@ -1,4 +1,5 @@
 import { TUsersStatus } from '@libs/contracts/constants';
+import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 
 interface IGetStatsResponseData {
     cpu: {
@@ -26,6 +27,7 @@ interface IGetStatsResponseData {
             previous: string;
             percentage: number;
         };
+        sevenDaysStats: IGet7DaysStats[];
     };
 }
 
@@ -55,6 +57,7 @@ export class GetStatsResponseModel {
             previous: string;
             percentage: number;
         };
+        sevenDaysStats: IGet7DaysStats[];
     };
 
     constructor(data: IGetStatsResponseData) {

@@ -11,6 +11,8 @@ import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-
 import { getDateRange } from '@common/utils/get-date-ranges.uti';
 import { calcPercentDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
+import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
+import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
 
 @Injectable()
 export class SystemService {
@@ -32,6 +34,8 @@ export class SystemService {
 
             const rangeStats = await this.getRangeStats(query.tz);
 
+            const sevenDaysStats = await this.get7DaysStats();
+
             return {
                 isOk: true,
                 response: new GetStatsResponseModel({
@@ -51,6 +55,7 @@ export class SystemService {
                     users: userStats.response,
                     stats: {
                         nodesUsageLastTwoDays: rangeStats,
+                        sevenDaysStats: sevenDaysStats.response || [],
                     },
                 }),
             };
@@ -63,6 +68,12 @@ export class SystemService {
     private async getShortUserStats(): Promise<ICommandResponse<UserStats>> {
         return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<UserStats>>(
             new GetShortUserStatsQuery(),
+        );
+    }
+
+    private async get7DaysStats(): Promise<ICommandResponse<IGet7DaysStats[]>> {
+        return this.queryBus.execute<Get7DaysStatsQuery, ICommandResponse<IGet7DaysStats[]>>(
+            new Get7DaysStatsQuery(),
         );
     }
 

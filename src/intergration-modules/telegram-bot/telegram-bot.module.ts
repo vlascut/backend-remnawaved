@@ -20,7 +20,6 @@ import { TELEGRAM_BOT_EVENTS } from './events';
             useFactory: async (configService: ConfigService) => ({
                 token: configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN'),
             }),
-
             inject: [ConfigService],
         }),
     ],

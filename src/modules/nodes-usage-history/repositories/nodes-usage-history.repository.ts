@@ -4,6 +4,8 @@ import { ICrud } from '@common/types/crud-port';
 import { NodesUsageHistoryConverter } from '../nodes-usage-history.converter';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
+import { Get7DaysStatsBuilder } from '../builders';
+import { IGet7DaysStats } from '../interfaces';
 
 @Injectable()
 export class NodesUsageHistoryRepository implements ICrud<NodesUsageHistoryEntity> {
@@ -94,5 +96,11 @@ export class NodesUsageHistoryRepository implements ICrud<NodesUsageHistoryEntit
         });
 
         return result._sum.totalBytes ?? BigInt(0);
+    }
+
+    public async get7DaysStats(): Promise<IGet7DaysStats[]> {
+        const { query } = new Get7DaysStatsBuilder();
+        const result = await this.prisma.tx.$queryRaw<IGet7DaysStats[]>(query);
+        return result;
     }
 }
