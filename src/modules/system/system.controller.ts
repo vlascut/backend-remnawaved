@@ -9,6 +9,7 @@ import { RolesGuard } from '@common/guards/roles';
 import { Roles } from '@common/decorators/roles/roles';
 import { ROLE } from '@libs/contracts/constants';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { GetBandwidthStatsRequestQueryDto, GetBandwidthStatsResponseDto } from './dtos';
 
 @ApiTags('System Controller')
 @UseFilters(HttpExceptionFilter)
@@ -26,8 +27,26 @@ export class SystemController {
         description: 'Returns system statistics',
         type: GetStatsResponseDto,
     })
-    async getStats(@Query() query: GetStatsRequestQueryDto): Promise<GetStatsResponseDto> {
-        const result = await this.systemService.getStats(query);
+    async getStats(): Promise<GetStatsResponseDto> {
+        const result = await this.systemService.getStats();
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @Get(SYSTEM_ROUTES.BANDWIDTH)
+    @ApiOperation({ summary: 'Get System Bandwidth Statistics' })
+    @ApiResponse({
+        status: 200,
+        description: 'Returns bandwidth statistics',
+        type: GetBandwidthStatsResponseDto,
+    })
+    async getBandwidthStats(
+        @Query() query: GetBandwidthStatsRequestQueryDto,
+    ): Promise<GetBandwidthStatsResponseDto> {
+        const result = await this.systemService.getBandwidthStats(query);
 
         const data = errorHandler(result);
         return {

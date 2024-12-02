@@ -8,18 +8,19 @@ import { QueryBus } from '@nestjs/cqrs';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
 import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
-import { getDateRange } from '@common/utils/get-date-ranges.uti';
-import { calcPercentDiff } from '@common/utils/calc-percent-diff.util';
+import { getDateRange, getLastTwoWeeksRanges } from '@common/utils/get-date-ranges.uti';
+import { calcDiff, calcPercentDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
+import { GetBandwidthStatsResponseModel } from './models';
 
 @Injectable()
 export class SystemService {
     private readonly logger = new Logger(SystemService.name);
     constructor(private readonly queryBus: QueryBus) {}
 
-    async getStats(query: GetStatsRequestQueryDto): Promise<ICommandResponse<any>> {
+    async getStats(): Promise<ICommandResponse<any>> {
         try {
             const userStats = await this.getShortUserStats();
 
@@ -31,10 +32,6 @@ export class SystemService {
             }
 
             const [cpu, mem, time] = await Promise.all([si.cpu(), si.mem(), si.time()]);
-
-            const rangeStats = await this.getRangeStats(query.tz);
-
-            const sevenDaysStats = await this.get7DaysStats();
 
             return {
                 isOk: true,
@@ -53,10 +50,31 @@ export class SystemService {
                     uptime: time.uptime,
                     timestamp: Date.now(),
                     users: userStats.response,
-                    stats: {
-                        nodesUsageLastTwoDays: rangeStats,
-                        sevenDaysStats: sevenDaysStats.response || [],
-                    },
+                }),
+            };
+        } catch (error) {
+            this.logger.error('Error getting system stats:', error);
+            throw error;
+        }
+    }
+
+    async getBandwidthStats(
+        query: GetStatsRequestQueryDto,
+    ): Promise<ICommandResponse<GetBandwidthStatsResponseModel>> {
+        try {
+            let tz = 'UTC';
+            if (query.tz) {
+                tz = query.tz;
+            }
+
+            const lastTwoDaysStats = await this.getLastTwoDaysUsage(tz);
+            const lastSevenDaysStats = await this.getLastSevenDaysUsage(tz);
+
+            return {
+                isOk: true,
+                response: new GetBandwidthStatsResponseModel({
+                    bandwidthLastTwoDays: lastTwoDaysStats,
+                    bandwidthLastSevenDays: lastSevenDaysStats,
                 }),
             };
         } catch (error) {
@@ -85,14 +103,11 @@ export class SystemService {
         );
     }
 
-    private async getRangeStats(
-        timezone: string | undefined,
-    ): Promise<{ current: string; previous: string; percentage: number }> {
-        let tz = 'UTC';
-        if (timezone) {
-            tz = timezone;
-        }
-
+    private async getLastTwoDaysUsage(tz: string): Promise<{
+        current: string;
+        previous: string;
+        difference: string;
+    }> {
         const [todayStartDate, todayEndDate] = getDateRange(tz);
         const nodesUsageToday = await this.getNodesUsageByDtRange({
             start: todayStartDate,
@@ -108,12 +123,43 @@ export class SystemService {
         const currentUsage = nodesUsageToday.response || 0;
         const previousUsage = nodesUsageYesterday.response || 0;
 
-        const [cur, prev, perc] = calcPercentDiff(currentUsage, previousUsage);
+        const [cur, prev, diff] = calcDiff(currentUsage, previousUsage);
 
         return {
             current: prettyBytesUtil(cur),
             previous: prettyBytesUtil(prev),
-            percentage: perc,
+            difference: prettyBytesUtil(diff),
+        };
+    }
+
+    private async getLastSevenDaysUsage(tz: string): Promise<{
+        current: string;
+        previous: string;
+        difference: string;
+    }> {
+        const [previousWeek, currentWeek] = getLastTwoWeeksRanges(tz);
+        const [previousStart, previousEnd] = previousWeek;
+        const [currentStart, currentEnd] = currentWeek;
+
+        const nodesCurrentUsage = await this.getNodesUsageByDtRange({
+            start: currentStart,
+            end: currentEnd,
+        });
+
+        const nodesPreviousUsage = await this.getNodesUsageByDtRange({
+            start: previousStart,
+            end: previousEnd,
+        });
+
+        const currentUsage = nodesCurrentUsage.response || 0;
+        const previousUsage = nodesPreviousUsage.response || 0;
+
+        const [cur, prev, diff] = calcDiff(currentUsage, previousUsage);
+
+        return {
+            current: prettyBytesUtil(cur),
+            previous: prettyBytesUtil(prev),
+            difference: prettyBytesUtil(diff),
         };
     }
 }

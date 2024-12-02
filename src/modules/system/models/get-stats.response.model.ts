@@ -1,5 +1,4 @@
 import { TUsersStatus } from '@libs/contracts/constants';
-import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 
 interface IGetStatsResponseData {
     cpu: {
@@ -20,14 +19,6 @@ interface IGetStatsResponseData {
         statusCounts: Record<TUsersStatus, number>;
         totalUsers: number;
         totalTrafficBytes: bigint;
-    };
-    stats: {
-        nodesUsageLastTwoDays: {
-            current: string;
-            previous: string;
-            percentage: number;
-        };
-        sevenDaysStats: IGet7DaysStats[];
     };
 }
 
@@ -51,14 +42,6 @@ export class GetStatsResponseModel {
         totalUsers: number;
         totalTrafficBytes: string;
     };
-    stats: {
-        nodesUsageLastTwoDays: {
-            current: string;
-            previous: string;
-            percentage: number;
-        };
-        sevenDaysStats: IGet7DaysStats[];
-    };
 
     constructor(data: IGetStatsResponseData) {
         this.cpu = data.cpu;
@@ -69,6 +52,5 @@ export class GetStatsResponseModel {
             ...data.users,
             totalTrafficBytes: data.users.totalTrafficBytes.toString(),
         };
-        this.stats = data.stats;
     }
 }
