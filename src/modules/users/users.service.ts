@@ -1,5 +1,5 @@
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
+import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
@@ -18,6 +18,9 @@ import { IGetUsersOptions } from './interfaces';
 import { UserWithLifetimeTrafficEntity } from './entities/user-with-lifetime-traffic.entity';
 import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
 import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-user-to-node.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);
@@ -26,6 +29,7 @@ export class UsersService {
         private readonly userRepository: UsersRepository,
         private readonly commandBus: CommandBus,
         private readonly eventBus: EventBus,
+        private readonly eventEmitter: EventEmitter2,
     ) {}
 
     public async createUser(
@@ -38,7 +42,7 @@ export class UsersService {
         }
 
         this.eventBus.publish(new AddUserToNodeEvent(user.response));
-
+        this.eventEmitter.emit(EVENTS.USER.CREATED, new UserEvent(user.response));
         return user;
     }
 
@@ -60,6 +64,8 @@ export class UsersService {
                 new ReaddUserToNodeEvent(user.response.user, user.response.oldInboundTags),
             );
         }
+
+        this.eventEmitter.emit(EVENTS.USER.MODIFIED, new UserEvent(user.response.user));
 
         return user;
     }
@@ -395,6 +401,8 @@ export class UsersService {
                 await this.eventBus.publish(new ReaddUserToNodeEvent(updatedUser));
             }
 
+            this.eventEmitter.emit(EVENTS.USER.REVOKED, new UserEvent(updatedUser));
+
             return {
                 isOk: true,
                 response: updatedUser,
@@ -421,7 +429,7 @@ export class UsersService {
             const result = await this.userRepository.deleteByUUID(user.uuid);
 
             this.eventBus.publish(new RemoveUserFromNodeEvent(user));
-
+            this.eventEmitter.emit(EVENTS.USER.DELETED, new UserEvent(user));
             return {
                 isOk: true,
                 response: new DeleteUserResponseModel(result),
@@ -458,6 +466,7 @@ export class UsersService {
             });
 
             this.eventBus.publish(new RemoveUserFromNodeEvent(user));
+            this.eventEmitter.emit(EVENTS.USER.DISABLED, new UserEvent(user));
 
             return {
                 isOk: true,
@@ -498,6 +507,7 @@ export class UsersService {
             });
 
             this.eventBus.publish(new AddUserToNodeEvent(user));
+            this.eventEmitter.emit(EVENTS.USER.ENABLED, new UserEvent(user));
 
             return {
                 isOk: true,

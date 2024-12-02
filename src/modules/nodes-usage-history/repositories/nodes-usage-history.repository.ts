@@ -93,8 +93,6 @@ export class NodesUsageHistoryRepository implements ICrud<NodesUsageHistoryEntit
             _sum: { totalBytes: true },
         });
 
-        console.log(result);
-
         return result._sum.totalBytes ?? BigInt(0);
     }
 }

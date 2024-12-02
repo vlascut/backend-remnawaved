@@ -8,8 +8,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ClsModule } from 'nestjs-cls';
-import { AxiosModule } from './common/axios/axios.module';
-import { RemnawaveModules } from './modules/remnawave-backend.modules';
+import { AxiosModule } from '@common/axios/axios.module';
+import { RemnawaveModules } from '@modules/remnawave-backend.modules';
+import { IntegrationModules } from '@intergration-modules/integration-modules';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
     imports: [
@@ -33,6 +35,8 @@ import { RemnawaveModules } from './modules/remnawave-backend.modules';
             middleware: { mount: true },
         }),
         ScheduleModule.forRoot(),
+        EventEmitterModule.forRoot(),
+        IntegrationModules,
         RemnawaveModules,
     ],
 })

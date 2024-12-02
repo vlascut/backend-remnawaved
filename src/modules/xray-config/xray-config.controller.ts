@@ -19,6 +19,7 @@ import { RolesGuard } from '@common/guards/roles';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { GetConfigResponseDto } from './dtos/get-config.dto';
 import { GetConfigResponseModel } from './models/get-config.response.model';
+import { UpdateConfigResponseDto } from './dtos/update-config.dto';
 
 @ApiTags('Xray Config Controller')
 @UseFilters(HttpExceptionFilter)
@@ -49,16 +50,16 @@ export class XrayConfigController {
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Update Xray Config', description: 'Update Xray Config' })
     @ApiOkResponse({
-        type: GetConfigResponseDto,
-        description: 'Configuration retrieved successfully',
+        type: UpdateConfigResponseDto,
+        description: 'Configuration updated successfully',
     })
     @ApiBadRequestResponse({ description: ERRORS.UPDATE_CONFIG_ERROR.message })
-    async updateConfig(@Body() config: object): Promise<GetConfigResponseDto> {
-        const result = await this.xrayConfigService.updateConfig(config);
+    async updateConfig(@Body() config: object): Promise<UpdateConfigResponseDto> {
+        const result = await this.xrayConfigService.updateConfigFromController(config);
 
         const data = errorHandler(result);
         return {
-            response: new GetConfigResponseModel(data),
+            response: new GetConfigResponseModel(data.config || {}),
         };
     }
 

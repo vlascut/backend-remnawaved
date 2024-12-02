@@ -7,6 +7,9 @@ import { NodesRepository } from '../../repositories/nodes.repository';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+import { EVENTS } from '@libs/contracts/constants';
 
 @EventsHandler(StartNodeEvent)
 export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
@@ -16,6 +19,7 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
         private readonly axios: AxiosService,
         private readonly nodesRepository: NodesRepository,
         private readonly queryBus: QueryBus,
+        private readonly eventEmitter: EventEmitter2,
     ) {}
     async handle(event: StartNodeEvent) {
         try {
@@ -57,7 +61,7 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
 
             this.logger.debug(`Node created: ${JSON.stringify(nodeResponse)}`);
 
-            await this.nodesRepository.update({
+            const node = await this.nodesRepository.update({
                 uuid: nodeEntity.uuid,
                 isXrayRunning: nodeResponse.isStarted,
                 xrayVersion: nodeResponse.version,
@@ -71,6 +75,10 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                 cpuModel: nodeResponse.systemInformation?.cpuModel ?? null,
                 totalRam: nodeResponse.systemInformation?.memoryTotal ?? null,
             });
+
+            if (!nodeEntity.isConnected) {
+                this.eventEmitter.emit(EVENTS.NODE.CONNECTION_RESTORED, new NodeEvent(node));
+            }
 
             return;
         } catch (error) {

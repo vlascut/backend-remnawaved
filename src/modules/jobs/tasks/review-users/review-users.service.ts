@@ -5,11 +5,13 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { AxiosService } from '@common/axios';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ChangeUserStatusCommand } from '../../../users/commands/change-user-status/change-user-status.command';
-import { TUsersStatus, USERS_STATUS } from '@libs/contracts/constants';
+import { EVENTS, USERS_STATUS } from '@libs/contracts/constants';
 import { RemoveUserFromNodeEvent } from '../../../nodes/events/remove-user-from-node';
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
 import { GetActiveUsersQuery } from '../../../users/queries/get-active-users/get-active-users.query';
 import { JOBS_INTERVALS } from '../../intervals';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 
 @Injectable()
 export class ReviewUsersService {
@@ -24,6 +26,7 @@ export class ReviewUsersService {
         private readonly commandBus: CommandBus,
         private readonly axios: AxiosService,
         private readonly eventBus: EventBus,
+        private readonly eventEmitter: EventEmitter2,
     ) {
         this.isJobRunning = false;
         this.cronName = ReviewUsersService.CRON_NAME;
@@ -58,7 +61,6 @@ export class ReviewUsersService {
 
             for (const user of users) {
                 let shouldRemoveFromNode = false;
-                let newStatus: TUsersStatus;
 
                 if (
                     user.usedTrafficBytes >= user.trafficLimitBytes &&
@@ -69,7 +71,7 @@ export class ReviewUsersService {
                         status: USERS_STATUS.LIMITED,
                     });
                     shouldRemoveFromNode = true;
-                    newStatus = USERS_STATUS.LIMITED;
+                    this.eventEmitter.emit(EVENTS.USER.LIMITED, new UserEvent(user));
                 }
 
                 if (user.expireAt < new Date()) {
@@ -78,14 +80,11 @@ export class ReviewUsersService {
                         status: USERS_STATUS.EXPIRED,
                     });
                     shouldRemoveFromNode = true;
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    newStatus = USERS_STATUS.EXPIRED;
-                    // for notification emitter
+                    this.eventEmitter.emit(EVENTS.USER.EXPIRED, new UserEvent(user));
                 }
 
                 if (shouldRemoveFromNode) {
                     await this.eventBus.publish(new RemoveUserFromNodeEvent(user));
-                    // ! TODO notification emitter
                 }
             }
 

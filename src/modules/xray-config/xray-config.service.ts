@@ -7,7 +7,7 @@ import { ERRORS } from '@contract/constants';
 import { XrayConfigEntity } from './entities/xray-config.entity';
 import { ConfigService } from '@nestjs/config';
 import { DeleteManyInboundsCommand } from '../inbounds/commands/delete-many-inbounds';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { CreateManyInboundsCommand } from '../inbounds/commands/create-many-inbounds';
 import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
 import { GetAllInboundsQuery } from '../inbounds/queries/get-all-inbounds';
@@ -16,6 +16,7 @@ import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { UserForConfigEntity } from '../users/entities/users-for-config';
 import { InboundsWithTagsAndType } from '../inbounds/interfaces/inboubds-with-tags-and-type.interface';
 import { isDevelopment } from '@common/utils/startup-app';
+import { StartAllNodesEvent } from '../nodes/events/start-all-nodes';
 
 @Injectable()
 export class XrayConfigService {
@@ -27,6 +28,7 @@ export class XrayConfigService {
         private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus,
+        private readonly eventBus: EventBus,
     ) {
         this.configPath = isDevelopment()
             ? path.join(__dirname, '../../../../configs/xray/config/xray_config.json')
@@ -44,6 +46,40 @@ export class XrayConfigService {
                 uuid: existingConfig.uuid,
                 config,
             });
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.UPDATE_CONFIG_ERROR,
+            };
+        }
+    }
+
+    public async updateConfigFromController(
+        config: object,
+    ): Promise<ICommandResponse<XrayConfigEntity>> {
+        try {
+            const existingConfig = await this.xrayConfigRepository.findFirst();
+            if (!existingConfig) {
+                return await this.createConfig(config);
+            }
+
+            const validatedConfig = new XRayConfig(config);
+            const sortedConfig = validatedConfig.getSortedConfig();
+
+            const result = await this.xrayConfigRepository.update({
+                uuid: existingConfig.uuid,
+                config: sortedConfig,
+            });
+
+            result.config = sortedConfig;
+
+            this.eventBus.publish(new StartAllNodesEvent());
 
             return {
                 isOk: true,

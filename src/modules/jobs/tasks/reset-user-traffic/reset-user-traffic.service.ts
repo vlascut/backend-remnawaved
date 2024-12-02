@@ -6,12 +6,14 @@ import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
 import { JOBS_INTERVALS } from '../../intervals';
 import { GetAllUsersQuery } from '../../../users/queries/get-all-users/get-all-users.query';
-import { RESET_PERIODS, TResetPeriods, USERS_STATUS } from '@libs/contracts/constants';
+import { EVENTS, RESET_PERIODS, TResetPeriods, USERS_STATUS } from '@libs/contracts/constants';
 import dayjs from 'dayjs';
 import { AddUserToNodeEvent } from '../../../nodes/events/add-user-to-node';
 import { CreateUserTrafficHistoryCommand } from '../../../user-traffic-history/commands/create-user-traffic-history';
 import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../users/commands/update-status-and-traffic-and-reset-at';
 import { UserTrafficHistoryEntity } from '../../../user-traffic-history';
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ResetUserTrafficService {
@@ -25,6 +27,7 @@ export class ResetUserTrafficService {
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
         private readonly eventBus: EventBus,
+        private readonly eventEmitter: EventEmitter2,
     ) {
         this.isJobRunning = false;
         this.cronName = ResetUserTrafficService.CRON_NAME;
@@ -72,6 +75,7 @@ export class ResetUserTrafficService {
 
                 if (user.status === USERS_STATUS.LIMITED) {
                     status = USERS_STATUS.ACTIVE;
+                    this.eventEmitter.emit(EVENTS.USER.ENABLED, new UserEvent(user));
                     this.eventBus.publish(new AddUserToNodeEvent(user));
                 }
 

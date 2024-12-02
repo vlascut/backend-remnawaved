@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { NodesRepository } from './repositories/nodes.repository';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
-import { ERRORS } from '@contract/constants';
+import { ERRORS, EVENTS } from '@contract/constants';
 import { NodesEntity } from './entities/nodes.entity';
 import { CreateNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { StartNodeEvent } from './events/start-node';
@@ -10,6 +10,8 @@ import { EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
 import { StopNodeEvent } from './events/stop-node';
 import { StartAllNodesEvent } from './events/start-all-nodes';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 
 @Injectable()
 export class NodesService {
@@ -18,6 +20,7 @@ export class NodesService {
     constructor(
         private readonly nodesRepository: NodesRepository,
         private readonly eventBus: EventBus,
+        private readonly eventEmitter: EventEmitter2,
     ) {}
 
     public async createNode(body: CreateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
@@ -35,8 +38,8 @@ export class NodesService {
             });
             const result = await this.nodesRepository.create(nodeEntity);
 
-            // ! TODO: emit node created event
             this.eventBus.publish(new StartNodeEvent(result));
+            this.eventEmitter.emit(EVENTS.NODE.CREATED, new NodeEvent(result));
 
             return {
                 isOk: true,
@@ -149,7 +152,7 @@ export class NodesService {
                 response: node,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.GET_ONE_NODE_ERROR,
@@ -211,6 +214,7 @@ export class NodesService {
             }
 
             this.eventBus.publish(new StartNodeEvent(result));
+            this.eventEmitter.emit(EVENTS.NODE.MODIFIED, new NodeEvent(result));
 
             return {
                 isOk: true,
@@ -248,6 +252,7 @@ export class NodesService {
             }
 
             this.eventBus.publish(new StartNodeEvent(result));
+            this.eventEmitter.emit(EVENTS.NODE.ENABLED, new NodeEvent(result));
 
             return {
                 isOk: true,
@@ -289,6 +294,7 @@ export class NodesService {
             }
 
             this.eventBus.publish(new StopNodeEvent(result));
+            this.eventEmitter.emit(EVENTS.NODE.DISABLED, new NodeEvent(result));
 
             return {
                 isOk: true,

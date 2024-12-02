@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, ZodLazy } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
 export const configSchema = z.object({
@@ -9,11 +9,9 @@ export const configSchema = z.object({
         .transform((port) => parseInt(port, 10)),
     SUPERADMIN_USERNAME: z.string(),
     SUPERADMIN_PASSWORD: z.string(),
-    API_PREFIX: z.string().default('api/v1'),
     JWT_AUTH_SECRET: z.string(),
     TELEGRAM_BOT_TOKEN: z.string(),
-    TELEGRAM_HEADERS_SECRET: z.string(),
-    TELEGRAM_SECRET_PATH: z.string(),
+    TELEGRAM_ADMIN_ID: z.string(),
     FRONT_END_DOMAIN: z.string(),
     REDIS_URL: z.string(),
     IS_SWAGGER_ENABLED: z.string().default('false'),

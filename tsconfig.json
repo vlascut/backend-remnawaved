@@ -16,6 +16,12 @@
       "@common/*": [
         "./src/common/*"
       ],
+      "@intergration-modules/*": [
+        "./src/intergration-modules/*"
+      ],
+      "@modules/*": [
+        "./src/modules/*"
+      ],
       "@libs/contracts/*": [
         "./libs/contract/*"
       ],

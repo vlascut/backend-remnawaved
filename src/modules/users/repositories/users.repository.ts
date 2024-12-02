@@ -305,8 +305,6 @@ export class UsersRepository implements ICrud<UserEntity> {
             });
         });
 
-        console.log(trafficByUser);
-
         return [result, total];
     }
 

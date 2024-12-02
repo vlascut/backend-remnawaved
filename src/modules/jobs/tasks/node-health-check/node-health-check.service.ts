@@ -12,6 +12,9 @@ import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { StartAllNodesEvent } from '../../../nodes/events/start-all-nodes';
 import { JOBS_INTERVALS } from '../../intervals';
 import pMap from '@cjs-exporter/p-map';
+import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EVENTS } from '@libs/contracts/constants';
 
 @Injectable()
 export class NodeHealthCheckService {
@@ -27,6 +30,7 @@ export class NodeHealthCheckService {
         private readonly commandBus: CommandBus,
         private readonly axios: AxiosService,
         private readonly eventBus: EventBus,
+        private readonly eventEmitter: EventEmitter2,
     ) {
         this.isJobRunning = false;
         this.cronName = NodeHealthCheckService.CRON_NAME;
@@ -108,6 +112,10 @@ export class NodeHealthCheckService {
                 isDisabled: false,
             },
         });
+
+        if (!node.isConnected) {
+            this.eventEmitter.emit(EVENTS.NODE.CONNECTION_RESTORED, new NodeEvent(node));
+        }
     }
 
     private async handleDisconnectedNode(node: NodesEntity, message: string | undefined) {
@@ -127,6 +135,11 @@ export class NodeHealthCheckService {
         });
 
         this.eventBus.publish(new StartNodeEvent(node));
+
+        if (node.isConnected) {
+            node.lastStatusMessage = message || null;
+            this.eventEmitter.emit(EVENTS.NODE.CONNECTION_LOST, new NodeEvent(node));
+        }
     }
 
     private async getEnabledNodes(): Promise<ICommandResponse<NodesEntity[]>> {
