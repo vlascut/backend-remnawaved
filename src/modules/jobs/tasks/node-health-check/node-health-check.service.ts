@@ -11,10 +11,10 @@ import { StartNodeEvent } from '../../../nodes/events/start-node';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { StartAllNodesEvent } from '../../../nodes/events/start-all-nodes';
 import { JOBS_INTERVALS } from '../../intervals';
-import pMap from '@cjs-exporter/p-map';
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EVENTS } from '@libs/contracts/constants';
+import pMap from '@cjs-exporter/p-map';
 
 @Injectable()
 export class NodeHealthCheckService {
@@ -75,7 +75,7 @@ export class NodeHealthCheckService {
             const nodes = nodesResponse.response;
 
             const mapper = async (node: NodesEntity) => {
-                const response = await this.axios.getSystemStats(node.address, node.port, 5000);
+                const response = await this.axios.getSystemStats(node.address, node.port, 10000);
                 switch (response.isOk) {
                     case true:
                         return this.handleConnectedNode(node, response.response!);
@@ -121,7 +121,7 @@ export class NodeHealthCheckService {
     private async handleDisconnectedNode(node: NodesEntity, message: string | undefined) {
         this.logger.debug(`Node ${node.uuid} is disconnected: ${message}`);
 
-        await this.updateNode({
+        const newNodeEntity = await this.updateNode({
             node: {
                 uuid: node.uuid,
                 isConnected: false,
@@ -134,7 +134,7 @@ export class NodeHealthCheckService {
             },
         });
 
-        this.eventBus.publish(new StartNodeEvent(node));
+        this.eventBus.publish(new StartNodeEvent(newNodeEntity.response || node));
 
         if (node.isConnected) {
             node.lastStatusMessage = message || null;
@@ -148,8 +148,8 @@ export class NodeHealthCheckService {
         );
     }
 
-    private async updateNode(dto: UpdateNodeCommand): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<UpdateNodeCommand, ICommandResponse<void>>(
+    private async updateNode(dto: UpdateNodeCommand): Promise<ICommandResponse<NodesEntity>> {
+        return this.commandBus.execute<UpdateNodeCommand, ICommandResponse<NodesEntity>>(
             new UpdateNodeCommand(dto.node),
         );
     }

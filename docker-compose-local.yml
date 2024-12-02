@@ -1,0 +1,10 @@
+services:
+  remnawave-panel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: 'remnawave-panel'
+    restart: always
+    network_mode: host
+    env_file:
+      - .env

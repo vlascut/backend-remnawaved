@@ -12,6 +12,8 @@ import { AxiosModule } from '@common/axios/axios.module';
 import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 import { IntegrationModules } from '@intergration-modules/integration-modules';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { join } from 'node:path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
     imports: [
@@ -38,6 +40,11 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
         EventEmitterModule.forRoot(),
         IntegrationModules,
         RemnawaveModules,
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '..', '..', 'frontend'),
+            renderPath: '*',
+            exclude: ['/api/(.*)'],
+        }),
     ],
 })
 export class AppModule {}
