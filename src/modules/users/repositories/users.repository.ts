@@ -11,6 +11,7 @@ import { UserStats } from '../interfaces/user-stats.interface';
 import { IGetUsersOptions } from '../interfaces';
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
+import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -276,6 +277,75 @@ export class UsersRepository implements ICrud<UserEntity> {
                 orderBy: {
                     [orderBy]: orderDir,
                 },
+                include: {
+                    activeUserInbounds: {
+                        select: {
+                            inbound: {
+                                select: {
+                                    uuid: true,
+                                    tag: true,
+                                    type: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            }),
+            this.prisma.tx.users.count({ where }),
+        ]);
+
+        const trafficMap = new Map(
+            trafficByUser.map((item) => [item.uuid, item.usedTrafficBytes || BigInt(0)]),
+        );
+
+        const result = users.map((user) => {
+            const totalUsedBytes = trafficMap.get(user.uuid) || BigInt(0);
+            return new UserWithLifetimeTrafficEntity({
+                ...user,
+                totalUsedBytes,
+            });
+        });
+
+        return [result, total];
+    }
+
+    public async getAllUsersV2({
+        start,
+        size,
+        filters,
+        filterModes,
+        sorting,
+    }: GetAllUsersV2Command.RequestQuery): Promise<[UserWithLifetimeTrafficEntity[], number]> {
+        const where = filters?.reduce((acc, filter) => {
+            const mode = filterModes?.[filter.id] || 'contains';
+            return {
+                ...acc,
+                [filter.id]: {
+                    [mode]: filter.value,
+                    mode: 'insensitive' as const,
+                },
+            };
+        }, {});
+
+        const orderBy = sorting?.length
+            ? sorting.reduce(
+                  (acc, sort) => ({
+                      ...acc,
+                      [sort.id]: sort.desc ? 'desc' : 'asc',
+                  }),
+                  {},
+              )
+            : undefined;
+
+        const [trafficByUser, users, total] = await Promise.all([
+            this.prisma.tx.$queryRaw<{ uuid: string; usedTrafficBytes: bigint }[]>(
+                new SumLifetimeUsageBuilder().query,
+            ),
+            this.prisma.tx.users.findMany({
+                skip: start,
+                take: size,
+                where,
+                orderBy,
                 include: {
                     activeUserInbounds: {
                         select: {

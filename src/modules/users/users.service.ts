@@ -20,6 +20,7 @@ import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/
 import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-user-to-node.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
 @Injectable()
 export class UsersService {
@@ -290,6 +291,31 @@ export class UsersService {
         } catch (error) {
             this.logger.error(error);
             this.logger.error(JSON.stringify(error));
+            return {
+                isOk: false,
+                ...ERRORS.GET_ALL_USERS_ERROR,
+            };
+        }
+    }
+
+    public async getAllUsersV2(dto: GetAllUsersV2Command.RequestQuery): Promise<
+        ICommandResponse<{
+            users: UserWithLifetimeTrafficEntity[];
+            total: number;
+        }>
+    > {
+        try {
+            const [users, total] = await this.userRepository.getAllUsersV2(dto);
+
+            return {
+                isOk: true,
+                response: {
+                    users,
+                    total,
+                },
+            };
+        } catch (error) {
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.GET_ALL_USERS_ERROR,

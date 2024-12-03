@@ -26,6 +26,8 @@ import {
     EnableUserResponseDto,
     GetAllUsersQueryDto,
     GetAllUsersResponseDto,
+    GetAllUsersV2QueryDto,
+    GetAllUsersV2ResponseDto,
     GetUserByShortUuidRequestDto,
     GetUserByShortUuidResponseDto,
     GetUserBySubscriptionUuidRequestDto,
@@ -154,6 +156,33 @@ export class UsersController {
             orderDir,
             search,
             searchBy,
+        });
+
+        const data = errorHandler(result);
+        return {
+            response: new GetAllUsersResponseModel({
+                total: data.total,
+                users: data.users.map((item) => new UserWithLifetimeTrafficResponseModel(item)),
+            }),
+        };
+    }
+
+    @Get(USERS_ROUTES.GET_ALL_V2)
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get All Users', description: 'Get all users' })
+    @ApiOkResponse({
+        type: GetAllUsersResponseDto,
+        description: 'Users fetched successfully',
+    })
+    async getAllUsersV2(@Query() query: GetAllUsersV2QueryDto): Promise<GetAllUsersV2ResponseDto> {
+        const { start, size, filters, filterModes, globalFilterMode, sorting } = query;
+        const result = await this.usersService.getAllUsersV2({
+            start,
+            size,
+            filters,
+            filterModes,
+            globalFilterMode,
+            sorting,
         });
 
         const data = errorHandler(result);
