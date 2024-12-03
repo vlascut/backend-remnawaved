@@ -5,31 +5,40 @@ import { UsersSchema } from '../../models/users.schema';
 export namespace GetAllUsersV2Command {
     export const url = REST_API.USERS.GET_ALL_V2;
 
+    const FilterSchema = z.object({
+        id: z.string(),
+        value: z.unknown(),
+    });
+
+    const SortingSchema = z.object({
+        id: z.string(),
+        desc: z.boolean(),
+    });
+
+    // Основная схема для запроса
     export const RequestQuerySchema = z.object({
         start: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
         filters: z
-            .string()
-            .transform((str) => JSON.parse(str))
-            .pipe(
-                z.array(
-                    z.object({
-                        id: z.string(),
-                        value: z.string(),
-                    }),
-                ),
+            .preprocess(
+                (str) => (typeof str === 'string' ? JSON.parse(str) : str),
+                z.array(FilterSchema),
             )
             .optional(),
+
         filterModes: z
-            .string()
-            .transform((str) => JSON.parse(str))
-            .pipe(z.record(z.string(), z.string()))
+            .preprocess(
+                (str) => (typeof str === 'string' ? JSON.parse(str) : str),
+                z.record(z.string(), z.string()),
+            )
             .optional(),
         globalFilterMode: z.string().optional(),
+
         sorting: z
-            .string()
-            .transform((str) => JSON.parse(str))
-            .pipe(z.array(z.object({ id: z.string(), desc: z.boolean() })))
+            .preprocess(
+                (str) => (typeof str === 'string' ? JSON.parse(str) : str),
+                z.array(SortingSchema),
+            )
             .optional(),
     });
 
