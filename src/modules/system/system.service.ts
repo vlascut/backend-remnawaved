@@ -19,7 +19,12 @@ import { calcDiff, calcPercentDiff } from '@common/utils/calc-percent-diff.util'
 import { prettyBytesUtil } from '@common/utils/bytes';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
-import { GetBandwidthStatsResponseModel, IBaseStat } from './models';
+import {
+    GetBandwidthStatsResponseModel,
+    GetNodesStatisticsResponseModel,
+    IBaseStat,
+} from './models';
+import { GetNodesStatisticsRequestQueryDto } from './dtos';
 
 @Injectable()
 export class SystemService {
@@ -60,7 +65,10 @@ export class SystemService {
             };
         } catch (error) {
             this.logger.error('Error getting system stats:', error);
-            throw error;
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
         }
     }
 
@@ -90,7 +98,36 @@ export class SystemService {
             };
         } catch (error) {
             this.logger.error('Error getting system stats:', error);
-            throw error;
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
+        }
+    }
+
+    async getNodesStatistics(): Promise<ICommandResponse<GetNodesStatisticsResponseModel>> {
+        try {
+            const lastSevenDaysStats = await this.getLastSevenDaysNodesUsage();
+
+            if (!lastSevenDaysStats.isOk || !lastSevenDaysStats.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: new GetNodesStatisticsResponseModel({
+                    lastSevenDays: lastSevenDaysStats.response,
+                }),
+            };
+        } catch (error) {
+            this.logger.error('Error getting system stats:', error);
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
         }
     }
 
@@ -100,7 +137,7 @@ export class SystemService {
         );
     }
 
-    private async get7DaysStats(): Promise<ICommandResponse<IGet7DaysStats[]>> {
+    private async getLastSevenDaysNodesUsage(): Promise<ICommandResponse<IGet7DaysStats[]>> {
         return this.queryBus.execute<Get7DaysStatsQuery, ICommandResponse<IGet7DaysStats[]>>(
             new Get7DaysStatsQuery(),
         );

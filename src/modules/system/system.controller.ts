@@ -9,7 +9,12 @@ import { RolesGuard } from '@common/guards/roles';
 import { Roles } from '@common/decorators/roles/roles';
 import { ROLE } from '@libs/contracts/constants';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { GetBandwidthStatsRequestQueryDto, GetBandwidthStatsResponseDto } from './dtos';
+import {
+    GetBandwidthStatsRequestQueryDto,
+    GetBandwidthStatsResponseDto,
+    GetNodesStatisticsRequestQueryDto,
+    GetNodesStatisticsResponseDto,
+} from './dtos';
 
 @ApiTags('System Controller')
 @UseFilters(HttpExceptionFilter)
@@ -47,6 +52,22 @@ export class SystemController {
         @Query() query: GetBandwidthStatsRequestQueryDto,
     ): Promise<GetBandwidthStatsResponseDto> {
         const result = await this.systemService.getBandwidthStats(query);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @Get(SYSTEM_ROUTES.STATISTIC.NODES)
+    @ApiOperation({ summary: 'Get Nodes Statistics' })
+    @ApiResponse({
+        status: 200,
+        description: 'Returns nodes statistics',
+        type: GetNodesStatisticsResponseDto,
+    })
+    async getNodesStatistics(): Promise<GetNodesStatisticsResponseDto> {
+        const result = await this.systemService.getNodesStatistics();
 
         const data = errorHandler(result);
         return {
