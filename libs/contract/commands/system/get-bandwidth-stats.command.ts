@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { REST_API } from '../../api';
+import { BaseStatSchema } from '../../models/base-stat.schema';
 
 export namespace GetBandwidthStatsCommand {
     export const url = REST_API.SYSTEM.BANDWIDTH;
@@ -12,16 +13,11 @@ export namespace GetBandwidthStatsCommand {
 
     export const ResponseSchema = z.object({
         response: z.object({
-            bandwidthLastTwoDays: z.object({
-                current: z.string(),
-                previous: z.string(),
-                difference: z.string(),
-            }),
-            bandwidthLastSevenDays: z.object({
-                current: z.string(),
-                previous: z.string(),
-                difference: z.string(),
-            }),
+            bandwidthLastTwoDays: BaseStatSchema,
+            bandwidthLastSevenDays: BaseStatSchema,
+            bandwidthLast30Days: BaseStatSchema,
+            bandwidthCalendarMonth: BaseStatSchema,
+            bandwidthCurrentYear: BaseStatSchema,
         }),
     });
 

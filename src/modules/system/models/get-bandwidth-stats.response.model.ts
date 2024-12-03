@@ -1,17 +1,21 @@
+export interface IBaseStat {
+    current: string;
+    previous: string;
+    difference: string;
+}
+
 export class GetBandwidthStatsResponseModel {
-    bandwidthLastTwoDays: {
-        current: string;
-        previous: string;
-        difference: string;
-    };
-    bandwidthLastSevenDays: {
-        current: string;
-        previous: string;
-        difference: string;
-    };
+    bandwidthLastTwoDays: IBaseStat;
+    bandwidthLastSevenDays: IBaseStat;
+    bandwidthLast30Days: IBaseStat;
+    bandwidthCalendarMonth: IBaseStat;
+    bandwidthCurrentYear: IBaseStat;
 
     constructor(data: GetBandwidthStatsResponseModel) {
         this.bandwidthLastTwoDays = data.bandwidthLastTwoDays;
         this.bandwidthLastSevenDays = data.bandwidthLastSevenDays;
+        this.bandwidthLast30Days = data.bandwidthLast30Days;
+        this.bandwidthCalendarMonth = data.bandwidthCalendarMonth;
+        this.bandwidthCurrentYear = data.bandwidthCurrentYear;
     }
 }

@@ -8,12 +8,18 @@ import { QueryBus } from '@nestjs/cqrs';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
 import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
-import { getDateRange, getLastTwoWeeksRanges } from '@common/utils/get-date-ranges.uti';
+import {
+    getCalendarMonthRanges,
+    getCalendarYearRanges,
+    getDateRange,
+    getLast30DaysRanges,
+    getLastTwoWeeksRanges,
+} from '@common/utils/get-date-ranges.uti';
 import { calcDiff, calcPercentDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
-import { GetBandwidthStatsResponseModel } from './models';
+import { GetBandwidthStatsResponseModel, IBaseStat } from './models';
 
 @Injectable()
 export class SystemService {
@@ -69,12 +75,17 @@ export class SystemService {
 
             const lastTwoDaysStats = await this.getLastTwoDaysUsage(tz);
             const lastSevenDaysStats = await this.getLastSevenDaysUsage(tz);
-
+            const last30DaysStats = await this.getLast30DaysUsage(tz);
+            const calendarMonthStats = await this.getCalendarMonthUsage(tz);
+            const currentYearStats = await this.getCurrentYearUsage(tz);
             return {
                 isOk: true,
                 response: new GetBandwidthStatsResponseModel({
                     bandwidthLastTwoDays: lastTwoDaysStats,
                     bandwidthLastSevenDays: lastSevenDaysStats,
+                    bandwidthLast30Days: last30DaysStats,
+                    bandwidthCalendarMonth: calendarMonthStats,
+                    bandwidthCurrentYear: currentYearStats,
                 }),
             };
         } catch (error) {
@@ -103,25 +114,26 @@ export class SystemService {
         );
     }
 
-    private async getLastTwoDaysUsage(tz: string): Promise<{
+    private async getUsageComparison(dateRanges: [[Date, Date], [Date, Date]]): Promise<{
         current: string;
         previous: string;
         difference: string;
     }> {
-        const [todayStartDate, todayEndDate] = getDateRange(tz);
-        const nodesUsageToday = await this.getNodesUsageByDtRange({
-            start: todayStartDate,
-            end: todayEndDate,
-        });
+        const [[previousStart, previousEnd], [currentStart, currentEnd]] = dateRanges;
 
-        const [yesterdayStartDate, yesterdayEndDate] = getDateRange(tz, 1);
-        const nodesUsageYesterday = await this.getNodesUsageByDtRange({
-            start: yesterdayStartDate,
-            end: yesterdayEndDate,
-        });
+        const [nodesCurrentUsage, nodesPreviousUsage] = await Promise.all([
+            this.getNodesUsageByDtRange({
+                start: currentStart,
+                end: currentEnd,
+            }),
+            this.getNodesUsageByDtRange({
+                start: previousStart,
+                end: previousEnd,
+            }),
+        ]);
 
-        const currentUsage = nodesUsageToday.response || 0;
-        const previousUsage = nodesUsageYesterday.response || 0;
+        const currentUsage = nodesCurrentUsage.response || 0n;
+        const previousUsage = nodesPreviousUsage.response || 0n;
 
         const [cur, prev, diff] = calcDiff(currentUsage, previousUsage);
 
@@ -132,34 +144,28 @@ export class SystemService {
         };
     }
 
-    private async getLastSevenDaysUsage(tz: string): Promise<{
-        current: string;
-        previous: string;
-        difference: string;
-    }> {
-        const [previousWeek, currentWeek] = getLastTwoWeeksRanges(tz);
-        const [previousStart, previousEnd] = previousWeek;
-        const [currentStart, currentEnd] = currentWeek;
+    private async getLastTwoDaysUsage(tz: string): Promise<IBaseStat> {
+        const today = getDateRange(tz);
+        const yesterday = getDateRange(tz, 1);
+        return this.getUsageComparison([yesterday, today]);
+    }
 
-        const nodesCurrentUsage = await this.getNodesUsageByDtRange({
-            start: currentStart,
-            end: currentEnd,
-        });
+    private async getLastSevenDaysUsage(tz: string): Promise<IBaseStat> {
+        const ranges = getLastTwoWeeksRanges(tz);
+        return this.getUsageComparison(ranges);
+    }
 
-        const nodesPreviousUsage = await this.getNodesUsageByDtRange({
-            start: previousStart,
-            end: previousEnd,
-        });
+    private async getLast30DaysUsage(tz: string): Promise<IBaseStat> {
+        const ranges = getLast30DaysRanges(tz);
+        return this.getUsageComparison(ranges);
+    }
+    private async getCalendarMonthUsage(tz: string): Promise<IBaseStat> {
+        const ranges = getCalendarMonthRanges(tz);
+        return this.getUsageComparison(ranges);
+    }
 
-        const currentUsage = nodesCurrentUsage.response || 0;
-        const previousUsage = nodesPreviousUsage.response || 0;
-
-        const [cur, prev, diff] = calcDiff(currentUsage, previousUsage);
-
-        return {
-            current: prettyBytesUtil(cur),
-            previous: prettyBytesUtil(prev),
-            difference: prettyBytesUtil(diff),
-        };
+    private async getCurrentYearUsage(tz: string): Promise<IBaseStat> {
+        const ranges = getCalendarYearRanges(tz);
+        return this.getUsageComparison(ranges);
     }
 }
