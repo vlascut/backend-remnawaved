@@ -10,7 +10,7 @@ export const NodesSchema = z.object({
     isConnecting: z.boolean(),
     isNodeOnline: z.boolean(),
     isXrayRunning: z.boolean(),
-    lastStatusChange: z.nullable(z.date()),
+    lastStatusChange: z.nullable(z.string().transform((str) => new Date(str))),
     lastStatusMessage: z.nullable(z.string()),
     xrayVersion: z.nullable(z.string()),
     isTrafficTrackingActive: z.boolean(),
