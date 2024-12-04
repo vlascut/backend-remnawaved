@@ -3,6 +3,7 @@ import { REST_API } from '../../api';
 
 export namespace UpdateXrayConfigCommand {
     export const url = REST_API.XRAY.UPDATE_CONFIG;
+    export const TSQ_url = url;
 
     export const RequestSchema = z.record(z.any());
 

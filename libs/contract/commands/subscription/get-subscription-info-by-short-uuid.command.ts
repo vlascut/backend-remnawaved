@@ -4,6 +4,7 @@ import { USERS_STATUS_VALUES } from '../../constants';
 
 export namespace GetSubscriptionInfoByShortUuidCommand {
     export const url = REST_API.SUBSCRIPTION.GET_INFO;
+    export const TSQ_url = url(':shortUuid');
 
     export const RequestSchema = z.object({
         shortUuid: z.string(),

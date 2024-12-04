@@ -1,11 +1,12 @@
 import { z } from 'zod';
 import { REST_API } from '../../api';
-import { ALPN, ALPN_VALUES } from '../../constants/hosts/alpn';
-import { FINGERPRINTS, FINGERPRINTS_VALUES } from '../../constants/hosts/fingerprints';
+import { ALPN_VALUES } from '../../constants/hosts/alpn';
+import { FINGERPRINTS_VALUES } from '../../constants/hosts/fingerprints';
 import { HostsSchema } from '../../models';
 
 export namespace UpdateHostCommand {
     export const url = REST_API.HOSTS.UPDATE;
+    export const TSQ_url = url;
 
     export const RequestSchema = HostsSchema.pick({
         uuid: true,

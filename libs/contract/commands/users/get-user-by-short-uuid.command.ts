@@ -4,6 +4,7 @@ import { UsersSchema } from '../../models/users.schema';
 
 export namespace GetUserByShortUuidCommand {
     export const url = REST_API.USERS.GET_BY_SHORT_UUID;
+    export const TSQ_url = url(':shortUuid');
 
     export const RequestSchema = z.object({
         shortUuid: z.string(),

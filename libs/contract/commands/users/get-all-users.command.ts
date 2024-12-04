@@ -4,6 +4,7 @@ import { UsersSchema } from '../../models/users.schema';
 
 export namespace GetAllUsersCommand {
     export const url = REST_API.USERS.GET_ALL;
+    export const TSQ_url = url;
 
     export const SortableFields = [
         'username',

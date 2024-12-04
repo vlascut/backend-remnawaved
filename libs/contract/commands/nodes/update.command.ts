@@ -4,6 +4,7 @@ import { NodesSchema } from '../../models';
 
 export namespace UpdateNodeCommand {
     export const url = REST_API.NODES.UPDATE;
+    export const TSQ_url = url;
 
     export const RequestSchema = NodesSchema.pick({
         uuid: true,

@@ -4,6 +4,7 @@ import { UsersSchema } from '../../models/users.schema';
 
 export namespace GetUserByUuidCommand {
     export const url = REST_API.USERS.GET_BY_UUID;
+    export const TSQ_url = url(':uuid');
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),

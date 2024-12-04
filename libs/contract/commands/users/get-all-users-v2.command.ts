@@ -4,6 +4,7 @@ import { UsersSchema } from '../../models/users.schema';
 
 export namespace GetAllUsersV2Command {
     export const url = REST_API.USERS.GET_ALL_V2;
+    export const TSQ_url = url;
 
     const FilterSchema = z.object({
         id: z.string(),

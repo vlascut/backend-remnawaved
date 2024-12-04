@@ -4,6 +4,7 @@ import { InboundsSchema } from '../../models/inbounds.schema';
 
 export namespace GetInboundsCommand {
     export const url = REST_API.INBOUNDS.GET_INBOUNDS;
+    export const TSQ_url = url;
 
     export const ResponseSchema = z.object({
         response: z.array(InboundsSchema),

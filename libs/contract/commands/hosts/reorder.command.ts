@@ -4,6 +4,7 @@ import { HostsSchema } from '../../models';
 
 export namespace ReorderHostCommand {
     export const url = REST_API.HOSTS.REORDER;
+    export const TSQ_url = url;
 
     export const RequestSchema = z.object({
         hosts: z.array(

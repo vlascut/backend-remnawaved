@@ -4,6 +4,7 @@ import { HostsSchema } from '../../models';
 
 export namespace GetAllHostsCommand {
     export const url = REST_API.HOSTS.GET_ALL;
+    export const TSQ_url = url;
 
     export const ResponseSchema = z.object({
         response: z.array(HostsSchema),

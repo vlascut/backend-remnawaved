@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { REST_API } from '../../api';
 export namespace LoginCommand {
     export const url = REST_API.AUTH.LOGIN;
+    export const TSQ_url = url;
 
     export const RequestSchema = z.object({
         username: z.string(),

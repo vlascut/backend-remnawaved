@@ -3,6 +3,7 @@ import { REST_API } from '../../api';
 
 export namespace GetPubKeyCommand {
     export const url = REST_API.KEYGEN.GET;
+    export const TSQ_url = url;
 
     export const ResponseSchema = z.object({
         response: z.object({

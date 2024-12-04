@@ -3,6 +3,7 @@ import { REST_API } from '../../api';
 
 export namespace DeleteHostCommand {
     export const url = REST_API.HOSTS.DELETE;
+    export const TSQ_url = url(':uuid');
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),

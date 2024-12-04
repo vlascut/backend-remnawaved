@@ -3,6 +3,7 @@ import { REST_API } from '../../api';
 
 export namespace DeleteNodeCommand {
     export const url = REST_API.NODES.DELETE;
+    export const TSQ_url = url(':uuid');
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),

@@ -3,6 +3,7 @@ import { REST_API } from '../../api';
 
 export namespace GetNodesStatisticsCommand {
     export const url = REST_API.SYSTEM.NODES_STATISTIC;
+    export const TSQ_url = url;
 
     export const RequestQuerySchema = z.object({
         tz: z.string().optional(),

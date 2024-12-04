@@ -4,6 +4,7 @@ import { BaseStatSchema } from '../../models/base-stat.schema';
 
 export namespace GetBandwidthStatsCommand {
     export const url = REST_API.SYSTEM.BANDWIDTH;
+    export const TSQ_url = url;
 
     export const RequestQuerySchema = z.object({
         tz: z.string().optional(),

@@ -4,6 +4,7 @@ import { USERS_STATUS } from '../../constants';
 
 export namespace GetStatsCommand {
     export const url = REST_API.SYSTEM.STATS;
+    export const TSQ_url = url;
 
     export const RequestQuerySchema = z.object({
         tz: z.string().optional(),

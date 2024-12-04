@@ -6,6 +6,7 @@ import { HostsSchema } from '../../models';
 
 export namespace CreateHostCommand {
     export const url = REST_API.HOSTS.CREATE;
+    export const TSQ_url = url;
 
     export const RequestSchema = z.object({
         inboundUuid: z

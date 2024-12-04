@@ -3,6 +3,7 @@ import { REST_API } from '../../api';
 
 export namespace CreateApiTokenCommand {
     export const url = REST_API.API_TOKENS.CREATE;
+    export const TSQ_url = url;
 
     export const RequestSchema = z.object({
         tokenName: z.string(),

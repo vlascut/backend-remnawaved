@@ -5,6 +5,7 @@ import { InboundsSchema, UsersSchema } from '../../models';
 
 export namespace UpdateUserCommand {
     export const url = REST_API.USERS.UPDATE;
+    export const TSQ_url = url;
 
     export const RequestSchema = UsersSchema.pick({
         uuid: true,

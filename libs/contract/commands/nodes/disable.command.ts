@@ -4,6 +4,7 @@ import { NodesSchema } from '../../models';
 
 export namespace DisableNodeCommand {
     export const url = REST_API.NODES.DISABLE;
+    export const TSQ_url = url(':uuid');
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),

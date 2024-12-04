@@ -4,6 +4,7 @@ import { UsersSchema } from '../../models/users.schema';
 
 export namespace GetUserBySubscriptionUuidCommand {
     export const url = REST_API.USERS.GET_BY_SUBSCRIPTION_UUID;
+    export const TSQ_url = url(':subscriptionUuid');
 
     export const RequestSchema = z.object({
         subscriptionUuid: z.string(),
