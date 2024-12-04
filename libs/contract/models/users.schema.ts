@@ -20,19 +20,19 @@ export const UsersSchema = z.object({
         })
         .default(RESET_PERIODS_VALUES[0]),
     subLastUserAgent: z.nullable(z.string()),
-    subLastOpenedAt: z.nullable(z.date()),
+    subLastOpenedAt: z.nullable(z.nullable(z.string().datetime({ offset: true }))),
 
-    expireAt: z.date(),
-    onlineAt: z.date().nullable(),
-    subRevokedAt: z.date().nullable(),
-    lastTrafficResetAt: z.date().nullable(),
+    expireAt: z.nullable(z.string().datetime({ offset: true })),
+    onlineAt: z.nullable(z.string().datetime({ offset: true })),
+    subRevokedAt: z.nullable(z.string().datetime({ offset: true })),
+    lastTrafficResetAt: z.nullable(z.string().datetime({ offset: true })),
 
     trojanPassword: z.string(),
     vlessUuid: z.string().uuid(),
     ssPassword: z.string(),
 
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    createdAt: z.string().datetime({ offset: true }),
+    updatedAt: z.string().datetime({ offset: true }),
 
     activeUserInbounds: z.array(InboundsSchema),
 });

@@ -7,6 +7,8 @@ import short from 'short-uuid';
 import { IJWTAuthPayload, ILogin } from './interfaces';
 import { ConfigService } from '@nestjs/config';
 import { ROLE } from '@libs/contracts/constants';
+import { sleep } from '@common/utils/sleep';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +26,9 @@ export class AuthService {
             const adminUsername = this.configService.get('SUPERADMIN_USERNAME');
             const adminPassword = this.configService.get('SUPERADMIN_PASSWORD');
 
-            if (username !== adminUsername || password !== adminPassword) {
+            const hashedPassword = createHash('md5').update(adminPassword).digest('hex');
+
+            if (username !== adminUsername || hashedPassword !== password) {
                 return {
                     isOk: false,
                     ...ERRORS.UNAUTHORIZED,

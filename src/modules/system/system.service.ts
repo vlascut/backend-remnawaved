@@ -25,6 +25,7 @@ import {
     IBaseStat,
 } from './models';
 import { GetNodesStatisticsRequestQueryDto } from './dtos';
+import { sleep } from '@common/utils/sleep';
 
 @Injectable()
 export class SystemService {
