@@ -23,6 +23,6 @@ export const NodesSchema = z.object({
     cpuModel: z.nullable(z.string()),
     totalRam: z.nullable(z.string()),
 
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    createdAt: z.string().transform((str) => new Date(str)),
+    updatedAt: z.string().transform((str) => new Date(str)),
 });
