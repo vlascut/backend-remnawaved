@@ -7,7 +7,7 @@ export namespace GetAllUsersV2Command {
 
     const FilterSchema = z.object({
         id: z.string(),
-        value: z.unknown(),
+        value: z.string(),
     });
 
     const SortingSchema = z.object({

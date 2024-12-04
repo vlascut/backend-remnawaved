@@ -12,6 +12,7 @@ import { IGetUsersOptions } from '../interfaces';
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
+import { bigint } from 'zod';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -318,6 +319,22 @@ export class UsersRepository implements ICrud<UserEntity> {
     }: GetAllUsersV2Command.RequestQuery): Promise<[UserWithLifetimeTrafficEntity[], number]> {
         const where = filters?.reduce((acc, filter) => {
             const mode = filterModes?.[filter.id] || 'contains';
+
+            if (
+                filter.id === 'expireAt' ||
+                filter.id === 'createdAt' ||
+                filter.id === 'lastTrafficResetAt' ||
+                filter.id === 'subLastOpenedAt' ||
+                filter.id === 'onlineAt'
+            ) {
+                return {
+                    ...acc,
+                    [filter.id]: {
+                        equals: new Date(filter.value),
+                    },
+                };
+            }
+
             return {
                 ...acc,
                 [filter.id]: {
@@ -327,15 +344,40 @@ export class UsersRepository implements ICrud<UserEntity> {
             };
         }, {});
 
-        const orderBy = sorting?.length
-            ? sorting.reduce(
-                  (acc, sort) => ({
-                      ...acc,
-                      [sort.id]: sort.desc ? 'desc' : 'asc',
-                  }),
-                  {},
-              )
+        // let orderBy = sorting?.length
+        //     ? sorting.reduce(
+        //           (acc, sort) => ({
+        //               ...acc,
+        //               [sort.id]: sort.desc ? 'desc' : 'asc',
+        //           }),
+        //           {},
+        //       )
+        //     : undefined;
+
+        let orderBy = sorting?.length
+            ? sorting
+                  .filter((sort) => sort.id !== 'totalUsedBytes')
+                  .reduce(
+                      (acc, sort) => ({
+                          ...acc,
+                          [sort.id]: sort.desc ? 'desc' : 'asc',
+                      }),
+                      {},
+                  )
             : undefined;
+
+        if (orderBy === undefined) {
+            orderBy = {
+                createdAt: 'desc',
+            };
+        }
+
+        const orderByByte =
+            sorting?.find((sort) => sort.id === 'totalUsedBytes')?.desc !== undefined
+                ? sorting.find((sort) => sort.id === 'totalUsedBytes')!.desc
+                    ? 'desc'
+                    : 'asc'
+                : undefined;
 
         const [trafficByUser, users, total] = await Promise.all([
             this.prisma.tx.$queryRaw<{ uuid: string; usedTrafficBytes: bigint }[]>(
@@ -374,6 +416,14 @@ export class UsersRepository implements ICrud<UserEntity> {
                 totalUsedBytes,
             });
         });
+
+        if (orderByByte) {
+            result.sort((a, b) => {
+                return orderByByte === 'desc'
+                    ? Number(b.totalUsedBytes) - Number(a.totalUsedBytes)
+                    : Number(a.totalUsedBytes) - Number(b.totalUsedBytes);
+            });
+        }
 
         return [result, total];
     }
