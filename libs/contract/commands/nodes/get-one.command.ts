@@ -4,6 +4,7 @@ import { NodesSchema } from '../../models';
 
 export namespace GetOneNodeCommand {
     export const url = REST_API.NODES.GET_ONE;
+    export const TSQ_url = url(':uuid');
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),
