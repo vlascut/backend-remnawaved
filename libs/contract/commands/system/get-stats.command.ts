@@ -35,20 +35,6 @@ export namespace GetStatsCommand {
                 totalUsers: z.number(),
                 totalTrafficBytes: z.string(),
             }),
-            stats: z.object({
-                nodesUsageLastTwoDays: z.object({
-                    current: z.string(),
-                    previous: z.string(),
-                    percentage: z.number(),
-                }),
-                sevenDaysStats: z.array(
-                    z.object({
-                        nodeName: z.string(),
-                        totalBytes: z.string(),
-                        date: z.string(),
-                    }),
-                ),
-            }),
         }),
     });
 
