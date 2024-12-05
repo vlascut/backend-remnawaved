@@ -23,8 +23,15 @@ async function bootstrap(): Promise<void> {
         helmet({
             contentSecurityPolicy: {
                 directives: {
-                    defaultSrc: ["'self'"],
-                    scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', "'unsafe-eval'"],
+                    defaultSrc: ["'self'", 'https://remnawave.github.io'],
+                    scriptSrc: [
+                        "'self'",
+                        'https://cdn.jsdelivr.net',
+                        'https://remnawave.github.io',
+                        "'unsafe-eval'",
+                    ],
+                    imgSrc: ["'self'", 'https://img.shields.io', 'data:'],
+                    connectSrc: ["'self'", 'https://remnawave.github.io'],
                     workerSrc: ["'self'", 'blob:'],
                 },
             },

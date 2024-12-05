@@ -87,7 +87,7 @@ export class UsersController {
         };
     }
 
-    @Patch(USERS_ROUTES.UPDATE)
+    @Post(USERS_ROUTES.UPDATE)
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: 'Update User', description: 'Update a user' })
     @ApiOkResponse({
