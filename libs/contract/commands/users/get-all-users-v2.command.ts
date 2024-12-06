@@ -21,17 +21,13 @@ export namespace GetAllUsersV2Command {
         start: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
         filters: z
-            .preprocess(
-                (str) => (typeof str === 'string' ? JSON.parse(str) : str),
-                z.array(FilterSchema),
-            )
+            .union([z.string(), z.array(FilterSchema)])
+            .transform((val) => (typeof val === 'string' ? JSON.parse(val) : val))
             .optional(),
 
         filterModes: z
-            .preprocess(
-                (str) => (typeof str === 'string' ? JSON.parse(str) : str),
-                z.record(z.string(), z.string()),
-            )
+            .union([z.string(), z.record(z.string(), z.string())])
+            .transform((val) => (typeof val === 'string' ? JSON.parse(val) : val))
             .optional(),
         globalFilterMode: z.string().optional(),
 
