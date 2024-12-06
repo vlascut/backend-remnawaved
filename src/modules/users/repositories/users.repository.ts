@@ -330,7 +330,7 @@ export class UsersRepository implements ICrud<UserEntity> {
                 return {
                     ...acc,
                     [filter.id]: {
-                        equals: new Date(filter.value),
+                        equals: new Date(filter.value as string),
                     },
                 };
             }

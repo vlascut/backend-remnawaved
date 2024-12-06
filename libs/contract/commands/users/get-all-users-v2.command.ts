@@ -8,7 +8,7 @@ export namespace GetAllUsersV2Command {
 
     const FilterSchema = z.object({
         id: z.string(),
-        value: z.string(),
+        value: z.unknown(),
     });
 
     const SortingSchema = z.object({
@@ -21,14 +21,19 @@ export namespace GetAllUsersV2Command {
         start: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
         filters: z
-            .union([z.string(), z.array(FilterSchema)])
-            .transform((val) => (typeof val === 'string' ? JSON.parse(val) : val))
+            .preprocess(
+                (str) => (typeof str === 'string' ? JSON.parse(str) : str),
+                z.array(FilterSchema),
+            )
             .optional(),
 
         filterModes: z
-            .union([z.string(), z.record(z.string(), z.string())])
-            .transform((val) => (typeof val === 'string' ? JSON.parse(val) : val))
+            .preprocess(
+                (str) => (typeof str === 'string' ? JSON.parse(str) : str),
+                z.record(z.string(), z.string()),
+            )
             .optional(),
+
         globalFilterMode: z.string().optional(),
 
         sorting: z
