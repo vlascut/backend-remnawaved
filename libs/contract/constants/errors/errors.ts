@@ -30,6 +30,7 @@ export const ERRORS = {
         message: 'Node not found',
         httpCode: 404,
     },
+
     CONFIG_NOT_FOUND: {
         code: 'A012',
         message: 'Configuration not found',
@@ -259,5 +260,10 @@ export const ERRORS = {
         code: 'A053',
         message: 'Create config error',
         httpCode: 500,
+    },
+    ENABLED_NODES_NOT_FOUND: {
+        code: 'A054',
+        message: 'Enabled nodes not found',
+        httpCode: 409,
     },
 } as const;

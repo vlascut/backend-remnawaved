@@ -159,7 +159,7 @@ export class NodesController {
         };
     }
 
-    @Patch(NODES_ROUTES.UPDATE)
+    @Post(NODES_ROUTES.UPDATE)
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Update Node', description: 'Update node' })
     @ApiOkResponse({
@@ -190,7 +190,7 @@ export class NodesController {
         };
     }
 
-    @Get(NODES_ROUTES.RESTART_ALL)
+    @Patch(NODES_ROUTES.RESTART_ALL)
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Restart All Nodes', description: 'Restart all nodes' })
     @ApiOkResponse({

@@ -114,7 +114,7 @@ export class NodesService {
             if (nodes.length === 0) {
                 return {
                     isOk: false,
-                    ...ERRORS.NODE_NOT_FOUND,
+                    ...ERRORS.ENABLED_NODES_NOT_FOUND,
                 };
             }
 
@@ -213,7 +213,10 @@ export class NodesService {
                 };
             }
 
-            this.eventBus.publish(new StartNodeEvent(result));
+            if (!node.isDisabled) {
+                this.eventBus.publish(new StartNodeEvent(result));
+            }
+
             this.eventEmitter.emit(EVENTS.NODE.MODIFIED, new NodeEvent(result));
 
             return {

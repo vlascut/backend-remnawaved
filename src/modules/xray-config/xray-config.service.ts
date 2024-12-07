@@ -17,6 +17,7 @@ import { UserForConfigEntity } from '../users/entities/users-for-config';
 import { InboundsWithTagsAndType } from '../inbounds/interfaces/inboubds-with-tags-and-type.interface';
 import { isDevelopment } from '@common/utils/startup-app';
 import { StartAllNodesEvent } from '../nodes/events/start-all-nodes';
+import { UpdateConfigRequestDto } from './dtos/update-config.dto';
 
 @Injectable()
 export class XrayConfigService {
@@ -61,9 +62,11 @@ export class XrayConfigService {
     }
 
     public async updateConfigFromController(
-        config: object,
+        requestConfig: UpdateConfigRequestDto,
     ): Promise<ICommandResponse<XrayConfigEntity>> {
         try {
+            const config = requestConfig.config;
+
             const existingConfig = await this.xrayConfigRepository.findFirst();
             if (!existingConfig) {
                 return await this.createConfig(config);

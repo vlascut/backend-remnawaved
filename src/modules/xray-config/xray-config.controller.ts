@@ -4,9 +4,9 @@ import {
     Body,
     HttpCode,
     HttpStatus,
-    Put,
     UseFilters,
     UseGuards,
+    Post,
 } from '@nestjs/common';
 import { XrayConfigService } from './xray-config.service';
 import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -19,7 +19,7 @@ import { RolesGuard } from '@common/guards/roles';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { GetConfigResponseDto } from './dtos/get-config.dto';
 import { GetConfigResponseModel } from './models/get-config.response.model';
-import { UpdateConfigResponseDto } from './dtos/update-config.dto';
+import { UpdateConfigRequestDto, UpdateConfigResponseDto } from './dtos/update-config.dto';
 
 @ApiTags('Xray Config Controller')
 @UseFilters(HttpExceptionFilter)
@@ -46,7 +46,7 @@ export class XrayConfigController {
         };
     }
 
-    @Put(XRAY_ROUTES.UPDATE_CONFIG)
+    @Post(XRAY_ROUTES.UPDATE_CONFIG)
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Update Xray Config', description: 'Update Xray Config' })
     @ApiOkResponse({
@@ -54,8 +54,10 @@ export class XrayConfigController {
         description: 'Configuration updated successfully',
     })
     @ApiBadRequestResponse({ description: ERRORS.UPDATE_CONFIG_ERROR.message })
-    async updateConfig(@Body() config: object): Promise<UpdateConfigResponseDto> {
-        const result = await this.xrayConfigService.updateConfigFromController(config);
+    async updateConfig(
+        @Body() requestConfig: UpdateConfigRequestDto,
+    ): Promise<UpdateConfigResponseDto> {
+        const result = await this.xrayConfigService.updateConfigFromController(requestConfig);
 
         const data = errorHandler(result);
         return {
