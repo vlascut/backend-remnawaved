@@ -5,6 +5,8 @@ on:
     tags:
       - '*'
 
+  workflow_dispatch:
+
 jobs:
   send-start-deploy-telegram-message:
     name: Send Telegram message
