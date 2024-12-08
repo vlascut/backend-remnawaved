@@ -65,7 +65,7 @@ export class XrayConfigService {
         requestConfig: UpdateConfigRequestDto,
     ): Promise<ICommandResponse<XrayConfigEntity>> {
         try {
-            const config = requestConfig.config;
+            const config = requestConfig;
 
             const existingConfig = await this.xrayConfigRepository.findFirst();
             if (!existingConfig) {
