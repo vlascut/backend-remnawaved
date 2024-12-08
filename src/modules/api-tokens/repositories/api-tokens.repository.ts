@@ -47,7 +47,7 @@ export class ApiTokensRepository implements ICrud<ApiTokenEntity> {
         const bannerList = await this.prisma.tx.apiTokens.findMany({
             where: dto,
             orderBy: {
-                createdAt: 'desc',
+                createdAt: 'asc',
             },
         });
         return this.apiTokenConverter.fromPrismaModelsToEntities(bannerList);

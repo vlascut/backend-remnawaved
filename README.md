@@ -1,10 +1,18 @@
 ## Remnawave Backend
-1
-2
 
-## Creators
+Work in progress
 
-|                                                                                                                                                   Author                                                                                                                                                    |                                                                                                                                    Author                                                                                                                                     |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| [<img src="https://github.com/kastov.png?size=115" width=115><br><sub>@kastov</sub>](https://github.com/kastov) | [<img src="https://github.com/exact01.png?size=250" width=115><br><sub>@exact01</sub>](https://github.com/exact01) |
+# Contributors
 
+We ❤️‍🔥 contributors! If you'd like to contribute, please check out our [Contributing Guidelines](CONTRIBUTING.md) and feel free to submit a pull request or open an issue.
+
+Check [open issues](https://github.com/remnawave/backend/issues) to help the progress of this project.
+
+<p align="center">
+Thanks to the all contributors who have helped improve Remnawave:
+</p>
+<p align="center">
+<a href="https://github.com/remnawave/backend/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=remnawave/backend" />
+</a>
+</p>
