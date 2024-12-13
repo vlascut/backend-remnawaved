@@ -4,6 +4,7 @@ import { NodesTrafficUsageHistoryConverter } from './nodes-traffic-usage-history
 import { NodesTrafficUsageHistoryRepository } from './repositories/nodes-traffic-usage-history.repository';
 import { NodesTrafficUsageHistoryController } from './nodes-traffic-usage-history.controller';
 import { NodesTrafficUsageHistoryService } from './nodes-traffic-usage-history.service';
+import { COMMANDS } from './commands';
 
 @Module({
     imports: [CqrsModule],
@@ -12,6 +13,7 @@ import { NodesTrafficUsageHistoryService } from './nodes-traffic-usage-history.s
         NodesTrafficUsageHistoryRepository,
         NodesTrafficUsageHistoryConverter,
         NodesTrafficUsageHistoryService,
+        ...COMMANDS,
     ],
 })
 export class NodesTrafficUsageHistoryModule {}

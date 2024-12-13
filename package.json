@@ -1,6 +1,6 @@
 {
   "name": "@remnawave/backend",
-  "version": "0.1.61",
+  "version": "0.1.7",
   "description": "",
   "author": "",
   "private": true,
@@ -38,6 +38,7 @@
     "@nestjs/config": "3.3.0",
     "@nestjs/core": "10.4.7",
     "@nestjs/cqrs": "10.2.8",
+    "@nestjs/devtools-integration": "^0.1.6",
     "@nestjs/event-emitter": "^2.1.1",
     "@nestjs/jwt": "10.2.0",
     "@nestjs/passport": "10.0.3",

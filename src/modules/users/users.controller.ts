@@ -65,8 +65,8 @@ import { USERS_CONTROLLER, USERS_ROUTES } from '@libs/contracts/api';
 @ApiBearerAuth('Authorization')
 @UseFilters(HttpExceptionFilter)
 @Controller(USERS_CONTROLLER)
-// @UseGuards(JwtDefaultGuard, RolesGuard)
-// @Roles(ROLE.ADMIN, ROLE.API)
+@UseGuards(JwtDefaultGuard, RolesGuard)
+@Roles(ROLE.ADMIN, ROLE.API)
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 

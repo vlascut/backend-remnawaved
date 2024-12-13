@@ -21,7 +21,6 @@ import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-u
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
-import { sleep } from '@common/utils/sleep';
 
 @Injectable()
 export class UsersService {
