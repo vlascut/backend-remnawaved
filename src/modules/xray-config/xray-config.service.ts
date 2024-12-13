@@ -82,6 +82,8 @@ export class XrayConfigService {
 
             result.config = sortedConfig;
 
+            await this.syncInbounds();
+
             this.eventBus.publish(new StartAllNodesEvent());
 
             return {
