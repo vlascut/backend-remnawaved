@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { isDevelopment } from '../../../../common/utils/startup-app';
+import { isDevelopment } from '@common/utils/startup-app';
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 
 const SINGBOX_TEMPLATE_PATH = isDevelopment()
-    ? path.join(__dirname, '../../../../../../configs/singbox/singbox_tml.json')
-    : path.join('/var/lib/remnawave/configs/singbox/config/singbox_tml.json');
+    ? path.join(__dirname, '../../../../../../configs/singbox/singbox_template.json')
+    : path.join('/var/lib/remnawave/configs/singbox/singbox_template.json');
 
 interface OutboundConfig {
     type: string;

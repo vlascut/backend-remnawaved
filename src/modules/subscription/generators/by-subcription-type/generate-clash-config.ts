@@ -15,12 +15,12 @@ env.addFilter('indent', (str: string, width: number) => {
 });
 
 const CLASH_TEMPLATE_PATH = isDevelopment()
-    ? path.join(__dirname, '../../../../../../configs/clash/clash_tmp.yml')
-    : path.join('/var/lib/remnawave/configs/clash/config/clash_tmp.yml');
+    ? path.join(__dirname, '../../../../../../configs/clash/clash_template.yml')
+    : path.join('/var/lib/remnawave/configs/clash/clash_template.yml');
 
 const STASH_TEMPLATE_PATH = isDevelopment()
-    ? path.join(__dirname, '../../../../../../configs/stash/stash_tmp.yml')
-    : path.join('/var/lib/remnawave/configs/stash/config/stash_tmp.yml');
+    ? path.join(__dirname, '../../../../../../configs/stash/stash_template.yml')
+    : path.join('/var/lib/remnawave/configs/stash/stash_template.yml');
 
 export interface NetworkConfig {
     path?: string | string[];
