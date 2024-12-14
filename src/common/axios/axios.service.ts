@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import axios, { AxiosError, AxiosInstance } from 'axios';
-import { GetNodeJwtCommand } from '../../modules/keygen/commands/get-node-jwt';
+import { GetNodeJwtCommand } from '@modules/keygen/commands/get-node-jwt';
 import { ICommandResponse } from '../types/command-response.type';
 import { ERRORS } from '@contract/constants';
 import {

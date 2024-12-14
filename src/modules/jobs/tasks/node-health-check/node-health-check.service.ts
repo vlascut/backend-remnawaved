@@ -109,7 +109,6 @@ export class NodeHealthCheckService {
                 isXrayRunning: true,
                 lastStatusChange: new Date(),
                 lastStatusMessage: '',
-                isDisabled: false,
             },
         });
 
