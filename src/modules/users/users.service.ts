@@ -201,6 +201,7 @@ export class UsersService {
                 ssPassword,
                 activeUserInbounds,
                 createdAt,
+                lastTrafficResetAt,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -215,6 +216,7 @@ export class UsersService {
                 trafficLimitStrategy,
                 expireAt: new Date(expireAt),
                 createdAt: createdAt ? new Date(createdAt) : undefined,
+                lastTrafficResetAt: lastTrafficResetAt ? new Date(lastTrafficResetAt) : undefined,
             });
 
             const result = await this.userRepository.create(userEntity);
