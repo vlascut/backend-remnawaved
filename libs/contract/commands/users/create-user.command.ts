@@ -84,7 +84,7 @@ export namespace CreateUserCommand {
                 required_error: 'Expiration date is required',
                 invalid_type_error: 'Invalid expiration date format',
             })
-            .refine((date) => date > new Date(), {
+            .refine(() => new Date(), {
                 message: 'Expiration date cannot be in the past',
             }),
     });

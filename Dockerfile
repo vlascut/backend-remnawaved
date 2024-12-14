@@ -6,7 +6,7 @@ ADD . .
 RUN npm ci --legacy-peer-deps
 
 RUN npm run migrate:generate
-RUN npm run build --prod
+RUN npm run build --omit=dev
 
 RUN apt-get update && apt-get install -y curl unzip
 
