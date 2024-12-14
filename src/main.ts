@@ -20,20 +20,34 @@ async function bootstrap(): Promise<void> {
 
     const config = app.get(ConfigService);
 
+    // app.use(
+    //     helmet({
+    //         contentSecurityPolicy: {
+    //             directives: {
+    //                 defaultSrc: ["'self'", 'https://remnawave.github.io'],
+    //                 scriptSrc: [
+    //                     "'self'",
+    //                     'https://cdn.jsdelivr.net',
+    //                     'https://remnawave.github.io',
+    //                     "'unsafe-eval'",
+    //                 ],
+    //                 imgSrc: ["'self'", 'https://img.shields.io', 'data:'],
+    //                 connectSrc: ["'self'", 'https://remnawave.github.io'],
+    //                 workerSrc: ["'self'", 'blob:'],
+    //             },
+    //         },
+    //     }),
+    // );
+
     app.use(
         helmet({
             contentSecurityPolicy: {
                 directives: {
-                    defaultSrc: ["'self'", 'https://remnawave.github.io'],
-                    scriptSrc: [
-                        "'self'",
-                        'https://cdn.jsdelivr.net',
-                        'https://remnawave.github.io',
-                        "'unsafe-eval'",
-                    ],
-                    imgSrc: ["'self'", 'https://img.shields.io', 'data:'],
-                    connectSrc: ["'self'", 'https://remnawave.github.io'],
-                    workerSrc: ["'self'", 'blob:'],
+                    defaultSrc: ["'self'", '*'],
+                    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", '*'],
+                    imgSrc: ["'self'", 'data:', '*'],
+                    connectSrc: ["'self'", '*'],
+                    workerSrc: ["'self'", 'blob:', '*'],
                 },
             },
         }),
