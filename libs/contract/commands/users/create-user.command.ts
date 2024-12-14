@@ -87,6 +87,15 @@ export namespace CreateUserCommand {
             .refine(() => new Date(), {
                 message: 'Expiration date cannot be in the past',
             }),
+        createdAt: z.coerce
+            .date({
+                required_error: 'Expiration date is required',
+                invalid_type_error: 'Invalid expiration date format',
+            })
+            .refine(() => new Date(), {
+                message: 'Expiration date cannot be in the past',
+            })
+            .optional(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

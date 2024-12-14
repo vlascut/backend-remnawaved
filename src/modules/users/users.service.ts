@@ -200,6 +200,7 @@ export class UsersService {
                 vlessUuid,
                 ssPassword,
                 activeUserInbounds,
+                createdAt,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -213,6 +214,7 @@ export class UsersService {
                 trafficLimitBytes: BigInt(trafficLimitBytes || 0),
                 trafficLimitStrategy,
                 expireAt: new Date(expireAt),
+                createdAt: createdAt ? new Date(createdAt) : undefined,
             });
 
             const result = await this.userRepository.create(userEntity);
