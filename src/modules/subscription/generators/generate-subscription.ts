@@ -6,6 +6,7 @@ import {
 } from './by-subcription-type';
 import { SUBSCRIPTION_CONFIG_TYPES, TSubscriptionConfigTypes } from './constants/config-types';
 import { FormatHosts } from '../utils/format-hosts';
+import { parseSingBoxVersion } from '../utils/parse-sing-box-version';
 import { IGenerateSubscription } from './interfaces/generate-subscription.interface';
 
 function parseUserAgentType(userAgent: string): TSubscriptionConfigTypes {
@@ -46,7 +47,10 @@ export function generateSubscription({
             contentType: configParams.CONTENT_TYPE,
         }),
         SING_BOX: () => ({
-            sub: SingBoxConfiguration.generateConfig(formattedHosts),
+            sub: SingBoxConfiguration.generateConfig(
+                formattedHosts,
+                parseSingBoxVersion(userAgent),
+            ),
             contentType: configParams.CONTENT_TYPE,
         }),
         STASH: () => ({

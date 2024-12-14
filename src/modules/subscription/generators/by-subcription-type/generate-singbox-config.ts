@@ -2,6 +2,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { isDevelopment } from '@common/utils/startup-app';
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
+import semver from 'semver';
+
+const SINGBOX_LEGACY_TEMPLATE_PATH = isDevelopment()
+    ? path.join(__dirname, '../../../../../../configs/singbox/singbox_legacy.json')
+    : path.join('/var/lib/remnawave/configs/singbox/singbox_legacy.json');
 
 const SINGBOX_TEMPLATE_PATH = isDevelopment()
     ? path.join(__dirname, '../../../../../../configs/singbox/singbox_template.json')
@@ -73,13 +78,63 @@ export class SingBoxConfiguration {
     private mux_template: string;
     private user_agent_list: string[];
     private settings: any;
-
-    constructor(hosts: FormattedHosts[]) {
+    private version: string | null;
+    constructor(hosts: FormattedHosts[], version: string | null) {
         this.hosts = hosts;
+        this.version = version;
 
         this.proxy_remarks = [];
-        const templateContent = readFileSync(SINGBOX_TEMPLATE_PATH, 'utf-8');
-        this.config = JSON.parse(templateContent);
+
+        if (this.version && semver.gte(this.version, '1.11.0')) {
+            const templateContent = readFileSync(SINGBOX_TEMPLATE_PATH, 'utf-8');
+            this.config = JSON.parse(templateContent);
+        } else {
+            const templateContent = readFileSync(SINGBOX_LEGACY_TEMPLATE_PATH, 'utf-8');
+            this.config = JSON.parse(templateContent);
+        }
+        if (this.version && semver.satisfies(this.version, '>=1.10.0')) {
+            // version 1.10.x
+            // Reference: https://sing-box.sagernet.org/migration/#tun-address-fields-are-merged
+            const tunInboundIndex = this.config.inbounds.findIndex(
+                (inbound: any) => inbound.type === 'tun',
+            );
+
+            if (tunInboundIndex !== -1) {
+                const tunInbound = this.config.inbounds[tunInboundIndex];
+
+                if (tunInbound.inet4_address || tunInbound.inet6_address) {
+                    tunInbound.address = [
+                        tunInbound.inet4_address,
+                        tunInbound.inet6_address,
+                    ].filter(Boolean);
+                    delete tunInbound.inet4_address;
+                    delete tunInbound.inet6_address;
+                }
+
+                if (tunInbound.inet4_route_address || tunInbound.inet6_route_address) {
+                    tunInbound.route_address = [
+                        ...(tunInbound.inet4_route_address || []),
+                        ...(tunInbound.inet6_route_address || []),
+                    ];
+                    delete tunInbound.inet4_route_address;
+                    delete tunInbound.inet6_route_address;
+                }
+
+                if (
+                    tunInbound.inet4_route_exclude_address ||
+                    tunInbound.inet6_route_exclude_address
+                ) {
+                    tunInbound.route_exclude_address = [
+                        ...(tunInbound.inet4_route_exclude_address || []),
+                        ...(tunInbound.inet6_route_exclude_address || []),
+                    ];
+                    delete tunInbound.inet4_route_exclude_address;
+                    delete tunInbound.inet6_route_exclude_address;
+                }
+
+                this.config.inbounds[tunInboundIndex] = tunInbound;
+            }
+        }
         // this.mux_template = JSON.stringify({ 'sing-box': { enabled: true } });
         // const user_agent_data = { list: [] };
 
@@ -104,9 +159,9 @@ export class SingBoxConfiguration {
         return this.render();
     }
 
-    public static generateConfig(hosts: FormattedHosts[]): string {
+    public static generateConfig(hosts: FormattedHosts[], version: string | null): string {
         try {
-            return new SingBoxConfiguration(hosts).generate();
+            return new SingBoxConfiguration(hosts, version).generate();
         } catch (error) {
             return '';
         }
