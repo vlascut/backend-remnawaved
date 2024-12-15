@@ -14,13 +14,13 @@ import { Roles } from '@common/decorators/roles/roles';
 import { GetPubKeyResponseDto } from './dtos';
 import { KeygenService } from './keygen.service';
 import { KeygenResponseModel } from './model';
-import { GetNodeJwtCommand } from './commands/get-node-jwt';
 import { CommandBus } from '@nestjs/cqrs';
 
 @ApiTags('Keygen Controller')
 @UseFilters(HttpExceptionFilter)
 @Controller(KEYGEN_CONTROLLER)
-// @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseGuards(JwtDefaultGuard, RolesGuard)
+@Roles(ROLE.ADMIN, ROLE.API)
 export class KeygenController {
     constructor(
         private readonly keygenService: KeygenService,
@@ -34,7 +34,6 @@ export class KeygenController {
         type: [GetPubKeyResponseDto],
         description: 'Access token for further requests',
     })
-    @Roles(ROLE.ADMIN)
     async generateKey(): Promise<GetPubKeyResponseDto> {
         const result = await this.keygenService.generateKey();
 
@@ -44,11 +43,11 @@ export class KeygenController {
         };
     }
 
-    @Get('test')
-    async test(): Promise<any> {
-        const result = await this.commandBus.execute(new GetNodeJwtCommand());
+    // @Get('test')
+    // async test(): Promise<any> {
+    //     const result = await this.commandBus.execute(new GetNodeJwtCommand());
 
-        const data = errorHandler(result);
-        return data;
-    }
+    //     const data = errorHandler(result);
+    //     return data;
+    // }
 }

@@ -12,7 +12,6 @@ import { IGetUsersOptions } from '../interfaces';
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
-import { bigint } from 'zod';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {

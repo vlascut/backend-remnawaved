@@ -7,7 +7,6 @@ import short from 'short-uuid';
 import { IJWTAuthPayload, ILogin } from './interfaces';
 import { ConfigService } from '@nestjs/config';
 import { ROLE } from '@libs/contracts/constants';
-import { sleep } from '@common/utils/sleep';
 import { createHash } from 'crypto';
 
 @Injectable()

@@ -14,7 +14,7 @@ import { IntegrationModules } from '@intergration-modules/integration-modules';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { join } from 'node:path';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { DevtoolsModule } from '@nestjs/devtools-integration';
+
 @Module({
     imports: [
         AxiosModule,
@@ -44,9 +44,6 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
             rootPath: join(__dirname, '..', '..', 'frontend'),
             renderPath: '*',
             exclude: ['/api/(.*)'],
-        }),
-        DevtoolsModule.register({
-            http: process.env.NODE_ENV !== 'production',
         }),
     ],
 })

@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { SystemService } from './system.service';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { SYSTEM_CONTROLLER, SYSTEM_ROUTES } from '@libs/contracts/api';
-import { GetStatsRequestQueryDto, GetStatsResponseDto } from './dtos/get-stats.dto';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { RolesGuard } from '@common/guards/roles';
 import { Roles } from '@common/decorators/roles/roles';
@@ -12,7 +11,7 @@ import { errorHandler } from '@common/helpers/error-handler.helper';
 import {
     GetBandwidthStatsRequestQueryDto,
     GetBandwidthStatsResponseDto,
-    GetNodesStatisticsRequestQueryDto,
+    GetStatsResponseDto,
     GetNodesStatisticsResponseDto,
 } from './dtos';
 

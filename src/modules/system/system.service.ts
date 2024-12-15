@@ -15,7 +15,7 @@ import {
     getLast30DaysRanges,
     getLastTwoWeeksRanges,
 } from '@common/utils/get-date-ranges.uti';
-import { calcDiff, calcPercentDiff } from '@common/utils/calc-percent-diff.util';
+import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
@@ -24,8 +24,6 @@ import {
     GetNodesStatisticsResponseModel,
     IBaseStat,
 } from './models';
-import { GetNodesStatisticsRequestQueryDto } from './dtos';
-import { sleep } from '@common/utils/sleep';
 
 @Injectable()
 export class SystemService {

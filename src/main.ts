@@ -14,7 +14,6 @@ patchNestJsSwagger();
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule, {
-        snapshot: true,
         logger: initLogs(),
     });
 
