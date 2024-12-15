@@ -1,14 +1,22 @@
 {
   "name": "@remnawave/backend-contract",
-  "version": "0.0.57",
+  "version": "0.0.6",
   "description": "A contract library for Remnawave",
-  "main": "index.js",
+  "main": "build/backend/index.js",
+  "browser": "build/frontend/index.js",
+  "types": "build/backend/index.d.ts",
+  "files": [
+    "build/**/*"
+  ],
   "scripts": {
-    "prepublish": "rm -rf build && tsc",
-    "build": "tsc"
+    "clean": "rm -rf build",
+    "build:backend": "tsc -p tsconfig.backend.json",
+    "build:frontend": "tsc -p tsconfig.frontend.json",
+    "build": "npm run clean && npm run build:backend && npm run build:frontend",
+    "prepublish": "npm run build"
   },
   "keywords": [],
-  "author": "",
+  "author": "REMNAWAVE",
   "license": "ISC",
   "dependencies": {
     "zod": "^3.22.4"
