@@ -9,6 +9,7 @@ export class UserWithLifetimeTrafficResponseModel {
     public username: string;
     public status: TUsersStatus;
     public usedTrafficBytes: number;
+    public lifetimeUsedTrafficBytes: number;
     public trafficLimitBytes: number;
     public trafficLimitStrategy: TResetPeriods;
     public subLastUserAgent: string;
@@ -40,6 +41,7 @@ export class UserWithLifetimeTrafficResponseModel {
         this.username = data.username;
         this.status = data.status;
         this.usedTrafficBytes = Number(data.usedTrafficBytes);
+        this.lifetimeUsedTrafficBytes = Number(data.lifetimeUsedTrafficBytes);
         this.trafficLimitBytes = Number(data.trafficLimitBytes);
         this.trafficLimitStrategy = data.trafficLimitStrategy;
         this.subLastUserAgent = data.subLastUserAgent;

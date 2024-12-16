@@ -12,6 +12,7 @@ export class GetUserResponseModel {
     public readonly updatedAt: Date;
     public readonly subscriptionUuid: string;
     public readonly usedTrafficBytes: number;
+    public readonly lifetimeUsedTrafficBytes: number;
     public readonly trafficLimitBytes: number;
     public readonly trafficLimitStrategy: TResetPeriods;
     public readonly subLastUserAgent: string | null;
@@ -34,6 +35,7 @@ export class GetUserResponseModel {
         this.updatedAt = entity.updatedAt;
         this.subscriptionUuid = entity.subscriptionUuid;
         this.usedTrafficBytes = Number(entity.usedTrafficBytes);
+        this.lifetimeUsedTrafficBytes = Number(entity.lifetimeUsedTrafficBytes);
         this.trafficLimitBytes = Number(entity.trafficLimitBytes);
         this.trafficLimitStrategy = entity.trafficLimitStrategy;
         this.subLastUserAgent = entity.subLastUserAgent;

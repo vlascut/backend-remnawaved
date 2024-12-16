@@ -32,6 +32,8 @@ import {
     GetUserByShortUuidResponseDto,
     GetUserBySubscriptionUuidRequestDto,
     GetUserBySubscriptionUuidResponseDto,
+    GetUserByUsernameRequestDto,
+    GetUserByUsernameResponseDto,
     GetUserByUuidRequestDto,
     GetUserByUuidResponseDto,
     RevokeUserSubscriptionRequestDto,
@@ -214,6 +216,33 @@ export class UsersController {
         @Param() paramData: GetUserByShortUuidRequestDto,
     ): Promise<GetUserByShortUuidResponseDto> {
         const result = await this.usersService.getUserByShortUuid(paramData.shortUuid);
+
+        const data = errorHandler(result);
+        return {
+            response: new GetUserResponseModel(data),
+        };
+    }
+
+    @Get(USERS_ROUTES.GET_BY_USERNAME + '/:username')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get User By Username', description: 'Get user by username' })
+    @ApiOkResponse({
+        type: GetUserByShortUuidResponseDto,
+        description: 'User fetched successfully',
+    })
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiParam({
+        name: 'username',
+        type: String,
+        description: 'Username of the user',
+        required: true,
+    })
+    async getUserByUsername(
+        @Param() paramData: GetUserByUsernameRequestDto,
+    ): Promise<GetUserByUsernameResponseDto> {
+        const result = await this.usersService.getUserByUsername(paramData.username);
 
         const data = errorHandler(result);
         return {

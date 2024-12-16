@@ -32,7 +32,11 @@ export class UsersRepository implements ICrud<UserEntity> {
     public async incrementUsedTraffic(userUuid: string, bytes: bigint): Promise<void> {
         await this.prisma.tx.users.update({
             where: { uuid: userUuid },
-            data: { usedTrafficBytes: { increment: bytes }, onlineAt: new Date() },
+            data: {
+                usedTrafficBytes: { increment: bytes },
+                onlineAt: new Date(),
+                lifetimeUsedTrafficBytes: { increment: bytes },
+            },
         });
     }
 

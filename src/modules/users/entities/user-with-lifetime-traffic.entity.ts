@@ -10,6 +10,7 @@ export class UserWithLifetimeTrafficEntity {
     public username: string;
     public status: TUsersStatus;
     public usedTrafficBytes: bigint;
+    public lifetimeUsedTrafficBytes: bigint;
     public trafficLimitBytes: bigint;
     public trafficLimitStrategy: TResetPeriods;
     public subLastUserAgent: string;

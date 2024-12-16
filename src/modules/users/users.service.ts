@@ -353,6 +353,32 @@ export class UsersService {
         }
     }
 
+    public async getUserByUsername(
+        username: string,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+        try {
+            const result = await this.userRepository.findUserByUsername(username);
+
+            if (!result) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.GET_USER_BY_ERROR,
+            };
+        }
+    }
+
     public async getUserByUuid(
         uuid: string,
     ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {

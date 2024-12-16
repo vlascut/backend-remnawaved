@@ -15,6 +15,7 @@ const entityToModel = (entity: UserEntity): UserEntity => {
         username: entity.username,
         status: entity.status,
         usedTrafficBytes: entity.usedTrafficBytes,
+        lifetimeUsedTrafficBytes: entity.lifetimeUsedTrafficBytes,
         trafficLimitBytes: entity.trafficLimitBytes,
         trafficLimitStrategy: entity.trafficLimitStrategy,
         subLastUserAgent: entity.subLastUserAgent,

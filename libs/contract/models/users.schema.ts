@@ -12,7 +12,8 @@ export const UsersSchema = z.object({
         .enum([USERS_STATUS_VALUES[0], ...USERS_STATUS_VALUES])
         .default(USERS_STATUS_VALUES[0]),
 
-    usedTrafficBytes: z.number().int().default(0),
+    usedTrafficBytes: z.number(),
+    lifetimeUsedTrafficBytes: z.number(),
     trafficLimitBytes: z.number().int().default(0),
     trafficLimitStrategy: z
         .enum([RESET_PERIODS_VALUES[0], ...RESET_PERIODS_VALUES], {

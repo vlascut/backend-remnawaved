@@ -9,3 +9,4 @@ export * from './get-user-by-subscription-uuid.dto';
 export * from './get-user-by-uuid.dto';
 export * from './revoke-user-subscription.dto';
 export * from './update-user.dto';
+export * from './get-user-by-username.dto';
