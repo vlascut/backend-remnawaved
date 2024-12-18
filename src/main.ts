@@ -1,4 +1,3 @@
-import { initLogs } from '@common/utils/startup-app/init-log.util';
 import { isDevelopment } from '@common/utils/startup-app/is-development';
 import { getSwagger } from '@common/utils/startup-app/swagger';
 import { ROOT } from '@contract/api';
@@ -9,12 +8,26 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module';
-
+import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
 patchNestJsSwagger();
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule, {
-        logger: initLogs(),
+        logger: WinstonModule.createLogger({
+            transports: [new winston.transports.Console()],
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.ms(),
+                nestWinstonModuleUtilities.format.nestLike('', {
+                    colors: true,
+                    prettyPrint: true,
+                    processId: true,
+                    appName: false,
+                }),
+            ),
+            level: isDevelopment() ? 'debug' : 'info',
+        }),
     });
 
     const config = app.get(ConfigService);
@@ -53,6 +66,7 @@ async function bootstrap(): Promise<void> {
     );
 
     app.use(compression());
+
     app.use(morgan('short'));
 
     app.setGlobalPrefix(ROOT);

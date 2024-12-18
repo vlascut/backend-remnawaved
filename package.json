@@ -1,6 +1,6 @@
 {
   "name": "@remnawave/backend",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "",
   "author": "Remnawave",
   "private": true,
@@ -60,6 +60,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "nanoid": "^3.3.7",
+    "nest-winston": "^1.9.7",
     "nestjs-cls": "^4.4.0",
     "nestjs-form-data": "1.9.7",
     "nestjs-pino": "4.1.0",
@@ -79,6 +80,7 @@
     "systeminformation": "^5.23.5",
     "ts-proto": "^2.2.5",
     "uuid": "^11.0.3",
+    "winston": "^3.17.0",
     "xbytes": "^1.9.1",
     "xml2js": "0.6.2",
     "zod": "^3.22.4"
