@@ -75,7 +75,7 @@ export class NodeHealthCheckService {
             const nodes = nodesResponse.response;
 
             const mapper = async (node: NodesEntity) => {
-                const response = await this.axios.getSystemStats(node.address, node.port, 10000);
+                const response = await this.axios.getSystemStats(node.address, node.port);
                 switch (response.isOk) {
                     case true:
                         return this.handleConnectedNode(node, response.response!);

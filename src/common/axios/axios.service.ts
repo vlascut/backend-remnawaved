@@ -255,14 +255,11 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getSystemStats(
         url: string,
         port: number | null,
-        timeout: number = 20000,
     ): Promise<ICommandResponse<GetSystemStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetSystemStatsCommand.url, port);
 
         try {
-            const response = await this.axiosInstance.get<GetSystemStatsCommand.Response>(nodeUrl, {
-                timeout,
-            });
+            const response = await this.axiosInstance.get<GetSystemStatsCommand.Response>(nodeUrl);
 
             return {
                 isOk: true,
@@ -333,7 +330,6 @@ export class AxiosService implements OnApplicationBootstrap {
         data: GetAllInboundsStatsCommand.Request,
         url: string,
         port: number | null,
-        timeout: number = 20_000,
     ): Promise<ICommandResponse<GetAllInboundsStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetAllInboundsStatsCommand.url, port);
 
@@ -341,7 +337,6 @@ export class AxiosService implements OnApplicationBootstrap {
             const response = await this.axiosInstance.post<GetAllInboundsStatsCommand.Response>(
                 nodeUrl,
                 data,
-                { timeout },
             );
 
             return {
@@ -382,7 +377,6 @@ export class AxiosService implements OnApplicationBootstrap {
         data: GetAllOutboundsStatsCommand.Request,
         url: string,
         port: number | null,
-        timeout: number = 20_000,
     ): Promise<ICommandResponse<GetAllOutboundsStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetAllOutboundsStatsCommand.url, port);
 
@@ -390,7 +384,6 @@ export class AxiosService implements OnApplicationBootstrap {
             const response = await this.axiosInstance.post<GetAllOutboundsStatsCommand.Response>(
                 nodeUrl,
                 data,
-                { timeout },
             );
 
             return {
