@@ -27,7 +27,7 @@ export class AxiosService implements OnApplicationBootstrap {
     private readonly logger = new Logger(AxiosService.name);
     constructor(private readonly commandBus: CommandBus) {
         this.axiosInstance = axios.create({
-            timeout: 10000,
+            timeout: 30_000,
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
@@ -255,7 +255,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getSystemStats(
         url: string,
         port: number | null,
-        timeout: number = 10000,
+        timeout: number = 20000,
     ): Promise<ICommandResponse<GetSystemStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetSystemStatsCommand.url, port);
 
@@ -333,7 +333,7 @@ export class AxiosService implements OnApplicationBootstrap {
         data: GetAllInboundsStatsCommand.Request,
         url: string,
         port: number | null,
-        timeout: number = 10000,
+        timeout: number = 20_000,
     ): Promise<ICommandResponse<GetAllInboundsStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetAllInboundsStatsCommand.url, port);
 
@@ -382,7 +382,7 @@ export class AxiosService implements OnApplicationBootstrap {
         data: GetAllOutboundsStatsCommand.Request,
         url: string,
         port: number | null,
-        timeout: number = 10000,
+        timeout: number = 20_000,
     ): Promise<ICommandResponse<GetAllOutboundsStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetAllOutboundsStatsCommand.url, port);
 
