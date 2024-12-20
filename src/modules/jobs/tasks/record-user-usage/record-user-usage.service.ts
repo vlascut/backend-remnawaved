@@ -72,7 +72,7 @@ export class RecordUserUsageService {
 
                 switch (response.isOk) {
                     case true:
-                        return this.handleOk(node, response.response!);
+                        return await this.handleOk(node, response.response!);
                 }
             };
 
