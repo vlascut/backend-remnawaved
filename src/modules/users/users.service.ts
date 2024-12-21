@@ -530,7 +530,6 @@ export class UsersService {
             };
         } catch (error) {
             this.logger.error(error);
-            this.logger.error(JSON.stringify(error));
             return {
                 isOk: false,
                 ...ERRORS.DISABLE_USER_ERROR,
@@ -571,7 +570,6 @@ export class UsersService {
             };
         } catch (error) {
             this.logger.error(error);
-            this.logger.error(JSON.stringify(error));
             return {
                 isOk: false,
                 ...ERRORS.ENABLE_USER_ERROR,
