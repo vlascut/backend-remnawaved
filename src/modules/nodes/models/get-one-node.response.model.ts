@@ -45,7 +45,7 @@ export class GetOneNodeResponseModel {
         this.trafficLimitBytes = Number(data.trafficLimitBytes);
         this.trafficUsedBytes = Number(data.trafficUsedBytes);
         this.notifyPercent = data.notifyPercent;
-
+        this.usersOnline = data.usersOnline;
         this.cpuCount = data.cpuCount;
         this.cpuModel = data.cpuModel;
         this.totalRam = data.totalRam;

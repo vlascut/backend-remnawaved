@@ -45,6 +45,7 @@ export class GetAllNodesResponseModel {
         this.trafficLimitBytes = Number(data.trafficLimitBytes);
         this.trafficUsedBytes = Number(data.trafficUsedBytes);
         this.notifyPercent = data.notifyPercent;
+        this.usersOnline = data.usersOnline;
 
         this.cpuCount = data.cpuCount;
         this.cpuModel = data.cpuModel;
