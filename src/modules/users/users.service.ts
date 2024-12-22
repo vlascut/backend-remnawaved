@@ -3,8 +3,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
+import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
-import { nanoid } from 'nanoid';
 
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
@@ -584,11 +584,17 @@ export class UsersService {
     }
 
     private createNanoId(): string {
+        const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghjkmnopqrstuvwxyz-';
+        const nanoid = customAlphabet(alphabet, 16);
+
         return nanoid();
     }
 
     private createTrojanPassword(): string {
-        return nanoid(16);
+        const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghjkmnopqrstuvwxyz-';
+        const nanoid = customAlphabet(alphabet, 30);
+
+        return nanoid();
     }
 
     private async createManyUserActiveInbounds(
