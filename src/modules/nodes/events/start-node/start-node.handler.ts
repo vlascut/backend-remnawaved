@@ -53,13 +53,12 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                     isConnected: false,
                     isConnecting: false,
                     isDisabled: false,
+                    usersOnline: 0,
                 });
                 return;
             }
 
             const nodeResponse = res.response.response;
-
-            this.logger.debug(`Node created: ${JSON.stringify(nodeResponse)}`);
 
             const node = await this.nodesRepository.update({
                 uuid: nodeEntity.uuid,
@@ -74,6 +73,7 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                 cpuCount: nodeResponse.systemInformation?.cpuCores ?? null,
                 cpuModel: nodeResponse.systemInformation?.cpuModel ?? null,
                 totalRam: nodeResponse.systemInformation?.memoryTotal ?? null,
+                usersOnline: 0,
             });
 
             if (!nodeEntity.isConnected) {

@@ -50,6 +50,7 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                             isConnected: false,
                             isConnecting: false,
                             isDisabled: false,
+                            usersOnline: 0,
                         });
 
                         return;
@@ -69,6 +70,7 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                             lastStatusChange: new Date(),
                             isDisabled: false,
                             isConnecting: false,
+                            usersOnline: 0,
                             cpuCount: nodeResponse.systemInformation?.cpuCores ?? null,
                             cpuModel: nodeResponse.systemInformation?.cpuModel ?? null,
                             totalRam: nodeResponse.systemInformation?.memoryTotal ?? null,
