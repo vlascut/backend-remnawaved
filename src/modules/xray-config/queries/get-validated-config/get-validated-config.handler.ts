@@ -1,4 +1,4 @@
-import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
+import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
 import { XRayConfig } from '@common/helpers/xray-config';
@@ -12,10 +12,7 @@ export class GetValidatedConfigHandler
 {
     private readonly logger = new Logger(GetValidatedConfigHandler.name);
 
-    constructor(
-        private readonly xrayService: XrayConfigService,
-        private readonly queryBus: QueryBus,
-    ) {}
+    constructor(private readonly xrayService: XrayConfigService) {}
 
     async execute(): Promise<null | XRayConfig> {
         try {

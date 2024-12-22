@@ -9,7 +9,7 @@ import { QUERIES } from './queries';
 @Module({
     imports: [CqrsModule],
     controllers: [XrayConfigController],
-    providers: [...QUERIES, XrayConfigRepository, XrayConfigConverter, XrayConfigService],
+    providers: [XrayConfigRepository, XrayConfigConverter, XrayConfigService, ...QUERIES],
 })
 export class XrayConfigModule implements OnApplicationBootstrap {
     constructor(private readonly xrayConfigService: XrayConfigService) {}

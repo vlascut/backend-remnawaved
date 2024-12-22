@@ -1,5 +1,5 @@
 import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
@@ -16,7 +16,9 @@ export class GetPreparedConfigWithUsersHandler
 {
     private readonly logger = new Logger(GetPreparedConfigWithUsersHandler.name);
     constructor(
+        @Inject(forwardRef(() => XrayConfigService))
         private readonly xrayService: XrayConfigService,
+
         private readonly queryBus: QueryBus,
     ) {}
 
