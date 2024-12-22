@@ -1,12 +1,14 @@
+import { RemoveUserCommand as RemoveUserFromNodeCommandSdk } from '@remnawave/node-contract/build/commands';
 import { IEventHandler } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
-import { AxiosService } from '@common/axios';
-import { NodesRepository } from '../../repositories/nodes.repository';
-import { RemoveUserFromNodeEvent } from './remove-user-from-node.event';
-import { RemoveUserCommand as RemoveUserFromNodeCommandSdk } from '@remnawave/node-contract/build/commands';
-import { NodesEntity } from '../../entities/nodes.entity';
 import pMap from '@cjs-exporter/p-map';
+
+import { AxiosService } from '@common/axios';
+
+import { RemoveUserFromNodeEvent } from './remove-user-from-node.event';
+import { NodesRepository } from '../../repositories/nodes.repository';
+import { NodesEntity } from '../../entities/nodes.entity';
 
 @EventsHandler(RemoveUserFromNodeEvent)
 export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNodeEvent> {
@@ -28,6 +30,10 @@ export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNo
 
             if (nodes.length === 0) {
                 throw new Error('No connected nodes found');
+            }
+
+            if (userEntity.activeUserInbounds.length === 0) {
+                return;
             }
 
             const userData: RemoveUserFromNodeCommandSdk.Request = {

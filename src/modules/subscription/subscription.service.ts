@@ -1,25 +1,27 @@
-import { XRayConfig } from '@common/helpers/xray-config';
+import { Injectable, Logger } from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ConfigService } from '@nestjs/config';
+import dayjs from 'dayjs';
+
+import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import dayjs from 'dayjs';
-import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
-import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
-import { UpdateSubLastOpenedAndUserAgentCommand } from '../users/commands/update-sub-last-opened-and-user-agent';
-import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active-inbounds.entity';
-import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
-import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
-import { generateSubscription } from './generators/generate-subscription';
-import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
+import { XRayConfig } from '@common/helpers/xray-config';
+
 import {
     SubscriptionNotFoundResponse,
     SubscriptionRawResponse,
     SubscriptionWithConfigResponse,
 } from './models';
+import { UpdateSubLastOpenedAndUserAgentCommand } from '../users/commands/update-sub-last-opened-and-user-agent';
+import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active-inbounds.entity';
+import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
+import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
+import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
+import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
+import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
+import { generateSubscription } from './generators/generate-subscription';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
-import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 
 @Injectable()
 export class SubscriptionService {
@@ -36,7 +38,7 @@ export class SubscriptionService {
         userAgent: string,
         isHtml: boolean,
     ): Promise<
-        SubscriptionRawResponse | SubscriptionNotFoundResponse | SubscriptionWithConfigResponse
+        SubscriptionNotFoundResponse | SubscriptionRawResponse | SubscriptionWithConfigResponse
     > {
         try {
             const user = await this.getUserByShortUuid({ shortUuid });
@@ -78,7 +80,7 @@ export class SubscriptionService {
                 body: subscription.sub,
                 contentType: subscription.contentType,
             });
-        } catch (error) {
+        } catch {
             return new SubscriptionNotFoundResponse();
         }
     }
@@ -100,6 +102,7 @@ export class SubscriptionService {
                 response: await this.getUserInfo(user.response),
             };
         } catch (error) {
+            this.logger.error(`Error getting subscription info by short uuid: ${error}`);
             return {
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,
@@ -160,8 +163,8 @@ export class SubscriptionService {
         >(new GetHostsForUserQuery(dto.userUuid));
     }
 
-    private async getValidatedConfig(): Promise<XRayConfig | null> {
-        return this.queryBus.execute<GetValidatedConfigQuery, XRayConfig | null>(
+    private async getValidatedConfig(): Promise<null | XRayConfig> {
+        return this.queryBus.execute<GetValidatedConfigQuery, null | XRayConfig>(
             new GetValidatedConfigQuery(),
         );
     }

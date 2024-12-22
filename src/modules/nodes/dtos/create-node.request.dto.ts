@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
+
 import { CreateNodeCommand } from '@contract/commands';
 
 export class CreateNodeRequestDto extends createZodDto(CreateNodeCommand.RequestSchema) {}

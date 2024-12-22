@@ -1,6 +1,7 @@
 import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
-import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
+import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 
 export class GetUserResponseModel {
     public readonly uuid: string;
@@ -15,7 +16,7 @@ export class GetUserResponseModel {
     public readonly lifetimeUsedTrafficBytes: number;
     public readonly trafficLimitBytes: number;
     public readonly trafficLimitStrategy: TResetPeriods;
-    public readonly subLastUserAgent: string | null;
+    public readonly subLastUserAgent: null | string;
     public readonly subLastOpenedAt: Date | null;
     public readonly onlineAt: Date | null;
     public readonly subRevokedAt: Date | null;

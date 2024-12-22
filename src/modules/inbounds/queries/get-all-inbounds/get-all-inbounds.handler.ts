@@ -1,11 +1,13 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Transactional } from '@nestjs-cls/transactional';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
-import { GetAllInboundsQuery } from './get-all-inbounds.query';
+
 import { InboundsRepository } from '../../repositories/inbounds.repository';
 import { InboundsEntity } from '../../entities/inbounds.entity';
-import { Transactional } from '@nestjs-cls/transactional';
+import { GetAllInboundsQuery } from './get-all-inbounds.query';
 
 @QueryHandler(GetAllInboundsQuery)
 export class GetAllInboundsHandler

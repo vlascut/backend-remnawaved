@@ -5,11 +5,11 @@ export class HostsEntity {
     remark: string;
     address: string;
     port: number;
-    path: string | null;
-    sni: string | null;
-    host: string | null;
-    alpn: string | null;
-    fingerprint: string | null;
+    path: null | string;
+    sni: null | string;
+    host: null | string;
+    alpn: null | string;
+    fingerprint: null | string;
     allowInsecure: boolean;
     isDisabled: boolean;
 

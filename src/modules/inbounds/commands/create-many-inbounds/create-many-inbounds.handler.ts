@@ -1,11 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
+import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@contract/constants';
-import { CreateManyInboundsCommand } from './create-many-inbounds.command';
+
 import { InboundsRepository } from '../../repositories/inbounds.repository';
-import { Transactional } from '@nestjs-cls/transactional';
+import { CreateManyInboundsCommand } from './create-many-inbounds.command';
 
 @CommandHandler(CreateManyInboundsCommand)
 export class CreateManyInboundsHandler

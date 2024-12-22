@@ -1,10 +1,12 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
-import { GetActiveUsersQuery } from './get-active-users.query';
-import { UsersRepository } from '../../repositories/users.repository';
+
 import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
+import { UsersRepository } from '../../repositories/users.repository';
+import { GetActiveUsersQuery } from './get-active-users.query';
 
 @QueryHandler(GetActiveUsersQuery)
 export class GetActiveUsersHandler
@@ -13,9 +15,7 @@ export class GetActiveUsersHandler
     private readonly logger = new Logger(GetActiveUsersHandler.name);
     constructor(private readonly usersRepository: UsersRepository) {}
 
-    async execute(
-        query: GetActiveUsersQuery,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
+    async execute(): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
         try {
             const users = await this.usersRepository.findAllActiveUsers();
 

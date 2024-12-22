@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UniversalConverter } from '@common/converter/universalConverter';
 import { ApiTokens } from '@prisma/client';
+
+import { UniversalConverter } from '@common/converter/universalConverter';
+
 import { ApiTokenEntity } from './entities/api-token.entity';
 
 const modelToEntity = (model: ApiTokens): ApiTokenEntity => {

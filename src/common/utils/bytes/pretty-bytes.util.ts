@@ -1,7 +1,7 @@
 import xbytes from 'xbytes';
 
 export function prettyBytesUtil(
-    bytesInput: number | undefined | string | bigint,
+    bytesInput: bigint | number | string | undefined,
     sticky: boolean = false,
     prefixIndex?: number,
     returnZero: boolean = false,

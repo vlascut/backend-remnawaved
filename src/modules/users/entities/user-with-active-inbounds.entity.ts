@@ -1,6 +1,6 @@
-import { UserEntity } from './users.entity';
 import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 import { IUserWithActiveInbounds } from '../interfaces';
+import { UserEntity } from './users.entity';
 
 export class UserWithActiveInboundsEntity extends UserEntity {
     activeUserInbounds: InboundsEntity[];

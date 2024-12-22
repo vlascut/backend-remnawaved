@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { REST_API } from '../../api';
 export namespace RestartAllNodesCommand {
     export const url = REST_API.NODES.RESTART_ALL;

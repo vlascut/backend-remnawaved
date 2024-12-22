@@ -1,13 +1,13 @@
-interface NodeDayStatsInput {
-    nodeName: string;
+interface NodeDayStats {
     date: string;
-    totalBytes: bigint | string;
+    nodeName: string;
+    totalBytes: string;
 }
 
-interface NodeDayStats {
-    nodeName: string;
+interface NodeDayStatsInput {
     date: string;
-    totalBytes: string;
+    nodeName: string;
+    totalBytes: bigint | string;
 }
 
 export class GetNodesStatisticsResponseModel {

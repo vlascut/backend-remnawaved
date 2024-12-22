@@ -1,14 +1,16 @@
-import dayjs from 'dayjs';
-import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
-import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
-import { HostWithInboundTagEntity } from '../../hosts/entities/host-with-inbound-tag.entity';
-import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
-import { FormattedHosts } from '../generators/interfaces/formatted-hosts.interface';
-import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
 import { ConfigService } from '@nestjs/config';
-import { USERS_STATUS } from '@libs/contracts/constants';
 import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
+
+import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
+import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
+import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
+import { USERS_STATUS } from '@libs/contracts/constants';
+
+import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
+import { HostWithInboundTagEntity } from '../../hosts/entities/host-with-inbound-tag.entity';
+import { FormattedHosts } from '../generators/interfaces/formatted-hosts.interface';
 export class FormatHosts {
     private config: XRayConfig;
     private hosts: HostWithInboundTagEntity[];
@@ -153,8 +155,7 @@ export class FormatHosts {
     ): FormattedHosts[] {
         try {
             return new FormatHosts(config, hosts, user, configService).generate();
-        } catch (error) {
-            console.error(error);
+        } catch {
             return [];
         }
     }

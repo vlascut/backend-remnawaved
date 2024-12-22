@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { XrayConfigEntity } from '../entities/xray-config.entity';
-import { ICrud } from '@common/types/crud-port';
-import { XrayConfigConverter } from '../xray-config.converter';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+
+import { ICrud } from '@common/types/crud-port';
+
+import { XrayConfigEntity } from '../entities/xray-config.entity';
+import { XrayConfigConverter } from '../xray-config.converter';
 
 @Injectable()
 export class XrayConfigRepository implements ICrud<XrayConfigEntity> {
@@ -25,7 +27,7 @@ export class XrayConfigRepository implements ICrud<XrayConfigEntity> {
         return this.converter.fromPrismaModelToEntity(result);
     }
 
-    public async findByUUID(uuid: string): Promise<XrayConfigEntity | null> {
+    public async findByUUID(uuid: string): Promise<null | XrayConfigEntity> {
         const result = await this.prisma.tx.xrayConfig.findUnique({
             where: { uuid },
         });
@@ -61,7 +63,7 @@ export class XrayConfigRepository implements ICrud<XrayConfigEntity> {
         return this.converter.fromPrismaModelsToEntities(list);
     }
 
-    public async findFirst(): Promise<XrayConfigEntity | null> {
+    public async findFirst(): Promise<null | XrayConfigEntity> {
         const result = await this.prisma.tx.xrayConfig.findFirst();
         if (!result) {
             return null;

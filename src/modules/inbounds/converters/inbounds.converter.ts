@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UniversalConverter } from '@common/converter/universalConverter';
 import { Inbounds } from '@prisma/client';
+
+import { UniversalConverter } from '@common/converter/universalConverter';
+
 import { InboundsEntity } from '../entities/inbounds.entity';
 
 const modelToEntity = (model: Inbounds): InboundsEntity => {

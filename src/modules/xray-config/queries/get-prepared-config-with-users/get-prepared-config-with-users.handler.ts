@@ -1,12 +1,14 @@
 import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants';
 import { Logger } from '@nestjs/common';
+
+import { ICommandResponse } from '@common/types/command-response.type';
+import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
+import { ERRORS } from '@libs/contracts/constants';
+
 import { GetPreparedConfigWithUsersQuery } from './get-prepared-config-with-users.query';
-import { IXrayConfig } from '../../../../common/helpers/xray-config/interfaces';
-import { XrayConfigService } from '../../xray-config.service';
 import { GetUsersForConfigQuery } from '../../../users/queries/get-users-for-config';
 import { UserForConfigEntity } from '../../../users/entities/users-for-config';
+import { XrayConfigService } from '../../xray-config.service';
 
 @QueryHandler(GetPreparedConfigWithUsersQuery)
 export class GetPreparedConfigWithUsersHandler

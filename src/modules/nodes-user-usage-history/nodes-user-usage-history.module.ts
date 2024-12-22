@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { NodesUserUsageHistoryConverter } from './nodes-user-usage-history.converter';
+import { Module } from '@nestjs/common';
+
 import { NodesUserUsageHistoryRepository } from './repositories/nodes-user-usage-history.repository';
+import { NodesUserUsageHistoryConverter } from './nodes-user-usage-history.converter';
 import { COMMANDS } from './commands';
 
 @Module({

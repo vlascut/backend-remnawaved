@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { USERS_STATUS } from '../../constants';
+import { REST_API } from '../../api';
 
 export namespace GetStatsCommand {
     export const url = REST_API.SYSTEM.STATS;

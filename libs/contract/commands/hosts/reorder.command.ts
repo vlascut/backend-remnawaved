@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { HostsSchema } from '../../models';
+import { REST_API } from '../../api';
 
 export namespace ReorderHostCommand {
     export const url = REST_API.HOSTS.REORDER;

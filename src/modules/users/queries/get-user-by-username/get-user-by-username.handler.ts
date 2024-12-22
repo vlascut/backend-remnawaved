@@ -1,16 +1,16 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
+
+import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
 import { GetUserByUsernameQuery } from './get-user-by-username.query';
 import { UsersRepository } from '../../repositories/users.repository';
-import { UserEntity } from '../../entities/users.entity';
-import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
 
 @QueryHandler(GetUserByUsernameQuery)
 export class GetUserByUsernameHandler
-    implements
-        IQueryHandler<GetUserByUsernameQuery, ICommandResponse<UserWithActiveInboundsEntity>>
+    implements IQueryHandler<GetUserByUsernameQuery, ICommandResponse<UserWithActiveInboundsEntity>>
 {
     private readonly logger = new Logger(GetUserByUsernameHandler.name);
     constructor(private readonly usersRepository: UsersRepository) {}

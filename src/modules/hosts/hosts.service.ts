@@ -1,13 +1,15 @@
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
-import { CreateHostRequestDto } from './dtos/create-host.dto';
-import { HostsEntity } from './entities/hosts.entity';
+
+import { ReorderHostRequestDto } from 'src/modules/hosts/dtos/reorder-hots.dto';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS } from '@libs/contracts/constants';
+
 import { DeleteHostResponseModel } from './models/delete-host.response.model';
 import { HostsRepository } from './repositories/hosts.repository';
-import { ReorderHostRequestDto } from 'src/modules/hosts/dtos/reorder-hots.dto';
+import { CreateHostRequestDto } from './dtos/create-host.dto';
+import { HostsEntity } from './entities/hosts.entity';
 import { UpdateHostRequestDto } from './dtos';
 
 @Injectable()

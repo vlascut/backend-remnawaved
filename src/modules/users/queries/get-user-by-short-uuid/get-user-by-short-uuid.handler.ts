@@ -1,10 +1,12 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
-import { UsersRepository } from '../../repositories/users.repository';
+
 import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
 import { GetUserByShortUuidQuery } from './get-user-by-short-uuid.query';
+import { UsersRepository } from '../../repositories/users.repository';
 
 @QueryHandler(GetUserByShortUuidQuery)
 export class GetUserByShortUuidHandler

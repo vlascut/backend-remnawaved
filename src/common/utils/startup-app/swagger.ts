@@ -1,9 +1,9 @@
 import { SwaggerThemeNameEnum } from 'swagger-themes';
-import { SwaggerModule } from '@nestjs/swagger';
 import { DocumentBuilder } from '@nestjs/swagger';
-import { SwaggerTheme } from 'swagger-themes';
 import { INestApplication } from '@nestjs/common';
+import { SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { SwaggerTheme } from 'swagger-themes';
 // import path from 'path';
 // import fs from 'fs';
 

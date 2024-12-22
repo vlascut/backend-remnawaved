@@ -1,10 +1,10 @@
 import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
 
 interface SubscriptionUserInfo {
-    upload: number;
     download: number;
-    total: number;
     expire: number;
+    total: number;
+    upload: number;
 }
 
 export function getSubscriptionUserInfo(user: UserWithActiveInboundsEntity): SubscriptionUserInfo {

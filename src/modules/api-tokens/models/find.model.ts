@@ -4,7 +4,7 @@ export class FindAllApiTokensResponseModel {
     public uuid: string;
     public token: string;
     public tokenName: string;
-    public tokenDescription: string | null;
+    public tokenDescription: null | string;
 
     public createdAt: Date;
     public updatedAt: Date;

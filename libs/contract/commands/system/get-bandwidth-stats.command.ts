@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { BaseStatSchema } from '../../models/base-stat.schema';
+import { REST_API } from '../../api';
 
 export namespace GetBandwidthStatsCommand {
     export const url = REST_API.SYSTEM.BANDWIDTH;

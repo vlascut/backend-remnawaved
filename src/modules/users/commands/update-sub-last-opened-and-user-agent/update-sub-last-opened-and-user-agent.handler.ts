@@ -1,10 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
-import { ICommandResponse } from '@common/types/command-response.type';
 import { Transactional } from '@nestjs-cls/transactional';
+import { Logger } from '@nestjs/common';
+
+import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@contract/constants';
-import { UsersRepository } from '../../repositories/users.repository';
+
 import { UpdateSubLastOpenedAndUserAgentCommand } from './update-sub-last-opened-and-user-agent.command';
+import { UsersRepository } from '../../repositories/users.repository';
 
 @CommandHandler(UpdateSubLastOpenedAndUserAgentCommand)
 export class UpdateSubLastOpenedAndUserAgentHandler

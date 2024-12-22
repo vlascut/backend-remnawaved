@@ -1,7 +1,7 @@
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import { XrayTrojanLink } from './interfaces/xray-trojan-link.interface';
 
-type NetworkType = 'http' | 'ws' | 'tcp' | 'kcp' | 'quic' | 'grpc';
+type NetworkType = 'grpc' | 'http' | 'kcp' | 'quic' | 'tcp' | 'ws';
 // type TLSType = 'tls' | 'reality';
 
 const NETWORK_CONFIGS: Record<
@@ -124,6 +124,7 @@ export class XrayLinksGenerator {
     ): Record<string, string> {
         return Object.fromEntries(
             Object.entries(payload)
+                /* eslint-disable @typescript-eslint/no-unused-vars */
                 .filter(([_, v]) => v !== undefined)
                 .map(([k, v]) => [k, String(v)]),
         );

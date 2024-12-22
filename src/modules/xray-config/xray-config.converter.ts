@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UniversalConverter } from '@common/converter/universalConverter';
 import { XrayConfig } from '@prisma/client';
+
+import { UniversalConverter } from '@common/converter/universalConverter';
+
 import { XrayConfigEntity } from './entities/xray-config.entity';
 
 const modelToEntity = (model: XrayConfig): XrayConfigEntity => {

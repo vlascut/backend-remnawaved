@@ -1,1 +1,1 @@
-export type TCtrXRayConfig = string | Record<string, unknown> | object;
+export type TCtrXRayConfig = object | Record<string, unknown> | string;

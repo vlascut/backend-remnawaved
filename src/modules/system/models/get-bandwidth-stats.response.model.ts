@@ -1,7 +1,7 @@
 export interface IBaseStat {
     current: string;
-    previous: string;
     difference: string;
+    previous: string;
 }
 
 export class GetBandwidthStatsResponseModel {

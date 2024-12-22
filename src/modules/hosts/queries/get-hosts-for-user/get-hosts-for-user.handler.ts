@@ -1,10 +1,12 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
-import { GetHostsForUserQuery } from './get-hosts-for-user.query';
+
 import { HostWithInboundTagEntity } from '../../entities/host-with-inbound-tag.entity';
 import { HostsRepository } from '../../repositories/hosts.repository';
+import { GetHostsForUserQuery } from './get-hosts-for-user.query';
 
 @QueryHandler(GetHostsForUserQuery)
 export class GetHostsForUserHandler

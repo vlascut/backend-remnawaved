@@ -1,7 +1,7 @@
 import { TemplateKeys } from '@libs/contracts/constants/templates/template-keys';
 
 type TemplateValues = {
-    [key in TemplateKeys]: string | number | undefined;
+    [key in TemplateKeys]: number | string | undefined;
 };
 
 export class TemplateEngine {

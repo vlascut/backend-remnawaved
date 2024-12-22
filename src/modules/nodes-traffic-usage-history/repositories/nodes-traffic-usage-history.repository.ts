@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { NodesTrafficUsageHistoryEntity } from '../entities/nodes-traffic-usage-history.entity';
-import { ICrud } from '@common/types/crud-port';
-import { NodesTrafficUsageHistoryConverter } from '../nodes-traffic-usage-history.converter';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
+import { Injectable } from '@nestjs/common';
+
+import { ICrud } from '@common/types/crud-port';
+
+import { NodesTrafficUsageHistoryEntity } from '../entities/nodes-traffic-usage-history.entity';
+import { NodesTrafficUsageHistoryConverter } from '../nodes-traffic-usage-history.converter';
 
 @Injectable()
 export class NodesTrafficUsageHistoryRepository implements ICrud<NodesTrafficUsageHistoryEntity> {

@@ -1,9 +1,9 @@
 export interface ICreateApiTokenRequest {
+    tokenDescription: null | string;
     tokenName: string;
-    tokenDescription: string | null;
 }
 
 export interface ICreateApiTokenResponse {
-    uuid: string;
     token: string;
+    uuid: string;
 }

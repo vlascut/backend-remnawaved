@@ -1,25 +1,27 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
-import axios, { AxiosError, AxiosInstance } from 'axios';
-import { GetNodeJwtCommand } from '@modules/keygen/commands/get-node-jwt';
-import { ICommandResponse } from '../types/command-response.type';
-import { ERRORS } from '@contract/constants';
 import {
+    AddUserCommand,
+    GetAllInboundsStatsCommand,
+    GetAllOutboundsStatsCommand,
     GetInboundStatsCommand,
+    GetInboundUsersCommand,
+    GetInboundUsersCountCommand,
     GetOutboundStatsCommand,
     GetStatusAndVersionCommand,
     GetSystemStatsCommand,
     GetUserOnlineStatusCommand,
     GetUsersStatsCommand,
+    RemoveUserCommand,
     StartXrayCommand,
     StopXrayCommand,
-    AddUserCommand,
-    RemoveUserCommand,
-    GetInboundUsersCommand,
-    GetInboundUsersCountCommand,
-    GetAllInboundsStatsCommand,
-    GetAllOutboundsStatsCommand,
 } from '@remnawave/node-contract';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import axios, { AxiosError, AxiosInstance } from 'axios';
+import { CommandBus } from '@nestjs/cqrs';
+
+import { GetNodeJwtCommand } from '@modules/keygen/commands/get-node-jwt';
+import { ERRORS } from '@contract/constants';
+
+import { ICommandResponse } from '../types/command-response.type';
 
 @Injectable()
 export class AxiosService implements OnApplicationBootstrap {
@@ -58,7 +60,7 @@ export class AxiosService implements OnApplicationBootstrap {
         );
     }
 
-    private getNodeUrl(url: string, path: string, port: number | null): string {
+    private getNodeUrl(url: string, path: string, port: null | number): string {
         const protocol = port ? 'http' : 'https';
         const portSuffix = port ? `:${port}` : '';
 
@@ -72,7 +74,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async startXray(
         data: StartXrayCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<StartXrayCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, StartXrayCommand.url, port);
         try {
@@ -111,7 +113,7 @@ export class AxiosService implements OnApplicationBootstrap {
 
     public async stopXray(
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<StopXrayCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, StopXrayCommand.url, port);
         try {
@@ -147,7 +149,7 @@ export class AxiosService implements OnApplicationBootstrap {
 
     public async getXrayStatus(
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetStatusAndVersionCommand.Response>> {
         try {
             const nodeUrl = this.getNodeUrl(url, GetStatusAndVersionCommand.url, port);
@@ -186,7 +188,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getUserOnlineStatus(
         data: GetUserOnlineStatusCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetUserOnlineStatusCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetUserOnlineStatusCommand.url, port);
 
@@ -217,7 +219,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getUsersStats(
         data: GetUsersStatsCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetUsersStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetUsersStatsCommand.url, port);
 
@@ -254,7 +256,7 @@ export class AxiosService implements OnApplicationBootstrap {
 
     public async getSystemStats(
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetSystemStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetSystemStatsCommand.url, port);
 
@@ -298,7 +300,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getInboundStats(
         data: GetInboundStatsCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetInboundStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetInboundStatsCommand.url, port);
 
@@ -329,7 +331,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getAllInboundStats(
         data: GetAllInboundsStatsCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetAllInboundsStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetAllInboundsStatsCommand.url, port);
 
@@ -376,7 +378,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getAllOutboundStats(
         data: GetAllOutboundsStatsCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetAllOutboundsStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetAllOutboundsStatsCommand.url, port);
 
@@ -423,7 +425,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getOutboundStats(
         data: GetOutboundStatsCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetOutboundStatsCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetOutboundStatsCommand.url, port);
 
@@ -458,7 +460,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async addUser(
         data: AddUserCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<AddUserCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, AddUserCommand.url, port);
 
@@ -493,7 +495,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async deleteUser(
         data: RemoveUserCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<RemoveUserCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, RemoveUserCommand.url, port);
 
@@ -524,7 +526,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getInboundUsers(
         data: GetInboundUsersCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetInboundUsersCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetInboundUsersCommand.url, port);
 
@@ -555,7 +557,7 @@ export class AxiosService implements OnApplicationBootstrap {
     public async getInboundUsersCount(
         data: GetInboundUsersCountCommand.Request,
         url: string,
-        port: number | null,
+        port: null | number,
     ): Promise<ICommandResponse<GetInboundUsersCountCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, GetInboundUsersCountCommand.url, port);
 

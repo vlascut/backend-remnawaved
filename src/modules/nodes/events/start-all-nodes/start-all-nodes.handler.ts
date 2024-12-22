@@ -1,14 +1,16 @@
 import { IEventHandler, QueryBus } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
-import { StartAllNodesEvent } from './start-all-nodes.event';
 import { Logger } from '@nestjs/common';
-import { AxiosService } from '@common/axios';
-import { NodesRepository } from '../../repositories/nodes.repository';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
-import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
-import { NodesEntity } from '../../entities/nodes.entity';
 import pMap from '@cjs-exporter/p-map';
+
+import { ICommandResponse } from '@common/types/command-response.type';
+import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
+import { AxiosService } from '@common/axios';
+
+import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
+import { NodesRepository } from '../../repositories/nodes.repository';
+import { StartAllNodesEvent } from './start-all-nodes.event';
+import { NodesEntity } from '../../entities/nodes.entity';
 
 @EventsHandler(StartAllNodesEvent)
 export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
@@ -23,7 +25,7 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
     ) {
         this.CONCURRENCY = 10;
     }
-    async handle(event: StartAllNodesEvent) {
+    async handle() {
         try {
             const configRespone = await this.getConfigForNode();
 

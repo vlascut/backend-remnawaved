@@ -1,15 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { CommandBus } from '@nestjs/cqrs';
+import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
-import { IApiTokenDeleteResponse, ICreateApiTokenRequest } from './interfaces';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { randomUUID } from 'crypto';
-import { ApiTokenEntity } from './entities/api-token.entity';
-import { ApiTokensRepository } from './repositories/api-tokens.repository';
-import { Prisma } from '@prisma/client';
-import { CommandBus } from '@nestjs/cqrs';
+
 import { SignApiTokenCommand } from '../auth/commands/sign-api-token/sign-api-token.command';
+import { IApiTokenDeleteResponse, ICreateApiTokenRequest } from './interfaces';
+import { ApiTokensRepository } from './repositories/api-tokens.repository';
+import { ApiTokenEntity } from './entities/api-token.entity';
 
 @Injectable()
 export class ApiTokensService {

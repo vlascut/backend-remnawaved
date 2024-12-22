@@ -1,6 +1,7 @@
-import { TUsersStatus, TResetPeriods } from '@libs/contracts/constants';
-import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { GetInboundsResponseModel } from 'src/modules/inbounds/models/get-inbounds.response.model';
+import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
+
+import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 
 export class UserWithLifetimeTrafficResponseModel {
     public uuid: string;

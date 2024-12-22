@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { UsersSchema } from '../../models';
+import { REST_API } from '../../api';
 
 export namespace CreateUserCommand {
     export const url = REST_API.USERS.CREATE;

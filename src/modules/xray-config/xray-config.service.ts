@@ -1,23 +1,25 @@
-import path from 'node:path';
-import fs from 'node:fs/promises';
-import { Injectable, Logger } from '@nestjs/common';
-import { XrayConfigRepository } from './repositories/xray-config.repository';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@contract/constants';
-import { XrayConfigEntity } from './entities/xray-config.entity';
-import { ConfigService } from '@nestjs/config';
-import { DeleteManyInboundsCommand } from '../inbounds/commands/delete-many-inbounds';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { CreateManyInboundsCommand } from '../inbounds/commands/create-many-inbounds';
-import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
-import { GetAllInboundsQuery } from '../inbounds/queries/get-all-inbounds';
-import { XRayConfig } from '@common/helpers/xray-config';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
-import { UserForConfigEntity } from '../users/entities/users-for-config';
-import { InboundsWithTagsAndType } from '../inbounds/interfaces/inboubds-with-tags-and-type.interface';
 import { isDevelopment } from '@common/utils/startup-app';
+import { XRayConfig } from '@common/helpers/xray-config';
+import { ERRORS } from '@contract/constants';
+
+import { InboundsWithTagsAndType } from '../inbounds/interfaces/inboubds-with-tags-and-type.interface';
+import { DeleteManyInboundsCommand } from '../inbounds/commands/delete-many-inbounds';
+import { CreateManyInboundsCommand } from '../inbounds/commands/create-many-inbounds';
+import { XrayConfigRepository } from './repositories/xray-config.repository';
+import { GetAllInboundsQuery } from '../inbounds/queries/get-all-inbounds';
+import { UserForConfigEntity } from '../users/entities/users-for-config';
+import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
 import { StartAllNodesEvent } from '../nodes/events/start-all-nodes';
 import { UpdateConfigRequestDto } from './dtos/update-config.dto';
+import { XrayConfigEntity } from './entities/xray-config.entity';
 
 @Injectable()
 export class XrayConfigService {
@@ -150,7 +152,7 @@ export class XrayConfigService {
         }
     }
 
-    public async getConfigInstance(): Promise<XRayConfig | null> {
+    public async getConfigInstance(): Promise<null | XRayConfig> {
         try {
             let config: object | string;
             const dbConfig = await this.xrayConfigRepository.findFirst();
@@ -161,7 +163,7 @@ export class XrayConfigService {
             }
 
             return XRayConfig.getXrayConfigInstance(config);
-        } catch (error) {
+        } catch {
             return null;
         }
     }

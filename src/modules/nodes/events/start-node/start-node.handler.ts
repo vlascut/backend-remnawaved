@@ -1,15 +1,17 @@
 import { IEventHandler, QueryBus } from '@nestjs/cqrs';
-import { EventsHandler } from '@nestjs/cqrs';
-import { StartNodeEvent } from './start-node.event';
-import { Logger } from '@nestjs/common';
-import { AxiosService } from '@common/axios';
-import { NodesRepository } from '../../repositories/nodes.repository';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
-import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventsHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { EVENTS } from '@libs/contracts/constants';
+import { AxiosService } from '@common/axios';
+
+import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
+import { NodesRepository } from '../../repositories/nodes.repository';
+import { StartNodeEvent } from './start-node.event';
 
 @EventsHandler(StartNodeEvent)
 export class StartNodeHandler implements IEventHandler<StartNodeEvent> {

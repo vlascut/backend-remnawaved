@@ -1,13 +1,14 @@
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants/errors';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { createHash } from 'crypto';
 import short from 'short-uuid';
 
-import { IJWTAuthPayload, ILogin } from './interfaces';
-import { ConfigService } from '@nestjs/config';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS } from '@libs/contracts/constants/errors';
 import { ROLE } from '@libs/contracts/constants';
-import { createHash } from 'crypto';
+
+import { IJWTAuthPayload, ILogin } from './interfaces';
 
 @Injectable()
 export class AuthService {

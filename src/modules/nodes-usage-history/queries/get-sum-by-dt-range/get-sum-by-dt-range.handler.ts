@@ -1,9 +1,11 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
-import { GetSumByDtRangeQuery } from './get-sum-by-dt-range.query';
+
 import { NodesUsageHistoryRepository } from '../../repositories/nodes-usage-history.repository';
+import { GetSumByDtRangeQuery } from './get-sum-by-dt-range.query';
 
 @QueryHandler(GetSumByDtRangeQuery)
 export class GetSumByDtRangeHandler

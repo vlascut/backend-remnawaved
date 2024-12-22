@@ -1,12 +1,13 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
-import { Logger } from '@nestjs/common';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@contract/constants';
-import { UpdateNodeCommand } from './update-node.command';
-import { NodesRepository } from '../../repositories/nodes.repository';
 import { Transactional } from '@nestjs-cls/transactional';
+import { Logger } from '@nestjs/common';
+
+import { ICommandResponse } from '@common/types/command-response.type';
 import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
+import { ERRORS } from '@contract/constants';
+
+import { NodesRepository } from '../../repositories/nodes.repository';
+import { UpdateNodeCommand } from './update-node.command';
 
 @CommandHandler(UpdateNodeCommand)
 export class UpdateNodeHandler

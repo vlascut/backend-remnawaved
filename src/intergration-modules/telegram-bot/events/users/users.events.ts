@@ -1,13 +1,15 @@
-import { InjectBot } from '@grammyjs/nestjs';
-import { Bot, Context } from 'grammy';
-import { BOT_NAME } from '../../constants';
+import { parseMode } from '@grammyjs/parse-mode';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
-import { EVENTS } from '@libs/contracts/constants';
-import { parseMode } from '@grammyjs/parse-mode';
-import { UserEvent } from './interfaces';
-import { prettyBytesUtil } from '@common/utils/bytes';
+import { InjectBot } from '@grammyjs/nestjs';
+import { Bot, Context } from 'grammy';
 import dayjs from 'dayjs';
+
+import { prettyBytesUtil } from '@common/utils/bytes';
+import { EVENTS } from '@libs/contracts/constants';
+
+import { BOT_NAME } from '../../constants';
+import { UserEvent } from './interfaces';
 
 export class UsersEvents {
     private readonly adminId: string;

@@ -1,20 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { NodesEntity } from '../../../nodes';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { GetEnabledNodesQuery } from '../../../nodes/queries/get-enabled-nodes/get-enabled-nodes.query';
-import { AxiosService } from '@common/axios';
 import { GetSystemStatsCommand } from '@remnawave/node-contract';
-import { UpdateNodeCommand } from '../../../nodes/commands/update-node/update-node.command';
-import { StartNodeEvent } from '../../../nodes/events/start-node';
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
-import { StartAllNodesEvent } from '../../../nodes/events/start-all-nodes';
-import { JOBS_INTERVALS } from '../../intervals';
-import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EVENTS } from '@libs/contracts/constants';
+import { Injectable, Logger } from '@nestjs/common';
 import pMap from '@cjs-exporter/p-map';
+
+import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { EVENTS } from '@libs/contracts/constants';
+import { AxiosService } from '@common/axios';
+
+import { GetEnabledNodesQuery } from '../../../nodes/queries/get-enabled-nodes/get-enabled-nodes.query';
+import { UpdateNodeCommand } from '../../../nodes/commands/update-node/update-node.command';
+import { StartAllNodesEvent } from '../../../nodes/events/start-all-nodes';
+import { StartNodeEvent } from '../../../nodes/events/start-node';
+import { JOBS_INTERVALS } from '../../intervals';
+import { NodesEntity } from '../../../nodes';
 
 @Injectable()
 export class NodeHealthCheckService {

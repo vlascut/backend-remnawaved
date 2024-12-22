@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { UserTrafficHistoryEntity } from '../entities/user-traffic-history.entity';
-import { ICrud } from '@common/types/crud-port';
-import { UserTrafficHistoryConverter } from '../user-traffic-history.converter';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
+import { Injectable } from '@nestjs/common';
+
+import { ICrud } from '@common/types/crud-port';
+
+import { UserTrafficHistoryEntity } from '../entities/user-traffic-history.entity';
+import { UserTrafficHistoryConverter } from '../user-traffic-history.converter';
 
 @Injectable()
 export class UserTrafficHistoryRepository implements ICrud<UserTrafficHistoryEntity> {
@@ -21,7 +23,7 @@ export class UserTrafficHistoryRepository implements ICrud<UserTrafficHistoryEnt
         return this.converter.fromPrismaModelToEntity(result);
     }
 
-    public async findByUUID(uuid: string): Promise<UserTrafficHistoryEntity | null> {
+    public async findByUUID(uuid: string): Promise<null | UserTrafficHistoryEntity> {
         const result = await this.prisma.tx.userTrafficHistory.findUnique({
             where: { uuid },
         });

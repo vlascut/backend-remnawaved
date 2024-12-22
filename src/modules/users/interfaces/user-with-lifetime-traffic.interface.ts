@@ -7,14 +7,14 @@ export interface IUserWithLifetimeTraffic
                 select: {
                     inbound: {
                         select: {
-                            uuid: true;
                             tag: true;
                             type: true;
+                            uuid: true;
                         };
                     };
                 };
             };
         };
     }> {
-    totalUsedBytes?: string | number | bigint | null | undefined;
+    totalUsedBytes?: bigint | null | number | string | undefined;
 }

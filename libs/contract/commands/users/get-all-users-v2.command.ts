@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { UsersSchema } from '../../models/users.schema';
+import { REST_API } from '../../api';
 
 export namespace GetAllUsersV2Command {
     export const url = REST_API.USERS.GET_ALL_V2;

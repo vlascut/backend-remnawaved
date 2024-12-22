@@ -1,10 +1,12 @@
+import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+
 import { getJWTConfig } from '@common/config/jwt/jwt.config';
-import { JwtStrategy } from './strategies';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { CqrsModule } from '@nestjs/cqrs';
+import { JwtStrategy } from './strategies';
 import { COMMANDS } from './commands';
 
 @Module({

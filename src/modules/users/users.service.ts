@@ -1,26 +1,28 @@
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
 import { Transactional } from '@nestjs-cls/transactional';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
-import { nanoid } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
-import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
-import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
-import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
-import { UserWithActiveInboundsEntity } from './entities/user-with-active-inbounds.entity';
-import { UserEntity } from './entities/users.entity';
-import { DeleteUserResponseModel } from './models/delete-user.response.model';
-import { UsersRepository } from './repositories/users.repository';
-import { IGetUsersOptions } from './interfaces';
-import { UserWithLifetimeTrafficEntity } from './entities/user-with-lifetime-traffic.entity';
-import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
-import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-user-to-node.event';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { nanoid } from 'nanoid';
+
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
+import { ICommandResponse } from '@common/types/command-response.type';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
+
+import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
+import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
+import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-user-to-node.event';
+import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
+import { UserWithLifetimeTrafficEntity } from './entities/user-with-lifetime-traffic.entity';
+import { UserWithActiveInboundsEntity } from './entities/user-with-active-inbounds.entity';
+import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
+import { DeleteUserResponseModel } from './models/delete-user.response.model';
+import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
+import { UsersRepository } from './repositories/users.repository';
+import { UserEntity } from './entities/users.entity';
+import { IGetUsersOptions } from './interfaces';
 
 @Injectable()
 export class UsersService {
@@ -49,9 +51,9 @@ export class UsersService {
 
     public async updateUser(dto: UpdateUserRequestDto): Promise<
         ICommandResponse<{
-            user: UserWithActiveInboundsEntity;
             inboubdsChanged: boolean;
             oldInboundTags: string[];
+            user: UserWithActiveInboundsEntity;
         }>
     > {
         const user = await this.updateUserTransactional(dto);
@@ -74,9 +76,9 @@ export class UsersService {
     @Transactional()
     public async updateUserTransactional(dto: UpdateUserRequestDto): Promise<
         ICommandResponse<{
-            user: UserWithActiveInboundsEntity;
             inboubdsChanged: boolean;
             oldInboundTags: string[];
+            user: UserWithActiveInboundsEntity;
         }>
     > {
         try {
@@ -277,8 +279,8 @@ export class UsersService {
 
     public async getAllUsers(options: IGetUsersOptions): Promise<
         ICommandResponse<{
-            users: UserWithLifetimeTrafficEntity[];
             total: number;
+            users: UserWithLifetimeTrafficEntity[];
         }>
     > {
         try {
@@ -304,8 +306,8 @@ export class UsersService {
 
     public async getAllUsersV2(dto: GetAllUsersV2Command.RequestQuery): Promise<
         ICommandResponse<{
-            users: UserWithLifetimeTrafficEntity[];
             total: number;
+            users: UserWithLifetimeTrafficEntity[];
         }>
     > {
         try {

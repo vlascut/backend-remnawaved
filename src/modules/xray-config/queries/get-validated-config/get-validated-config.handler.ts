@@ -1,15 +1,14 @@
 import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants';
 import { Logger } from '@nestjs/common';
+
+import { XRayConfig } from '@common/helpers/xray-config';
+
 import { GetValidatedConfigQuery } from './get-validated-config.query';
-import { IXrayConfig } from '../../../../common/helpers/xray-config/interfaces';
 import { XrayConfigService } from '../../xray-config.service';
-import { XRayConfig } from '../../../../common/helpers/xray-config';
 
 @QueryHandler(GetValidatedConfigQuery)
 export class GetValidatedConfigHandler
-    implements IQueryHandler<GetValidatedConfigQuery, XRayConfig | null>
+    implements IQueryHandler<GetValidatedConfigQuery, null | XRayConfig>
 {
     private readonly logger = new Logger(GetValidatedConfigHandler.name);
 
@@ -18,7 +17,7 @@ export class GetValidatedConfigHandler
         private readonly queryBus: QueryBus,
     ) {}
 
-    async execute(): Promise<XRayConfig | null> {
+    async execute(): Promise<null | XRayConfig> {
         try {
             const config = await this.xrayService.getConfigInstance();
 

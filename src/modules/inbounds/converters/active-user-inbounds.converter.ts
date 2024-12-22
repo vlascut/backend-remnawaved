@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { UniversalConverter } from '@common/converter/universalConverter';
 import { ActiveUserInbounds } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+
+import { UniversalConverter } from '@common/converter/universalConverter';
 
 import { ActiveUserInboundEntity } from '../entities/active-user-inbound.entity';
 

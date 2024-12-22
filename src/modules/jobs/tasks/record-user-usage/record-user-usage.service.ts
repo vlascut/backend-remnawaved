@@ -1,20 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { GetUsersStatsCommand } from '@remnawave/node-contract';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { NodesEntity } from '../../../nodes';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import pMap from '@cjs-exporter/p-map';
+
+import { UpdateNodeCommand } from '@modules/nodes/commands/update-node/update-node.command';
+import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { AxiosService } from '@common/axios';
-import { GetUsersStatsCommand } from '@remnawave/node-contract';
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
-import { GetOnlineNodesQuery } from '../../../nodes/queries/get-online-nodes/get-online-nodes.query';
-import { GetUserByUsernameQuery } from '../../../users/queries/get-user-by-username/get-user-by-username.query';
-import { UpsertUserHistoryEntryCommand } from '../../../nodes-user-usage-history/commands/upsert-user-history-entry';
-import { NodesUserUsageHistoryEntity } from '../../../nodes-user-usage-history/entities/nodes-user-usage-history.entity';
+
 import { IncrementUsedTrafficCommand } from '../../../users/commands/increment-used-traffic/increment-used-traffic.command';
+import { NodesUserUsageHistoryEntity } from '../../../nodes-user-usage-history/entities/nodes-user-usage-history.entity';
+import { UpsertUserHistoryEntryCommand } from '../../../nodes-user-usage-history/commands/upsert-user-history-entry';
+import { GetUserByUsernameQuery } from '../../../users/queries/get-user-by-username/get-user-by-username.query';
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
+import { GetOnlineNodesQuery } from '../../../nodes/queries/get-online-nodes/get-online-nodes.query';
 import { JOBS_INTERVALS } from '../../intervals';
-import pMap from '@cjs-exporter/p-map';
-import { UpdateNodeCommand } from '@modules/nodes/commands/update-node/update-node.command';
+import { NodesEntity } from '../../../nodes';
 
 @Injectable()
 export class RecordUserUsageService {

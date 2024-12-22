@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { RESET_PERIODS } from '../../constants';
-import { InboundsSchema, UsersSchema } from '../../models';
+import { UsersSchema } from '../../models';
+import { REST_API } from '../../api';
 
 export namespace UpdateUserCommand {
     export const url = REST_API.USERS.UPDATE;

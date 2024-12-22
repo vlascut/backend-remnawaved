@@ -7,11 +7,11 @@ export class UpdateHostResponseModel {
     public remark: string;
     public address: string;
     public port: number;
-    public path: string | null;
-    public sni: string | null;
-    public host: string | null;
-    public alpn: string | null;
-    public fingerprint: string | null;
+    public path: null | string;
+    public sni: null | string;
+    public host: null | string;
+    public alpn: null | string;
+    public fingerprint: null | string;
     public allowInsecure: boolean;
     public isDisabled: boolean;
 

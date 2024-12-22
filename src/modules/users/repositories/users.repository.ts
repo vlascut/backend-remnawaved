@@ -1,17 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { UserEntity } from '../entities/users.entity';
-import { ICrud } from '@common/types/crud-port';
-import { UserConverter } from '../users.converter';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
+import { Injectable } from '@nestjs/common';
+
+import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
+import { TUsersStatus, USERS_STATUS } from '@contract/constants';
+import { GetAllUsersV2Command } from '@libs/contracts/commands';
+import { ICrud } from '@common/types/crud-port';
+
+import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { UserForConfigEntity } from '../entities/users-for-config';
-import { TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { UserStats } from '../interfaces/user-stats.interface';
+import { UserEntity } from '../entities/users.entity';
+import { UserConverter } from '../users.converter';
 import { IGetUsersOptions } from '../interfaces';
-import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
-import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
-import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -71,7 +73,7 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async findUserByUsername(
         username: string,
-    ): Promise<UserWithActiveInboundsEntity | null> {
+    ): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { username },
             include: {
@@ -98,7 +100,7 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async getUserWithActiveInbounds(
         uuid: string,
-    ): Promise<UserWithActiveInboundsEntity | null> {
+    ): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { uuid },
             include: {
@@ -271,7 +273,7 @@ export class UsersRepository implements ICrud<UserEntity> {
             : {};
 
         const [trafficByUser, users, total] = await Promise.all([
-            this.prisma.tx.$queryRaw<{ uuid: string; usedTrafficBytes: bigint }[]>(
+            this.prisma.tx.$queryRaw<{ usedTrafficBytes: bigint; uuid: string }[]>(
                 new SumLifetimeUsageBuilder().query,
             ),
             this.prisma.tx.users.findMany({
@@ -383,7 +385,7 @@ export class UsersRepository implements ICrud<UserEntity> {
                 : undefined;
 
         const [trafficByUser, users, total] = await Promise.all([
-            this.prisma.tx.$queryRaw<{ uuid: string; usedTrafficBytes: bigint }[]>(
+            this.prisma.tx.$queryRaw<{ usedTrafficBytes: bigint; uuid: string }[]>(
                 new SumLifetimeUsageBuilder().query,
             ),
             this.prisma.tx.users.findMany({
@@ -433,7 +435,7 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async getUserByShortUuid(
         shortUuid: string,
-    ): Promise<UserWithActiveInboundsEntity | null> {
+    ): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { shortUuid },
             include: {
@@ -458,7 +460,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         return new UserWithActiveInboundsEntity(result);
     }
 
-    public async getUserByUUID(uuid: string): Promise<UserWithActiveInboundsEntity | null> {
+    public async getUserByUUID(uuid: string): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { uuid },
             include: {
@@ -485,7 +487,7 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async getUserBySubscriptionUuid(
         subscriptionUuid: string,
-    ): Promise<UserWithActiveInboundsEntity | null> {
+    ): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { subscriptionUuid },
             include: {
@@ -510,7 +512,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         return new UserWithActiveInboundsEntity(result);
     }
 
-    public async findByUUID(uuid: string): Promise<UserEntity | null> {
+    public async findByUUID(uuid: string): Promise<null | UserEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { uuid },
         });
@@ -566,7 +568,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         return this.userConverter.fromPrismaModelsToEntities(bannerList);
     }
 
-    public async findFirstByCriteria(dto: Partial<UserEntity>): Promise<UserEntity | null> {
+    public async findFirstByCriteria(dto: Partial<UserEntity>): Promise<null | UserEntity> {
         const result = await this.prisma.tx.users.findFirst({
             where: dto,
         });

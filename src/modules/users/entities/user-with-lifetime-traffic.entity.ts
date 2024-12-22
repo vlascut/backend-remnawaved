@@ -1,6 +1,7 @@
-import { TUsersStatus } from '@libs/contracts/constants';
 import { InboundsEntity } from 'src/modules/inbounds/entities/inbounds.entity';
 import { TResetPeriods } from '@libs/contracts/constants';
+import { TUsersStatus } from '@libs/contracts/constants';
+
 import { IUserWithLifetimeTraffic } from '../interfaces';
 
 export class UserWithLifetimeTrafficEntity {

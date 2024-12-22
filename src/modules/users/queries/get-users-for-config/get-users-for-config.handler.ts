@@ -1,7 +1,9 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
+
 import { GetUsersForConfigQuery } from './get-users-for-config.query';
 import { UsersRepository } from '../../repositories/users.repository';
 import { UserForConfigEntity } from '../../entities/users-for-config';

@@ -1,11 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
-import { Logger } from '@nestjs/common';
-import { ICommandResponse } from '@common/types/command-response.type';
-
 import { Transactional } from '@nestjs-cls/transactional';
-import { ChangeUserStatusCommand } from './change-user-status.command';
+import { Logger } from '@nestjs/common';
+
+import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@contract/constants';
+
+import { ChangeUserStatusCommand } from './change-user-status.command';
 import { UsersRepository } from '../../repositories/users.repository';
 
 @CommandHandler(ChangeUserStatusCommand)

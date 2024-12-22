@@ -1,17 +1,19 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { NodesRepository } from './repositories/nodes.repository';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
-import { ERRORS, EVENTS } from '@contract/constants';
-import { NodesEntity } from './entities/nodes.entity';
-import { CreateNodeRequestDto, UpdateNodeRequestDto } from './dtos';
-import { StartNodeEvent } from './events/start-node';
 import { EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
-import { StopNodeEvent } from './events/stop-node';
-import { StartAllNodesEvent } from './events/start-all-nodes';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS, EVENTS } from '@contract/constants';
+
+import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
+import { CreateNodeRequestDto, UpdateNodeRequestDto } from './dtos';
+import { NodesRepository } from './repositories/nodes.repository';
+import { StartAllNodesEvent } from './events/start-all-nodes';
+import { NodesEntity } from './entities/nodes.entity';
+import { StartNodeEvent } from './events/start-node';
+import { StopNodeEvent } from './events/stop-node';
 
 @Injectable()
 export class NodesService {

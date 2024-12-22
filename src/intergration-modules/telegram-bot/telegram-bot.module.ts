@@ -1,12 +1,11 @@
-import { Module } from '@nestjs/common';
-import { CqrsModule } from '@nestjs/cqrs';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
-import { HttpModule } from '@nestjs/axios';
-
 import { NestjsGrammyModule } from '@grammyjs/nestjs';
-import { BotUpdateService } from './bot.update.service';
+import { HttpModule } from '@nestjs/axios';
+import { CqrsModule } from '@nestjs/cqrs';
+import { Module } from '@nestjs/common';
+
 import { BOT_NAME } from './constants/bot-name.constant';
+import { BotUpdateService } from './bot.update.service';
 import { TELEGRAM_BOT_EVENTS } from './events';
 
 @Module({

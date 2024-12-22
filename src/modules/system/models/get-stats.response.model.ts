@@ -6,19 +6,19 @@ interface IGetStatsResponseData {
         physicalCores: number;
     };
     memory: {
-        total: number;
-        free: number;
-        used: number;
         active: number;
         available: number;
+        free: number;
+        total: number;
+        used: number;
     };
-    uptime: number;
     timestamp: number;
+    uptime: number;
     users: {
         onlineLastMinute: number;
         statusCounts: Record<TUsersStatus, number>;
-        totalUsers: number;
         totalTrafficBytes: bigint;
+        totalUsers: number;
     };
 }
 
@@ -28,19 +28,19 @@ export class GetStatsResponseModel {
         physicalCores: number;
     };
     memory: {
-        total: number;
-        free: number;
-        used: number;
         active: number;
         available: number;
+        free: number;
+        total: number;
+        used: number;
     };
     uptime: number;
     timestamp: number;
     users: {
         onlineLastMinute: number;
         statusCounts: Record<TUsersStatus, number>;
-        totalUsers: number;
         totalTrafficBytes: string;
+        totalUsers: number;
     };
 
     constructor(data: IGetStatsResponseData) {

@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
+
 import { UpdateXrayConfigCommand } from '@libs/contracts/commands';
 
 export class UpdateConfigRequestDto extends createZodDto(UpdateXrayConfigCommand.RequestSchema) {}

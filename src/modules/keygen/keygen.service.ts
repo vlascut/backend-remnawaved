@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { KeygenRepository } from './repositories/keygen.repository';
-import { KeygenEntity } from './entities/keygen.entity';
 import { generateKeyPair } from 'crypto';
 import { promisify } from 'util';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';
+
+import { KeygenRepository } from './repositories/keygen.repository';
+import { KeygenEntity } from './entities/keygen.entity';
 
 const generateKeyPairAsync = promisify(generateKeyPair);
 

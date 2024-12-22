@@ -1,10 +1,12 @@
-import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersRepository } from '../../repositories/users.repository';
+
+import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS } from '@libs/contracts/constants';
+
 import { IncrementUsedTrafficCommand } from './increment-used-traffic.command';
+import { UsersRepository } from '../../repositories/users.repository';
 
 @CommandHandler(IncrementUsedTrafficCommand)
 export class IncrementUsedTrafficHandler

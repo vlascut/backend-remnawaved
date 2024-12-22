@@ -1,42 +1,44 @@
 import {
+    Body,
     Controller,
     Get,
-    Body,
     HttpCode,
     HttpStatus,
+    Post,
     UseFilters,
     UseGuards,
-    Post,
 } from '@nestjs/common';
-import { XrayConfigService } from './xray-config.service';
 import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
-import { ERRORS, ROLE } from '@contract/constants';
-import { Roles } from '@common/decorators/roles/roles';
-import { XRAY_CONTROLLER, XRAY_ROUTES } from '@contract/api';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { RolesGuard } from '@common/guards/roles';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { GetConfigResponseDto } from './dtos/get-config.dto';
-import { GetConfigResponseModel } from './models/get-config.response.model';
+import { XRAY_CONTROLLER, XRAY_ROUTES } from '@contract/api';
+import { Roles } from '@common/decorators/roles/roles';
+import { ERRORS, ROLE } from '@contract/constants';
+import { RolesGuard } from '@common/guards/roles';
+
 import { UpdateConfigRequestDto, UpdateConfigResponseDto } from './dtos/update-config.dto';
+import { GetConfigResponseModel } from './models/get-config.response.model';
+import { GetConfigResponseDto } from './dtos/get-config.dto';
+import { XrayConfigService } from './xray-config.service';
 
 @ApiTags('Xray Config Controller')
-@UseFilters(HttpExceptionFilter)
 @Controller(XRAY_CONTROLLER)
-@UseGuards(JwtDefaultGuard, RolesGuard)
 @Roles(ROLE.ADMIN)
+@UseFilters(HttpExceptionFilter)
+@UseGuards(JwtDefaultGuard, RolesGuard)
 export class XrayConfigController {
     constructor(private readonly xrayConfigService: XrayConfigService) {}
 
-    @Get(XRAY_ROUTES.GET_CONFIG)
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Get Xray Config', description: 'Get Xray Config' })
+    @ApiBadRequestResponse({ description: ERRORS.GET_CONFIG_ERROR.message })
     @ApiOkResponse({
         type: GetConfigResponseDto,
         description: 'Configuration retrieved successfully',
     })
-    @ApiBadRequestResponse({ description: ERRORS.GET_CONFIG_ERROR.message })
+    @ApiOperation({ summary: 'Get Xray Config', description: 'Get Xray Config' })
+    @Get(XRAY_ROUTES.GET_CONFIG)
+    @HttpCode(HttpStatus.OK)
     async getConfig(): Promise<GetConfigResponseDto> {
         const result = await this.xrayConfigService.getConfig();
 
@@ -46,14 +48,14 @@ export class XrayConfigController {
         };
     }
 
-    @Post(XRAY_ROUTES.UPDATE_CONFIG)
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Update Xray Config', description: 'Update Xray Config' })
+    @ApiBadRequestResponse({ description: ERRORS.UPDATE_CONFIG_ERROR.message })
     @ApiOkResponse({
         type: UpdateConfigResponseDto,
         description: 'Configuration updated successfully',
     })
-    @ApiBadRequestResponse({ description: ERRORS.UPDATE_CONFIG_ERROR.message })
+    @ApiOperation({ summary: 'Update Xray Config', description: 'Update Xray Config' })
+    @HttpCode(HttpStatus.OK)
+    @Post(XRAY_ROUTES.UPDATE_CONFIG)
     async updateConfig(
         @Body() requestConfig: UpdateConfigRequestDto,
     ): Promise<UpdateConfigResponseDto> {

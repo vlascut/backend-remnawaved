@@ -1,19 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
-import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
-import { JOBS_INTERVALS } from '../../intervals';
-import { GetAllUsersQuery } from '../../../users/queries/get-all-users/get-all-users.query';
-import { EVENTS, RESET_PERIODS, TResetPeriods, USERS_STATUS } from '@libs/contracts/constants';
-import dayjs from 'dayjs';
-import { AddUserToNodeEvent } from '../../../nodes/events/add-user-to-node';
-import { CreateUserTrafficHistoryCommand } from '../../../user-traffic-history/commands/create-user-traffic-history';
-import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../users/commands/update-status-and-traffic-and-reset-at';
-import { UserTrafficHistoryEntity } from '../../../user-traffic-history';
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
+import dayjs from 'dayjs';
+
+import { EVENTS, RESET_PERIODS, TResetPeriods, USERS_STATUS } from '@libs/contracts/constants';
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
+import { ICommandResponse } from '@common/types/command-response.type';
+
+import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../users/commands/update-status-and-traffic-and-reset-at';
+import { CreateUserTrafficHistoryCommand } from '../../../user-traffic-history/commands/create-user-traffic-history';
+import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
+import { GetAllUsersQuery } from '../../../users/queries/get-all-users/get-all-users.query';
+import { AddUserToNodeEvent } from '../../../nodes/events/add-user-to-node';
+import { UserTrafficHistoryEntity } from '../../../user-traffic-history';
+import { JOBS_INTERVALS } from '../../intervals';
 
 @Injectable()
 export class ResetUserTrafficService {

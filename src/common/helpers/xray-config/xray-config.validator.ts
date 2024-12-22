@@ -1,14 +1,16 @@
 import { readFileSync } from 'fs';
+
+import { InboundsWithTagsAndType } from '@modules/inbounds/interfaces/inboubds-with-tags-and-type.interface';
+import { UserForConfigEntity } from '@modules/users/entities/users-for-config';
+
 import {
-    IXrayConfig,
     CertificateObject as Certificate,
     InboundObject as Inbound,
+    IXrayConfig,
+    TCtrXRayConfig,
     TrojanSettings,
     VLessSettings,
-    TCtrXRayConfig,
 } from './interfaces';
-import { UserForConfigEntity } from '../../../modules/users/entities/users-for-config';
-import { InboundsWithTagsAndType } from '../../../modules/inbounds/interfaces/inboubds-with-tags-and-type.interface';
 
 export class XRayConfig {
     private config: IXrayConfig;
@@ -45,7 +47,7 @@ export class XRayConfig {
             try {
                 config = JSON.parse(configInput) as IXrayConfig;
             } catch (error) {
-                throw new Error('Invalid JSON input or file path.');
+                throw new Error(`Invalid JSON input or file path: ${error}`);
             }
         } else if (typeof configInput === 'object') {
             config = configInput as IXrayConfig;
@@ -174,7 +176,7 @@ export class XRayConfig {
                     }
 
                     return newCert;
-                } catch (error) {
+                } catch {
                     // console.error(
                     //     `Failed to read certificate files for inbound ${inbound.tag}:`,
                     //     error,

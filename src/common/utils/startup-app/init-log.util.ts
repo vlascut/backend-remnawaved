@@ -1,4 +1,5 @@
 import { LogLevel } from '@nestjs/common';
+
 import { isDevelopment } from './is-development';
 
 export function initLogs(): LogLevel[] {

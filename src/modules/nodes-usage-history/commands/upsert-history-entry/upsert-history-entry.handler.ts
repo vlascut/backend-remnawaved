@@ -1,11 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
+import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@contract/constants';
-import { UpsertHistoryEntryCommand } from './upsert-history-entry.command';
+
 import { NodesUsageHistoryRepository } from '../../repositories/nodes-usage-history.repository';
-import { Transactional } from '@nestjs-cls/transactional';
+import { UpsertHistoryEntryCommand } from './upsert-history-entry.command';
 
 @CommandHandler(UpsertHistoryEntryCommand)
 export class UpsertHistoryEntryHandler

@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { isDevelopment } from '@common/utils/startup-app';
-import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import semver from 'semver';
+
+import { isDevelopment } from '@common/utils/startup-app';
+
+import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 
 const SINGBOX_LEGACY_TEMPLATE_PATH = isDevelopment()
     ? path.join(__dirname, '../../../../../../configs/singbox/singbox_legacy.json')
@@ -13,44 +15,44 @@ const SINGBOX_TEMPLATE_PATH = isDevelopment()
     : path.join('/var/lib/remnawave/configs/singbox/singbox_template.json');
 
 interface OutboundConfig {
-    type: string;
-    tag: string;
+    flow?: string;
+    method?: string;
+    multiplex?: any;
+    outbounds?: string[];
+    password?: string;
     server: string;
     server_port: number;
-    transport?: any;
+    tag: string;
     tls?: any;
-    multiplex?: any;
-    uuid?: string;
-    password?: string;
-    method?: string;
-    flow?: string;
-    outbounds?: string[];
-}
-
-interface TransportConfig {
+    transport?: any;
     type: string;
-    headers?: Record<string, any>;
-    path?: string;
-    host?: string | string[];
-    service_name?: string;
-    max_early_data?: number;
-    early_data_header_name?: string;
+    uuid?: string;
 }
 
 interface TlsConfig {
+    alpn?: string[];
     enabled?: boolean;
-    server_name?: string;
     insecure?: boolean;
     reality?: {
         enabled: boolean;
         public_key?: string;
         short_id?: string;
     };
+    server_name?: string;
     utls?: {
         enabled: boolean;
         fingerprint: string;
     };
-    alpn?: string[];
+}
+
+interface TransportConfig {
+    early_data_header_name?: string;
+    headers?: Record<string, any>;
+    host?: string | string[];
+    max_early_data?: number;
+    path?: string;
+    service_name?: string;
+    type: string;
 }
 
 // interface InboundConfig {
@@ -78,8 +80,8 @@ export class SingBoxConfiguration {
     private mux_template: string;
     private user_agent_list: string[];
     private settings: any;
-    private version: string | null;
-    constructor(hosts: FormattedHosts[], version: string | null) {
+    private version: null | string;
+    constructor(hosts: FormattedHosts[], version: null | string) {
         this.hosts = hosts;
         this.version = version;
 
@@ -159,10 +161,10 @@ export class SingBoxConfiguration {
         return this.render();
     }
 
-    public static generateConfig(hosts: FormattedHosts[], version: string | null): string {
+    public static generateConfig(hosts: FormattedHosts[], version: null | string): string {
         try {
             return new SingBoxConfiguration(hosts, version).generate();
-        } catch (error) {
+        } catch {
             return '';
         }
     }
@@ -429,7 +431,7 @@ export class SingBoxConfiguration {
             net = 'http';
         }
 
-        if (['http', 'ws', 'quic', 'grpc', 'httpupgrade'].includes(net)) {
+        if (['grpc', 'http', 'httpupgrade', 'quic', 'ws'].includes(net)) {
             let max_early_data: number | undefined;
             let early_data_header_name: string | undefined;
 

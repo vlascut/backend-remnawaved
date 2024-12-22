@@ -1,9 +1,11 @@
 import { IEventHandler, QueryBus } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
-import { StopNodeEvent } from './stop-node.event';
 import { Logger } from '@nestjs/common';
+
 import { AxiosService } from '@common/axios';
+
 import { NodesRepository } from '../../repositories/nodes.repository';
+import { StopNodeEvent } from './stop-node.event';
 
 @EventsHandler(StopNodeEvent)
 export class StopNodeHandler implements IEventHandler<StopNodeEvent> {

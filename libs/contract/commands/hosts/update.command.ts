@@ -1,8 +1,9 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
-import { ALPN_VALUES } from '../../constants/hosts/alpn';
+
 import { FINGERPRINTS_VALUES } from '../../constants/hosts/fingerprints';
+import { ALPN_VALUES } from '../../constants/hosts/alpn';
 import { HostsSchema } from '../../models';
+import { REST_API } from '../../api';
 
 export namespace UpdateHostCommand {
     export const url = REST_API.HOSTS.UPDATE;

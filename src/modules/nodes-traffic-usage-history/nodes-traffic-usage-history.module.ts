@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { NodesTrafficUsageHistoryConverter } from './nodes-traffic-usage-history.converter';
+import { Module } from '@nestjs/common';
+
 import { NodesTrafficUsageHistoryRepository } from './repositories/nodes-traffic-usage-history.repository';
+import { NodesTrafficUsageHistoryConverter } from './nodes-traffic-usage-history.converter';
 import { COMMANDS } from './commands';
 
 @Module({

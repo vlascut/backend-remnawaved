@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';
+
 import { InboundsRepository } from './repositories/inbounds.repository';
 import { InboundsEntity } from './entities/inbounds.entity';
 
@@ -19,6 +21,7 @@ export class InboundsService {
                 response: result,
             };
         } catch (error) {
+            this.logger.error(`Error getting inbounds: ${error}`);
             return {
                 isOk: false,
                 ...ERRORS.FIND_ALL_INBOUNDS_ERROR,

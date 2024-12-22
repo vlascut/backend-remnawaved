@@ -1,8 +1,8 @@
 export interface ISubscriptionHeaders {
     'content-disposition': string;
-    'profile-web-page-url': string;
-    'support-url': string;
     'profile-title': string;
     'profile-update-interval': string;
+    'profile-web-page-url': string;
     'subscription-userinfo': string;
+    'support-url': string;
 }

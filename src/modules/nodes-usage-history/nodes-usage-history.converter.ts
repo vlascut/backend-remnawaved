@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { UniversalConverter } from '@common/converter/universalConverter';
 import { NodesUsageHistory } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+
+import { UniversalConverter } from '@common/converter/universalConverter';
+
 import { NodesUsageHistoryEntity } from './entities/nodes-usage-history.entity';
 
 const modelToEntity = (model: NodesUsageHistory): NodesUsageHistoryEntity => {

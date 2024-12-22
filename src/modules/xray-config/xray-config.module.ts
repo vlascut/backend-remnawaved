@@ -1,8 +1,9 @@
 import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { XrayConfigConverter } from './xray-config.converter';
+
 import { XrayConfigRepository } from './repositories/xray-config.repository';
 import { XrayConfigController } from './xray-config.controller';
+import { XrayConfigConverter } from './xray-config.converter';
 import { XrayConfigService } from './xray-config.service';
 import { QUERIES } from './queries';
 @Module({

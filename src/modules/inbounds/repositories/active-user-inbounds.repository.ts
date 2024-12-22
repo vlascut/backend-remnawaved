@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
+import { Injectable } from '@nestjs/common';
+
 import { ICrud } from '@common/types/crud-port';
-import { ActiveUserInboundEntity } from '../entities/active-user-inbound.entity';
+
 import { ActiveUserInboundsConverter } from '../converters/active-user-inbounds.converter';
+import { ActiveUserInboundEntity } from '../entities/active-user-inbound.entity';
 
 @Injectable()
 export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEntity> {

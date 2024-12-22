@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { UsersSchema } from '../../models/users.schema';
+import { REST_API } from '../../api';
 
 export namespace RevokeUserSubscriptionCommand {
     export const url = REST_API.USERS.REVOKE_SUBSCRIPTION;

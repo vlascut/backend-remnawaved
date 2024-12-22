@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { UsersSchema } from '../../models/users.schema';
+import { REST_API } from '../../api';
 
 export namespace GetAllUsersCommand {
     export const url = REST_API.USERS.GET_ALL;
@@ -24,8 +25,8 @@ export namespace GetAllUsersCommand {
         'status',
     ] as const;
 
-    export type SortableField = (typeof SortableFields)[number];
     export type SearchableField = (typeof SearchableFields)[number];
+    export type SortableField = (typeof SortableFields)[number];
 
     export const RequestQuerySchema = z.object({
         limit: z

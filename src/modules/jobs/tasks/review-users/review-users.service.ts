@@ -1,17 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { AxiosService } from '@common/axios';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
+
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
-import { ChangeUserStatusCommand } from '../../../users/commands/change-user-status/change-user-status.command';
+import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS, USERS_STATUS } from '@libs/contracts/constants';
-import { RemoveUserFromNodeEvent } from '../../../nodes/events/remove-user-from-node';
+import { AxiosService } from '@common/axios';
+
+import { ChangeUserStatusCommand } from '../../../users/commands/change-user-status/change-user-status.command';
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
 import { GetActiveUsersQuery } from '../../../users/queries/get-active-users/get-active-users.query';
+import { RemoveUserFromNodeEvent } from '../../../nodes/events/remove-user-from-node';
 import { JOBS_INTERVALS } from '../../intervals';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 
 @Injectable()
 export class ReviewUsersService {

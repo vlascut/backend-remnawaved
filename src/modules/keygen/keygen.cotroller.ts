@@ -1,39 +1,38 @@
-import { Controller, Get, UseFilters, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
-import { KEYGEN_ROUTES } from '@libs/contracts/api';
-
-import { HttpExceptionFilter } from '@common/exception/httpException.filter';
-import { errorHandler } from '@common/helpers/error-handler.helper';
-
+import { Controller, Get, HttpCode, HttpStatus, UseFilters, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { KEYGEN_CONTROLLER } from '@libs/contracts/api';
-
-import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { RolesGuard } from '@common/guards/roles';
-import { ROLE } from '@libs/contracts/constants';
-import { Roles } from '@common/decorators/roles/roles';
-import { GetPubKeyResponseDto } from './dtos';
-import { KeygenService } from './keygen.service';
-import { KeygenResponseModel } from './model';
 import { CommandBus } from '@nestjs/cqrs';
 
+import { HttpExceptionFilter } from '@common/exception/httpException.filter';
+import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
+import { errorHandler } from '@common/helpers/error-handler.helper';
+import { KEYGEN_CONTROLLER } from '@libs/contracts/api';
+import { Roles } from '@common/decorators/roles/roles';
+import { KEYGEN_ROUTES } from '@libs/contracts/api';
+import { RolesGuard } from '@common/guards/roles';
+import { ROLE } from '@libs/contracts/constants';
+
+import { KeygenService } from './keygen.service';
+import { GetPubKeyResponseDto } from './dtos';
+import { KeygenResponseModel } from './model';
+
 @ApiTags('Keygen Controller')
-@UseFilters(HttpExceptionFilter)
 @Controller(KEYGEN_CONTROLLER)
-@UseGuards(JwtDefaultGuard, RolesGuard)
 @Roles(ROLE.ADMIN, ROLE.API)
+@UseFilters(HttpExceptionFilter)
+@UseGuards(JwtDefaultGuard, RolesGuard)
 export class KeygenController {
     constructor(
         private readonly keygenService: KeygenService,
         private readonly commandBus: CommandBus,
     ) {}
 
-    @Get(KEYGEN_ROUTES.GET)
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Get Public Key', description: 'Get public key' })
     @ApiOkResponse({
         type: [GetPubKeyResponseDto],
         description: 'Access token for further requests',
     })
+    @ApiOperation({ summary: 'Get Public Key', description: 'Get public key' })
+    @Get(KEYGEN_ROUTES.GET)
+    @HttpCode(HttpStatus.OK)
     async generateKey(): Promise<GetPubKeyResponseDto> {
         const result = await this.keygenService.generateKey();
 

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UniversalConverter } from '@common/converter/universalConverter';
 import { Keygen } from '@prisma/client';
+
+import { UniversalConverter } from '@common/converter/universalConverter';
+
 import { KeygenEntity } from './entities/keygen.entity';
 
 const modelToEntity = (model: Keygen): KeygenEntity => {

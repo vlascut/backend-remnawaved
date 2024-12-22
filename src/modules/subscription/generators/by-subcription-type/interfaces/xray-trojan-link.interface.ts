@@ -1,23 +1,23 @@
-import { StreamSettingsObject } from '../../../../../common/helpers/xray-config/interfaces/transport.config';
+import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
 export interface XrayTrojanLink {
-    remark: string;
     address: string;
-    port: number;
-    protocol: string;
-    path: string;
-    host: string | string[];
-    tls: string;
-    sni: string;
-    fp: string;
-    alpn: string;
-    pbk: string;
-    sid: string;
-    spx: string;
     ais: boolean;
+    alpn: string;
+    fp: string;
+    host: string | string[];
+    network: StreamSettingsObject['network'];
     password: {
         trojanPassword: string;
         vlessPassword: string;
     };
-    network: StreamSettingsObject['network'];
+    path: string;
+    pbk: string;
+    port: number;
+    protocol: string;
+    remark: string;
+    sid: string;
+    sni: string;
+    spx: string;
+    tls: string;
 }

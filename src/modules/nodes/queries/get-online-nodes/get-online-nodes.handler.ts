@@ -1,9 +1,11 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
-import { Logger } from '@nestjs/common';
-import { GetOnlineNodesQuery } from './get-online-nodes.query';
+
 import { NodesRepository } from '../../repositories/nodes.repository';
+import { GetOnlineNodesQuery } from './get-online-nodes.query';
 import { NodesEntity } from '../../entities/nodes.entity';
 
 @QueryHandler(GetOnlineNodesQuery)

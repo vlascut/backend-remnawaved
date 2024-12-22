@@ -3,25 +3,25 @@ import { ClashConfiguration, ProxyNode } from './generate-clash-config';
 
 export class ClashMetaConfiguration extends ClashConfiguration {
     protected makeNode(params: {
-        name: string;
-        remark: string;
-        type: string;
-        server: string;
-        port: number;
-        network: string;
-        tls: boolean;
-        sni: string;
-        host: string;
-        path: string;
-        headers?: string;
-        udp?: boolean;
+        ais?: boolean;
         alpn?: string;
         fp?: string;
-        pbk?: string;
-        sid?: string;
-        ais?: boolean;
+        headers?: string;
+        host: string;
         muxEnable?: boolean;
+        name: string;
+        network: string;
+        path: string;
+        pbk?: string;
+        port: number;
         randomUserAgent?: boolean;
+        remark: string;
+        server: string;
+        sid?: string;
+        sni: string;
+        tls: boolean;
+        type: string;
+        udp?: boolean;
     }): ProxyNode {
         const node = super.makeNode(params);
 
@@ -55,7 +55,7 @@ export class ClashMetaConfiguration extends ClashConfiguration {
             server: host.address,
             port: host.port,
             network: host.network,
-            tls: ['tls', 'reality'].includes(host.tls),
+            tls: ['reality', 'tls'].includes(host.tls),
             sni: host.sni,
             host: host.host[0],
             path: host.path,

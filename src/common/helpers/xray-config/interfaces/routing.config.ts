@@ -1,66 +1,66 @@
-export interface DnsObject {
-    hosts?: { [key: string]: string };
-    servers?: (string | ServerObject)[];
-    clientIp?: string;
-    tag?: string;
-    queryStrategy?: string;
-    disableCache?: boolean;
-    disableFallback?: boolean;
-}
-
-export interface ServerObject {
-    address: string;
-    port?: number;
-    domains?: string[];
-    expectIPs?: string[];
-    skipFallback?: boolean;
-    clientIP?: string;
-}
-
-export interface RoutingObject {
-    domainStrategy?: string;
-    domainMatcher?: string;
-    rules: RuleObject[];
-    balancers?: BalancerObject[];
-}
-
-export interface RuleObject {
-    type: string;
-    domain?: string[];
-    ip?: string[];
-    port?: string | number;
-    sourcePort?: string | number;
-    network?: string;
-    source?: string[];
-    user?: string[];
-    inboundTag?: string[];
-    protocol?: string[];
-    attrs?: string;
-    outboundTag?: string;
-    balancerTag?: string;
-}
-
 export interface BalancerObject {
-    tag: string;
     selector: string[];
     strategy?: {
-        type: string;
         settings?: any;
+        type: string;
     };
+    tag: string;
 }
 
 export interface DefaultObject {
-    level: number;
     alterId: number;
+    level: number;
 }
 
 export interface DetourObject {
     to: string;
 }
 
+export interface DnsObject {
+    clientIp?: string;
+    disableCache?: boolean;
+    disableFallback?: boolean;
+    hosts?: { [key: string]: string };
+    queryStrategy?: string;
+    servers?: (ServerObject | string)[];
+    tag?: string;
+}
+
 export interface FallbackObject {
     alpn?: string;
+    dest?: number | string;
     path?: string;
-    dest?: string | number;
     xver?: number;
+}
+
+export interface RoutingObject {
+    balancers?: BalancerObject[];
+    domainMatcher?: string;
+    domainStrategy?: string;
+    rules: RuleObject[];
+}
+
+export interface RuleObject {
+    attrs?: string;
+    balancerTag?: string;
+    domain?: string[];
+    inboundTag?: string[];
+    ip?: string[];
+    network?: string;
+    outboundTag?: string;
+    port?: number | string;
+    protocol?: string[];
+    source?: string[];
+    sourcePort?: number | string;
+    type: string;
+    user?: string[];
+}
+
+export interface ServerObject {
+    address: string;
+    clientIP?: string;
+    domains?: string[];
+    expectIPs?: string[];
+    port?: number;
+    skipFallback?: boolean;
 }

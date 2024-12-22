@@ -1,6 +1,6 @@
 export function convertBytes(
     bytes: number,
-    options: { useBinaryUnits?: boolean; decimals?: number } = {},
+    options: { decimals?: number; useBinaryUnits?: boolean } = {},
 ): string {
     const { useBinaryUnits = false, decimals = 2 } = options;
 

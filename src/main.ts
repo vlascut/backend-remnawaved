@@ -1,15 +1,17 @@
-import { isDevelopment } from '@common/utils/startup-app/is-development';
-import { getSwagger } from '@common/utils/startup-app/swagger';
-import { ROOT } from '@contract/api';
+import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
+import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import compression from 'compression';
+import * as winston from 'winston';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
+
+import { isDevelopment } from '@common/utils/startup-app/is-development';
+import { getSwagger } from '@common/utils/startup-app/swagger';
+import { ROOT } from '@contract/api';
+
 import { AppModule } from './app.module';
-import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
-import * as winston from 'winston';
 patchNestJsSwagger();
 
 async function bootstrap(): Promise<void> {
@@ -29,6 +31,8 @@ async function bootstrap(): Promise<void> {
             level: isDevelopment() ? 'debug' : 'info',
         }),
     });
+
+    console.log('123');
 
     const config = app.get(ConfigService);
 

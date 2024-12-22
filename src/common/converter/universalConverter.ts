@@ -14,7 +14,7 @@ export class UniversalConverter<T, U> implements IConverter<T, U> {
         return this.entityFactory(prismaModel);
     }
 
-    fromPrismaModelToEntityOrNull(prismaModel: U | null): T | null {
+    fromPrismaModelToEntityOrNull(prismaModel: null | U): null | T {
         return prismaModel != null ? this.fromPrismaModelToEntity(prismaModel) : null;
     }
 

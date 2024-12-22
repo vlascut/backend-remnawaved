@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { ApiTokensSchema } from '../../models/api-tokens.schema';
+import { REST_API } from '../../api';
 
 export namespace FindAllApiTokensCommand {
     export const url = REST_API.API_TOKENS.GET_ALL;

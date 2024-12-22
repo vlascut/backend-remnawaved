@@ -1,11 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
+import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@contract/constants';
-import { CreateNodeTrafficUsageHistoryCommand } from './create-node-traffic-usage-history.command';
+
 import { NodesTrafficUsageHistoryRepository } from '../../repositories/nodes-traffic-usage-history.repository';
-import { Transactional } from '@nestjs-cls/transactional';
+import { CreateNodeTrafficUsageHistoryCommand } from './create-node-traffic-usage-history.command';
 
 @CommandHandler(CreateNodeTrafficUsageHistoryCommand)
 export class CreateNodeTrafficUsageHistoryHandler

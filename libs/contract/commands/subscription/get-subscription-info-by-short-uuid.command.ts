@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { USERS_STATUS_VALUES } from '../../constants';
+import { REST_API } from '../../api';
 
 export namespace GetSubscriptionInfoByShortUuidCommand {
     export const url = REST_API.SUBSCRIPTION.GET_INFO;

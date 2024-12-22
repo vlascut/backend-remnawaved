@@ -1,9 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
-import { SignApiTokenCommand } from './sign-api-token.command';
+
+import { ICommandResponse } from '@common/types/command-response.type';
 import { IJWTAuthPayload } from 'src/modules/auth/interfaces';
 import { ROLE } from '@libs/contracts/constants';
-import { ICommandResponse } from '@common/types/command-response.type';
+
+import { SignApiTokenCommand } from './sign-api-token.command';
 
 @CommandHandler(SignApiTokenCommand)
 export class SignApiTokenHandler

@@ -5,19 +5,9 @@ import {
     XrayLinksGenerator,
 } from './by-subcription-type';
 import { SUBSCRIPTION_CONFIG_TYPES, TSubscriptionConfigTypes } from './constants/config-types';
-import { FormatHosts } from '../utils/format-hosts';
-import { parseSingBoxVersion } from '../utils/parse-sing-box-version';
 import { IGenerateSubscription } from './interfaces/generate-subscription.interface';
-
-function parseUserAgentType(userAgent: string): TSubscriptionConfigTypes {
-    if (!userAgent) return 'XRAY';
-
-    return (
-        (Object.entries(SUBSCRIPTION_CONFIG_TYPES).find(
-            ([configName, config]) => configName !== 'XRAY' && config.REGEX?.test(userAgent),
-        )?.[0] as TSubscriptionConfigTypes) || 'XRAY'
-    );
-}
+import { parseSingBoxVersion } from '../utils/parse-sing-box-version';
+import { FormatHosts } from '../utils/format-hosts';
 
 export function generateSubscription({
     userAgent,
@@ -26,8 +16,8 @@ export function generateSubscription({
     config,
     configService,
 }: IGenerateSubscription): {
-    sub: string;
     contentType: string;
+    sub: string;
 } {
     const configType = parseUserAgentType(userAgent);
     const configParams = SUBSCRIPTION_CONFIG_TYPES[configType];
@@ -60,4 +50,14 @@ export function generateSubscription({
     };
 
     return generators[configType]?.() || { sub: '', contentType: '' };
+}
+
+function parseUserAgentType(userAgent: string): TSubscriptionConfigTypes {
+    if (!userAgent) return 'XRAY';
+
+    return (
+        (Object.entries(SUBSCRIPTION_CONFIG_TYPES).find(
+            ([configName, config]) => configName !== 'XRAY' && config.REGEX?.test(userAgent),
+        )?.[0] as TSubscriptionConfigTypes) || 'XRAY'
+    );
 }

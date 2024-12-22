@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { HostsConverter } from './hosts.converter';
+import { Module } from '@nestjs/common';
+
 import { HostsRepository } from './repositories/hosts.repository';
 import { HostsController } from './hosts.controller';
+import { HostsConverter } from './hosts.converter';
 import { HostsService } from './hosts.service';
 import { QUERIES } from './queries';
 

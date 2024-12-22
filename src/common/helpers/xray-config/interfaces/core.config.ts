@@ -1,25 +1,15 @@
-import { DnsObject, RoutingObject } from './routing.config';
 import { InboundObject, OutboundObject } from './protocols.config';
+import { DnsObject, RoutingObject } from './routing.config';
 import { TransportObject } from './transport.config';
 
-export interface PolicyObject {
-    levels?: {
-        [key: string]: {
-            handshake?: number;
-            connIdle?: number;
-            uplinkOnly?: number;
-            downlinkOnly?: number;
-            statsUserUplink?: boolean;
-            statsUserDownlink?: boolean;
-            bufferSize?: number;
-        };
-    };
-    system?: {
-        statsInboundUplink?: boolean;
-        statsInboundDownlink?: boolean;
-        statsOutboundUplink?: boolean;
-        statsOutboundDownlink?: boolean;
-    };
+export interface ApiObject {
+    services?: string[];
+    tag?: string;
+}
+
+export interface BridgeObject {
+    domain: string;
+    tag: string;
 }
 
 export interface FakeDnsObject {
@@ -28,32 +18,48 @@ export interface FakeDnsObject {
 }
 
 export interface IXrayConfig {
-    log?: LogObject;
     api?: ApiObject;
     dns?: DnsObject;
-    routing?: RoutingObject;
-    policy?: PolicyObject;
-    inbounds: InboundObject[];
-    outbounds: OutboundObject[];
-    transport?: TransportObject;
-    stats?: StatsObject;
-    reverse?: ReverseObject;
     fakedns?: FakeDnsObject;
+    inbounds: InboundObject[];
+    log?: LogObject;
+    outbounds: OutboundObject[];
+    policy?: PolicyObject;
+    reverse?: ReverseObject;
+    routing?: RoutingObject;
+    stats?: StatsObject;
+    transport?: TransportObject;
 }
 
 export interface LogObject {
     access?: string;
     error?: string;
-    loglevel?: 'debug' | 'info' | 'warning' | 'error' | 'none';
+    loglevel?: 'debug' | 'error' | 'info' | 'none' | 'warning';
 }
 
-export interface ApiObject {
-    tag?: string;
-    services?: string[];
+export interface PolicyObject {
+    levels?: {
+        [key: string]: {
+            bufferSize?: number;
+            connIdle?: number;
+            downlinkOnly?: number;
+            handshake?: number;
+            statsUserDownlink?: boolean;
+            statsUserUplink?: boolean;
+            uplinkOnly?: number;
+        };
+    };
+    system?: {
+        statsInboundDownlink?: boolean;
+        statsInboundUplink?: boolean;
+        statsOutboundDownlink?: boolean;
+        statsOutboundUplink?: boolean;
+    };
 }
 
-export interface StatsObject {
-    // Empty object as per docs
+export interface PortalObject {
+    domain: string;
+    tag: string;
 }
 
 export interface ReverseObject {
@@ -61,12 +67,4 @@ export interface ReverseObject {
     portals?: PortalObject[];
 }
 
-export interface BridgeObject {
-    tag: string;
-    domain: string;
-}
-
-export interface PortalObject {
-    tag: string;
-    domain: string;
-}
+export type StatsObject = object;

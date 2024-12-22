@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ERRORS } from '@contract/constants';
 import * as si from 'systeminformation';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
-import { UserStats } from '../users/interfaces/user-stats.interface';
 import { QueryBus } from '@nestjs/cqrs';
-import { GetStatsResponseModel } from './models/get-stats.response.model';
-import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
-import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
+
 import {
     getCalendarMonthRanges,
     getCalendarYearRanges,
@@ -15,15 +9,23 @@ import {
     getLast30DaysRanges,
     getLastTwoWeeksRanges,
 } from '@common/utils/get-date-ranges.uti';
+import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
+import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
+import { ICommandResponse } from '@common/types/command-response.type';
 import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
-import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
-import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
+import { ERRORS } from '@contract/constants';
+
 import {
     GetBandwidthStatsResponseModel,
     GetNodesStatisticsResponseModel,
     IBaseStat,
 } from './models';
+import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
+import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
+import { GetStatsResponseModel } from './models/get-stats.response.model';
+import { UserStats } from '../users/interfaces/user-stats.interface';
+import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 
 @Injectable()
 export class SystemService {
@@ -152,8 +154,8 @@ export class SystemService {
 
     private async getUsageComparison(dateRanges: [[Date, Date], [Date, Date]]): Promise<{
         current: string;
-        previous: string;
         difference: string;
+        previous: string;
     }> {
         const [[previousStart, previousEnd], [currentStart, currentEnd]] = dateRanges;
 

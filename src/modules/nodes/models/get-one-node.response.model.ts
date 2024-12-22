@@ -4,25 +4,25 @@ export class GetOneNodeResponseModel {
     public uuid: string;
     public name: string;
     public address: string;
-    public port: number | null;
+    public port: null | number;
     public isConnected: boolean;
     public isConnecting: boolean;
     public isDisabled: boolean;
     public isNodeOnline: boolean;
     public isXrayRunning: boolean;
     public lastStatusChange: Date | null;
-    public lastStatusMessage: string | null;
-    public xrayVersion: string | null;
+    public lastStatusMessage: null | string;
+    public xrayVersion: null | string;
     public isTrafficTrackingActive: boolean;
-    public trafficResetDay: number | null;
-    public usersOnline: number | null;
-    public cpuCount: number | null;
-    public cpuModel: string | null;
-    public totalRam: string | null;
+    public trafficResetDay: null | number;
+    public usersOnline: null | number;
+    public cpuCount: null | number;
+    public cpuModel: null | string;
+    public totalRam: null | string;
 
-    public trafficLimitBytes: number | null;
-    public trafficUsedBytes: number | null;
-    public notifyPercent: number | null;
+    public trafficLimitBytes: null | number;
+    public trafficUsedBytes: null | number;
+    public notifyPercent: null | number;
 
     public createdAt: Date;
     public updatedAt: Date;

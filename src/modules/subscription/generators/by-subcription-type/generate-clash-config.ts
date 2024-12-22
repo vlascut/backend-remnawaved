@@ -1,9 +1,11 @@
 import { dump as yamlDump } from 'js-yaml';
-import { isDevelopment } from '@common/utils/startup-app';
 import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import nunjucks from 'nunjucks';
+import path from 'node:path';
+
+import { isDevelopment } from '@common/utils/startup-app';
+
+import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 
 const env = nunjucks.configure({ autoescape: false });
 env.addFilter('yaml', (obj: any) => yamlDump(obj));
@@ -23,38 +25,38 @@ const STASH_TEMPLATE_PATH = isDevelopment()
     : path.join('/var/lib/remnawave/configs/stash/stash_template.yml');
 
 export interface NetworkConfig {
-    path?: string | string[];
+    'early-data-header-name'?: string;
+    'grpc-service-name'?: string;
     headers?: Record<string, string>;
     Host?: string;
     host?: string[];
     'max-early-data'?: number;
-    'early-data-header-name'?: string;
+    path?: string | string[];
+    smux?: {
+        [key: string]: any;
+        enabled: boolean;
+    };
     'v2ray-http-upgrade'?: boolean;
     'v2ray-http-upgrade-fast-open'?: boolean;
-    'grpc-service-name'?: string;
-    smux?: {
-        enabled: boolean;
-        [key: string]: any;
-    };
 }
 
 export interface ProxyNode {
-    name: string;
-    type: string;
-    server: string;
-    port: number;
-    network: string;
-    udp: boolean;
-    tls?: boolean;
-    sni?: string;
-    servername?: string;
+    [key: string]: any;
     alpn?: string[];
-    'skip-cert-verify'?: boolean;
-    uuid?: string;
     alterId?: number;
     cipher?: string;
+    name: string;
+    network: string;
     password?: string;
-    [key: string]: any;
+    port: number;
+    server: string;
+    servername?: string;
+    'skip-cert-verify'?: boolean;
+    sni?: string;
+    tls?: boolean;
+    type: string;
+    udp: boolean;
+    uuid?: string;
 }
 
 interface ClashData {
@@ -112,7 +114,7 @@ export class ClashConfiguration {
     public static generateConfig(hosts: FormattedHosts[], isStash = false): string {
         try {
             return new ClashConfiguration(hosts, isStash).generate();
-        } catch (error) {
+        } catch {
             return '';
         }
     }
@@ -229,22 +231,22 @@ export class ClashConfiguration {
     }
 
     protected makeNode(params: {
-        name: string;
-        remark: string;
-        type: string;
-        server: string;
-        port: number;
-        network: string;
-        tls: boolean;
-        sni: string;
-        host: string;
-        path: string;
-        headers?: string;
-        udp?: boolean;
-        alpn?: string;
         ais?: boolean;
+        alpn?: string;
+        headers?: string;
+        host: string;
         muxEnable?: boolean;
+        name: string;
+        network: string;
+        path: string;
+        port: number;
         randomUserAgent?: boolean;
+        remark: string;
+        server: string;
+        sni: string;
+        tls: boolean;
+        type: string;
+        udp?: boolean;
     }): ProxyNode {
         const {
             remark,

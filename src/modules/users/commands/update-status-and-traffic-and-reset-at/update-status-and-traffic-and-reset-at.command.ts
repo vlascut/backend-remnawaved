@@ -1,4 +1,4 @@
-import { TUsersStatus } from '../../../../../libs/contract/constants';
+import { TUsersStatus } from '@libs/contracts/constants';
 
 export class UpdateStatusAndTrafficAndResetAtCommand {
     constructor(

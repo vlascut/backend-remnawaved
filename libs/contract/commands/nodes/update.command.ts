@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { REST_API } from '../../api';
+
 import { NodesSchema } from '../../models';
+import { REST_API } from '../../api';
 
 export namespace UpdateNodeCommand {
     export const url = REST_API.NODES.UPDATE;

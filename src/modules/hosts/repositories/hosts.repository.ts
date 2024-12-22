@@ -1,11 +1,13 @@
-import { ICrud } from '@common/types/crud-port';
-import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
+
+import { IReorderHost } from 'src/modules/hosts/interfaces/reorder-host.interface';
+import { ICrud } from '@common/types/crud-port';
+
 import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
 import { HostsEntity } from '../entities/hosts.entity';
 import { HostsConverter } from '../hosts.converter';
-import { IReorderHost } from 'src/modules/hosts/interfaces/reorder-host.interface';
 
 @Injectable()
 export class HostsRepository implements ICrud<HostsEntity> {
