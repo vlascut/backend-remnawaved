@@ -22,7 +22,6 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
-import { CommandBus } from '@nestjs/cqrs';
 import { ROLE } from '@contract/constants';
 import { Roles } from '@common/decorators/roles/roles';
 import {
@@ -58,10 +57,7 @@ import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @Roles(ROLE.ADMIN, ROLE.API)
 export class NodesController {
-    constructor(
-        private readonly nodesService: NodesService,
-        private readonly commandBus: CommandBus,
-    ) {}
+    constructor(private readonly nodesService: NodesService) {}
 
     @Post(NODES_ROUTES.CREATE)
     @HttpCode(HttpStatus.OK)

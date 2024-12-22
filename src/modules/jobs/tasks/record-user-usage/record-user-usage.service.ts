@@ -14,6 +14,7 @@ import { IncrementUsedTrafficCommand } from '../../../users/commands/increment-u
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
 import { JOBS_INTERVALS } from '../../intervals';
 import pMap from '@cjs-exporter/p-map';
+import { UpdateNodeCommand } from '@modules/nodes/commands/update-node/update-node.command';
 
 @Injectable()
 export class RecordUserUsageService {
@@ -90,6 +91,7 @@ export class RecordUserUsageService {
         let totalBytes = 0;
         let totalDownlink = 0;
         let totalUplink = 0;
+        let usersOnline = 0;
 
         for (const xrayUser of response.response.users) {
             this.logger.debug(`User: ${JSON.stringify(xrayUser)}`);
@@ -99,6 +101,8 @@ export class RecordUserUsageService {
             if (totalDownlink === 0 && totalUplink === 0) {
                 continue;
             }
+
+            usersOnline++;
 
             const userResponse = await this.getUserByUsername(xrayUser.username);
             if (!userResponse.isOk || !userResponse.response) {
@@ -124,6 +128,13 @@ export class RecordUserUsageService {
             await this.incrementUsedTraffic({
                 userUuid: user.uuid,
                 bytes: BigInt(totalBytes),
+            });
+
+            await this.updateNode({
+                node: {
+                    uuid: node.uuid,
+                    usersOnline,
+                },
             });
         }
     }
@@ -156,6 +167,12 @@ export class RecordUserUsageService {
     ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<IncrementUsedTrafficCommand, ICommandResponse<void>>(
             new IncrementUsedTrafficCommand(dto.userUuid, dto.bytes),
+        );
+    }
+
+    private async updateNode(dto: UpdateNodeCommand): Promise<ICommandResponse<NodesEntity>> {
+        return this.commandBus.execute<UpdateNodeCommand, ICommandResponse<NodesEntity>>(
+            new UpdateNodeCommand(dto.node),
         );
     }
 }

@@ -1,4 +1,3 @@
-import { TNodesCycle } from '@libs/contracts/constants';
 import { NodesEntity } from '../entities/nodes.entity';
 
 export class CreateNodeResponseModel {
@@ -16,7 +15,7 @@ export class CreateNodeResponseModel {
     public xrayVersion: string | null;
     public isTrafficTrackingActive: boolean;
     public trafficResetDay: number | null;
-
+    public usersOnline: number | null;
     public cpuCount: number | null;
     public cpuModel: string | null;
     public totalRam: string | null;
@@ -46,7 +45,7 @@ export class CreateNodeResponseModel {
         this.trafficLimitBytes = Number(data.trafficLimitBytes);
         this.trafficUsedBytes = Number(data.trafficUsedBytes);
         this.notifyPercent = data.notifyPercent;
-
+        this.usersOnline = data.usersOnline;
         this.cpuCount = data.cpuCount;
         this.cpuModel = data.cpuModel;
         this.totalRam = data.totalRam;

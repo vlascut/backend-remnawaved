@@ -85,6 +85,8 @@ model Nodes {
   lastStatusMessage String?   @map("last_status_message")
   xrayVersion       String?   @map("xray_version")
 
+  usersOnline Int? @default(0) @map("users_online")
+
   isTrafficTrackingActive Boolean @default(false) @map("is_traffic_tracking_active")
   trafficResetDay         Int?    @default(1) @map("traffic_reset_day")
   trafficLimitBytes       BigInt? @default(0) @map("traffic_limit_bytes")

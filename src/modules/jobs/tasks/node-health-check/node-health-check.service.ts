@@ -109,6 +109,7 @@ export class NodeHealthCheckService {
                 isXrayRunning: true,
                 lastStatusChange: new Date(),
                 lastStatusMessage: '',
+                usersOnline: 0,
             },
         });
 
@@ -130,6 +131,7 @@ export class NodeHealthCheckService {
                 lastStatusMessage: message,
                 isDisabled: false,
                 isConnecting: false,
+                usersOnline: 0,
             },
         });
 

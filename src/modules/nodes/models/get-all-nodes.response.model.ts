@@ -15,7 +15,7 @@ export class GetAllNodesResponseModel {
     public xrayVersion: string | null;
     public isTrafficTrackingActive: boolean;
     public trafficResetDay: number | null;
-
+    public usersOnline: number | null;
     public cpuCount: number | null;
     public cpuModel: string | null;
     public totalRam: string | null;

@@ -13,6 +13,7 @@ export class NodesEntity implements Nodes {
     public lastStatusChange: Date | null;
     public lastStatusMessage: string | null;
     public xrayVersion: string | null;
+    public usersOnline: number | null;
 
     public isTrafficTrackingActive: boolean;
     public trafficResetDay: number | null;

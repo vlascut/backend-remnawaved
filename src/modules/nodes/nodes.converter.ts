@@ -26,6 +26,7 @@ const entityToModel = (entity: NodesEntity): Nodes => {
         trafficLimitBytes: entity.trafficLimitBytes,
         trafficUsedBytes: entity.trafficUsedBytes,
         notifyPercent: entity.notifyPercent,
+        usersOnline: entity.usersOnline,
         cpuCount: entity.cpuCount,
         cpuModel: entity.cpuModel,
         totalRam: entity.totalRam,

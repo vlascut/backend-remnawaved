@@ -18,6 +18,7 @@ export const NodesSchema = z.object({
     trafficLimitBytes: z.nullable(z.number()),
     trafficUsedBytes: z.nullable(z.number()),
     notifyPercent: z.nullable(z.number().int()),
+    usersOnline: z.nullable(z.number().int()),
 
     cpuCount: z.nullable(z.number().int()),
     cpuModel: z.nullable(z.string()),
