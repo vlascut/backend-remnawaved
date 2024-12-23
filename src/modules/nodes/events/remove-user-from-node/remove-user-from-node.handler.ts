@@ -51,11 +51,15 @@ export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNo
 
             const result = await pMap(nodes, mapper, { concurrency: this.CONCURRENCY });
 
-            this.logger.log(
-                `Results: ${result
-                    .map((r) => `[Node: ${r.nodeName}] ${JSON.stringify(r.response)}`)
-                    .join(', ')}`,
-            );
+            const failedResults = result.filter((r) => !r.response.isOk);
+
+            if (failedResults.length > 0) {
+                this.logger.warn(
+                    `Remove user from Node, failed nodes: ${failedResults
+                        .map((r) => `[Node: ${r.nodeName}] ${JSON.stringify(r.response)}`)
+                        .join(', ')}`,
+                );
+            }
 
             return;
         } catch (error) {
