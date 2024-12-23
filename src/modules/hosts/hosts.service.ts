@@ -35,7 +35,7 @@ export class HostsService {
                 response: result,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             if (
                 error instanceof Prisma.PrismaClientKnownRequestError &&
                 error.code === 'P2002' &&

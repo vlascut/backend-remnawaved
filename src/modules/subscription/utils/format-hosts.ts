@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import dayjs from 'dayjs';
 
 import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
@@ -66,7 +66,7 @@ export class FormatHosts {
                     network: 'tcp',
                     password: {
                         trojanPassword: '00000',
-                        vlessPassword: uuidv4(),
+                        vlessPassword: randomUUID(),
                     },
                 });
             });

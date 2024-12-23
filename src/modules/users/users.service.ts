@@ -2,9 +2,9 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
-import { v4 as uuidv4 } from 'uuid';
 
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
@@ -246,8 +246,6 @@ export class UsersService {
                     ...ERRORS.CANT_GET_CREATED_USER_WITH_INBOUNDS,
                 };
             }
-
-            // !TDOO: add event emitter for user creation
 
             return {
                 isOk: true,
@@ -580,7 +578,7 @@ export class UsersService {
     }
 
     private createUuid(): string {
-        return uuidv4();
+        return randomUUID();
     }
 
     private createNanoId(): string {

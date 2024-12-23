@@ -1,19 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { createHash } from 'crypto';
-import short from 'short-uuid';
+import { createHash } from 'node:crypto';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';
 import { ROLE } from '@libs/contracts/constants';
 
-import { IJWTAuthPayload, ILogin } from './interfaces';
+import { ILogin } from './interfaces';
 
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
-    private readonly translator = short();
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
@@ -52,11 +50,5 @@ export class AuthService {
                 ...ERRORS.LOGIN_ERROR,
             };
         }
-    }
-
-    private async assignToken(payload: IJWTAuthPayload): Promise<string> {
-        return this.jwtService.signAsync(payload, {
-            expiresIn: 43200, // 12 hours
-        });
     }
 }
