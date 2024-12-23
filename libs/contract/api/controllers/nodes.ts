@@ -11,4 +11,7 @@ export const NODES_ROUTES = {
     DISABLE: 'disable',
     GET_ALL: 'get-all',
     GET_ONE: 'get-one',
+    STATS: {
+        USAGE_BY_RANGE: 'usage/range',
+    },
 } as const;

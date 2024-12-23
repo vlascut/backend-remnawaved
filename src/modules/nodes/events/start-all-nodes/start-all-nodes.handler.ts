@@ -86,7 +86,7 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
 
             return;
         } catch (error) {
-            this.logger.error(`Error in NodeCreatedHandler: ${JSON.stringify(error)}`);
+            this.logger.error(`Error in Event StartAllNodesHandler: ${error}`);
         }
     }
 

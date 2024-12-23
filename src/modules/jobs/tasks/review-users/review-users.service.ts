@@ -36,7 +36,7 @@ export class ReviewUsersService {
 
     private checkJobRunning(): boolean {
         if (this.isJobRunning) {
-            this.logger.debug(
+            this.logger.log(
                 `Job ${this.cronName} is already running. Will retry at ${this.schedulerRegistry.getCronJob(this.cronName).nextDate().toISOTime()}`,
             );
             return false;
@@ -92,7 +92,7 @@ export class ReviewUsersService {
 
             this.logger.debug(`Users reviewed. Time: ${formatExecutionTime(ct)}`);
         } catch (error) {
-            this.logger.error(error);
+            this.logger.error(`Error in ReviewUsersService: ${error}`);
         } finally {
             this.isJobRunning = false;
         }

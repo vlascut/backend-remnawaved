@@ -73,12 +73,12 @@ export class NodesEvents {
     @OnEvent(EVENTS.NODE.CONNECTION_LOST)
     async onNodeConnectionLost(event: NodeEvent): Promise<void> {
         const msg = `
-🚨🚨🚨 <b>#nodeConnectionLost</b>
+🚨 <b>#nodeConnectionLost</b>
 <b>Connection to node lost</b>
 ➖➖➖➖➖➖➖➖➖
+<b>Name:</b> <code>${event.node.name}</code>
 <b>Reason:</b> <code>${event.node.lastStatusMessage}</code>
 <b>Last status change:</b> <code>${dayjs(event.node.lastStatusChange).format('DD.MM.YYYY HH:mm')}</code>
-<b>Name:</b> <code>${event.node.name}</code>
 <b>Address:</b> <code>${event.node.address}:${event.node.port}</code>
         `;
         await this.bot.api.sendMessage(this.adminId, msg);
@@ -87,12 +87,12 @@ export class NodesEvents {
     @OnEvent(EVENTS.NODE.CONNECTION_RESTORED)
     async onNodeConnectionRestored(event: NodeEvent): Promise<void> {
         const msg = `
-🟩🟩🟩 <b>#nodeConnectionRestored</b>
+🟢 <b>#nodeConnectionRestored</b>
 <b>Connection to node restored</b>
 ➖➖➖➖➖➖➖➖➖
+<b>Name:</b> <code>${event.node.name}</code>
 <b>Reason:</b> <code>${event.node.lastStatusMessage}</code>
 <b>Last status change:</b> <code>${dayjs(event.node.lastStatusChange).format('DD.MM.YYYY HH:mm')}</code>
-<b>Name:</b> <code>${event.node.name}</code>
 <b>Address:</b> <code>${event.node.address}:${event.node.port}</code>
         `;
         await this.bot.api.sendMessage(this.adminId, msg);

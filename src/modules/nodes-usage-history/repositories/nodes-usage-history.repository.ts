@@ -6,8 +6,8 @@ import { ICrud } from '@common/types/crud-port';
 
 import { NodesUsageHistoryEntity } from '../entities/nodes-usage-history.entity';
 import { NodesUsageHistoryConverter } from '../nodes-usage-history.converter';
+import { IGet7DaysStats, IGetNodesUsageByRange } from '../interfaces';
 import { Get7DaysStatsBuilder } from '../builders';
-import { IGet7DaysStats } from '../interfaces';
 
 @Injectable()
 export class NodesUsageHistoryRepository implements ICrud<NodesUsageHistoryEntity> {
@@ -104,5 +104,21 @@ export class NodesUsageHistoryRepository implements ICrud<NodesUsageHistoryEntit
         const { query } = new Get7DaysStatsBuilder();
         const result = await this.prisma.tx.$queryRaw<IGet7DaysStats[]>(query);
         return result;
+    }
+
+    public async getNodesUsageByRange(start: Date, end: Date): Promise<IGetNodesUsageByRange[]> {
+        return await this.prisma.tx.$queryRaw<IGetNodesUsageByRange[]>`
+            SELECT 
+                n.uuid as "nodeUuid",
+                n.name as "nodeName",
+                COALESCE(SUM(h."total_bytes"), 0) as total,
+                COALESCE(SUM(h."download_bytes"), 0) as "totalDownload",
+                COALESCE(SUM(h."upload_bytes"), 0) as "totalUpload"
+            FROM nodes n
+            LEFT JOIN "nodes_usage_history" h ON h."node_uuid" = n.uuid 
+                AND h."created_at" >= ${start}
+                AND h."created_at" <= ${end}
+            GROUP BY n.uuid, n.name
+        `;
     }
 }

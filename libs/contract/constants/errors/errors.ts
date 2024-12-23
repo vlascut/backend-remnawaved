@@ -266,4 +266,9 @@ export const ERRORS = {
         message: 'Enabled nodes not found',
         httpCode: 409,
     },
+    GET_NODES_USAGE_BY_RANGE_ERROR: {
+        code: 'A055',
+        message: 'Get nodes usage by range error',
+        httpCode: 500,
+    },
 } as const;

@@ -66,31 +66,23 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
 
             const mapper = async (node: NodesEntity) => {
                 const response = await this.axios.addUser(userData, node.address, node.port);
-                return response;
+                return {
+                    nodeName: node.name,
+                    response,
+                };
             };
 
             const result = await pMap(nodes, mapper, { concurrency: this.CONCURRENCY });
 
-            this.logger.log(`Result: ${JSON.stringify(result)}`);
-
-            // await pMap(
-            //     nodes,
-            //     async (node) => {
-            //         await this.axios.addUser(userData, node.address, node.port);
-            //     },
-            //     { concurrency: this.CONCURRENCY },
-            // );
-
-            // const mapper = async site => {
-            //     const {requestUrl} = await got.head(site);
-            //     return requestUrl;
-            // };
-
-            // const result = await pMap(sites, mapper, {concurrency: 2});
+            this.logger.log(
+                `Results: ${result
+                    .map((r) => `[Node: ${r.nodeName}] ${JSON.stringify(r.response)}`)
+                    .join(', ')}`,
+            );
 
             return;
         } catch (error) {
-            this.logger.error(`Error in NodeCreatedHandler: ${JSON.stringify(error)}`);
+            this.logger.error(`Error in Event AddUserToNodeHandler: ${error}`);
         }
     }
 }

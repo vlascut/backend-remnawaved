@@ -1,4 +1,4 @@
-import { IEventHandler, QueryBus } from '@nestjs/cqrs';
+import { IEventHandler } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
@@ -14,7 +14,6 @@ export class StopNodeHandler implements IEventHandler<StopNodeEvent> {
     constructor(
         private readonly axios: AxiosService,
         private readonly nodesRepository: NodesRepository,
-        private readonly queryBus: QueryBus,
     ) {}
     async handle(event: StopNodeEvent) {
         try {
@@ -34,7 +33,7 @@ export class StopNodeHandler implements IEventHandler<StopNodeEvent> {
             });
             return;
         } catch (error) {
-            this.logger.error(`Error in NodeCreatedHandler: ${JSON.stringify(error)}`);
+            this.logger.error(`Error in Event StopNodeHandler: ${error}`);
         }
     }
 }

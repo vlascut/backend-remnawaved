@@ -1,6 +1,5 @@
 import { Controller, Get, HttpCode, HttpStatus, UseFilters, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CommandBus } from '@nestjs/cqrs';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -21,10 +20,7 @@ import { KeygenResponseModel } from './model';
 @UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 export class KeygenController {
-    constructor(
-        private readonly keygenService: KeygenService,
-        private readonly commandBus: CommandBus,
-    ) {}
+    constructor(private readonly keygenService: KeygenService) {}
 
     @ApiOkResponse({
         type: [GetPubKeyResponseDto],

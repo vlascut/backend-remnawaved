@@ -39,7 +39,7 @@ export class RecordUserUsageService {
 
     private checkJobRunning(): boolean {
         if (this.isJobRunning) {
-            this.logger.debug(
+            this.logger.log(
                 `Job ${this.cronName} is already running. Will retry at ${this.schedulerRegistry.getCronJob(this.cronName).nextDate().toISOTime()}`,
             );
             return false;
@@ -83,7 +83,7 @@ export class RecordUserUsageService {
 
             this.logger.debug(`User usage history recorded. Time: ${formatExecutionTime(ct)}`);
         } catch (error) {
-            this.logger.error(error);
+            this.logger.error(`Error in RecordUserUsageService: ${error}`);
         } finally {
             this.isJobRunning = false;
         }
@@ -96,7 +96,6 @@ export class RecordUserUsageService {
         let usersOnline = 0;
 
         for (const xrayUser of response.response.users) {
-            this.logger.debug(`User: ${JSON.stringify(xrayUser)}`);
             totalDownlink += xrayUser.downlink;
             totalUplink += xrayUser.uplink;
 
