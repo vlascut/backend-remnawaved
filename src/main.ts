@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import compression from 'compression';
 import * as winston from 'winston';
+import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
@@ -12,6 +13,7 @@ import { getSwagger } from '@common/utils/startup-app/swagger';
 import { ROOT } from '@contract/api';
 
 import { AppModule } from './app.module';
+
 patchNestJsSwagger();
 
 async function bootstrap(): Promise<void> {
@@ -32,28 +34,9 @@ async function bootstrap(): Promise<void> {
         }),
     });
 
-    console.log('123');
+    app.use(json({ limit: '100mb' }));
 
     const config = app.get(ConfigService);
-
-    // app.use(
-    //     helmet({
-    //         contentSecurityPolicy: {
-    //             directives: {
-    //                 defaultSrc: ["'self'", 'https://remnawave.github.io'],
-    //                 scriptSrc: [
-    //                     "'self'",
-    //                     'https://cdn.jsdelivr.net',
-    //                     'https://remnawave.github.io',
-    //                     "'unsafe-eval'",
-    //                 ],
-    //                 imgSrc: ["'self'", 'https://img.shields.io', 'data:'],
-    //                 connectSrc: ["'self'", 'https://remnawave.github.io'],
-    //                 workerSrc: ["'self'", 'blob:'],
-    //             },
-    //         },
-    //     }),
-    // );
 
     app.use(
         helmet({
@@ -81,6 +64,7 @@ async function bootstrap(): Promise<void> {
     });
     app.useGlobalPipes(new ZodValidationPipe());
     app.enableShutdownHooks();
+
     getSwagger(app, config);
     await app.listen(Number(config.getOrThrow<string>('APP_PORT')));
 }
