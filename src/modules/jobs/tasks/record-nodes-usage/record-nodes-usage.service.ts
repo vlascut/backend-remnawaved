@@ -71,6 +71,9 @@ export class RecordNodesUsageService {
                 switch (response.isOk) {
                     case true:
                         return this.handleOk(node, response.response!);
+                    case false:
+                        this.logger.error(`Can't get nodes stats, node: ${node.name}`);
+                        return;
                 }
             };
 
@@ -84,8 +87,10 @@ export class RecordNodesUsageService {
         }
     }
 
-    private async handleOk(node: NodesEntity, response: GetAllOutboundsStatsCommand.Response) {
-        let totalBytes = 0;
+    private async handleOk(
+        node: NodesEntity,
+        response: GetAllOutboundsStatsCommand.Response,
+    ): Promise<void> {
         let totalDownlink = 0;
         let totalUplink = 0;
 
@@ -98,7 +103,7 @@ export class RecordNodesUsageService {
             return;
         }
 
-        totalBytes = totalDownlink + totalUplink;
+        const totalBytes = totalDownlink + totalUplink;
 
         await this.reportUsageHistory({
             nodeUsageHistory: new NodesUsageHistoryEntity({
@@ -114,6 +119,8 @@ export class RecordNodesUsageService {
             nodeUuid: node.uuid,
             bytes: BigInt(totalBytes),
         });
+
+        return;
     }
 
     private async getOnlineNodes(): Promise<ICommandResponse<NodesEntity[]>> {
