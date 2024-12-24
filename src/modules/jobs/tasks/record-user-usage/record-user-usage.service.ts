@@ -96,8 +96,6 @@ export class RecordUserUsageService {
         let usersOnline = 0;
 
         for (const xrayUser of response.response.users) {
-            this.logger.log(`${JSON.stringify(xrayUser)}, node: ${node.name}`);
-
             const totalDownlink = xrayUser.downlink;
             const totalUplink = xrayUser.uplink;
 
@@ -132,9 +130,6 @@ export class RecordUserUsageService {
                 userUuid: user.uuid,
                 bytes: BigInt(totalBytes),
             });
-            this.logger.log(
-                `Updated user ${user.username} traffic, ${totalBytes} bytes, node: ${node.name}`,
-            );
         }
 
         await this.updateNode({
@@ -143,10 +138,6 @@ export class RecordUserUsageService {
                 usersOnline,
             },
         });
-
-        this.logger.log(`Total ${JSON.stringify(response.response.users)}, node: ${node.name}`);
-
-        this.logger.log(`Total users online: ${usersOnline}, node: ${node.name}`);
     }
 
     private async getOnlineNodes(): Promise<ICommandResponse<NodesEntity[]>> {
