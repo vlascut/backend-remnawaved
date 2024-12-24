@@ -68,6 +68,10 @@ export class UsersService {
             );
         }
 
+        if (user.response.isNeedToBeAddedToNode) {
+            this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
+        }
+
         this.eventEmitter.emit(EVENTS.USER.MODIFIED, new UserEvent(user.response.user));
 
         return user;
@@ -77,6 +81,7 @@ export class UsersService {
     public async updateUserTransactional(dto: UpdateUserRequestDto): Promise<
         ICommandResponse<{
             inboubdsChanged: boolean;
+            isNeedToBeAddedToNode: boolean;
             oldInboundTags: string[];
             user: UserWithActiveInboundsEntity;
         }>
@@ -98,6 +103,9 @@ export class UsersService {
                     ...ERRORS.USER_NOT_FOUND,
                 };
             }
+
+            const isNeedToBeAddedToNode =
+                user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
 
             const result = await this.userRepository.update({
                 uuid: user.uuid,
@@ -159,6 +167,7 @@ export class UsersService {
                     user: userWithInbounds,
                     inboubdsChanged: inboundsChanged,
                     oldInboundTags: oldInboundTags,
+                    isNeedToBeAddedToNode,
                 },
             };
         } catch (error) {
