@@ -76,6 +76,9 @@ export class RecordUserUsageService {
                 switch (response.isOk) {
                     case true:
                         return await this.handleOk(node, response.response!);
+                    case false:
+                        this.logger.error(`Can't get users stats, node: ${node.name}`);
+                        return;
                 }
             };
 
@@ -90,15 +93,13 @@ export class RecordUserUsageService {
     }
 
     private async handleOk(node: NodesEntity, response: GetUsersStatsCommand.Response) {
-        let totalBytes = 0;
-        let totalDownlink = 0;
-        let totalUplink = 0;
         let usersOnline = 0;
 
         for (const xrayUser of response.response.users) {
             this.logger.log(`${JSON.stringify(xrayUser)}, node: ${node.name}`);
-            totalDownlink += xrayUser.downlink;
-            totalUplink += xrayUser.uplink;
+
+            const totalDownlink = xrayUser.downlink;
+            const totalUplink = xrayUser.uplink;
 
             if (totalDownlink === 0 && totalUplink === 0) {
                 continue;
@@ -114,7 +115,7 @@ export class RecordUserUsageService {
 
             const user = userResponse.response;
 
-            totalBytes = totalDownlink + totalUplink;
+            const totalBytes = totalDownlink + totalUplink;
 
             await this.reportUserUsageHistory({
                 userUsageHistory: new NodesUserUsageHistoryEntity({
@@ -134,18 +135,16 @@ export class RecordUserUsageService {
             this.logger.log(
                 `Updated user ${user.username} traffic, ${totalBytes} bytes, node: ${node.name}`,
             );
-
-            await this.updateNode({
-                node: {
-                    uuid: node.uuid,
-                    usersOnline,
-                },
-            });
         }
 
-        this.logger.log(`Total ${JSON.stringify(response.response.users)}, node: ${node.name}`);
+        await this.updateNode({
+            node: {
+                uuid: node.uuid,
+                usersOnline,
+            },
+        });
 
-        this.logger.log(`Total bytes: ${totalBytes}, node: ${node.name}`);
+        this.logger.log(`Total ${JSON.stringify(response.response.users)}, node: ${node.name}`);
 
         this.logger.log(`Total users online: ${usersOnline}, node: ${node.name}`);
     }
