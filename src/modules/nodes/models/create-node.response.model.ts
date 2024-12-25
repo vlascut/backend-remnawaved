@@ -1,3 +1,5 @@
+import { InboundsEntity } from '@modules/inbounds/entities';
+
 import { NodesEntity } from '../entities/nodes.entity';
 
 export class CreateNodeResponseModel {
@@ -27,6 +29,8 @@ export class CreateNodeResponseModel {
     public createdAt: Date;
     public updatedAt: Date;
 
+    public excludedInbounds: InboundsEntity[];
+
     constructor(data: NodesEntity) {
         this.uuid = data.uuid;
         this.name = data.name;
@@ -52,5 +56,7 @@ export class CreateNodeResponseModel {
 
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
+
+        this.excludedInbounds = data.excludedInbounds;
     }
 }

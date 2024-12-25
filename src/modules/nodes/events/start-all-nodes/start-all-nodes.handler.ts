@@ -27,20 +27,25 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
     }
     async handle() {
         try {
-            const configRespone = await this.getConfigForNode();
-
-            if (!configRespone.isOk || !configRespone.response) {
-                throw new Error('Failed to get config for node');
-            }
-
-            const config = configRespone.response as unknown as Record<string, unknown>;
-
             const nodes = await this.nodesRepository.findByCriteria({
                 isDisabled: false,
             });
 
             const mapper = async (node: NodesEntity) => {
-                const response = await this.axios.startXray(config, node.address, node.port);
+                const config = await this.getConfigForNode({
+                    excludedInbounds: node.excludedInbounds,
+                });
+
+                if (!config.isOk || !config.response) {
+                    return;
+                }
+
+                const response = await this.axios.startXray(
+                    config.response as unknown as Record<string, unknown>,
+                    node.address,
+                    node.port,
+                );
+
                 switch (response.isOk) {
                     case false:
                         await this.nodesRepository.update({
@@ -90,10 +95,12 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
         }
     }
 
-    private getConfigForNode(): Promise<ICommandResponse<IXrayConfig>> {
+    private getConfigForNode(
+        dto: GetPreparedConfigWithUsersQuery,
+    ): Promise<ICommandResponse<IXrayConfig>> {
         return this.queryBus.execute<
             GetPreparedConfigWithUsersQuery,
             ICommandResponse<IXrayConfig>
-        >(new GetPreparedConfigWithUsersQuery());
+        >(new GetPreparedConfigWithUsersQuery(dto.excludedInbounds));
     }
 }

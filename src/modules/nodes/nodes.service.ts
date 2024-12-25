@@ -1,8 +1,10 @@
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { EventBus } from '@nestjs/cqrs';
+import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
+import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, EVENTS } from '@contract/constants';
@@ -11,9 +13,9 @@ import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
 import { CreateNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { NodesRepository } from './repositories/nodes.repository';
 import { StartAllNodesEvent } from './events/start-all-nodes';
-import { NodesEntity } from './entities/nodes.entity';
 import { StartNodeEvent } from './events/start-node';
 import { StopNodeEvent } from './events/stop-node';
+import { NodesEntity } from './entities';
 
 @Injectable()
 export class NodesService {
@@ -23,19 +25,32 @@ export class NodesService {
         private readonly nodesRepository: NodesRepository,
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
+        private readonly commandBus: CommandBus,
     ) {}
 
     public async createNode(body: CreateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
         try {
+            const { excludedInbounds, ...nodeData } = body;
+
+            const uuid = randomUUID();
+
+            if (excludedInbounds) {
+                await this.resetNodeInboundExclusions({
+                    nodeUuid: uuid,
+                    excludedInbounds: excludedInbounds,
+                });
+            }
+
             const nodeEntity = new NodesEntity({
-                ...body,
+                ...nodeData,
+                uuid,
                 isConnected: false,
                 isConnecting: false,
                 isDisabled: false,
                 isNodeOnline: false,
                 isXrayRunning: false,
-                trafficLimitBytes: body.trafficLimitBytes
-                    ? BigInt(body.trafficLimitBytes)
+                trafficLimitBytes: nodeData.trafficLimitBytes
+                    ? BigInt(nodeData.trafficLimitBytes)
                     : undefined,
             });
             const result = await this.nodesRepository.create(nodeEntity);
@@ -193,6 +208,8 @@ export class NodesService {
 
     public async updateNode(body: UpdateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
         try {
+            const { excludedInbounds, ...nodeData } = body;
+
             const node = await this.nodesRepository.findByUUID(body.uuid);
             if (!node) {
                 return {
@@ -201,10 +218,17 @@ export class NodesService {
                 };
             }
 
+            if (excludedInbounds) {
+                await this.resetNodeInboundExclusions({
+                    nodeUuid: node.uuid,
+                    excludedInbounds: excludedInbounds,
+                });
+            }
+
             const result = await this.nodesRepository.update({
-                ...body,
-                trafficLimitBytes: body.trafficLimitBytes
-                    ? BigInt(body.trafficLimitBytes)
+                ...nodeData,
+                trafficLimitBytes: nodeData.trafficLimitBytes
+                    ? BigInt(nodeData.trafficLimitBytes)
                     : undefined,
             });
 
@@ -312,5 +336,14 @@ export class NodesService {
                 ...ERRORS.ENABLE_NODE_ERROR,
             };
         }
+    }
+
+    private async resetNodeInboundExclusions(
+        dto: ResetNodeInboundExclusionsByNodeUuidCommand,
+    ): Promise<ICommandResponse<number>> {
+        return this.commandBus.execute<
+            ResetNodeInboundExclusionsByNodeUuidCommand,
+            ICommandResponse<number>
+        >(new ResetNodeInboundExclusionsByNodeUuidCommand(dto.nodeUuid, dto.excludedInbounds));
     }
 }

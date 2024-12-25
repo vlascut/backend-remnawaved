@@ -1,5 +1,9 @@
 import { Nodes } from '@prisma/client';
 
+import { InboundsEntity } from '@modules/inbounds/entities';
+
+import { INodeWithExcludedInbounds } from '../interfaces';
+
 export class NodesEntity implements Nodes {
     public uuid: string;
     public name: string;
@@ -28,8 +32,19 @@ export class NodesEntity implements Nodes {
     public createdAt: Date;
     public updatedAt: Date;
 
-    constructor(nodes: Partial<Nodes>) {
-        Object.assign(this, nodes);
+    public excludedInbounds: InboundsEntity[];
+
+    constructor(node: Partial<INodeWithExcludedInbounds> & Partial<Nodes>) {
+        Object.assign(this, node);
+
+        if (node.inboundsExclusions) {
+            this.excludedInbounds = node.inboundsExclusions.map((item) => ({
+                uuid: item.inbound.uuid,
+                tag: item.inbound.tag,
+                type: item.inbound.type,
+            }));
+        }
+
         return this;
     }
 }

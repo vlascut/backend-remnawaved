@@ -65,7 +65,14 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
             };
 
             const mapper = async (node: NodesEntity) => {
-                const response = await this.axios.addUser(userData, node.address, node.port);
+                const excludedTags = new Set(node.excludedInbounds.map((inbound) => inbound.tag));
+
+                const filteredData = {
+                    ...userData,
+                    data: userData.data.filter((item) => !excludedTags.has(item.tag)),
+                };
+
+                const response = await this.axios.addUser(filteredData, node.address, node.port);
                 return {
                     nodeName: node.name,
                     response,

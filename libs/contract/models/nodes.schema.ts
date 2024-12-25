@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { InboundsSchema } from './inbounds.schema';
+
 export const NodesSchema = z.object({
     uuid: z.string().uuid(),
     name: z.string(),
@@ -26,4 +28,6 @@ export const NodesSchema = z.object({
 
     createdAt: z.string().transform((str) => new Date(str)),
     updatedAt: z.string().transform((str) => new Date(str)),
+
+    excludedInbounds: z.array(InboundsSchema),
 });

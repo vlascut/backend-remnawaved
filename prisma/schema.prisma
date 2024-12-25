@@ -103,8 +103,20 @@ model Nodes {
   nodesTrafficUsageHistory NodesTrafficUsageHistory[]
   nodesUserUsageHistory    NodesUserUsageHistory[]
   nodesUsageHistory        NodesUsageHistory[]
+  inboundsExclusions       NodeInboundExclusions[]
 
   @@map("nodes")
+}
+
+model NodeInboundExclusions {
+  nodeUuid    String @map("node_uuid") @db.Uuid
+  inboundUuid String @map("inbound_uuid") @db.Uuid
+
+  node    Nodes    @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
+  inbound Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
+
+  @@id([nodeUuid, inboundUuid])
+  @@map("node_inbound_exclusions")
 }
 
 model NodesTrafficUsageHistory {
@@ -176,6 +188,7 @@ model Inbounds {
 
   hosts              Hosts[]
   activeUserInbounds ActiveUserInbounds[]
+  nodeExclusions     NodeInboundExclusions[]
 
   @@map("inbounds")
 }

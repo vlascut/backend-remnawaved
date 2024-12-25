@@ -22,8 +22,11 @@ export class GetPreparedConfigWithUsersHandler
         private readonly queryBus: QueryBus,
     ) {}
 
-    async execute(): Promise<ICommandResponse<IXrayConfig>> {
+    async execute(query: GetPreparedConfigWithUsersQuery): Promise<ICommandResponse<IXrayConfig>> {
         try {
+            const { excludedInbounds } = query;
+            const excludedTags = new Set(excludedInbounds.map((inbound) => inbound.tag));
+
             const users = await this.getUsersForConfig();
 
             if (!users.isOk || !users.response) {
@@ -32,9 +35,20 @@ export class GetPreparedConfigWithUsersHandler
 
             const config = await this.xrayService.getConfigWithUsers(users.response);
 
+            if (!config.response) {
+                throw new Error('Config response is empty');
+            }
+
+            const filteredConfig: IXrayConfig = {
+                ...config.response,
+                inbounds: config.response.inbounds.filter(
+                    (inbound) => !excludedTags.has(inbound.tag),
+                ),
+            };
+
             return {
                 isOk: true,
-                response: config.response,
+                response: filteredConfig,
             };
         } catch (error) {
             this.logger.error(error);

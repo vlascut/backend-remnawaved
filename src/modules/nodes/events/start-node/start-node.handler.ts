@@ -6,6 +6,7 @@ import { Logger } from '@nestjs/common';
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
+import { InboundsEntity } from '@modules/inbounds/entities';
 import { EVENTS } from '@libs/contracts/constants';
 import { AxiosService } from '@common/axios';
 
@@ -28,7 +29,7 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
             const nodeEntity = event.node;
 
             const startTime = Date.now();
-            const config = await this.getConfigForNode();
+            const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
             this.logger.debug(`Generated config for node in ${Date.now() - startTime}ms`);
 
             if (!config.isOk || !config.response) {
@@ -88,10 +89,12 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
         }
     }
 
-    private getConfigForNode(): Promise<ICommandResponse<IXrayConfig>> {
+    private getConfigForNode(
+        excludedInbounds: InboundsEntity[],
+    ): Promise<ICommandResponse<IXrayConfig>> {
         return this.queryBus.execute<
             GetPreparedConfigWithUsersQuery,
             ICommandResponse<IXrayConfig>
-        >(new GetPreparedConfigWithUsersQuery());
+        >(new GetPreparedConfigWithUsersQuery(excludedInbounds));
     }
 }

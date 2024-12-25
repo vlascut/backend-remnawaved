@@ -7,6 +7,20 @@ import { ICrud } from '@common/types/crud-port';
 import { NodesEntity } from '../entities/nodes.entity';
 import { NodesConverter } from '../nodes.converter';
 
+const ADD_EXCLUSIONS_SELECT = {
+    inboundsExclusions: {
+        select: {
+            inbound: {
+                select: {
+                    uuid: true,
+                    tag: true,
+                    type: true,
+                },
+            },
+        },
+    },
+} as const;
+
 @Injectable()
 export class NodesRepository implements ICrud<NodesEntity> {
     constructor(
@@ -20,7 +34,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
             data: model,
         });
 
-        return this.nodesConverter.fromPrismaModelToEntity(result);
+        return new NodesEntity(result);
     }
 
     public async findConnectedNodes(): Promise<NodesEntity[]> {
@@ -31,8 +45,10 @@ export class NodesRepository implements ICrud<NodesEntity> {
                 isNodeOnline: true,
                 isDisabled: false,
             },
+            include: ADD_EXCLUSIONS_SELECT,
         });
-        return this.nodesConverter.fromPrismaModelsToEntities(nodesList);
+
+        return nodesList.map((value) => new NodesEntity(value));
     }
 
     public async incrementUsedTraffic(nodeUuid: string, bytes: bigint): Promise<void> {
@@ -45,11 +61,12 @@ export class NodesRepository implements ICrud<NodesEntity> {
     public async findByUUID(uuid: string): Promise<NodesEntity | null> {
         const result = await this.prisma.tx.nodes.findUnique({
             where: { uuid },
+            include: ADD_EXCLUSIONS_SELECT,
         });
         if (!result) {
             return null;
         }
-        return this.nodesConverter.fromPrismaModelToEntity(result);
+        return new NodesEntity(result);
     }
 
     public async update({ uuid, ...data }: Partial<NodesEntity>): Promise<NodesEntity> {
@@ -58,9 +75,10 @@ export class NodesRepository implements ICrud<NodesEntity> {
                 uuid,
             },
             data,
+            include: ADD_EXCLUSIONS_SELECT,
         });
 
-        return this.nodesConverter.fromPrismaModelToEntity(result);
+        return new NodesEntity(result);
     }
 
     public async findByCriteria(dto: Partial<NodesEntity>): Promise<NodesEntity[]> {
@@ -69,20 +87,22 @@ export class NodesRepository implements ICrud<NodesEntity> {
             orderBy: {
                 createdAt: 'asc',
             },
+            include: ADD_EXCLUSIONS_SELECT,
         });
-        return this.nodesConverter.fromPrismaModelsToEntities(nodesList);
+        return nodesList.map((value) => new NodesEntity(value));
     }
 
     public async findFirstByCriteria(dto: Partial<NodesEntity>): Promise<NodesEntity | null> {
         const result = await this.prisma.tx.nodes.findFirst({
             where: dto,
+            include: ADD_EXCLUSIONS_SELECT,
         });
 
         if (!result) {
             return null;
         }
 
-        return this.nodesConverter.fromPrismaModelToEntity(result);
+        return new NodesEntity(result);
     }
 
     public async deleteByUUID(uuid: string): Promise<boolean> {

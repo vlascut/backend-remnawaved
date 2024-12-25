@@ -29,6 +29,11 @@ export namespace CreateNodeCommand {
                 .min(1, 'Traffic reset day must be greater than 0')
                 .max(31, 'Traffic reset day must be less than 31'),
         ),
+        excludedInbounds: z.optional(
+            z.array(z.string().uuid(), {
+                invalid_type_error: 'Excluded inbounds must be an array of UUIDs',
+            }),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

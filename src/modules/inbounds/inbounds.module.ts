@@ -1,6 +1,8 @@
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
 
+import { NodeInboundExclusionsRepository } from './repositories/node-inbound-exclusions.repository';
+import { NodeInboundExclusionsConverter } from './converters/node-inbound-exclusions.converter';
 import { ActiveUserInboundsRepository } from './repositories/active-user-inbounds.repository';
 import { ActiveUserInboundsConverter } from './converters/active-user-inbounds.converter';
 import { InboundsRepository } from './repositories/inbounds.repository';
@@ -21,6 +23,8 @@ import { QUERIES } from './queries';
         ActiveUserInboundsRepository,
         ActiveUserInboundsConverter,
         InboundsService,
+        NodeInboundExclusionsRepository,
+        NodeInboundExclusionsConverter,
     ],
 })
 export class InboundsModule {}

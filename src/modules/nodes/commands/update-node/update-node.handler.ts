@@ -26,7 +26,7 @@ export class UpdateNodeHandler
                 response: node,
             };
         } catch (error: unknown) {
-            this.logger.error(`Error: ${JSON.stringify(error)}`);
+            this.logger.error(`Error: ${error}`);
             return {
                 isOk: false,
                 ...ERRORS.UPDATE_NODE_ERROR,
