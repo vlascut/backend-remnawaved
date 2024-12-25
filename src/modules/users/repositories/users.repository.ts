@@ -628,8 +628,8 @@ export class UsersRepository implements ICrud<UserEntity> {
         const [result] = await this.prisma.tx.$queryRaw<[IUserOnlineStats]>`
             SELECT 
                 COUNT(CASE WHEN "online_at" >= ${oneMinuteAgo} THEN 1 END) as "onlineNow",
-                COUNT(CASE WHEN "online_at" >= ${oneDayAgo} AND "online_at" < ${oneMinuteAgo} THEN 1 END) as "lastDay",
-                COUNT(CASE WHEN "online_at" >= ${oneWeekAgo} AND "online_at" < ${oneDayAgo} THEN 1 END) as "lastWeek",
+                COUNT(CASE WHEN "online_at" >= ${oneDayAgo} THEN 1 END) as "lastDay",
+                COUNT(CASE WHEN "online_at" >= ${oneWeekAgo} THEN 1 END) as "lastWeek",
                 COUNT(CASE WHEN "online_at" IS NULL THEN 1 END) as "neverOnline"
             FROM users
         `;
