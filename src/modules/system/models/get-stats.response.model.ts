@@ -12,10 +12,15 @@ interface IGetStatsResponseData {
         total: number;
         used: number;
     };
+    onlineStats: {
+        lastDay: number;
+        lastWeek: number;
+        neverOnline: number;
+        onlineNow: number;
+    };
     timestamp: number;
     uptime: number;
     users: {
-        onlineLastMinute: number;
         statusCounts: Record<TUsersStatus, number>;
         totalTrafficBytes: bigint;
         totalUsers: number;
@@ -37,10 +42,15 @@ export class GetStatsResponseModel {
     uptime: number;
     timestamp: number;
     users: {
-        onlineLastMinute: number;
         statusCounts: Record<TUsersStatus, number>;
         totalTrafficBytes: string;
         totalUsers: number;
+    };
+    onlineStats: {
+        lastDay: number;
+        lastWeek: number;
+        neverOnline: number;
+        onlineNow: number;
     };
 
     constructor(data: IGetStatsResponseData) {
@@ -52,5 +62,6 @@ export class GetStatsResponseModel {
             ...data.users,
             totalTrafficBytes: data.users.totalTrafficBytes.toString(),
         };
+        this.onlineStats = data.onlineStats;
     }
 }

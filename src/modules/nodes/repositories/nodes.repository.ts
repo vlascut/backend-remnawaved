@@ -32,6 +32,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
         const model = this.nodesConverter.fromEntityToPrismaModel(entity);
         const result = await this.prisma.tx.nodes.create({
             data: model,
+            include: ADD_EXCLUSIONS_SELECT,
         });
 
         return new NodesEntity(result);

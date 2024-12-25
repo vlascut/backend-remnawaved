@@ -1,6 +1,8 @@
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
+import utc from 'dayjs/plugin/utc';
+import dayjs from 'dayjs';
 
 import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
 import { TUsersStatus, USERS_STATUS } from '@contract/constants';
@@ -9,11 +11,12 @@ import { ICrud } from '@common/types/crud-port';
 
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
+import { IGetUsersOptions, IUserOnlineStats, IUserStats } from '../interfaces';
 import { UserForConfigEntity } from '../entities/users-for-config';
-import { UserStats } from '../interfaces/user-stats.interface';
 import { UserEntity } from '../entities/users.entity';
 import { UserConverter } from '../users.converter';
-import { IGetUsersOptions } from '../interfaces';
+
+dayjs.extend(utc);
 
 @Injectable()
 export class UsersRepository implements ICrud<UserEntity> {
@@ -349,16 +352,6 @@ export class UsersRepository implements ICrud<UserEntity> {
             };
         }, {});
 
-        // let orderBy = sorting?.length
-        //     ? sorting.reduce(
-        //           (acc, sort) => ({
-        //               ...acc,
-        //               [sort.id]: sort.desc ? 'desc' : 'asc',
-        //           }),
-        //           {},
-        //       )
-        //     : undefined;
-
         let orderBy = sorting?.length
             ? sorting
                   .filter((sort) => sort.id !== 'totalUsedBytes')
@@ -585,18 +578,8 @@ export class UsersRepository implements ICrud<UserEntity> {
         return !!result;
     }
 
-    public async getUserStats(): Promise<UserStats> {
-        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-
-        const [onlineCount, statusCounts, totalTraffic] = await Promise.all([
-            this.prisma.tx.users.count({
-                where: {
-                    onlineAt: {
-                        gte: oneMinuteAgo,
-                    },
-                },
-            }),
-
+    public async getUserStats(): Promise<IUserStats> {
+        const [statusCounts, totalTraffic] = await Promise.all([
             this.prisma.tx.users.groupBy({
                 by: ['status'],
                 _count: {
@@ -616,7 +599,6 @@ export class UsersRepository implements ICrud<UserEntity> {
             }),
         ]);
 
-        // Transform into object with all statuses
         const formattedStatusCounts = Object.values(USERS_STATUS).reduce(
             (acc, status) => ({
                 ...acc,
@@ -631,10 +613,32 @@ export class UsersRepository implements ICrud<UserEntity> {
         );
 
         return {
-            onlineLastMinute: onlineCount,
             statusCounts: formattedStatusCounts,
             totalUsers,
             totalTrafficBytes: totalTraffic._sum.totalBytes || BigInt(0),
+        };
+    }
+
+    public async getUserOnlineStats(): Promise<IUserOnlineStats> {
+        const now = dayjs().utc();
+        const oneMinuteAgo = now.subtract(1, 'minute').toDate();
+        const oneDayAgo = now.subtract(1, 'day').toDate();
+        const oneWeekAgo = now.subtract(1, 'week').toDate();
+
+        const [result] = await this.prisma.tx.$queryRaw<[IUserOnlineStats]>`
+            SELECT 
+                COUNT(CASE WHEN "online_at" >= ${oneMinuteAgo} THEN 1 END) as "onlineNow",
+                COUNT(CASE WHEN "online_at" >= ${oneDayAgo} AND "online_at" < ${oneMinuteAgo} THEN 1 END) as "lastDay",
+                COUNT(CASE WHEN "online_at" >= ${oneWeekAgo} AND "online_at" < ${oneDayAgo} THEN 1 END) as "lastWeek",
+                COUNT(CASE WHEN "online_at" IS NULL THEN 1 END) as "neverOnline"
+            FROM users
+        `;
+
+        return {
+            onlineNow: Number(result.onlineNow),
+            lastDay: Number(result.lastDay),
+            lastWeek: Number(result.lastWeek),
+            neverOnline: Number(result.neverOnline),
         };
     }
 }

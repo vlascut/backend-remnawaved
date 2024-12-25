@@ -2,7 +2,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
-import { randomUUID } from 'crypto';
 
 import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
@@ -32,18 +31,8 @@ export class NodesService {
         try {
             const { excludedInbounds, ...nodeData } = body;
 
-            const uuid = randomUUID();
-
-            if (excludedInbounds) {
-                await this.resetNodeInboundExclusions({
-                    nodeUuid: uuid,
-                    excludedInbounds: excludedInbounds,
-                });
-            }
-
             const nodeEntity = new NodesEntity({
                 ...nodeData,
-                uuid,
                 isConnected: false,
                 isConnecting: false,
                 isDisabled: false,
@@ -55,8 +44,21 @@ export class NodesService {
             });
             const result = await this.nodesRepository.create(nodeEntity);
 
-            this.eventBus.publish(new StartNodeEvent(result));
-            this.eventEmitter.emit(EVENTS.NODE.CREATED, new NodeEvent(result));
+            if (excludedInbounds) {
+                await this.resetNodeInboundExclusions({
+                    nodeUuid: result.uuid,
+                    excludedInbounds: excludedInbounds,
+                });
+            }
+
+            const node = await this.nodesRepository.findByUUID(result.uuid);
+
+            if (!node) {
+                throw new Error('Node not found');
+            }
+
+            this.eventBus.publish(new StartNodeEvent(node));
+            this.eventEmitter.emit(EVENTS.NODE.CREATED, new NodeEvent(node));
 
             return {
                 isOk: true,

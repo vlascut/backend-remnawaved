@@ -24,7 +24,7 @@ import {
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
 import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
-import { UserStats } from '../users/interfaces/user-stats.interface';
+import { ShortUserStats } from '../users/interfaces/user-stats.interface';
 import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 
 @Injectable()
@@ -61,7 +61,8 @@ export class SystemService {
                     },
                     uptime: time.uptime,
                     timestamp: Date.now(),
-                    users: userStats.response,
+                    users: userStats.response.statusCounts,
+                    onlineStats: userStats.response.onlineStats,
                 }),
             };
         } catch (error) {
@@ -132,8 +133,8 @@ export class SystemService {
         }
     }
 
-    private async getShortUserStats(): Promise<ICommandResponse<UserStats>> {
-        return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<UserStats>>(
+    private async getShortUserStats(): Promise<ICommandResponse<ShortUserStats>> {
+        return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<ShortUserStats>>(
             new GetShortUserStatsQuery(),
         );
     }

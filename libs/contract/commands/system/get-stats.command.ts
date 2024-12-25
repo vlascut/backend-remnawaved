@@ -29,13 +29,18 @@ export namespace GetStatsCommand {
             uptime: z.number(),
             timestamp: z.number(),
             users: z.object({
-                onlineLastMinute: z.number(),
                 statusCounts: z.record(
                     z.enum(Object.values(USERS_STATUS) as [string, ...string[]]),
                     z.number(),
                 ),
                 totalUsers: z.number(),
                 totalTrafficBytes: z.string(),
+            }),
+            onlineStats: z.object({
+                lastDay: z.number(),
+                lastWeek: z.number(),
+                neverOnline: z.number(),
+                onlineNow: z.number(),
             }),
         }),
     });
