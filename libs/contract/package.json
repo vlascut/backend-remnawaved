@@ -1,7 +1,17 @@
 {
   "name": "@remnawave/backend-contract",
-  "version": "0.0.66",
+  "version": "0.0.67",
+  "public": true,
   "description": "A contract library for Remnawave",
+  "author": "REMNAWAVE <github.com/remnawave>",
+  "homepage": "https://github.com/remnawave",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/remnawave/backend"
+  },
+  "bugs": {
+    "url": "https://github.com/remnawave/backend/issues"
+  },
   "main": "build/backend/index.js",
   "browser": "build/frontend/index.js",
   "types": "build/backend/index.d.ts",
@@ -16,7 +26,6 @@
     "prepublish": "npm run build"
   },
   "keywords": [],
-  "author": "REMNAWAVE",
   "license": "ISC",
   "dependencies": {
     "zod": "^3.22.4"
