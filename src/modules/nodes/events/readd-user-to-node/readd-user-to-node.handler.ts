@@ -96,6 +96,16 @@ export class ReaddUserToNodeHandler implements IEventHandler<ReaddUserToNodeEven
                     data: userData.data.filter((item) => !excludedTags.has(item.tag)),
                 };
 
+                if (filteredData.data.length === 0) {
+                    return {
+                        nodeName: node.name,
+                        response: {
+                            isOk: true,
+                            message: 'All inbounds are excluded',
+                        },
+                    };
+                }
+
                 const response = await this.axios.addUser(filteredData, node.address, node.port);
                 return {
                     nodeName: node.name,
