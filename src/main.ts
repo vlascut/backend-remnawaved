@@ -10,28 +10,31 @@ import morgan from 'morgan';
 
 import { isDevelopment } from '@common/utils/startup-app/is-development';
 import { getSwagger } from '@common/utils/startup-app/swagger';
+import { getRealIp } from '@common/middlewares/get-real-ip';
 import { ROOT } from '@contract/api';
 
 import { AppModule } from './app.module';
 
 patchNestJsSwagger();
 
+const logger = WinstonModule.createLogger({
+    transports: [new winston.transports.Console()],
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.ms(),
+        nestWinstonModuleUtilities.format.nestLike('', {
+            colors: true,
+            prettyPrint: true,
+            processId: false,
+            appName: false,
+        }),
+    ),
+    level: isDevelopment() ? 'debug' : 'info',
+});
+
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule, {
-        logger: WinstonModule.createLogger({
-            transports: [new winston.transports.Console()],
-            format: winston.format.combine(
-                winston.format.timestamp(),
-                winston.format.ms(),
-                nestWinstonModuleUtilities.format.nestLike('', {
-                    colors: true,
-                    prettyPrint: true,
-                    processId: true,
-                    appName: false,
-                }),
-            ),
-            level: isDevelopment() ? 'debug' : 'info',
-        }),
+        logger: logger,
     });
 
     app.use(json({ limit: '100mb' }));
@@ -54,9 +57,12 @@ async function bootstrap(): Promise<void> {
 
     app.use(compression());
 
-    app.use(morgan('short'));
+    app.use(getRealIp);
+
+    app.use(morgan('combined'));
 
     app.setGlobalPrefix(ROOT);
+
     app.enableCors({
         origin: isDevelopment() ? '*' : config.getOrThrow<string>('FRONT_END_DOMAIN'),
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

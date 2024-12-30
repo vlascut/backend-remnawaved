@@ -1,6 +1,6 @@
 {
   "name": "@remnawave/backend",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "",
   "private": true,
   "type": "commonjs",
@@ -51,6 +51,7 @@
     "@nestjs/swagger": "8.1.0",
     "@prisma/client": "5.22.0",
     "@remnawave/node-contract": "^0.3.1",
+    "@supercharge/request-ip": "^1.2.0",
     "axios": "^1.7.2",
     "compression": "^1.7.5",
     "dayjs": "^1.11.13",
