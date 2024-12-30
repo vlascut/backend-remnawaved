@@ -2,22 +2,23 @@ import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-win
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
 import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { isDevelopment } from '@common/utils/startup-app/is-development';
-import { getSwagger } from '@common/utils/startup-app/swagger';
 import { getRealIp } from '@common/middlewares/get-real-ip';
+import { isDevelopment } from '@common/utils/startup-app';
+import { getSwagger } from '@common/utils/startup-app';
 import { ROOT } from '@contract/api';
 
 import { AppModule } from './app.module';
 
 patchNestJsSwagger();
 
-const logger = WinstonModule.createLogger({
+const logger = createLogger({
     transports: [new winston.transports.Console()],
     format: winston.format.combine(
         winston.format.timestamp(),
@@ -34,7 +35,9 @@ const logger = WinstonModule.createLogger({
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule, {
-        logger: logger,
+        logger: WinstonModule.createLogger({
+            instance: logger,
+        }),
     });
 
     app.use(json({ limit: '100mb' }));
@@ -59,7 +62,12 @@ async function bootstrap(): Promise<void> {
 
     app.use(getRealIp);
 
-    app.use(morgan('combined'));
+    app.use(
+        morgan(
+            ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+            { stream: { write: (message) => logger.http(message.trim()) } },
+        ),
+    );
 
     app.setGlobalPrefix(ROOT);
 
@@ -68,6 +76,7 @@ async function bootstrap(): Promise<void> {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: false,
     });
+
     app.useGlobalPipes(new ZodValidationPipe());
     app.enableShutdownHooks();
 
