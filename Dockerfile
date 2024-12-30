@@ -1,4 +1,4 @@
-FROM node:22-slim AS build
+FROM node:22 AS build
 WORKDIR /opt/app
 
 RUN apt-get update \
@@ -23,7 +23,7 @@ COPY . .
 RUN npm run migrate:generate
 RUN npm run build
 
-FROM node:22-slim
+FROM node:22
 WORKDIR /opt/app
 
 COPY --from=build /opt/app/dist ./dist
