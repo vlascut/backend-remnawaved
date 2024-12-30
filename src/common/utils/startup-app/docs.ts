@@ -1,16 +1,18 @@
+import { apiReference } from '@scalar/nestjs-api-reference';
 import { SwaggerThemeNameEnum } from 'swagger-themes';
 import { DocumentBuilder } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerTheme } from 'swagger-themes';
-// import path from 'path';
-// import fs from 'fs';
+import { readPackageJSON } from 'pkg-types';
 
-export function getSwagger(app: INestApplication<unknown>, config: ConfigService): void {
-    const isSwaggerEnabled = config.getOrThrow<string>('IS_SWAGGER_ENABLED');
+export async function getDocs(app: INestApplication<unknown>, config: ConfigService) {
+    const isSwaggerEnabled = config.getOrThrow<string>('IS_DOCS_ENABLED');
 
     if (isSwaggerEnabled === 'true') {
+        const pkg = await readPackageJSON();
+
         const configSwagger = new DocumentBuilder()
             .setTitle('Remnawave API Schema')
             .addBearerAuth(
@@ -23,15 +25,10 @@ export function getSwagger(app: INestApplication<unknown>, config: ConfigService
                 },
                 'Authorization',
             )
-            .setDescription('API for Remnawave')
-            .setVersion('0.0.1')
+            .setDescription(pkg.description!)
+            .setVersion(pkg.version!)
             .build();
         const documentFactory = () => SwaggerModule.createDocument(app, configSwagger);
-
-        // const outputPath = path.resolve(process.cwd(), 'openapi.json');
-        // fs.writeFileSync(outputPath, JSON.stringify(documentFactory(), null, 2), {
-        //     encoding: 'utf8',
-        // });
 
         const theme = new SwaggerTheme();
         const options = {
@@ -48,6 +45,20 @@ export function getSwagger(app: INestApplication<unknown>, config: ConfigService
             app,
             documentFactory,
             options,
+        );
+
+        app.use(
+            config.getOrThrow<string>('SCALAR_PATH'),
+
+            apiReference({
+                theme: 'purple',
+                hideClientButton: false,
+                darkMode: true,
+
+                spec: {
+                    content: documentFactory,
+                },
+            }),
         );
     }
 }

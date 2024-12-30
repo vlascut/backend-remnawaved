@@ -9,9 +9,8 @@ import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
+import { getDocs, isDevelopment } from '@common/utils/startup-app';
 import { getRealIp } from '@common/middlewares/get-real-ip';
-import { isDevelopment } from '@common/utils/startup-app';
-import { getSwagger } from '@common/utils/startup-app';
 import { ROOT } from '@contract/api';
 
 import { AppModule } from './app.module';
@@ -54,6 +53,8 @@ async function bootstrap(): Promise<void> {
 
     const config = app.get(ConfigService);
 
+    getDocs(app, config);
+
     app.use(
         helmet({
             contentSecurityPolicy: {
@@ -90,7 +91,6 @@ async function bootstrap(): Promise<void> {
     app.useGlobalPipes(new ZodValidationPipe());
     app.enableShutdownHooks();
 
-    getSwagger(app, config);
     await app.listen(Number(config.getOrThrow<string>('APP_PORT')));
 }
 void bootstrap();

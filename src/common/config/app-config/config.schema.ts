@@ -13,7 +13,8 @@ export const configSchema = z.object({
     TELEGRAM_BOT_TOKEN: z.string(),
     TELEGRAM_ADMIN_ID: z.string(),
     FRONT_END_DOMAIN: z.string(),
-    IS_SWAGGER_ENABLED: z.string().default('false'),
+    IS_DOCS_ENABLED: z.string().default('false'),
+    SCALAR_PATH: z.string().default('/scalar'),
     SWAGGER_PATH: z.string().default('/docs'),
     JWT_API_TOKENS_SECRET: z.string(),
     EXPIRED_USER_REMARKS: z.string().transform((str) => {
