@@ -18,6 +18,16 @@ import { AppModule } from './app.module';
 
 patchNestJsSwagger();
 
+// const levels = {
+//     error: 0,
+//     warn: 1,
+//     info: 2,
+//     http: 3,
+//     verbose: 4,
+//     debug: 5,
+//     silly: 6,
+// };
+
 const logger = createLogger({
     transports: [new winston.transports.Console()],
     format: winston.format.combine(
@@ -30,7 +40,7 @@ const logger = createLogger({
             appName: false,
         }),
     ),
-    level: isDevelopment() ? 'debug' : 'info',
+    level: isDevelopment() ? 'debug' : 'http',
 });
 
 async function bootstrap(): Promise<void> {
