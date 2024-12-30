@@ -1,5 +1,17 @@
-FROM node:22-bookworm-slim AS build
+FROM node:22-slim AS build
 WORKDIR /opt/app
+
+RUN apt-get update \
+    && apt-get install -y curl unzip \
+    && curl -L https://github.com/remnawave/frontend/releases/latest/download/remnawave-frontend.zip -o frontend.zip \
+    && unzip frontend.zip -d frontend_temp \
+    && mkdir frontend \
+    && cp -r frontend_temp/dist/* frontend/ \
+    && rm -rf frontend_temp frontend.zip \
+    && apt-get purge -y curl unzip \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 COPY prisma ./prisma
@@ -11,17 +23,7 @@ COPY . .
 RUN npm run migrate:generate
 RUN npm run build
 
-RUN apt-get update && apt-get install -y curl unzip \
-    && curl -L https://github.com/remnawave/frontend/releases/latest/download/remnawave-frontend.zip -o frontend.zip \
-    && unzip frontend.zip -d frontend_temp \
-    && mkdir frontend \
-    && cp -r frontend_temp/dist/* frontend/ \
-    && rm -rf frontend_temp frontend.zip \
-    && apt-get remove -y curl unzip \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-FROM node:22-bookworm-slim
+FROM node:22-slim
 WORKDIR /opt/app
 
 COPY --from=build /opt/app/dist ./dist
