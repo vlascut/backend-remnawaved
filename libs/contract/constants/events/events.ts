@@ -20,5 +20,6 @@ export const EVENTS = {
         CONNECTION_LOST: 'node.connection_lost',
         CONNECTION_RESTORED: 'node.connection_restored',
         RESTARTED: 'node.restarted',
+        TRAFFIC_NOTIFY: 'node.traffic_notify',
     },
 };

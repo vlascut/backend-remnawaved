@@ -12,6 +12,7 @@ export const configSchema = z.object({
     JWT_AUTH_SECRET: z.string(),
     TELEGRAM_BOT_TOKEN: z.string(),
     TELEGRAM_ADMIN_ID: z.string(),
+    NODES_NOTIFY_CHAT_ID: z.string(),
     FRONT_END_DOMAIN: z.string(),
     IS_DOCS_ENABLED: z.string().default('false'),
     SCALAR_PATH: z.string().default('/scalar'),

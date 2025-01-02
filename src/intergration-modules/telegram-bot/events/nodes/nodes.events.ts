@@ -5,6 +5,7 @@ import { InjectBot } from '@grammyjs/nestjs';
 import { Bot, Context } from 'grammy';
 import dayjs from 'dayjs';
 
+import { prettyBytesUtil } from '@common/utils/bytes';
 import { EVENTS } from '@libs/contracts/constants';
 
 import { BOT_NAME } from '../../constants';
@@ -12,13 +13,14 @@ import { NodeEvent } from './interfaces';
 
 export class NodesEvents {
     private readonly adminId: string;
-
+    private readonly notifyChatId: string;
     constructor(
         @InjectBot(BOT_NAME)
         private readonly bot: Bot<Context>,
         private readonly configService: ConfigService,
     ) {
         this.adminId = configService.getOrThrow<string>('TELEGRAM_ADMIN_ID');
+        this.notifyChatId = configService.getOrThrow<string>('NODES_NOTIFY_CHAT_ID');
         this.bot.api.config.use(parseMode('html'));
     }
 
@@ -49,7 +51,7 @@ export class NodesEvents {
     @OnEvent(EVENTS.NODE.DISABLED)
     async onNodeDisabled(event: NodeEvent): Promise<void> {
         const msg = `
-� <b>#nodeDisabled</b>
+⚠️ <b>#nodeDisabled</b>
 ➖➖➖➖➖➖➖➖➖
 <b>Name:</b> <code>${event.node.name}</code>
 <b>Address:</b> <code>${event.node.address}</code>
@@ -96,5 +98,23 @@ export class NodesEvents {
 <b>Address:</b> <code>${event.node.address}:${event.node.port}</code>
         `;
         await this.bot.api.sendMessage(this.adminId, msg);
+    }
+
+    @OnEvent(EVENTS.NODE.TRAFFIC_NOTIFY)
+    async onNodeTrafficNotify(event: NodeEvent): Promise<void> {
+        const used = prettyBytesUtil(Number(event.node.trafficUsedBytes), true, 3, true);
+        const limit = prettyBytesUtil(Number(event.node.trafficLimitBytes), true, 3, true);
+
+        const msg = `
+📊 <b>#nodeTrafficNotify</b>
+<b>Bandwidth limit reached</b>
+🌐 <code>${used}</code> <b>/</b> <code>${limit}</code>
+➖➖➖➖➖➖➖➖➖
+<b>Name:</b> <code>${event.node.name}</code>
+<b>Address:</b> <code>${event.node.address}:${event.node.port}</code>
+<b>Traffic reset day:</b> <code>${event.node.trafficResetDay}</code>
+<b>Percent:</b> <code>${event.node.notifyPercent} %</code>
+        `;
+        await this.bot.api.sendMessage(this.notifyChatId, msg);
     }
 }

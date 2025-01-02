@@ -4,6 +4,7 @@ import { ResetNodeTrafficService } from './reset-node-traffic/reset-node-traffic
 import { NodeHealthCheckService } from './node-health-check/node-health-check.service';
 import { RecordUserUsageService } from './record-user-usage/record-user-usage.service';
 import { ReviewUsersService } from './review-users/review-users.service';
+import { ReviewNodesService } from './review-nodes/review-nodes.service';
 
 export const JOBS_SERVICES = [
     NodeHealthCheckService,
@@ -12,4 +13,5 @@ export const JOBS_SERVICES = [
     ReviewUsersService,
     ResetUserTrafficService,
     ResetNodeTrafficService,
+    ReviewNodesService,
 ];
