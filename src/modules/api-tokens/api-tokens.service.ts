@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CommandBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
@@ -16,7 +15,6 @@ import { ApiTokenEntity } from './entities/api-token.entity';
 export class ApiTokensService {
     private readonly logger = new Logger(ApiTokensService.name);
     constructor(
-        private readonly configService: ConfigService,
         private readonly apiTokensRepository: ApiTokensRepository,
         private readonly commandBus: CommandBus,
     ) {}

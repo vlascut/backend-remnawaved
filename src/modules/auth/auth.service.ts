@@ -33,11 +33,14 @@ export class AuthService {
                 };
             }
 
-            const accessToken = this.jwtService.sign({
-                username,
-                uuid: null,
-                role: ROLE.ADMIN,
-            });
+            const accessToken = this.jwtService.sign(
+                {
+                    username,
+                    uuid: null,
+                    role: ROLE.ADMIN,
+                },
+                { expiresIn: '12h' },
+            );
 
             return {
                 isOk: true,
