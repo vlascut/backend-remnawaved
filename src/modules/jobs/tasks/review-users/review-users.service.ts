@@ -7,7 +7,6 @@ import { UserEvent } from '@intergration-modules/telegram-bot/events/users/inter
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS, USERS_STATUS } from '@libs/contracts/constants';
-import { AxiosService } from '@common/axios';
 
 import { ChangeUserStatusCommand } from '../../../users/commands/change-user-status/change-user-status.command';
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
@@ -26,7 +25,6 @@ export class ReviewUsersService {
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
-        private readonly axios: AxiosService,
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
     ) {

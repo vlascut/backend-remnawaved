@@ -39,6 +39,9 @@ export const configSchema = z.object({
             throw new Error('LIMITED_USER_REMARKS must be a valid JSON array of strings');
         }
     }),
+    METRICS_USER: z.string(),
+    METRICS_PASS: z.string(),
+    METRICS_ENDPOINT: z.string().default('/metrics'),
 });
 
 export type ConfigSchema = z.infer<typeof configSchema>;

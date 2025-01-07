@@ -76,7 +76,12 @@ async function bootstrap(): Promise<void> {
     app.use(
         morgan(
             ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-            { stream: { write: (message) => logger.http(message.trim()) } },
+            {
+                skip: (req) => req.url === ROOT + (process.env.METRICS_ENDPOINT || '/metrics'),
+                stream: {
+                    write: (message) => logger.http(message.trim()),
+                },
+            },
         ),
     );
 

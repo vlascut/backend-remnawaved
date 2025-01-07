@@ -1,22 +1,24 @@
 import { GetUsersStatsCommand } from '@remnawave/node-contract';
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Injectable, Logger } from '@nestjs/common';
 import pMap from '@cjs-exporter/p-map';
+import { Gauge } from 'prom-client';
 
+import { IncrementUsedTrafficCommand } from '@modules/users/commands/increment-used-traffic/increment-used-traffic.command';
+import { NodesUserUsageHistoryEntity } from '@modules/nodes-user-usage-history/entities/nodes-user-usage-history.entity';
+import { UpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/upsert-user-history-entry';
+import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username/get-user-by-username.query';
+import { GetOnlineNodesQuery } from '@modules/nodes/queries/get-online-nodes/get-online-nodes.query';
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node/update-node.command';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
+import { UserWithActiveInboundsEntity } from '@modules/users/entities';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { AxiosService } from '@common/axios';
+import { NodesEntity } from '@modules/nodes';
 
-import { IncrementUsedTrafficCommand } from '../../../users/commands/increment-used-traffic/increment-used-traffic.command';
-import { NodesUserUsageHistoryEntity } from '../../../nodes-user-usage-history/entities/nodes-user-usage-history.entity';
-import { UpsertUserHistoryEntryCommand } from '../../../nodes-user-usage-history/commands/upsert-user-history-entry';
-import { GetUserByUsernameQuery } from '../../../users/queries/get-user-by-username/get-user-by-username.query';
-import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
-import { GetOnlineNodesQuery } from '../../../nodes/queries/get-online-nodes/get-online-nodes.query';
 import { JOBS_INTERVALS } from '../../intervals';
-import { NodesEntity } from '../../../nodes';
 
 @Injectable()
 export class RecordUserUsageService {
@@ -26,11 +28,11 @@ export class RecordUserUsageService {
     private cronName: string;
     private CONCURRENCY: number;
     constructor(
+        @InjectMetric('node_online_users') public nodeOnlineUsers: Gauge<string>,
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
         private readonly axios: AxiosService,
-        private readonly eventBus: EventBus,
     ) {
         this.isJobRunning = false;
         this.cronName = RecordUserUsageService.CRON_NAME;
@@ -138,6 +140,8 @@ export class RecordUserUsageService {
                 usersOnline,
             },
         });
+
+        this.nodeOnlineUsers.set({ node_uuid: node.uuid, node_name: node.name }, usersOnline);
     }
 
     private async getOnlineNodes(): Promise<ICommandResponse<NodesEntity[]>> {
