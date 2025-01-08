@@ -105,7 +105,11 @@ export class FormatHosts {
             const host = inputHost.host || inbound.streamSettings?.httpSettings?.host || '';
             const tls = inbound.streamSettings?.security || 'tls';
 
-            const sni = inputHost.sni || '';
+            const sni =
+                inputHost.sni ||
+                inbound.streamSettings?.realitySettings?.serverNames?.[0] ||
+                inbound.streamSettings?.tlsSettings?.serverName ||
+                '';
 
             const fp =
                 inputHost.fingerprint || inbound.streamSettings?.tlsSettings?.fingerprint || '';
@@ -115,7 +119,10 @@ export class FormatHosts {
 
             const pbk = inbound.streamSettings?.realitySettings?.privateKey || '';
 
-            const sid = inbound.streamSettings?.realitySettings?.shortIds?.join(',') || '';
+            const sid =
+                (inbound.streamSettings?.realitySettings?.shortIds || [])
+                    .filter(Boolean)
+                    .join(',') || '';
 
             const spx = inbound.streamSettings?.realitySettings?.spiderX || '';
 

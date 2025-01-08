@@ -236,6 +236,13 @@ export class SingBoxConfiguration {
             };
         }
 
+        if (!fp && tls === 'reality') {
+            config.utls = {
+                enabled: true,
+                fingerprint: 'chrome',
+            };
+        }
+
         if (alpn) {
             config.alpn = Array.isArray(alpn) ? alpn : [alpn];
         }
