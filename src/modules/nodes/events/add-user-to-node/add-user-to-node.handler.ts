@@ -54,7 +54,7 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
                                 type: inboundType,
                                 username: userEntity.username,
                                 uuid: userEntity.vlessUuid,
-                                flow: '',
+                                flow: 'xtls-rprx-vision',
                                 level: 0,
                                 tag: inbound.tag,
                             };

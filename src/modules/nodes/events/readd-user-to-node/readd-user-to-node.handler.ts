@@ -78,7 +78,7 @@ export class ReaddUserToNodeHandler implements IEventHandler<ReaddUserToNodeEven
                                 type: inboundType,
                                 username: userEntity.username,
                                 uuid: userEntity.vlessUuid,
-                                flow: '',
+                                flow: 'xtls-rprx-vision',
                                 level: 0,
                                 tag: inbound.tag,
                             };
