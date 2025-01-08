@@ -117,8 +117,10 @@ export class FormatHosts {
             const alpn =
                 inputHost.alpn || inbound.streamSettings?.tlsSettings?.alpn?.join(',') || '';
 
-            const pbk = inbound.streamSettings?.realitySettings?.privateKey || '';
+            // Public key
+            const pbk = inbound.streamSettings?.realitySettings?.publicKey || '';
 
+            // Short ID
             const sid =
                 (inbound.streamSettings?.realitySettings?.shortIds || [])
                     .filter(Boolean)

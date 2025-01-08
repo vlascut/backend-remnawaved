@@ -1,6 +1,5 @@
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -28,7 +27,6 @@ export class XrayConfigService {
 
     constructor(
         private readonly xrayConfigRepository: XrayConfigRepository,
-        private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus,
         private readonly eventBus: EventBus,

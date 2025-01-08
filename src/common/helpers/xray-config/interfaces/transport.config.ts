@@ -52,6 +52,7 @@ export interface RealityObject {
     maxTimeDiff?: number;
     minClientVer?: string;
     privateKey?: string;
+    publicKey?: string;
     serverNames?: string[];
     shortIds?: string[];
     show?: boolean;
