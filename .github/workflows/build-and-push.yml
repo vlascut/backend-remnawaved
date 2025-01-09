@@ -72,6 +72,10 @@ jobs:
     needs: [build-docker-image]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Get previous tag
         id: previoustag
         uses: 'WyriHaximus/github-action-get-previous-tag@v1'
@@ -86,7 +90,7 @@ jobs:
           body: |
             🚀 Release v${{ github.ref_name }}
 
-            📝 [Compare changes ${{ steps.previoustag.outputs.tag }}...${{ github.ref_name }}](https://github.com/${{ github.repository }}/compare/${{ steps.previoustag.outputs.tag }}...${{ github.ref_name }})
+            📝 Compare changes: [${{ steps.previoustag.outputs.tag }}...${{ github.ref_name }}](https://github.com/${{ github.repository }}/compare/${{ steps.previoustag.outputs.tag }}...${{ github.ref_name }})
 
             Latest Docker image:
             - `remnawave/backend:latest`
