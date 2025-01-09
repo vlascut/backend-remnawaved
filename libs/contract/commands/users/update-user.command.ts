@@ -54,7 +54,9 @@ export namespace UpdateUserCommand {
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({
-        response: UsersSchema,
+        response: UsersSchema.extend({
+            subscriptionUrl: z.string(),
+        }),
     });
 
     export type Response = z.infer<typeof ResponseSchema>;
