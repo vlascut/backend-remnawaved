@@ -8,6 +8,8 @@ export namespace GetSubscriptionByShortUuidCommand {
 
     export const RequestSchema = z.object({
         shortUuid: z.string(),
+        type: z.optional(z.string()),
+        encodedTag: z.optional(z.string()),
     });
 
     export type Request = z.infer<typeof RequestSchema>;
