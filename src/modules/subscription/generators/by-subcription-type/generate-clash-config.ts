@@ -374,7 +374,7 @@ export class ClashConfiguration {
             type: host.protocol,
             server: host.address,
             port: Number(host.port),
-            network: host.network || '',
+            network: host.network || 'tcp',
             tls: host.tls === 'tls',
             sni: host.sni || '',
             host: host.host[0],
@@ -390,6 +390,10 @@ export class ClashConfiguration {
         switch (host.protocol) {
             case 'trojan':
                 node.password = host.password.trojanPassword;
+                break;
+            case 'shadowsocks':
+                node.password = host.password.ssPassword;
+                node.cipher = 'chacha20-ietf-poly1305';
                 break;
             default:
                 return;

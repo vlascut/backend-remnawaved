@@ -67,6 +67,7 @@ export class FormatHosts {
                     password: {
                         trojanPassword: '00000',
                         vlessPassword: randomUUID(),
+                        ssPassword: '00000',
                     },
                 });
             });
@@ -103,13 +104,24 @@ export class FormatHosts {
                 '';
 
             const host = inputHost.host || inbound.streamSettings?.httpSettings?.host || '';
-            const tls = inbound.streamSettings?.security || 'tls';
+            const tls = inbound.streamSettings?.security || '';
 
-            const sni =
+            const isDomain = (str: string): boolean => {
+                const domainRegex =
+                    /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+                return domainRegex.test(str);
+            };
+
+            let sni =
                 inputHost.sni ||
                 inbound.streamSettings?.realitySettings?.serverNames?.[0] ||
-                inbound.streamSettings?.tlsSettings?.serverName ||
-                '';
+                inbound.streamSettings?.tlsSettings?.serverName;
+
+            if (!sni && isDomain(inputHost.address)) {
+                sni = inputHost.address;
+            } else {
+                sni = '';
+            }
 
             const fp =
                 inputHost.fingerprint || inbound.streamSettings?.tlsSettings?.fingerprint || '';
@@ -149,6 +161,7 @@ export class FormatHosts {
                 password: {
                     trojanPassword: this.user.trojanPassword,
                     vlessPassword: this.user.vlessUuid,
+                    ssPassword: this.user.ssPassword,
                 },
             });
         }

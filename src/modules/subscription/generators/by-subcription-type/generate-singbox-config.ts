@@ -18,6 +18,7 @@ interface OutboundConfig {
     flow?: string;
     method?: string;
     multiplex?: any;
+    network?: string;
     outbounds?: string[];
     password?: string;
     server: string;
@@ -416,6 +417,7 @@ export class SingBoxConfiguration {
             tag: remark,
             server: address,
             server_port: port,
+            network: net,
         };
 
         if (
@@ -467,7 +469,7 @@ export class SingBoxConfiguration {
     }
 
     public add(host: FormattedHosts): void {
-        const net = host.network;
+        const net = host.network || 'tcp';
         const path = host.path;
 
         if (net === 'kcp' || net === 'quic') {
@@ -513,7 +515,8 @@ export class SingBoxConfiguration {
                 outbound.password = host.password.trojanPassword;
                 break;
             case 'shadowsocks':
-                // TODO: add SS
+                outbound.password = host.password.ssPassword;
+                outbound.method = 'chacha20-ietf-poly1305';
 
                 break;
         }

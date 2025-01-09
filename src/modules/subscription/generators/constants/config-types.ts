@@ -23,12 +23,12 @@ export const SUBSCRIPTION_CONFIG_TYPES = {
         CONTENT_TYPE: 'application/json',
         BASE64: false,
     },
-    // OUTLINE: {
-    //     NAME: 'OUTLINE',
-    //     REGEX: /^(SS|SSR|SSD|SSS|Outline|Shadowsocks|SSconf)/,
-    //     CONTENT_TYPE: 'application/json',
-    //     BASE64: false,
-    // },
+    OUTLINE: {
+        NAME: 'OUTLINE',
+        REGEX: /^(SS|SSR|SSD|SSS|Outline|Shadowsocks|SSconf)/,
+        CONTENT_TYPE: 'application/json',
+        BASE64: false,
+    },
     XRAY: {
         NAME: 'XRAY',
         REGEX: null,

@@ -12,9 +12,14 @@ export class SubscriptionRawResponse {
         username: string;
         userStatus: TUsersStatus;
     };
-
+    public links: string[];
+    public ssConfLinks: Record<string, string>;
+    public subscriptionUrl: string;
     constructor(data: SubscriptionRawResponse) {
         this.isFound = data.isFound;
         this.user = data.user;
+        this.links = data.links || [];
+        this.ssConfLinks = data.ssConfLinks || {};
+        this.subscriptionUrl = data.subscriptionUrl;
     }
 }

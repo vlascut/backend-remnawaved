@@ -1,4 +1,7 @@
-import { AddUserCommand as AddUserToNodeCommandSdk } from '@remnawave/node-contract/build/commands';
+import {
+    AddUserCommand as AddUserToNodeCommandSdk,
+    CipherType,
+} from '@remnawave/node-contract/build/commands';
 import { IEventHandler } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
@@ -57,6 +60,16 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
                                 flow: 'xtls-rprx-vision',
                                 level: 0,
                                 tag: inbound.tag,
+                            };
+                        case 'shadowsocks':
+                            return {
+                                type: inboundType,
+                                username: userEntity.username,
+                                password: userEntity.ssPassword,
+                                level: 0,
+                                tag: inbound.tag,
+                                cipherType: CipherType.CHACHA20_POLY1305,
+                                ivCheck: false,
                             };
                         default:
                             throw new Error(`Unsupported inbound type: ${inboundType}`);

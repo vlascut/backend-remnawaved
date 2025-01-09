@@ -7,6 +7,7 @@ import {
     CertificateObject as Certificate,
     InboundObject as Inbound,
     IXrayConfig,
+    ShadowsocksSettings,
     TCtrXRayConfig,
     TrojanSettings,
     VLessSettings,
@@ -226,13 +227,13 @@ export class XRayConfig {
                         flow: 'xtls-rprx-vision',
                     });
                     break;
-                // case 'shadowsocks':
-                //     inbound.settings.clients.push({
-                //         password: user.ssPassword,
-                //         email: `${user.username}`,
-                //     });
-                //     break;
-                // TODO: add support for other protocols
+                case 'shadowsocks':
+                    (inbound.settings as ShadowsocksSettings).clients.push({
+                        password: user.ssPassword,
+                        method: 'chacha20-ietf-poly1305',
+                        email: user.username,
+                    });
+                    break;
                 default:
                     throw new Error(`Protocol ${inbound.protocol} is not supported.`);
             }

@@ -8,6 +8,7 @@ export interface FormattedHosts {
     host: string | string[];
     network: StreamSettingsObject['network'];
     password: {
+        ssPassword: string;
         trojanPassword: string;
         vlessPassword: string;
     };

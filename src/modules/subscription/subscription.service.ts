@@ -18,10 +18,13 @@ import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active
 import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
 import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
 import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
+import { FormattedHosts } from './generators/interfaces/formatted-hosts.interface';
 import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
 import { generateSubscription } from './generators/generate-subscription';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
+import { XrayLinksGenerator } from './generators/by-subcription-type';
+import { FormatHosts } from './utils/format-hosts';
 
 @Injectable()
 export class SubscriptionService {
@@ -37,6 +40,8 @@ export class SubscriptionService {
         shortUuid: string,
         userAgent: string,
         isHtml: boolean,
+        isOutlineConfig: boolean = false,
+        encodedTag?: string,
     ): Promise<
         SubscriptionNotFoundResponse | SubscriptionRawResponse | SubscriptionWithConfigResponse
     > {
@@ -47,7 +52,11 @@ export class SubscriptionService {
             }
 
             if (isHtml) {
-                return this.getUserInfo(user.response);
+                const result = await this.getSubscriptionInfoByShortUuid(user.response.shortUuid);
+                if (!result.isOk || !result.response) {
+                    return new SubscriptionNotFoundResponse();
+                }
+                return result.response;
             }
 
             const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
@@ -73,6 +82,8 @@ export class SubscriptionService {
                 config,
                 hosts: hosts.response,
                 configService: this.configService,
+                isOutlineConfig,
+                encodedTag,
             });
 
             return new SubscriptionWithConfigResponse({
@@ -97,9 +108,31 @@ export class SubscriptionService {
                 };
             }
 
+            const config = await this.getValidatedConfig();
+            if (!config) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
+
+            const formattedHosts = FormatHosts.format(
+                config,
+                hosts.response || [],
+                user.response,
+                this.configService,
+            );
+
+            const xrayLinks = XrayLinksGenerator.generateLinks(formattedHosts);
+            const ssConfLinks = await this.generateSsConfLinks(
+                user.response.shortUuid,
+                formattedHosts,
+            );
             return {
                 isOk: true,
-                response: await this.getUserInfo(user.response),
+                response: await this.getUserInfo(user.response, xrayLinks, ssConfLinks),
             };
         } catch (error) {
             this.logger.error(`Error getting subscription info by short uuid: ${error}`);
@@ -112,6 +145,8 @@ export class SubscriptionService {
 
     private async getUserInfo(
         user: UserWithActiveInboundsEntity,
+        links: string[],
+        ssConfLinks: Record<string, string>,
     ): Promise<SubscriptionRawResponse> {
         return new SubscriptionRawResponse({
             isFound: true,
@@ -125,7 +160,31 @@ export class SubscriptionService {
                 isActive: user.status === USERS_STATUS.ACTIVE,
                 userStatus: user.status,
             },
+            links,
+            ssConfLinks,
+            subscriptionUrl: `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}#${user.username}`,
         });
+    }
+
+    private async generateSsConfLinks(
+        subscriptionShortUuid: string,
+        formattedHosts: FormattedHosts[],
+    ): Promise<Record<string, string>> {
+        const publicDomain = this.configService.getOrThrow('SUB_PUBLIC_DOMAIN');
+        const links: Record<string, string> = {};
+
+        for (const host of formattedHosts) {
+            if (host.protocol !== 'shadowsocks') {
+                continue;
+            }
+
+            links[host.remark] =
+                `ssconf://${publicDomain}/${subscriptionShortUuid}/ss/${Buffer.from(
+                    host.remark,
+                ).toString('base64url')}#${host.remark}`;
+        }
+
+        return links;
     }
 
     private async getUserProfileHeadersInfo(

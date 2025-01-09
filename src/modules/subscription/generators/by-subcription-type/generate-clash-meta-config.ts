@@ -24,7 +24,7 @@ const STASH_TEMPLATE_PATH = isDevelopment()
     ? path.join(__dirname, '../../../../../../configs/stash/stash_template.yml')
     : path.join('/var/lib/remnawave/configs/stash/stash_template.yml');
 
-interface ClashData {
+export interface ClashData {
     proxies: ProxyNode[];
     'proxy-groups': any[];
     rules: string[];
@@ -375,11 +375,7 @@ export class ClashMetaConfiguration {
     }
 
     public add(host: FormattedHosts): void {
-        if (
-            !host.network ||
-            ['kcp', 'splithttp'].includes(host.network) ||
-            host.network === 'quic'
-        ) {
+        if (['kcp', 'splithttp'].includes(host.network || '') || host.network === 'quic') {
             return;
         }
 
@@ -391,7 +387,7 @@ export class ClashMetaConfiguration {
             type: host.protocol,
             server: host.address,
             port: host.port,
-            network: host.network,
+            network: host.network || 'tcp',
             tls: ['reality', 'tls'].includes(host.tls),
             sni: host.sni,
             host: host.host[0],
@@ -425,9 +421,8 @@ export class ClashMetaConfiguration {
                 node.password = host.password.trojanPassword;
                 break;
             case 'shadowsocks':
-                // node.password = host.password.shadowsocksPassword;
-                // node.cipher = host.password.shadowsocksMethod;
-                // TODO add shadowsocks
+                node.password = host.password.ssPassword;
+                node.cipher = 'chacha20-ietf-poly1305';
                 break;
             default:
                 return;

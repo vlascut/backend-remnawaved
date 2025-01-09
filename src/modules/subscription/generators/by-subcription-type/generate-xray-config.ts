@@ -1,3 +1,4 @@
+import { XrayShadowsocksLink } from './interfaces/xray-shadowsocks-link.interface';
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import { XrayTrojanLink } from './interfaces/xray-trojan-link.interface';
 import { XrayVlessLink } from './interfaces/xray-vless-link.interface';
@@ -44,7 +45,12 @@ export class XrayLinksGenerator {
 
     public static generateConfig(host: FormattedHosts[], isBase64: boolean): string {
         const generator = new XrayLinksGenerator(host, isBase64);
-        return generator.generate();
+        return generator.generate() as string;
+    }
+
+    public static generateLinks(host: FormattedHosts[]): string[] {
+        const generator = new XrayLinksGenerator(host, false);
+        return generator.generate() as string[];
     }
 
     add(host: FormattedHosts): void {
@@ -93,6 +99,15 @@ export class XrayLinksGenerator {
                     ais: false,
                     fs: '',
                     multiMode: false,
+                });
+                break;
+            case 'shadowsocks':
+                link = XrayLinksGenerator.shadowsocks({
+                    remark: host.remark,
+                    address: host.address,
+                    port: host.port,
+                    method: 'chacha20-ietf-poly1305',
+                    password: host.password.ssPassword,
                 });
                 break;
         }
@@ -208,6 +223,16 @@ export class XrayLinksGenerator {
         return `vless://${params.id}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
     }
 
+    private static shadowsocks(params: XrayShadowsocksLink): string {
+        const base64Credentials = Buffer.from(`${params.method}:${params.password}`).toString(
+            'base64',
+        );
+
+        const encodedRemark = encodeURIComponent(params.remark);
+
+        return `ss://${base64Credentials}@${params.address}:${params.port}#${encodedRemark}`;
+    }
+
     private static getTLSConfig(params: XrayTrojanLink): Record<string, unknown> {
         const config: Record<string, unknown> = {};
 
@@ -249,7 +274,7 @@ export class XrayLinksGenerator {
         return `trojan://${encodeURIComponent(params.password.trojanPassword)}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
     }
 
-    private generate(): string {
+    private generate(): string | string[] {
         for (const host of this.hosts) {
             if (!host) {
                 continue;
@@ -260,7 +285,8 @@ export class XrayLinksGenerator {
         const linksString = this.links.join('\n');
         if (this.isBase64) {
             return Buffer.from(linksString).toString('base64');
+        } else {
+            return this.links;
         }
-        return linksString;
     }
 }

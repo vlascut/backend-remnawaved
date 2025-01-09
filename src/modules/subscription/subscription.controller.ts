@@ -23,16 +23,49 @@ export class SubscriptionController {
         description: 'Short UUID of the user',
         required: true,
     })
-    @Get(SUBSCRIPTION_ROUTES.GET + '/:shortUuid')
-    async getSubscriptionByShortUuid(
+    @Get('/:shortUuid' + SUBSCRIPTION_ROUTES.GET_INFO)
+    async getSubscriptionInfoByShortUuid(
+        @Param() { shortUuid }: GetSubscriptionInfoRequestDto,
+    ): Promise<GetSubscriptionInfoResponseDto> {
+        const result = await this.subscriptionService.getSubscriptionInfoByShortUuid(shortUuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiParam({
+        name: 'shortUuid',
+        type: String,
+        description: 'Short UUID of the user',
+        required: true,
+    })
+    @ApiParam({
+        name: 'encodedTag',
+        type: String,
+        description: 'Encoded tag for Outline config',
+        required: false,
+    })
+    @Get(SUBSCRIPTION_ROUTES.GET + '/:shortUuid/:type?/:encodedTag?')
+    async getSubscription(
         @Param() { shortUuid }: GetSubscriptionByShortUuidRequestDto,
         @Req() request: Request,
         @Res() response: Response,
+        @Param('type') type?: string,
+        @Param('encodedTag') encodedTag?: string,
     ): Promise<Response> {
+        let isOutlineConfig = false;
+        if (type === 'ss' && encodedTag) {
+            isOutlineConfig = true;
+        }
+
         const result = await this.subscriptionService.getSubscriptionByShortUuid(
             shortUuid,
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
+            isOutlineConfig,
+            encodedTag,
         );
 
         if (result instanceof SubscriptionNotFoundResponse) {
@@ -44,23 +77,5 @@ export class SubscriptionController {
         }
 
         return response.set(result.headers).type(result.contentType).send(result.body);
-    }
-
-    @ApiParam({
-        name: 'shortUuid',
-        type: String,
-        description: 'Short UUID of the user',
-        required: true,
-    })
-    @Get('/:shortUuid' + SUBSCRIPTION_ROUTES.GET_INFO)
-    async getSubscriptionInfoByShortUuid(
-        @Param() { shortUuid }: GetSubscriptionInfoRequestDto,
-    ): Promise<GetSubscriptionInfoResponseDto> {
-        const result = await this.subscriptionService.getSubscriptionInfoByShortUuid(shortUuid);
-
-        const data = errorHandler(result);
-        return {
-            response: data,
-        };
     }
 }

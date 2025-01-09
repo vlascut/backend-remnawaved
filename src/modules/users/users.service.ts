@@ -221,7 +221,7 @@ export class UsersService {
                 shortUuid: shortUuid || this.createNanoId(),
                 trojanPassword: trojanPassword || this.createTrojanPassword(),
                 vlessUuid: vlessUuid || this.createUuid(),
-                ssPassword: ssPassword || this.createTrojanPassword(),
+                ssPassword: ssPassword || this.createSSPassword(),
                 status,
                 trafficLimitBytes: BigInt(trafficLimitBytes || 0),
                 trafficLimitStrategy,
@@ -600,6 +600,13 @@ export class UsersService {
     private createTrojanPassword(): string {
         const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghjkmnopqrstuvwxyz-';
         const nanoid = customAlphabet(alphabet, 30);
+
+        return nanoid();
+    }
+
+    private createSSPassword(): string {
+        const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghjkmnopqrstuvwxyz-';
+        const nanoid = customAlphabet(alphabet, 32);
 
         return nanoid();
     }

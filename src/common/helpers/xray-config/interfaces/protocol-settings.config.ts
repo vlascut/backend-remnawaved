@@ -44,10 +44,11 @@ export interface HttpSettings {
 
 // Shadowsocks Protocol Settings
 export interface ShadowsocksSettings {
-    ivCheck?: boolean;
-    level?: number;
+    clients: ShadowsocksUser[];
+}
+
+export interface ShadowsocksUser extends UserObject {
     method: string;
-    network?: 'tcp' | 'tcp,udp' | 'udp';
     password: string;
 }
 

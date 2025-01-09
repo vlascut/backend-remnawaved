@@ -6,6 +6,7 @@ import {
 } from './by-subcription-type';
 import { SUBSCRIPTION_CONFIG_TYPES, TSubscriptionConfigTypes } from './constants/config-types';
 import { IGenerateSubscription } from './interfaces/generate-subscription.interface';
+import { OutlineConfiguration } from './by-subcription-type/generate-outline-config';
 import { parseSingBoxVersion } from '../utils/parse-sing-box-version';
 import { FormatHosts } from '../utils/format-hosts';
 
@@ -15,6 +16,8 @@ export function generateSubscription({
     hosts,
     config,
     configService,
+    isOutlineConfig,
+    encodedTag,
 }: IGenerateSubscription): {
     contentType: string;
     sub: string;
@@ -23,9 +26,16 @@ export function generateSubscription({
     const configParams = SUBSCRIPTION_CONFIG_TYPES[configType];
     const formattedHosts = FormatHosts.format(config, hosts, user, configService);
 
+    if (isOutlineConfig) {
+        return {
+            contentType: 'application/json',
+            sub: OutlineConfiguration.generateConfig(formattedHosts, encodedTag),
+        };
+    }
+
     const generators = {
         XRAY: () => ({
-            sub: XrayLinksGenerator.generateConfig(formattedHosts, configParams.BASE64),
+            sub: XrayLinksGenerator.generateConfig(formattedHosts, configParams.BASE64) as string,
             contentType: configParams.CONTENT_TYPE,
         }),
         CLASH: () => ({
@@ -45,6 +55,10 @@ export function generateSubscription({
         }),
         STASH: () => ({
             sub: ClashConfiguration.generateConfig(formattedHosts, true),
+            contentType: configParams.CONTENT_TYPE,
+        }),
+        OUTLINE: () => ({
+            sub: OutlineConfiguration.generateConfig(formattedHosts),
             contentType: configParams.CONTENT_TYPE,
         }),
     };

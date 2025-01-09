@@ -8,7 +8,9 @@ import { HostWithInboundTagEntity } from '../../../hosts/entities/host-with-inbo
 export interface IGenerateSubscription {
     config: XRayConfig;
     configService: ConfigService;
+    encodedTag?: string;
     hosts: HostWithInboundTagEntity[];
+    isOutlineConfig: boolean;
     user: UserWithActiveInboundsEntity;
     userAgent: string;
 }
