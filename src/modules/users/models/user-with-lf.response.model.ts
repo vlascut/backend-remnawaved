@@ -57,7 +57,7 @@ export class UserWithLifetimeTrafficResponseModel {
         this.activeUserInbounds = data.activeUserInbounds.map(
             (item) => new GetInboundsResponseModel(item),
         );
-        this.subscriptionUrl = `https://${process.env.APP_URL}/${this.shortUuid}`;
+        this.subscriptionUrl = `https://${process.env.SUB_PUBLIC_DOMAIN}/${this.shortUuid}`;
 
         return this;
     }
