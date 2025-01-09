@@ -354,7 +354,7 @@ export class UsersService {
                 response: result,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.GET_USER_BY_ERROR,
@@ -406,7 +406,7 @@ export class UsersService {
                 response: result,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.GET_USER_BY_ERROR,
@@ -432,7 +432,7 @@ export class UsersService {
                 response: result,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.GET_USER_BY_ERROR,

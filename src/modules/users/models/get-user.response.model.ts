@@ -25,6 +25,7 @@ export class GetUserResponseModel {
     public readonly vlessUuid: string;
     public readonly ssPassword: string;
     public readonly activeUserInbounds: InboundsEntity[];
+    public readonly subscriptionUrl: string;
 
     constructor(entity: UserWithActiveInboundsEntity) {
         this.uuid = entity.uuid;
@@ -48,5 +49,6 @@ export class GetUserResponseModel {
         this.trojanPassword = entity.trojanPassword;
         this.vlessUuid = entity.vlessUuid;
         this.ssPassword = entity.ssPassword;
+        this.subscriptionUrl = `https://${process.env.SUB_PUBLIC_DOMAIN}/${entity.shortUuid}`; // TODO: find a better way to get the subscription url
     }
 }
