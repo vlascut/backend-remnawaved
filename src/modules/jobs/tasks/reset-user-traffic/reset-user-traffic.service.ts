@@ -65,13 +65,21 @@ export class ResetUserTrafficService {
             for (const user of users) {
                 if (user.trafficLimitStrategy === RESET_PERIODS.NO_RESET) continue;
 
-                const days = this.enumToDays(user.trafficLimitStrategy);
-                const lastResetDate = dayjs(user.lastTrafficResetAt ?? user.createdAt);
-                const currentDate = dayjs();
+                if (user.trafficLimitStrategy === RESET_PERIODS.CALENDAR_MONTH) {
+                    const today = dayjs();
+                    const currentDay = today.date();
+                    const firstDayOfMonth = today.startOf('month').date();
 
-                const daysSinceLastReset = currentDate.diff(lastResetDate, 'day');
+                    if (currentDay !== firstDayOfMonth) continue;
+                } else {
+                    const days = this.enumToDays(user.trafficLimitStrategy);
+                    const lastResetDate = dayjs(user.lastTrafficResetAt ?? user.createdAt);
+                    const currentDate = dayjs();
 
-                if (daysSinceLastReset < days) continue;
+                    const daysSinceLastReset = currentDate.diff(lastResetDate, 'day');
+
+                    if (daysSinceLastReset < days) continue;
+                }
 
                 let status = undefined;
 
@@ -116,6 +124,8 @@ export class ResetUserTrafficService {
                 return 365;
             case RESET_PERIODS.NO_RESET:
                 return 0;
+            case RESET_PERIODS.CALENDAR_MONTH:
+                return 31;
         }
     }
     private async getAllUsers(): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
