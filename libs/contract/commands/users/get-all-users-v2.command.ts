@@ -52,6 +52,7 @@ export namespace GetAllUsersV2Command {
             users: z.array(
                 UsersSchema.extend({
                     totalUsedBytes: z.string(),
+                    subscriptionUrl: z.string(),
                 }),
             ),
 

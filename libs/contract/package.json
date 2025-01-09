@@ -1,6 +1,6 @@
 {
   "name": "@remnawave/backend-contract",
-  "version": "0.0.74",
+  "version": "0.0.75",
   "public": true,
   "description": "A contract library for Remnawave",
   "author": "REMNAWAVE <github.com/remnawave>",

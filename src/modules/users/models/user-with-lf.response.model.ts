@@ -31,7 +31,7 @@ export class UserWithLifetimeTrafficResponseModel {
     public activeUserInbounds: GetInboundsResponseModel[];
 
     public totalUsedBytes: string;
-
+    public subscriptionUrl: string;
     constructor(data: UserWithLifetimeTrafficEntity) {
         this.uuid = data.uuid;
         this.totalUsedBytes = data.totalUsedBytes.toString();
@@ -57,6 +57,7 @@ export class UserWithLifetimeTrafficResponseModel {
         this.activeUserInbounds = data.activeUserInbounds.map(
             (item) => new GetInboundsResponseModel(item),
         );
+        this.subscriptionUrl = `https://${process.env.APP_URL}/${this.shortUuid}`;
 
         return this;
     }
