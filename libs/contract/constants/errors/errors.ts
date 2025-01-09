@@ -271,4 +271,9 @@ export const ERRORS = {
         message: 'Get nodes usage by range error',
         httpCode: 500,
     },
+    RESET_USER_TRAFFIC_ERROR: {
+        code: 'A056',
+        message: 'Reset user traffic error',
+        httpCode: 500,
+    },
 } as const;

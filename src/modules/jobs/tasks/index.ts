@@ -1,3 +1,4 @@
+import { ResetUserTrafficCalendarMonthService } from './reset-user-traffic-calendar-month/reset-user-traffic-calendar-month.service';
 import { RecordNodesUsageService } from './record-nodes-usage/record-nodes-usage.service';
 import { ResetUserTrafficService } from './reset-user-traffic/reset-user-traffic.service';
 import { ResetNodeTrafficService } from './reset-node-traffic/reset-node-traffic.service';
@@ -14,4 +15,5 @@ export const JOBS_SERVICES = [
     ResetUserTrafficService,
     ResetNodeTrafficService,
     ReviewNodesService,
+    ResetUserTrafficCalendarMonthService,
 ];

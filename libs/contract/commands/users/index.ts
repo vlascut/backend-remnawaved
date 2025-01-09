@@ -8,5 +8,6 @@ export * from './get-user-by-short-uuid.command';
 export * from './get-user-by-subscription-uuid.command';
 export * from './get-user-by-username.command';
 export * from './get-user-by-uuid.command';
+export * from './reset-user-traffic.command';
 export * from './revoke-user-subscription.command';
 export * from './update-user.command';

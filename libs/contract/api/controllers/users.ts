@@ -13,4 +13,5 @@ export const USERS_ROUTES = {
     ENABLE_USER: 'enable',
     DELETE_USER: 'delete',
     UPDATE: 'update',
+    RESET_USER_TRAFFIC: 'reset-traffic',
 } as const;

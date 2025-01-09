@@ -52,6 +52,8 @@ import {
     GetUserByUsernameResponseDto,
     GetUserByUuidRequestDto,
     GetUserByUuidResponseDto,
+    ResetUserTrafficRequestDto,
+    ResetUserTrafficResponseDto,
     RevokeUserSubscriptionRequestDto,
     RevokeUserSubscriptionResponseDto,
     UpdateUserRequestDto,
@@ -396,6 +398,31 @@ export class UsersController {
     @Patch(USERS_ROUTES.ENABLE_USER + '/:uuid')
     async enableUser(@Param() paramData: EnableUserRequestDto): Promise<EnableUserResponseDto> {
         const result = await this.usersService.enableUser(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: new GetUserResponseModel(data),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: ResetUserTrafficResponseDto,
+        description: 'User traffic reset successfully',
+    })
+    @ApiOperation({
+        summary: 'Reset User Traffic',
+        description: 'Reset user traffic',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @HttpCode(HttpStatus.OK)
+    @Patch(USERS_ROUTES.RESET_USER_TRAFFIC + '/:uuid')
+    async resetUserTraffic(
+        @Param() paramData: ResetUserTrafficRequestDto,
+    ): Promise<ResetUserTrafficResponseDto> {
+        const result = await this.usersService.resetUserTraffic(paramData.uuid);
 
         const data = errorHandler(result);
         return {

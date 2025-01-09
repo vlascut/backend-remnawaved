@@ -6,13 +6,16 @@ import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
 
+import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
+import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
 import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
 import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
+import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
 import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-user-to-node.event';
 import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
 import { UserWithLifetimeTrafficEntity } from './entities/user-with-lifetime-traffic.entity';
@@ -586,6 +589,61 @@ export class UsersService {
         }
     }
 
+    public async resetUserTraffic(
+        userUuid: string,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+        try {
+            const user = await this.userRepository.getUserByUUID(userUuid);
+            if (!user) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            let status = undefined;
+
+            if (user.status === USERS_STATUS.LIMITED) {
+                status = USERS_STATUS.ACTIVE;
+                this.eventEmitter.emit(EVENTS.USER.ENABLED, new UserEvent(user));
+                this.eventBus.publish(new AddUserToNodeEvent(user));
+            }
+
+            await this.updateUserStatusAndTrafficAndResetAt({
+                userUuid: user.uuid,
+                lastResetAt: new Date(),
+                status,
+            });
+
+            await this.createUserUsageHistory({
+                userTrafficHistory: new UserTrafficHistoryEntity({
+                    userUuid: user.uuid,
+                    resetAt: new Date(),
+                    usedBytes: BigInt(user.usedTrafficBytes),
+                }),
+            });
+
+            const newUser = await this.userRepository.getUserByUUID(userUuid);
+            if (!newUser) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: newUser,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.RESET_USER_TRAFFIC_ERROR,
+            };
+        }
+    }
+
     private createUuid(): string {
         return randomUUID();
     }
@@ -627,5 +685,22 @@ export class UsersService {
             DeleteManyActiveInboubdsByUserUuidCommand,
             ICommandResponse<number>
         >(new DeleteManyActiveInboubdsByUserUuidCommand(dto.userUuid));
+    }
+
+    private async updateUserStatusAndTrafficAndResetAt(
+        dto: UpdateStatusAndTrafficAndResetAtCommand,
+    ): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<
+            UpdateStatusAndTrafficAndResetAtCommand,
+            ICommandResponse<void>
+        >(new UpdateStatusAndTrafficAndResetAtCommand(dto.userUuid, dto.lastResetAt, dto.status));
+    }
+
+    private async createUserUsageHistory(
+        dto: CreateUserTrafficHistoryCommand,
+    ): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<CreateUserTrafficHistoryCommand, ICommandResponse<void>>(
+            new CreateUserTrafficHistoryCommand(dto.userTrafficHistory),
+        );
     }
 }
