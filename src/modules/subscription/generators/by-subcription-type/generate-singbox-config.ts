@@ -417,8 +417,11 @@ export class SingBoxConfiguration {
             tag: remark,
             server: address,
             server_port: port,
-            network: net,
         };
+
+        if (type === 'shadowsocks') {
+            config.network = 'tcp';
+        }
 
         if (
             (net === 'tcp' || net === 'raw' || net === 'kcp') &&

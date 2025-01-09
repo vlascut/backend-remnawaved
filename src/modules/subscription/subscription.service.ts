@@ -174,7 +174,7 @@ export class SubscriptionService {
         const links: Record<string, string> = {};
 
         for (const host of formattedHosts) {
-            if (host.protocol !== 'shadowsocks') {
+            if (host.protocol !== 'shadowsocks' || host.port === 0 || host.port === 1) {
                 continue;
             }
 
