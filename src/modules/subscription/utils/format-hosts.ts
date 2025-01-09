@@ -117,10 +117,12 @@ export class FormatHosts {
                 inbound.streamSettings?.realitySettings?.serverNames?.[0] ||
                 inbound.streamSettings?.tlsSettings?.serverName;
 
+            if (!sni) {
+                sni = '';
+            }
+
             if (!sni && isDomain(inputHost.address)) {
                 sni = inputHost.address;
-            } else {
-                sni = '';
             }
 
             const fp =
