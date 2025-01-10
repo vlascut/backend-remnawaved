@@ -91,12 +91,12 @@ export class ApiTokensService {
         try {
             const result = await this.apiTokensRepository.findByCriteria({});
 
-            const isDocsEnabled = this.configService.getOrThrow<boolean>('IS_DOCS_ENABLED');
+            const isDocsEnabled = this.configService.getOrThrow<string>('IS_DOCS_ENABLED');
             const scalarPath = this.configService.get<string>('SCALAR_PATH') ?? null;
             const swaggerPath = this.configService.get<string>('SWAGGER_PATH') ?? null;
 
             const docs = {
-                isDocsEnabled: isDocsEnabled,
+                isDocsEnabled: isDocsEnabled === 'true',
                 scalarPath: scalarPath,
                 swaggerPath: swaggerPath,
             };
