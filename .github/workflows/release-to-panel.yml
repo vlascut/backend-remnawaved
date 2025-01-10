@@ -21,6 +21,23 @@ jobs:
         id: backend-tag
         uses: JinoArch/get-latest-tag@latest
 
+      - name: Checkout releases branch
+        uses: actions/checkout@v3
+        with:
+          repository: remnawave/panel
+          ref: releases
+          token: ${{ secrets.TOKEN_GH_DEPLOY }}
+
+      - name: Update release info
+        run: |
+          echo "Backend: v${{ steps.backend-tag.outputs.latestTag }}" > current-release.md
+          echo "Frontend: v${{ steps.frontend-tag.outputs.release }}" >> current-release.md
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add current-release.md
+          git commit -m "Release v${{ github.ref_name }}"
+          git push origin releases
+
       - name: Create Release
         uses: actions/create-release@v1
         env:
