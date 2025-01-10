@@ -1,5 +1,7 @@
-name: Bug report
+name: 🐞 Bug report
 description: 'Submit Remnawave Frontend/Backend bug'
+title: '🐞 [BUG] - <title>'
+labels: ['bug']
 body:
   - type: checkboxes
     attributes:
