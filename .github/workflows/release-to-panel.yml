@@ -17,16 +17,26 @@ jobs:
           repo: frontend
           excludes: prerelease, draft
 
-      - name: backend-tag
-        id: backend-tag
-        uses: JinoArch/get-latest-tag@latest
-
-      - name: Checkout releases branch
+      - name: Checkout main branch first
         uses: actions/checkout@v3
         with:
           repository: remnawave/panel
-          ref: releases
+          ref: main
           token: ${{ secrets.TOKEN_GH_DEPLOY }}
+
+      - name: Release branch
+        run: |
+          git fetch origin releases || true
+          if ! git rev-parse --verify origin/releases >/dev/null 2>&1; then
+            git checkout -b releases
+            git push origin releases
+          else
+            git checkout releases
+          fi
+
+      - name: backend-tag
+        id: backend-tag
+        uses: JinoArch/get-latest-tag@latest
 
       - name: Update release info
         run: |
