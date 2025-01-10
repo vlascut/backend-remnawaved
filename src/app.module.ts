@@ -1,9 +1,9 @@
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
 import { join } from 'node:path';
@@ -41,10 +41,20 @@ import { PrismaModule } from '@common/database';
         EventEmitterModule.forRoot(),
         IntegrationModules,
         RemnawaveModules,
-        ServeStaticModule.forRoot({
-            rootPath: join(__dirname, '..', '..', 'frontend'),
-            renderPath: '*',
-            exclude: ['/api/(.*)'],
+        ServeStaticModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => [
+                {
+                    rootPath: join(__dirname, '..', '..', 'frontend'),
+                    renderPath: '*',
+                    exclude: [
+                        '/api/(.*)',
+                        configService.getOrThrow<string>('SWAGGER_PATH'),
+                        configService.getOrThrow<string>('SCALAR_PATH'),
+                    ],
+                },
+            ],
         }),
     ],
 })

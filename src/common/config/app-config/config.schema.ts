@@ -41,7 +41,6 @@ export const configSchema = z.object({
     }),
     METRICS_USER: z.string(),
     METRICS_PASS: z.string(),
-    METRICS_ENDPOINT: z.string().default('/metrics'),
     SUB_PUBLIC_DOMAIN: z.string(),
 });
 

@@ -8,7 +8,14 @@ export namespace FindAllApiTokensCommand {
     export const TSQ_url = url;
 
     export const ResponseSchema = z.object({
-        response: z.array(ApiTokensSchema),
+        response: z.object({
+            apiKeys: z.array(ApiTokensSchema),
+            docs: z.object({
+                isDocsEnabled: z.boolean(),
+                scalarPath: z.string().nullable(),
+                swaggerPath: z.string().nullable(),
+            }),
+        }),
     });
 
     export type Response = z.infer<typeof ResponseSchema>;

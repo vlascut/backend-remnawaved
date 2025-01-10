@@ -35,8 +35,8 @@ import {
     DeleteApiTokenResponseDto,
     FindAllApiTokensResponseDto,
 } from './dtos';
-import { CreateApiTokenResponseModel, FindAllApiTokensResponseModel } from './models';
 import { ApiTokensService } from './api-tokens.service';
+import { CreateApiTokenResponseModel } from './models';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('API Tokens Management')
@@ -82,7 +82,7 @@ export class ApiTokensController {
         const result = await this.apiTokensService.findAll();
         const data = errorHandler(result);
         return {
-            response: data.map((item) => new FindAllApiTokensResponseModel(item)),
+            response: data,
         };
     }
 }

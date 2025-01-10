@@ -1,26 +1,28 @@
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 
 import { PrometheusReporterController } from './prometheus-reporter.controller';
+import { BasicStrategy } from './strategies';
 
 @Module({
     imports: [
         ConfigModule,
+        PassportModule,
         PrometheusModule.registerAsync({
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-                path: configService.getOrThrow('METRICS_ENDPOINT'),
+            inject: [],
+            controller: PrometheusReporterController,
+            useFactory: () => ({
                 defaultLabels: {
                     app: 'remnawave',
                 },
                 customMetricPrefix: 'remnawave',
-                controller: PrometheusReporterController,
             }),
         }),
     ],
-    controllers: [PrometheusReporterController],
-    providers: [],
+    controllers: [],
+    providers: [BasicStrategy],
     exports: [PrometheusModule],
 })
 export class PrometheusReporterModule {}

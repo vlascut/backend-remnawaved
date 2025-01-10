@@ -11,7 +11,7 @@ import morgan from 'morgan';
 
 import { getDocs, isDevelopment } from '@common/utils/startup-app';
 import { getRealIp } from '@common/middlewares/get-real-ip';
-import { ROOT } from '@contract/api';
+import { METRICS_ROOT, ROOT } from '@contract/api';
 
 import { AppModule } from './app.module';
 
@@ -77,7 +77,7 @@ async function bootstrap(): Promise<void> {
         morgan(
             ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
             {
-                skip: (req) => req.url === ROOT + (process.env.METRICS_ENDPOINT || '/metrics'),
+                skip: (req) => req.url === ROOT + METRICS_ROOT,
                 stream: {
                     write: (message) => logger.http(message.trim()),
                 },

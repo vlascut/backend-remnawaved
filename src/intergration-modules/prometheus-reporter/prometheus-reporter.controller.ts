@@ -1,17 +1,22 @@
-import { PrometheusController as PrometheusControllerBase } from '@willsoto/nestjs-prometheus';
+import { ApiBasicAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PrometheusController } from '@willsoto/nestjs-prometheus';
 import { Controller, Get, Res, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 
-import { BasicAuthGuard } from './guards';
+import { METRICS_ROOT } from '@libs/contracts/api';
 
-@Controller()
-export class PrometheusReporterController extends PrometheusControllerBase {
+@ApiBasicAuth('Prometheus')
+@ApiTags('Prometheus')
+@Controller(METRICS_ROOT)
+@UseGuards(AuthGuard('basic'))
+export class PrometheusReporterController extends PrometheusController {
     constructor() {
         super();
     }
 
+    @ApiOperation({ summary: 'Prometheus Metrics' })
     @Get()
-    @UseGuards(BasicAuthGuard)
     async index(@Res({ passthrough: true }) response: Response) {
         return super.index(response);
     }

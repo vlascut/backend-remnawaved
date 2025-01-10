@@ -25,6 +25,15 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
                 },
                 'Authorization',
             )
+            .addBasicAuth(
+                {
+                    type: 'http',
+                    scheme: 'basic',
+                    name: 'Prometheus',
+                    description: 'Prometheus Basic Auth',
+                },
+                'Prometheus',
+            )
             .setDescription(pkg.description!)
             .setVersion(pkg.version!)
             .build();
@@ -54,6 +63,26 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
                 theme: 'purple',
                 hideClientButton: false,
                 darkMode: true,
+                hiddenClients: [
+                    'asynchttp',
+                    'nethttp',
+                    'okhttp',
+                    'unirest',
+                    'nsurlsession',
+                    'httr',
+                    'native',
+                    'libcurl',
+                    'httpclient',
+                    'restsharp',
+                    'clj_http',
+                    'webrequest',
+                    'restmethod',
+                    'cohttp',
+                ],
+                defaultHttpClient: {
+                    targetKey: 'js',
+                    clientKey: 'axios',
+                },
 
                 spec: {
                     content: documentFactory,

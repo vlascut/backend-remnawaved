@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CommandBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
@@ -9,6 +10,7 @@ import { ERRORS } from '@libs/contracts/constants';
 import { SignApiTokenCommand } from '../auth/commands/sign-api-token/sign-api-token.command';
 import { IApiTokenDeleteResponse, ICreateApiTokenRequest } from './interfaces';
 import { ApiTokensRepository } from './repositories/api-tokens.repository';
+import { FindAllApiTokensResponseModel } from './models/find.model';
 import { ApiTokenEntity } from './entities/api-token.entity';
 
 @Injectable()
@@ -17,6 +19,7 @@ export class ApiTokensService {
     constructor(
         private readonly apiTokensRepository: ApiTokensRepository,
         private readonly commandBus: CommandBus,
+        private readonly configService: ConfigService,
     ) {}
 
     public async create(body: ICreateApiTokenRequest): Promise<ICommandResponse<ApiTokenEntity>> {
@@ -50,7 +53,7 @@ export class ApiTokensService {
                 response: newAoiTokenEntity,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.CREATE_API_TOKEN_ERROR,
@@ -84,15 +87,29 @@ export class ApiTokensService {
         }
     }
 
-    public async findAll(): Promise<ICommandResponse<ApiTokenEntity[]>> {
+    public async findAll(): Promise<ICommandResponse<FindAllApiTokensResponseModel>> {
         try {
             const result = await this.apiTokensRepository.findByCriteria({});
+
+            const isDocsEnabled = this.configService.getOrThrow<boolean>('IS_DOCS_ENABLED');
+            const scalarPath = this.configService.get<string>('SCALAR_PATH') ?? null;
+            const swaggerPath = this.configService.get<string>('SWAGGER_PATH') ?? null;
+
+            const docs = {
+                isDocsEnabled: isDocsEnabled,
+                scalarPath: scalarPath,
+                swaggerPath: swaggerPath,
+            };
+
             return {
                 isOk: true,
-                response: result,
+                response: {
+                    apiKeys: result.map((item) => item),
+                    docs,
+                },
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.FIND_ALL_API_TOKENS_ERROR,
