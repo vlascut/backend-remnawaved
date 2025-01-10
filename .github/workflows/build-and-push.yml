@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  send-start-deploy-telegram-message:
-    name: Send Telegram message
+  send-tg-msg:
+    name: Send TG message
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -99,8 +99,8 @@ jobs:
           draft: false
           prerelease: false
 
-  send-telegram-message:
-    name: Send Telegram message
+  send-finish-tg-msg:
+    name: Send TG message
     needs: [build-docker-image, create-release]
     runs-on: ubuntu-latest
     steps:

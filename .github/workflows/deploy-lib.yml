@@ -1,4 +1,4 @@
-name: Deploy lib
+name: Deploy backend contracts
 on:
   push:
     branches: ['**']
