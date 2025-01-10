@@ -24,6 +24,13 @@ jobs:
           ref: main
           token: ${{ secrets.TOKEN_GH_DEPLOY }}
 
+      - name: Get Frontend previous tag
+        id: frontend-prev-tag
+        run: |
+          gh auth login --with-token <<< "${{ secrets.TOKEN_GH_DEPLOY }}"
+          PREV_TAG=$(gh release list --repo remnawave/frontend --limit 2 | tail -n 1 | cut -f 1)
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
       - name: Release branch
         run: |
           git fetch origin releases || true
@@ -68,7 +75,7 @@ jobs:
 
             📝 Compare Backend changes: [${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }}](https://github.com/${{ github.repository }}/compare/${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }})
 
-            📝 Compare Frontend changes: [${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }}](https://github.com/remnawave/frontend/compare/${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }})
+            📝 Compare Frontend changes: [${{ steps.frontend-prev-tag.outputs.tag }}...${{ steps.frontend-tag.outputs.release }}](https://github.com/remnawave/frontend/compare/${{ steps.frontend-prev-tag.outputs.tag }}...${{ steps.frontend-tag.outputs.release }})
 
             Latest Docker images:
             - `remnawave/backend:latest`
