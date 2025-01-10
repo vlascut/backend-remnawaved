@@ -66,7 +66,7 @@ jobs:
           tag_name: panel-${{ github.ref_name }}
           target_commitish: ${{ steps.commit.outputs.sha }}
           name: v${{ github.ref_name }}
-          generate_release_notes: true
+          generate_release_notes: false
           append_body: true
           make_latest: true
           body: |
