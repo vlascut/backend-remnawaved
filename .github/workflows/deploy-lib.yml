@@ -3,7 +3,7 @@ on:
   push:
     branches: ['**']
     paths:
-      - 'libs/**'
+      - 'libs/**/package.json'
       - '.github/workflows/deploy-lib.yml'
 jobs:
   send-start-deploy-telegram-message:

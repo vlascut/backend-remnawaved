@@ -39,6 +39,7 @@ jobs:
         uses: JinoArch/get-latest-tag@latest
 
       - name: Update release info and create tag
+        id: commit
         run: |
           echo "Backend: v${{ github.ref_name }}" > current-release.md
           echo "Frontend: v${{ steps.frontend-tag.outputs.release }}" >> current-release.md
@@ -50,14 +51,14 @@ jobs:
           git push origin releases --tags
 
       - name: Create Release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GH_DEPLOY }}
+          GITHUB_REPOSITORY: remnawave/panel
         with:
-          owner: remnawave
-          repo: panel
           tag_name: panel-${{ github.ref_name }}
-          release_name: v${{ github.ref_name }}
+          target_commitish: ${{ steps.commit.outputs.sha }}
+          name: v${{ github.ref_name }}
           body: |
             🚀 Release v${{ github.ref_name }} (Backend: v${{ steps.backend-tag.outputs.latestTag }}, Frontend: v${{ steps.frontend-tag.outputs.release }})
 
