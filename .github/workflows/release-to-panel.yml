@@ -38,15 +38,16 @@ jobs:
         id: backend-tag
         uses: JinoArch/get-latest-tag@latest
 
-      - name: Update release info
+      - name: Update release info and create tag
         run: |
-          echo "Backend: v${{ steps.backend-tag.outputs.latestTag }}" > current-release.md
+          echo "Backend: v${{ github.ref_name }}" > current-release.md
           echo "Frontend: v${{ steps.frontend-tag.outputs.release }}" >> current-release.md
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add current-release.md
           git commit -m "Release v${{ github.ref_name }}"
-          git push origin releases
+          git tag panel-${{ github.ref_name }}
+          git push origin releases --tags
 
       - name: Create Release
         uses: actions/create-release@v1
@@ -55,14 +56,17 @@ jobs:
         with:
           owner: remnawave
           repo: panel
-          tag_name: ${{ github.ref_name }}
+          tag_name: panel-${{ github.ref_name }}
           release_name: v${{ github.ref_name }}
           body: |
             🚀 Release v${{ github.ref_name }} (Backend: v${{ steps.backend-tag.outputs.latestTag }}, Frontend: v${{ steps.frontend-tag.outputs.release }})
 
-            📝 Compare changes: [${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }}](https://github.com/${{ github.repository }}/compare/${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }})
 
-            Latest Docker image:
+            📝 Compare Backend changes: [${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }}](https://github.com/${{ github.repository }}/compare/${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }})
+
+            📝 Compare Frontend changes: [${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }}](https://github.com/remnawave/frontend/compare/${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }})
+
+            Latest Docker images:
             - `remnawave/backend:latest`
             - `ghcr.io/remnawave/backend:latest`
 
