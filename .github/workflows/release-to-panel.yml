@@ -1,0 +1,46 @@
+name: Release to Panel
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - id: frontend-tag
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          owner: remnawave
+          repo: frontend
+          excludes: prerelease, draft
+
+      - name: backend-tag
+        id: backend-tag
+        uses: JinoArch/get-latest-tag@latest
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GH_DEPLOY }}
+        with:
+          owner: remnawave
+          repo: panel
+          tag_name: ${{ github.ref_name }}
+          release_name: v${{ github.ref_name }}
+          body: |
+            🚀 Release v${{ github.ref_name }} (Backend: v${{ steps.backend-tag.outputs.latestTag }}, Frontend: v${{ steps.frontend-tag.outputs.release }})
+
+            📝 Compare changes: [${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }}](https://github.com/${{ github.repository }}/compare/${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }})
+
+            Latest Docker image:
+            - `remnawave/backend:latest`
+            - `ghcr.io/remnawave/backend:latest`
+
+            Docker images:
+            - `remnawave/backend:${{github.ref_name}}`
+            - `ghcr.io/remnawave/backend:${{github.ref_name}}`
+          draft: false
+          prerelease: false
