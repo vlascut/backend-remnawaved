@@ -1,29 +1,13 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ExecutionContext, Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class BasicAuthGuard implements CanActivate {
-    constructor(private configService: ConfigService) {}
+export class BasicAuthGuard extends AuthGuard('basic') {
+    canActivate(context: ExecutionContext) {
+        const response = context.switchToHttp().getResponse();
 
-    async canActivate(context: ExecutionContext): Promise<boolean> {
-        const request = context.switchToHttp().getRequest();
-        const authHeader = request.headers.authorization;
+        response.setHeader('WWW-Authenticate', 'Basic realm="Prometheus Metrics"');
 
-        if (!authHeader) {
-            throw new UnauthorizedException();
-        }
-
-        const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-        const user = auth[0];
-        const pass = auth[1];
-
-        const configUser = this.configService.getOrThrow<string>('METRICS_USER');
-        const configPass = this.configService.getOrThrow<string>('METRICS_PASS');
-
-        if (user === configUser && pass === configPass) {
-            return true;
-        }
-
-        throw new UnauthorizedException();
+        return super.canActivate(context);
     }
 }
