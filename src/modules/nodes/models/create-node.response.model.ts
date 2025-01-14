@@ -26,6 +26,8 @@ export class CreateNodeResponseModel {
     public trafficUsedBytes: null | number;
     public notifyPercent: null | number;
 
+    public viewPosition: number;
+    public countryCode: string;
     public createdAt: Date;
     public updatedAt: Date;
 
@@ -53,7 +55,8 @@ export class CreateNodeResponseModel {
         this.cpuCount = data.cpuCount;
         this.cpuModel = data.cpuModel;
         this.totalRam = data.totalRam;
-
+        this.viewPosition = data.viewPosition;
+        this.countryCode = data.countryCode;
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
 

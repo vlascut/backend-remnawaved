@@ -25,7 +25,6 @@ import { DeleteUserResponseModel } from './models/delete-user.response.model';
 import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
 import { UsersRepository } from './repositories/users.repository';
 import { UserEntity } from './entities/users.entity';
-import { IGetUsersOptions } from './interfaces';
 
 @Injectable()
 export class UsersService {
@@ -284,33 +283,6 @@ export class UsersService {
             }
 
             return { isOk: false, ...ERRORS.CREATE_NODE_ERROR };
-        }
-    }
-
-    public async getAllUsers(options: IGetUsersOptions): Promise<
-        ICommandResponse<{
-            total: number;
-            users: UserWithLifetimeTrafficEntity[];
-        }>
-    > {
-        try {
-            const [users, total] =
-                await this.userRepository.getAllUsersWithActiveInboundsWithPagination(options);
-
-            return {
-                isOk: true,
-                response: {
-                    users,
-                    total,
-                },
-            };
-        } catch (error) {
-            this.logger.error(error);
-            this.logger.error(JSON.stringify(error));
-            return {
-                isOk: false,
-                ...ERRORS.GET_ALL_USERS_ERROR,
-            };
         }
     }
 

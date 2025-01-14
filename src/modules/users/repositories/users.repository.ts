@@ -4,15 +4,14 @@ import { Injectable } from '@nestjs/common';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
-import { SumLifetimeUsageBuilder } from 'src/modules/users/builders/sum-lifetime-usage/sum-lifetime-usage.builder';
 import { TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
 import { ICrud } from '@common/types/crud-port';
 
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
-import { IGetUsersOptions, IUserOnlineStats, IUserStats } from '../interfaces';
 import { UserForConfigEntity } from '../entities/users-for-config';
+import { IUserOnlineStats, IUserStats } from '../interfaces';
 import { UserEntity } from '../entities/users.entity';
 import { UserConverter } from '../users.converter';
 
@@ -208,116 +207,6 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
-    // public async getAllUsersWithActiveInboundsWithPagination({
-    //     limit,
-    //     offset,
-    //     orderBy,
-    //     orderDir,
-    //     search,
-    //     searchBy,
-    // }: IGetUsersOptions): Promise<[UserWithActiveInboundsEntity[], number]> {
-    //     const where = search
-    //         ? {
-    //               [searchBy as string]: {
-    //                   contains: search,
-    //                   mode: 'insensitive' as const,
-    //               },
-    //           }
-    //         : {};
-
-    //     const [result, total] = await Promise.all([
-    //         this.prisma.tx.users.findMany({
-    //             skip: offset,
-    //             take: limit,
-    //             where,
-    //             orderBy: {
-    //                 [orderBy]: orderDir,
-    //             },
-    //             include: {
-    //                 activeUserInbounds: {
-    //                     select: {
-    //                         inbound: {
-    //                             select: {
-    //                                 uuid: true,
-    //                                 tag: true,
-    //                                 type: true,
-    //                             },
-    //                         },
-    //                     },
-    //                 },
-    //                 userTrafficHistory: {
-    //                     _sum: {
-    //                         usedBytes: true,
-    //                     },
-    //                 },
-    //             },
-    //         }),
-    //         this.prisma.tx.users.count({ where }),
-    //     ]);
-
-    //     return [result.map((value) => new UserWithActiveInboundsEntity(value)), total];
-    // }
-
-    public async getAllUsersWithActiveInboundsWithPagination({
-        limit,
-        offset,
-        orderBy,
-        orderDir,
-        search,
-        searchBy,
-    }: IGetUsersOptions): Promise<[UserWithLifetimeTrafficEntity[], number]> {
-        const where = search
-            ? {
-                  [searchBy as string]: {
-                      contains: search,
-                      mode: 'insensitive' as const,
-                  },
-              }
-            : {};
-
-        const [trafficByUser, users, total] = await Promise.all([
-            this.prisma.tx.$queryRaw<{ usedTrafficBytes: bigint; uuid: string }[]>(
-                new SumLifetimeUsageBuilder().query,
-            ),
-            this.prisma.tx.users.findMany({
-                skip: offset,
-                take: limit,
-                where,
-                orderBy: {
-                    [orderBy]: orderDir,
-                },
-                include: {
-                    activeUserInbounds: {
-                        select: {
-                            inbound: {
-                                select: {
-                                    uuid: true,
-                                    tag: true,
-                                    type: true,
-                                },
-                            },
-                        },
-                    },
-                },
-            }),
-            this.prisma.tx.users.count({ where }),
-        ]);
-
-        const trafficMap = new Map(
-            trafficByUser.map((item) => [item.uuid, item.usedTrafficBytes || BigInt(0)]),
-        );
-
-        const result = users.map((user) => {
-            const totalUsedBytes = trafficMap.get(user.uuid) || BigInt(0);
-            return new UserWithLifetimeTrafficEntity({
-                ...user,
-                totalUsedBytes,
-            });
-        });
-
-        return [result, total];
-    }
-
     public async getAllUsersV2({
         start,
         size,
@@ -352,17 +241,13 @@ export class UsersRepository implements ICrud<UserEntity> {
             };
         }, {});
 
-        let orderBy = sorting?.length
-            ? sorting
-                  .filter((sort) => sort.id !== 'totalUsedBytes')
-                  .reduce(
-                      (acc, sort) => ({
-                          ...acc,
-                          [sort.id]: sort.desc ? 'desc' : 'asc',
-                      }),
-                      {},
-                  )
-            : undefined;
+        let orderBy = sorting?.reduce(
+            (acc, sort) => ({
+                ...acc,
+                [sort.id]: sort.desc ? 'desc' : 'asc',
+            }),
+            {},
+        );
 
         if (orderBy === undefined) {
             orderBy = {
@@ -370,17 +255,7 @@ export class UsersRepository implements ICrud<UserEntity> {
             };
         }
 
-        const orderByByte =
-            sorting?.find((sort) => sort.id === 'totalUsedBytes')?.desc !== undefined
-                ? sorting.find((sort) => sort.id === 'totalUsedBytes')!.desc
-                    ? 'desc'
-                    : 'asc'
-                : undefined;
-
-        const [trafficByUser, users, total] = await Promise.all([
-            this.prisma.tx.$queryRaw<{ usedTrafficBytes: bigint; uuid: string }[]>(
-                new SumLifetimeUsageBuilder().query,
-            ),
+        const [users, total] = await Promise.all([
             this.prisma.tx.users.findMany({
                 skip: start,
                 take: size,
@@ -398,30 +273,28 @@ export class UsersRepository implements ICrud<UserEntity> {
                             },
                         },
                     },
+                    nodesUserUsageHistory: {
+                        orderBy: {
+                            updatedAt: 'desc',
+                        },
+                        select: {
+                            node: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                            updatedAt: true,
+                        },
+                        take: 1,
+                    },
                 },
             }),
             this.prisma.tx.users.count({ where }),
         ]);
 
-        const trafficMap = new Map(
-            trafficByUser.map((item) => [item.uuid, item.usedTrafficBytes || BigInt(0)]),
-        );
-
         const result = users.map((user) => {
-            const totalUsedBytes = trafficMap.get(user.uuid) || BigInt(0);
-            return new UserWithLifetimeTrafficEntity({
-                ...user,
-                totalUsedBytes,
-            });
+            return new UserWithLifetimeTrafficEntity(user);
         });
-
-        if (orderByByte) {
-            result.sort((a, b) => {
-                return orderByByte === 'desc'
-                    ? Number(b.totalUsedBytes) - Number(a.totalUsedBytes)
-                    : Number(a.totalUsedBytes) - Number(b.totalUsedBytes);
-            });
-        }
 
         return [result, total];
     }

@@ -6,7 +6,6 @@ export const USERS_ROUTES = {
     GET_BY_SHORT_UUID: 'short-uuid',
     GET_BY_USERNAME: 'username',
     GET_BY_SUBSCRIPTION_UUID: 'sub-uuid',
-    GET_ALL: '',
     GET_ALL_V2: 'v2',
     REVOKE_SUBSCRIPTION: 'revoke',
     DISABLE_USER: 'disable',

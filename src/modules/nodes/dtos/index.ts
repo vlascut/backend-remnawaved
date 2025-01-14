@@ -4,6 +4,7 @@ export * from './disable-node.request.dto';
 export * from './enable-node.request.dto';
 export * from './get-all-nodes.dto';
 export * from './get-one-node.dto';
+export * from './reorder.dto';
 export * from './restart-all.dto';
 export * from './restart-node.request.dto';
 export * from './update-node.dto';

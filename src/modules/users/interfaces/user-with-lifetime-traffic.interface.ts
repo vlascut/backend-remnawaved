@@ -14,6 +14,20 @@ export interface IUserWithLifetimeTraffic
                     };
                 };
             };
+            nodesUserUsageHistory: {
+                orderBy: {
+                    updatedAt: 'desc';
+                };
+                select: {
+                    node: {
+                        select: {
+                            name: true;
+                        };
+                    };
+                    updatedAt: true;
+                };
+                take: 1;
+            };
         };
     }> {
     totalUsedBytes?: bigint | null | number | string | undefined;

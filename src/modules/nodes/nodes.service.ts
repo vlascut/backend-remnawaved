@@ -8,8 +8,8 @@ import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/inter
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, EVENTS } from '@contract/constants';
 
+import { CreateNodeRequestDto, ReorderNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
-import { CreateNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { NodesRepository } from './repositories/nodes.repository';
 import { StartAllNodesEvent } from './events/start-all-nodes';
 import { StartNodeEvent } from './events/start-node';
@@ -347,5 +347,21 @@ export class NodesService {
             ResetNodeInboundExclusionsByNodeUuidCommand,
             ICommandResponse<number>
         >(new ResetNodeInboundExclusionsByNodeUuidCommand(dto.nodeUuid, dto.excludedInbounds));
+    }
+
+    public async reorderNodes(
+        dto: ReorderNodeRequestDto,
+    ): Promise<ICommandResponse<NodesEntity[]>> {
+        try {
+            await this.nodesRepository.reorderMany(dto.nodes);
+
+            return {
+                isOk: true,
+                response: await this.nodesRepository.findByCriteria({}),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.REORDER_NODES_ERROR };
+        }
     }
 }

@@ -276,4 +276,9 @@ export const ERRORS = {
         message: 'Reset user traffic error',
         httpCode: 500,
     },
+    REORDER_NODES_ERROR: {
+        code: 'A057',
+        message: 'Reorder nodes error',
+        httpCode: 500,
+    },
 } as const;

@@ -14,4 +14,5 @@ export const NODES_ROUTES = {
     STATS: {
         USAGE_BY_RANGE: 'usage/range',
     },
+    REORDER: 'reorder',
 } as const;

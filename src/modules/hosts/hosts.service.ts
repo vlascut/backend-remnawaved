@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
 
 import { ReorderHostRequestDto } from 'src/modules/hosts/dtos/reorder-hots.dto';
@@ -15,12 +14,7 @@ import { UpdateHostRequestDto } from './dtos';
 @Injectable()
 export class HostsService {
     private readonly logger = new Logger(HostsService.name);
-    constructor(
-        private readonly hostsRepository: HostsRepository,
-
-        private readonly commandBus: CommandBus,
-        private readonly eventBus: EventBus,
-    ) {}
+    constructor(private readonly hostsRepository: HostsRepository) {}
 
     public async createHost(dto: CreateHostRequestDto): Promise<ICommandResponse<HostsEntity>> {
         try {

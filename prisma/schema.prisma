@@ -93,6 +93,9 @@ model Nodes {
   trafficUsedBytes        BigInt? @default(0) @map("traffic_used_bytes")
   notifyPercent           Int?    @default(0) @map("notify_percent")
 
+  viewPosition Int    @default(autoincrement()) @map("view_position")
+  countryCode  String @default("XX") @map("country_code")
+
   cpuCount Int?    @map("cpu_count")
   cpuModel String? @map("cpu_model")
   totalRam String? @map("total_ram")
@@ -139,6 +142,7 @@ model NodesUserUsageHistory {
   totalBytes    BigInt @map("total_bytes")
 
   createdAt DateTime @default(dbgenerated("date_trunc('hour', now())")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
   user Users @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)

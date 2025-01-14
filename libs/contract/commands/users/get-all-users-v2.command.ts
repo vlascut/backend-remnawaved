@@ -17,7 +17,6 @@ export namespace GetAllUsersV2Command {
         desc: z.boolean(),
     });
 
-    // Основная схема для запроса
     export const RequestQuerySchema = z.object({
         start: z.coerce.number().optional(),
         size: z.coerce.number().optional(),
@@ -51,8 +50,13 @@ export namespace GetAllUsersV2Command {
         response: z.object({
             users: z.array(
                 UsersSchema.extend({
-                    totalUsedBytes: z.string(),
                     subscriptionUrl: z.string(),
+                    lastConnection: z
+                        .object({
+                            nodeName: z.string(),
+                            connectedAt: z.string().transform((str) => new Date(str)),
+                        })
+                        .nullable(),
                 }),
             ),
 

@@ -32,6 +32,9 @@ export namespace UpdateNodeCommand {
                 invalid_type_error: 'Excluded inbounds must be an array of UUIDs',
             }),
         ),
+        countryCode: z.optional(
+            z.string().max(2, 'Country code must be 2 characters').toUpperCase(),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

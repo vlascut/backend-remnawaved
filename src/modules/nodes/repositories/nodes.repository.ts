@@ -6,6 +6,7 @@ import { ICrud } from '@common/types/crud-port';
 
 import { NodesEntity } from '../entities/nodes.entity';
 import { NodesConverter } from '../nodes.converter';
+import { IReorderNode } from '../interfaces';
 
 const ADD_EXCLUSIONS_SELECT = {
     inboundsExclusions: {
@@ -86,7 +87,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
         const nodesList = await this.prisma.tx.nodes.findMany({
             where: dto,
             orderBy: {
-                createdAt: 'asc',
+                viewPosition: 'asc',
             },
             include: ADD_EXCLUSIONS_SELECT,
         });
@@ -109,5 +110,21 @@ export class NodesRepository implements ICrud<NodesEntity> {
     public async deleteByUUID(uuid: string): Promise<boolean> {
         const result = await this.prisma.tx.nodes.delete({ where: { uuid } });
         return !!result;
+    }
+
+    public async reorderMany(dto: IReorderNode[]): Promise<boolean> {
+        await this.prisma.withTransaction(async () => {
+            for (const { uuid, viewPosition } of dto) {
+                await this.prisma.tx.nodes.updateMany({
+                    where: { uuid },
+                    data: { viewPosition },
+                });
+            }
+        });
+
+        await this.prisma.tx
+            .$executeRaw`SELECT setval('nodes_view_position_seq', (SELECT MAX(view_position) FROM nodes) + 1)`;
+
+        return true;
     }
 }

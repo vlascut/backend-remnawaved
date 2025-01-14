@@ -19,7 +19,6 @@ import {
     ApiOkResponse,
     ApiOperation,
     ApiParam,
-    ApiQuery,
     ApiTags,
 } from '@nestjs/swagger';
 
@@ -40,8 +39,6 @@ import {
     DisableUserResponseDto,
     EnableUserRequestDto,
     EnableUserResponseDto,
-    GetAllUsersQueryDto,
-    GetAllUsersResponseDto,
     GetAllUsersV2QueryDto,
     GetAllUsersV2ResponseDto,
     GetUserByShortUuidRequestDto,
@@ -111,70 +108,7 @@ export class UsersController {
     }
 
     @ApiOkResponse({
-        type: GetAllUsersResponseDto,
-        description: 'Users fetched successfully',
-    })
-    @ApiOperation({ summary: 'Get All Users', description: 'Get all users' })
-    @ApiQuery({
-        name: 'limit',
-        type: Number,
-        description: 'Limit of users, default is 10',
-        required: false,
-    })
-    @ApiQuery({
-        name: 'offset',
-        type: Number,
-        description: 'Offset of users, default is 0',
-        required: false,
-    })
-    @ApiQuery({
-        name: 'orderBy',
-        type: String,
-        description: 'Order by field, default is createdAt',
-        required: false,
-    })
-    @ApiQuery({
-        name: 'orderDir',
-        type: String,
-        description: 'Order direction, default is desc',
-        required: false,
-    })
-    @ApiQuery({
-        name: 'search',
-        type: String,
-        description: 'Search by field value',
-        required: false,
-    })
-    @ApiQuery({
-        name: 'searchBy',
-        type: String,
-        description: 'Search by field name',
-        required: false,
-    })
-    @Get(USERS_ROUTES.GET_ALL)
-    @HttpCode(HttpStatus.OK)
-    async getAllUsers(@Query() query: GetAllUsersQueryDto): Promise<GetAllUsersResponseDto> {
-        const { limit, offset, orderBy, orderDir, search, searchBy } = query;
-        const result = await this.usersService.getAllUsers({
-            limit,
-            offset,
-            orderBy,
-            orderDir,
-            search,
-            searchBy,
-        });
-
-        const data = errorHandler(result);
-        return {
-            response: new GetAllUsersResponseModel({
-                total: data.total,
-                users: data.users.map((item) => new UserWithLifetimeTrafficResponseModel(item)),
-            }),
-        };
-    }
-
-    @ApiOkResponse({
-        type: GetAllUsersResponseDto,
+        type: GetAllUsersV2ResponseDto,
         description: 'Users fetched successfully',
     })
     @ApiOperation({ summary: 'Get All Users', description: 'Get all users' })

@@ -18,6 +18,7 @@ const entityToModel = (entity: NodesUserUsageHistoryEntity): NodesUserUsageHisto
         uploadBytes: entity.uploadBytes,
         totalBytes: entity.totalBytes,
         createdAt: entity.createdAt,
+        updatedAt: entity.updatedAt,
     };
 };
 

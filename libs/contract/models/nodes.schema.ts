@@ -22,6 +22,9 @@ export const NodesSchema = z.object({
     notifyPercent: z.nullable(z.number().int()),
     usersOnline: z.nullable(z.number().int()),
 
+    viewPosition: z.number().int(),
+    countryCode: z.string(),
+
     cpuCount: z.nullable(z.number().int()),
     cpuModel: z.nullable(z.string()),
     totalRam: z.nullable(z.string()),

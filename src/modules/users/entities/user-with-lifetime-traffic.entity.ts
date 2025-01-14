@@ -31,7 +31,11 @@ export class UserWithLifetimeTrafficEntity {
 
     public activeUserInbounds: InboundsEntity[];
 
-    public totalUsedBytes: bigint;
+    public lastConnection: null | {
+        connectedAt: Date;
+        nodeName: string;
+    };
+
     constructor(user: Partial<IUserWithLifetimeTraffic>) {
         Object.assign(this, user);
 
@@ -41,6 +45,15 @@ export class UserWithLifetimeTrafficEntity {
                 tag: item.inbound.tag,
                 type: item.inbound.type,
             }));
+        }
+
+        if (user.nodesUserUsageHistory && user.nodesUserUsageHistory.length > 0) {
+            this.lastConnection = {
+                nodeName: user.nodesUserUsageHistory[0].node.name,
+                connectedAt: user.nodesUserUsageHistory[0].updatedAt,
+            };
+        } else {
+            this.lastConnection = null;
         }
 
         return this;

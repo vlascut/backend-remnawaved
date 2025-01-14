@@ -30,11 +30,13 @@ export class UserWithLifetimeTrafficResponseModel {
 
     public activeUserInbounds: GetInboundsResponseModel[];
 
-    public totalUsedBytes: string;
     public subscriptionUrl: string;
+    public lastConnection: null | {
+        connectedAt: Date;
+        nodeName: string;
+    };
     constructor(data: UserWithLifetimeTrafficEntity) {
         this.uuid = data.uuid;
-        this.totalUsedBytes = data.totalUsedBytes.toString();
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
         this.subscriptionUuid = data.subscriptionUuid;
@@ -58,6 +60,7 @@ export class UserWithLifetimeTrafficResponseModel {
             (item) => new GetInboundsResponseModel(item),
         );
         this.subscriptionUrl = `https://${process.env.SUB_PUBLIC_DOMAIN}/${this.shortUuid}`;
+        this.lastConnection = data.lastConnection;
 
         return this;
     }

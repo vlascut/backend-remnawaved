@@ -39,6 +39,8 @@ import {
     GetAllNodesResponseDto,
     GetOneNodeRequestParamDto,
     GetOneNodeResponseDto,
+    ReorderNodeRequestDto,
+    ReorderNodeResponseDto,
     RestartAllNodesResponseDto,
     RestartNodeResponseDto,
     UpdateNodeRequestDto,
@@ -200,6 +202,23 @@ export class NodesController {
         const data = errorHandler(res);
         return {
             response: data,
+        };
+    }
+
+    @ApiBody({ type: ReorderNodeRequestDto })
+    @ApiOkResponse({
+        type: ReorderNodeResponseDto,
+        description: 'Nodes reordered successfully',
+    })
+    @ApiOperation({ summary: 'Reorder Nodes', description: 'Reorder nodes' })
+    @HttpCode(HttpStatus.OK)
+    @Post(NODES_ROUTES.REORDER)
+    async reorderNodes(@Body() body: ReorderNodeRequestDto): Promise<ReorderNodeResponseDto> {
+        const result = await this.nodesService.reorderNodes(body);
+
+        const data = errorHandler(result);
+        return {
+            response: data.map((node) => new GetAllNodesResponseModel(node)),
         };
     }
 }

@@ -26,6 +26,8 @@ export class GetOneNodeResponseModel {
     public trafficUsedBytes: null | number;
     public notifyPercent: null | number;
 
+    public viewPosition: number;
+    public countryCode: string;
     public createdAt: Date;
     public updatedAt: Date;
 
@@ -58,5 +60,7 @@ export class GetOneNodeResponseModel {
         this.updatedAt = data.updatedAt;
 
         this.excludedInbounds = data.excludedInbounds;
+        this.viewPosition = data.viewPosition;
+        this.countryCode = data.countryCode;
     }
 }

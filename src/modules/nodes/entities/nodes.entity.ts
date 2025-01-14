@@ -25,6 +25,9 @@ export class NodesEntity implements Nodes {
     public trafficUsedBytes: bigint | null;
     public notifyPercent: null | number;
 
+    public viewPosition: number;
+    public countryCode: string;
+
     public cpuCount: null | number;
     public cpuModel: null | string;
     public totalRam: null | string;

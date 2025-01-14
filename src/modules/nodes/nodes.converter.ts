@@ -34,6 +34,8 @@ const entityToModel = (entity: NodesEntity): Nodes => {
         totalRam: entity.totalRam,
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
+        viewPosition: entity.viewPosition,
+        countryCode: entity.countryCode,
     };
 };
 
