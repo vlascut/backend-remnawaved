@@ -249,7 +249,7 @@ export class UsersRepository implements ICrud<UserEntity> {
             {},
         );
 
-        if (orderBy === undefined) {
+        if (orderBy === undefined || Object.keys(orderBy).length === 0) {
             orderBy = {
                 createdAt: 'desc',
             };
