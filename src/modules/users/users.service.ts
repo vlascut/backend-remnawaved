@@ -5,6 +5,8 @@ import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
+import utc from 'dayjs/plugin/utc';
+import dayjs from 'dayjs';
 
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
@@ -25,6 +27,8 @@ import { DeleteUserResponseModel } from './models/delete-user.response.model';
 import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
 import { UsersRepository } from './repositories/users.repository';
 import { UserEntity } from './entities/users.entity';
+
+dayjs.extend(utc);
 
 @Injectable()
 export class UsersService {
@@ -106,15 +110,37 @@ export class UsersService {
                 };
             }
 
-            const isNeedToBeAddedToNode =
+            let newStatus = status;
+
+            let isNeedToBeAddedToNode =
                 user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
+
+            if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes) {
+                if (BigInt(trafficLimitBytes) > user.trafficLimitBytes) {
+                    newStatus = USERS_STATUS.ACTIVE;
+                    isNeedToBeAddedToNode = true;
+                }
+            }
+
+            if (user.status === USERS_STATUS.EXPIRED && expireAt && !status) {
+                const newExpireDate = dayjs.utc(expireAt);
+                const currentExpireDate = dayjs.utc(user.expireAt);
+                const now = dayjs.utc();
+
+                if (currentExpireDate !== newExpireDate) {
+                    if (newExpireDate.isAfter(currentExpireDate) && newExpireDate.isAfter(now)) {
+                        newStatus = USERS_STATUS.ACTIVE;
+                        isNeedToBeAddedToNode = true;
+                    }
+                }
+            }
 
             const result = await this.userRepository.update({
                 uuid: user.uuid,
                 expireAt: expireAt ? new Date(expireAt) : undefined,
                 trafficLimitBytes: trafficLimitBytes ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy: trafficLimitStrategy || undefined,
-                status: status || undefined,
+                status: newStatus || undefined,
             });
 
             let inboundsChanged = false;
@@ -449,7 +475,6 @@ export class UsersService {
             };
         } catch (error) {
             this.logger.error(error);
-            this.logger.error(JSON.stringify(error));
             return {
                 isOk: false,
                 ...ERRORS.REVOKE_USER_SUBSCRIPTION_ERROR,
@@ -476,7 +501,6 @@ export class UsersService {
             };
         } catch (error) {
             this.logger.error(error);
-            this.logger.error(JSON.stringify(error));
             return { isOk: false, ...ERRORS.DELETE_USER_ERROR };
         }
     }
