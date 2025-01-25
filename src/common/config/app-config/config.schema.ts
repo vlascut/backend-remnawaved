@@ -42,6 +42,22 @@ export const configSchema = z.object({
     METRICS_USER: z.string(),
     METRICS_PASS: z.string(),
     SUB_PUBLIC_DOMAIN: z.string(),
+    WEBHOOK_ENABLED: z.string().default('false'),
+    WEBHOOK_URL: z
+        .string()
+        .refine((url) => url.startsWith('https://'), {
+            message: 'WEBHOOK_URL must start with https://',
+        })
+        .default(''),
+    WEBHOOK_SECRET_HEADER: z
+        .string()
+        .refine((header) => header.length === 64, {
+            message: 'WEBHOOK_SECRET_HEADER must be 64 characters long',
+        })
+        .refine((header) => /^[a-zA-Z0-9]+$/.test(header), {
+            message: 'WEBHOOK_SECRET_HEADER must contain only letters and numbers',
+        })
+        .default(''),
 });
 
 export type ConfigSchema = z.infer<typeof configSchema>;

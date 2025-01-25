@@ -22,4 +22,9 @@ export const EVENTS = {
         RESTARTED: 'node.restarted',
         TRAFFIC_NOTIFY: 'node.traffic_notify',
     },
-};
+    CATCH_ALL_USER_EVENTS: 'user.*',
+    CATCH_ALL_NODE_EVENTS: 'node.*',
+} as const;
+
+export type TNodeEvents = (typeof EVENTS.NODE)[keyof typeof EVENTS.NODE];
+export type TUserEvents = (typeof EVENTS.USER)[keyof typeof EVENTS.USER];

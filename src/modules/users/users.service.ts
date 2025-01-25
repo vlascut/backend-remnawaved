@@ -51,7 +51,10 @@ export class UsersService {
         }
 
         this.eventBus.publish(new AddUserToNodeEvent(user.response));
-        this.eventEmitter.emit(EVENTS.USER.CREATED, new UserEvent(user.response));
+        this.eventEmitter.emit(
+            EVENTS.USER.CREATED,
+            new UserEvent(user.response, EVENTS.USER.CREATED),
+        );
         return user;
     }
 
@@ -78,7 +81,10 @@ export class UsersService {
             this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
         }
 
-        this.eventEmitter.emit(EVENTS.USER.MODIFIED, new UserEvent(user.response.user));
+        this.eventEmitter.emit(
+            EVENTS.USER.MODIFIED,
+            new UserEvent(user.response.user, EVENTS.USER.MODIFIED),
+        );
 
         return user;
     }
@@ -467,7 +473,10 @@ export class UsersService {
                 await this.eventBus.publish(new ReaddUserToNodeEvent(updatedUser));
             }
 
-            this.eventEmitter.emit(EVENTS.USER.REVOKED, new UserEvent(updatedUser));
+            this.eventEmitter.emit(
+                EVENTS.USER.REVOKED,
+                new UserEvent(updatedUser, EVENTS.USER.REVOKED),
+            );
 
             return {
                 isOk: true,
@@ -494,7 +503,7 @@ export class UsersService {
             const result = await this.userRepository.deleteByUUID(user.uuid);
 
             this.eventBus.publish(new RemoveUserFromNodeEvent(user));
-            this.eventEmitter.emit(EVENTS.USER.DELETED, new UserEvent(user));
+            this.eventEmitter.emit(EVENTS.USER.DELETED, new UserEvent(user, EVENTS.USER.DELETED));
             return {
                 isOk: true,
                 response: new DeleteUserResponseModel(result),
@@ -530,7 +539,10 @@ export class UsersService {
             });
 
             this.eventBus.publish(new RemoveUserFromNodeEvent(user));
-            this.eventEmitter.emit(EVENTS.USER.DISABLED, new UserEvent(user));
+            this.eventEmitter.emit(
+                EVENTS.USER.DISABLED,
+                new UserEvent(updatedUser, EVENTS.USER.DISABLED),
+            );
 
             return {
                 isOk: true,
@@ -569,8 +581,12 @@ export class UsersService {
                 status: USERS_STATUS.ACTIVE,
             });
 
-            this.eventBus.publish(new AddUserToNodeEvent(user));
-            this.eventEmitter.emit(EVENTS.USER.ENABLED, new UserEvent(user));
+            this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
+
+            this.eventEmitter.emit(
+                EVENTS.USER.ENABLED,
+                new UserEvent(updatedUser, EVENTS.USER.ENABLED),
+            );
 
             return {
                 isOk: true,
@@ -601,7 +617,10 @@ export class UsersService {
 
             if (user.status === USERS_STATUS.LIMITED) {
                 status = USERS_STATUS.ACTIVE;
-                this.eventEmitter.emit(EVENTS.USER.ENABLED, new UserEvent(user));
+                this.eventEmitter.emit(
+                    EVENTS.USER.ENABLED,
+                    new UserEvent(user, EVENTS.USER.ENABLED),
+                );
                 this.eventBus.publish(new AddUserToNodeEvent(user));
             }
 

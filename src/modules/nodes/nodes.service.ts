@@ -58,7 +58,7 @@ export class NodesService {
             }
 
             this.eventBus.publish(new StartNodeEvent(node));
-            this.eventEmitter.emit(EVENTS.NODE.CREATED, new NodeEvent(node));
+            this.eventEmitter.emit(EVENTS.NODE.CREATED, new NodeEvent(node, EVENTS.NODE.CREATED));
 
             return {
                 isOk: true,
@@ -245,7 +245,10 @@ export class NodesService {
                 this.eventBus.publish(new StartNodeEvent(result));
             }
 
-            this.eventEmitter.emit(EVENTS.NODE.MODIFIED, new NodeEvent(result));
+            this.eventEmitter.emit(
+                EVENTS.NODE.MODIFIED,
+                new NodeEvent(result, EVENTS.NODE.MODIFIED),
+            );
 
             return {
                 isOk: true,
@@ -283,7 +286,7 @@ export class NodesService {
             }
 
             this.eventBus.publish(new StartNodeEvent(result));
-            this.eventEmitter.emit(EVENTS.NODE.ENABLED, new NodeEvent(result));
+            this.eventEmitter.emit(EVENTS.NODE.ENABLED, new NodeEvent(result, EVENTS.NODE.ENABLED));
 
             return {
                 isOk: true,
@@ -325,7 +328,10 @@ export class NodesService {
             }
 
             this.eventBus.publish(new StopNodeEvent(result));
-            this.eventEmitter.emit(EVENTS.NODE.DISABLED, new NodeEvent(result));
+            this.eventEmitter.emit(
+                EVENTS.NODE.DISABLED,
+                new NodeEvent(result, EVENTS.NODE.DISABLED),
+            );
 
             return {
                 isOk: true,

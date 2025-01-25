@@ -19,7 +19,7 @@ export class UsersEvents {
         private readonly bot: Bot<Context>,
         private readonly configService: ConfigService,
     ) {
-        this.adminId = configService.getOrThrow<string>('TELEGRAM_ADMIN_ID');
+        this.adminId = this.configService.getOrThrow<string>('TELEGRAM_ADMIN_ID');
         this.bot.api.config.use(parseMode('html'));
     }
 

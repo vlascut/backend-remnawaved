@@ -38,15 +38,17 @@ export class NodesEntity implements Nodes {
     public excludedInbounds: InboundsEntity[];
 
     constructor(node: Partial<INodeWithExcludedInbounds> & Partial<Nodes>) {
-        Object.assign(this, node);
+        const { inboundsExclusions, ...nodeData } = node;
 
-        if (node.inboundsExclusions) {
-            this.excludedInbounds = node.inboundsExclusions.map((item) => ({
+        if (inboundsExclusions) {
+            this.excludedInbounds = inboundsExclusions.map((item) => ({
                 uuid: item.inbound.uuid,
                 tag: item.inbound.tag,
                 type: item.inbound.type,
             }));
         }
+
+        Object.assign(this, nodeData);
 
         return this;
     }

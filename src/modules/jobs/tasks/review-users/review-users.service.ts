@@ -71,7 +71,10 @@ export class ReviewUsersService {
                         status: USERS_STATUS.LIMITED,
                     });
                     shouldRemoveFromNode = true;
-                    this.eventEmitter.emit(EVENTS.USER.LIMITED, new UserEvent(user));
+                    this.eventEmitter.emit(
+                        EVENTS.USER.LIMITED,
+                        new UserEvent(user, EVENTS.USER.LIMITED),
+                    );
                 }
 
                 if (user.expireAt < new Date()) {
@@ -80,7 +83,10 @@ export class ReviewUsersService {
                         status: USERS_STATUS.EXPIRED,
                     });
                     shouldRemoveFromNode = true;
-                    this.eventEmitter.emit(EVENTS.USER.EXPIRED, new UserEvent(user));
+                    this.eventEmitter.emit(
+                        EVENTS.USER.EXPIRED,
+                        new UserEvent(user, EVENTS.USER.EXPIRED),
+                    );
                 }
 
                 if (shouldRemoveFromNode) {

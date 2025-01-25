@@ -72,7 +72,10 @@ export class ReviewNodesService {
                         `Node ${node.uuid} has exceeded ${currentPercent}% of traffic limit (${notifyPercent}% threshold)`,
                     );
 
-                    this.eventEmitter.emit(EVENTS.NODE.TRAFFIC_NOTIFY, new NodeEvent(node));
+                    this.eventEmitter.emit(
+                        EVENTS.NODE.TRAFFIC_NOTIFY,
+                        new NodeEvent(node, EVENTS.NODE.TRAFFIC_NOTIFY),
+                    );
 
                     this.notifiedNodes.set(node.uuid, true);
                 } else if (currentPercent < notifyPercent && this.notifiedNodes.get(node.uuid)) {

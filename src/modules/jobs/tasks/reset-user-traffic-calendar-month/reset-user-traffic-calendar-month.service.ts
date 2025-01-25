@@ -86,7 +86,10 @@ export class ResetUserTrafficCalendarMonthService {
 
                 if (user.status === USERS_STATUS.LIMITED) {
                     status = USERS_STATUS.ACTIVE;
-                    this.eventEmitter.emit(EVENTS.USER.ENABLED, new UserEvent(user));
+                    this.eventEmitter.emit(
+                        EVENTS.USER.ENABLED,
+                        new UserEvent(user, EVENTS.USER.ENABLED),
+                    );
                     this.eventBus.publish(new AddUserToNodeEvent(user));
                 }
 

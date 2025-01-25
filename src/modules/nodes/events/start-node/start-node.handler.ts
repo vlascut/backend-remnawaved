@@ -80,7 +80,10 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
             });
 
             if (!nodeEntity.isConnected) {
-                this.eventEmitter.emit(EVENTS.NODE.CONNECTION_RESTORED, new NodeEvent(node));
+                this.eventEmitter.emit(
+                    EVENTS.NODE.CONNECTION_RESTORED,
+                    new NodeEvent(node, EVENTS.NODE.CONNECTION_RESTORED),
+                );
             }
 
             return;

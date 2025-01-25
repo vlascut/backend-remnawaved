@@ -38,7 +38,10 @@ import { PrismaModule } from '@common/database';
             middleware: { mount: true },
         }),
         ScheduleModule.forRoot(),
-        EventEmitterModule.forRoot(),
+        EventEmitterModule.forRoot({
+            wildcard: true,
+            delimiter: '.',
+        }),
         IntegrationModules,
         RemnawaveModules,
         ServeStaticModule.forRootAsync({

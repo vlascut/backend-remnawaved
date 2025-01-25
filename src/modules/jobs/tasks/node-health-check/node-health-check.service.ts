@@ -115,7 +115,10 @@ export class NodeHealthCheckService {
         });
 
         if (!node.isConnected) {
-            this.eventEmitter.emit(EVENTS.NODE.CONNECTION_RESTORED, new NodeEvent(node));
+            this.eventEmitter.emit(
+                EVENTS.NODE.CONNECTION_RESTORED,
+                new NodeEvent(node, EVENTS.NODE.CONNECTION_RESTORED),
+            );
         }
     }
 
@@ -140,7 +143,10 @@ export class NodeHealthCheckService {
 
         if (node.isConnected) {
             node.lastStatusMessage = message || null;
-            this.eventEmitter.emit(EVENTS.NODE.CONNECTION_LOST, new NodeEvent(node));
+            this.eventEmitter.emit(
+                EVENTS.NODE.CONNECTION_LOST,
+                new NodeEvent(node, EVENTS.NODE.CONNECTION_LOST),
+            );
         }
     }
 
