@@ -47,9 +47,9 @@ export class WebhookEvents {
                     .post(this.webhookUrl, json, {
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Remnwave-Signature': signature,
-                            'X-Remnwave-Timestamp': payload.timestamp,
-                            'User-Agent': 'Remnwave',
+                            'X-Remnawave-Signature': signature,
+                            'X-Remnawave-Timestamp': payload.timestamp,
+                            'User-Agent': 'Remnawave',
                         },
                     })
                     .pipe(
@@ -92,9 +92,9 @@ export class WebhookEvents {
                     .post(this.webhookUrl, json, {
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Remnwave-Signature': signature,
-                            'X-Remnwave-Timestamp': payload.timestamp,
-                            'User-Agent': 'Remnwave',
+                            'X-Remnawave-Signature': signature,
+                            'X-Remnawave-Timestamp': payload.timestamp,
+                            'User-Agent': 'Remnawave',
                         },
                     })
                     .pipe(
