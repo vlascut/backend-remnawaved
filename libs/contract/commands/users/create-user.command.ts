@@ -18,7 +18,7 @@ export namespace CreateUserCommand {
                 /^[a-zA-Z0-9_-]+$/,
                 'Username can only contain letters, numbers, underscores and dashes',
             )
-            .max(32, 'Username must be less than 32 characters')
+            .max(34, 'Username must be less than 34 characters')
             .min(6, 'Username must be at least 6 characters'),
         status: UsersSchema.shape.status.optional().default(USERS_STATUS.ACTIVE),
         subscriptionUuid: z
