@@ -8,7 +8,7 @@ import { createHmac } from 'node:crypto';
 import { serialize } from 'superjson';
 import dayjs from 'dayjs';
 
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces/user.event.interface';
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { EVENTS } from '@libs/contracts/constants';
 
