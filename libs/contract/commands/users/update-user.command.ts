@@ -49,6 +49,7 @@ export namespace UpdateUserCommand {
                 message: 'Expiration date cannot be in the past',
             })
             .optional(),
+        description: z.string().optional(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

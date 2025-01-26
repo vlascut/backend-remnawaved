@@ -25,7 +25,7 @@ export class CreateUserResponseModel {
     public readonly trojanPassword: string;
     public readonly vlessUuid: string;
     public readonly ssPassword: string;
-
+    public readonly description: null | string;
     constructor(entity: UserWithActiveInboundsEntity) {
         this.uuid = entity.uuid;
         this.username = entity.username;
@@ -48,5 +48,6 @@ export class CreateUserResponseModel {
         this.trojanPassword = entity.trojanPassword;
         this.vlessUuid = entity.vlessUuid;
         this.ssPassword = entity.ssPassword;
+        this.description = entity.description;
     }
 }

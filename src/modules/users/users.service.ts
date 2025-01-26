@@ -106,6 +106,7 @@ export class UsersService {
                 trafficLimitStrategy,
                 status,
                 activeUserInbounds,
+                description,
             } = dto;
 
             const user = await this.userRepository.getUserByUUID(uuid);
@@ -147,6 +148,7 @@ export class UsersService {
                 trafficLimitBytes: trafficLimitBytes ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy: trafficLimitStrategy || undefined,
                 status: newStatus || undefined,
+                description: description || undefined,
             });
 
             let inboundsChanged = false;
@@ -247,6 +249,7 @@ export class UsersService {
                 activeUserInbounds,
                 createdAt,
                 lastTrafficResetAt,
+                description,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -262,6 +265,7 @@ export class UsersService {
                 expireAt: new Date(expireAt),
                 createdAt: createdAt ? new Date(createdAt) : undefined,
                 lastTrafficResetAt: lastTrafficResetAt ? new Date(lastTrafficResetAt) : undefined,
+                description: description || undefined,
             });
 
             const result = await this.userRepository.create(userEntity);

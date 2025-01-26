@@ -33,6 +33,8 @@ export const UsersSchema = z.object({
     vlessUuid: z.string().uuid(),
     ssPassword: z.string(),
 
+    description: z.nullable(z.string()),
+
     createdAt: z.string().transform((str) => new Date(str)),
     updatedAt: z.string().transform((str) => new Date(str)),
 

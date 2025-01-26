@@ -35,6 +35,8 @@ export class UserWithLifetimeTrafficResponseModel {
         connectedAt: Date;
         nodeName: string;
     };
+    public description: null | string;
+
     constructor(data: UserWithLifetimeTrafficEntity) {
         this.uuid = data.uuid;
         this.createdAt = data.createdAt;
@@ -61,6 +63,8 @@ export class UserWithLifetimeTrafficResponseModel {
         );
         this.subscriptionUrl = `https://${process.env.SUB_PUBLIC_DOMAIN}/${this.shortUuid}`;
         this.lastConnection = data.lastConnection;
+
+        this.description = data.description;
 
         return this;
     }

@@ -26,6 +26,7 @@ export class GetUserResponseModel {
     public readonly ssPassword: string;
     public readonly activeUserInbounds: InboundsEntity[];
     public readonly subscriptionUrl: string;
+    public readonly description: null | string;
 
     constructor(entity: UserWithActiveInboundsEntity) {
         this.uuid = entity.uuid;
@@ -50,5 +51,6 @@ export class GetUserResponseModel {
         this.vlessUuid = entity.vlessUuid;
         this.ssPassword = entity.ssPassword;
         this.subscriptionUrl = `https://${process.env.SUB_PUBLIC_DOMAIN}/${entity.shortUuid}`; // TODO: find a better way to get the subscription url
+        this.description = entity.description;
     }
 }

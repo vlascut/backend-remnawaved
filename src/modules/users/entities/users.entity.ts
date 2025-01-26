@@ -25,6 +25,8 @@ export class UserEntity implements Users {
     public vlessUuid: string;
     public ssPassword: string;
 
+    public description: null | string;
+
     public createdAt: Date;
     public updatedAt: Date;
 

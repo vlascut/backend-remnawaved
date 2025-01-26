@@ -32,6 +32,8 @@ const entityToModel = (entity: UserEntity): UserEntity => {
         vlessUuid: entity.vlessUuid,
         ssPassword: entity.ssPassword,
 
+        description: entity.description,
+
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };
