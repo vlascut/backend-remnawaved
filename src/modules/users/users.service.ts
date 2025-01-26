@@ -1,7 +1,7 @@
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Transactional } from '@nestjs-cls/transactional';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
@@ -10,6 +10,8 @@ import dayjs from 'dayjs';
 
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
+import { InboundsEntity } from '@modules/inbounds/entities/inbounds.entity';
 import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
 import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
 import { ICommandResponse } from '@common/types/command-response.type';
@@ -39,6 +41,7 @@ export class UsersService {
         private readonly commandBus: CommandBus,
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
+        private readonly queryBus: QueryBus,
     ) {}
 
     public async createUser(
@@ -250,6 +253,7 @@ export class UsersService {
                 createdAt,
                 lastTrafficResetAt,
                 description,
+                activateAllInbounds,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -275,6 +279,34 @@ export class UsersService {
                     userUuid: result.uuid,
                     inboundUuids: activeUserInbounds,
                 });
+                if (!inboundResult.isOk) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.CREATE_USER_WITH_INBOUNDS_ERROR,
+                    };
+                }
+            }
+
+            if (
+                activateAllInbounds === true &&
+                (!activeUserInbounds || activeUserInbounds.length === 0)
+            ) {
+                const allInbounds = await this.getAllInbounds();
+
+                if (!allInbounds.isOk || !allInbounds.response) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.GET_ALL_INBOUNDS_ERROR,
+                    };
+                }
+
+                const inboundUuids = allInbounds.response.map((inbound) => inbound.uuid);
+
+                const inboundResult = await this.createManyUserActiveInbounds({
+                    userUuid: result.uuid,
+                    inboundUuids: inboundUuids,
+                });
+
                 if (!inboundResult.isOk) {
                     return {
                         isOk: false,
@@ -720,6 +752,12 @@ export class UsersService {
     ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<CreateUserTrafficHistoryCommand, ICommandResponse<void>>(
             new CreateUserTrafficHistoryCommand(dto.userTrafficHistory),
+        );
+    }
+
+    private async getAllInbounds(): Promise<ICommandResponse<InboundsEntity[]>> {
+        return this.queryBus.execute<GetAllInboundsQuery, ICommandResponse<InboundsEntity[]>>(
+            new GetAllInboundsQuery(),
         );
     }
 }

@@ -281,4 +281,9 @@ export const ERRORS = {
         message: 'Reorder nodes error',
         httpCode: 500,
     },
+    GET_ALL_INBOUNDS_ERROR: {
+        code: 'A058',
+        message: 'Get all inbounds error',
+        httpCode: 500,
+    },
 } as const;

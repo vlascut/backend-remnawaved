@@ -107,6 +107,7 @@ export namespace CreateUserCommand {
             })
             .optional(),
         description: z.string().optional(),
+        activateAllInbounds: z.boolean().default(false),
     });
 
     export type Request = z.infer<typeof RequestSchema>;
