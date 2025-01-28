@@ -50,7 +50,7 @@ import { PrismaModule } from '@common/database';
             useFactory: (configService: ConfigService) => [
                 {
                     rootPath: join(__dirname, '..', '..', 'frontend'),
-                    renderPath: '*',
+                    renderPath: '*splat',
                     exclude: [
                         '/api/(.*)',
                         configService.getOrThrow<string>('SWAGGER_PATH'),

@@ -47,7 +47,7 @@ export class SubscriptionController {
         description: 'Encoded tag for Outline config',
         required: false,
     })
-    @Get(SUBSCRIPTION_ROUTES.GET + '/:shortUuid/:type?/:encodedTag?')
+    @Get(SUBSCRIPTION_ROUTES.GET + '/:shortUuid{/:type}{/:encodedTag}')
     async getSubscription(
         @Param() { shortUuid }: GetSubscriptionByShortUuidRequestDto,
         @Req() request: Request,

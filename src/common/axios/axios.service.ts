@@ -14,8 +14,8 @@ import {
     StartXrayCommand,
     StopXrayCommand,
 } from '@remnawave/node-contract';
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 
 import { GetNodeJwtCommand } from '@modules/keygen/commands/get-node-jwt';
@@ -24,7 +24,7 @@ import { ERRORS } from '@contract/constants';
 import { ICommandResponse } from '../types/command-response.type';
 
 @Injectable()
-export class AxiosService implements OnApplicationBootstrap {
+export class AxiosService {
     public axiosInstance: AxiosInstance;
     private readonly logger = new Logger(AxiosService.name);
     constructor(private readonly commandBus: CommandBus) {
@@ -37,7 +37,7 @@ export class AxiosService implements OnApplicationBootstrap {
         });
     }
 
-    async onApplicationBootstrap() {
+    public async setJwt() {
         try {
             const response = await this.getNodeJwtCommand();
             const jwt = response.response;
@@ -50,7 +50,7 @@ export class AxiosService implements OnApplicationBootstrap {
 
             this.logger.log('Axios interceptor registered');
         } catch (error) {
-            this.logger.error('Error in onApplicationBootstrap:', error);
+            this.logger.error(`Error in onApplicationBootstrap: ${error}`);
         }
     }
 

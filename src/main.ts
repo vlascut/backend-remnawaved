@@ -12,6 +12,7 @@ import morgan from 'morgan';
 import { getDocs, isDevelopment } from '@common/utils/startup-app';
 import { getRealIp } from '@common/middlewares/get-real-ip';
 import { METRICS_ROOT, ROOT } from '@contract/api';
+import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
 
@@ -97,5 +98,8 @@ async function bootstrap(): Promise<void> {
     app.enableShutdownHooks();
 
     await app.listen(Number(config.getOrThrow<string>('APP_PORT')));
+
+    const axiosService = app.get(AxiosService);
+    await axiosService.setJwt();
 }
 void bootstrap();
