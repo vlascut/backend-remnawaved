@@ -52,7 +52,7 @@ import { PrismaModule } from '@common/database';
                     rootPath: join(__dirname, '..', '..', 'frontend'),
                     renderPath: '*splat',
                     exclude: [
-                        '/api/(.*)',
+                        '/api/*splat',
                         configService.getOrThrow<string>('SWAGGER_PATH'),
                         configService.getOrThrow<string>('SCALAR_PATH'),
                     ],
