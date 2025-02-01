@@ -15,6 +15,11 @@ import { JOBS_SERVICES } from './tasks';
             help: 'Number of online users on a node',
             labelNames: ['node_uuid', 'node_name'],
         }),
+        makeGaugeProvider({
+            name: 'node_status',
+            help: 'Node connection status (1 - connected, 0 - disconnected)',
+            labelNames: ['node_uuid', 'node_name'],
+        }),
     ],
 })
 export class JobsModule {}
