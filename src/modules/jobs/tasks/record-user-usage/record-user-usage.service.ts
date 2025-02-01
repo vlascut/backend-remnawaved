@@ -19,6 +19,7 @@ import { AxiosService } from '@common/axios';
 import { NodesEntity } from '@modules/nodes';
 
 import { JOBS_INTERVALS } from '../../intervals';
+import { METRIC_NAMES } from '@libs/contracts/constants';
 
 @Injectable()
 export class RecordUserUsageService {
@@ -28,7 +29,7 @@ export class RecordUserUsageService {
     private cronName: string;
     private CONCURRENCY: number;
     constructor(
-        @InjectMetric('node_online_users') public nodeOnlineUsers: Gauge<string>,
+        @InjectMetric(METRIC_NAMES.NODE_ONLINE_USERS) public nodeOnlineUsers: Gauge<string>,
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,

@@ -4,6 +4,8 @@ import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import pMap from '@cjs-exporter/p-map';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Gauge } from 'prom-client';
 
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
@@ -27,6 +29,7 @@ export class NodeHealthCheckService {
     private CONCURRENCY: number;
     private isNodesRestarted: boolean;
     constructor(
+        @InjectMetric('node_status') public nodeStatus: Gauge<string>,
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
@@ -114,6 +117,8 @@ export class NodeHealthCheckService {
             },
         });
 
+        this.nodeStatus.set({ node_uuid: node.uuid, node_name: node.name }, 1);
+
         if (!node.isConnected) {
             this.eventEmitter.emit(
                 EVENTS.NODE.CONNECTION_RESTORED,
@@ -140,6 +145,8 @@ export class NodeHealthCheckService {
         });
 
         this.eventBus.publish(new StartNodeEvent(newNodeEntity.response || node));
+
+        this.nodeStatus.set({ node_uuid: node.uuid, node_name: node.name }, 0);
 
         if (node.isConnected) {
             node.lastStatusMessage = message || null;
