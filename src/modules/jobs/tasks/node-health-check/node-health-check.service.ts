@@ -144,9 +144,9 @@ export class NodeHealthCheckService {
             },
         });
 
-        this.nodeStatus.set({ node_uuid: node.uuid, node_name: node.name }, 0);
-
         this.eventBus.publish(new StartNodeEvent(newNodeEntity.response || node));
+
+        this.nodeStatus.set({ node_uuid: node.uuid, node_name: node.name }, 0);
 
         if (node.isConnected) {
             node.lastStatusMessage = message || null;
