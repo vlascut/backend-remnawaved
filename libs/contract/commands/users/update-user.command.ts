@@ -22,8 +22,6 @@ export namespace UpdateUserCommand {
             .optional(),
         trafficLimitStrategy: UsersSchema.shape.trafficLimitStrategy
             .describe('Traffic limit reset strategy')
-            .optional()
-            .default(RESET_PERIODS.NO_RESET)
             .superRefine((val, ctx) => {
                 if (val && !Object.values(RESET_PERIODS).includes(val)) {
                     ctx.addIssue({
@@ -34,7 +32,8 @@ export namespace UpdateUserCommand {
                         options: Object.values(RESET_PERIODS),
                     });
                 }
-            }),
+            })
+            .optional(),
         activeUserInbounds: z
             .array(z.string().uuid(), {
                 invalid_type_error: 'Enabled inbounds must be an array of UUIDs',
@@ -48,6 +47,7 @@ export namespace UpdateUserCommand {
             .refine((date) => date > new Date(), {
                 message: 'Expiration date cannot be in the past',
             })
+            .describe('Expiration date: 2025-01-17T15:38:45.065Z')
             .optional(),
         description: z.string().optional(),
     });
