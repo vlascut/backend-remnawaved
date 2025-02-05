@@ -6,6 +6,7 @@ import { NodeHealthCheckService } from './node-health-check/node-health-check.se
 import { RecordUserUsageService } from './record-user-usage/record-user-usage.service';
 import { ReviewUsersService } from './review-users/review-users.service';
 import { ReviewNodesService } from './review-nodes/review-nodes.service';
+import { METRICS_JOBS_SERVICES } from './metrics-jobs';
 
 export const JOBS_SERVICES = [
     NodeHealthCheckService,
@@ -16,4 +17,6 @@ export const JOBS_SERVICES = [
     ResetNodeTrafficService,
     ReviewNodesService,
     ResetUserTrafficCalendarMonthService,
+
+    ...METRICS_JOBS_SERVICES,
 ];
