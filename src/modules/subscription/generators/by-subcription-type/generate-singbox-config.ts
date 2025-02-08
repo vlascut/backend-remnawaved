@@ -419,8 +419,12 @@ export class SingBoxConfiguration {
             server_port: port,
         };
 
-        if (type === 'shadowsocks') {
+        if (type === 'shadowsocks' || type === 'vless') {
             config.network = 'tcp';
+        }
+
+        if (type === 'vless') {
+            config.flow = 'xtls-rprx-vision';
         }
 
         if (
