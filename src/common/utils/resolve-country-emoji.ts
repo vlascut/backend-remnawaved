@@ -1,6 +1,6 @@
 import countryCodeEmoji from 'country-code-emoji';
 
-export function resolveCountryEmoji(countryCode: string) {
+export function resolveCountryEmoji(countryCode: string): string {
     if (countryCode === 'XX') {
         return '🏴‍☠️';
     }
