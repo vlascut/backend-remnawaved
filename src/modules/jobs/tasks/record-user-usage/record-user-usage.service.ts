@@ -20,6 +20,7 @@ import { NodesEntity } from '@modules/nodes';
 
 import { JOBS_INTERVALS } from '../../intervals';
 import { METRIC_NAMES } from '@libs/contracts/constants';
+import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 
 @Injectable()
 export class RecordUserUsageService {
@@ -142,7 +143,14 @@ export class RecordUserUsageService {
             },
         });
 
-        this.nodeOnlineUsers.set({ node_uuid: node.uuid, node_name: node.name }, usersOnline);
+        this.nodeOnlineUsers.set(
+            {
+                node_uuid: node.uuid,
+                node_name: node.name,
+                node_country_emoji: resolveCountryEmoji(node.countryCode),
+            },
+            usersOnline,
+        );
     }
 
     private async getOnlineNodes(): Promise<ICommandResponse<NodesEntity[]>> {

@@ -1,6 +1,6 @@
 {
   "name": "@remnawave/backend",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Remnawave Panel Backend",
   "private": false,
   "type": "commonjs",
@@ -57,6 +57,7 @@
     "axios": "^1.7.9",
     "class-transformer": "^0.5.1",
     "compression": "^1.7.5",
+    "country-code-emoji": "^2.3.0",
     "dayjs": "^1.11.13",
     "enhanced-ms": "^3.0.0",
     "grammy": "^1.32.0",

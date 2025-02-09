@@ -19,6 +19,7 @@ import { StartAllNodesEvent } from '../../../nodes/events/start-all-nodes';
 import { StartNodeEvent } from '../../../nodes/events/start-node';
 import { JOBS_INTERVALS } from '../../intervals';
 import { NodesEntity } from '../../../nodes';
+import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 
 @Injectable()
 export class NodeHealthCheckService {
@@ -117,7 +118,14 @@ export class NodeHealthCheckService {
             },
         });
 
-        this.nodeStatus.set({ node_uuid: node.uuid, node_name: node.name }, 1);
+        this.nodeStatus.set(
+            {
+                node_uuid: node.uuid,
+                node_name: node.name,
+                node_country_emoji: resolveCountryEmoji(node.countryCode),
+            },
+            1,
+        );
 
         if (!node.isConnected) {
             this.eventEmitter.emit(
@@ -146,7 +154,14 @@ export class NodeHealthCheckService {
 
         this.eventBus.publish(new StartNodeEvent(newNodeEntity.response || node));
 
-        this.nodeStatus.set({ node_uuid: node.uuid, node_name: node.name }, 0);
+        this.nodeStatus.set(
+            {
+                node_uuid: node.uuid,
+                node_name: node.name,
+                node_country_emoji: resolveCountryEmoji(node.countryCode),
+            },
+            0,
+        );
 
         if (node.isConnected) {
             node.lastStatusMessage = message || null;
