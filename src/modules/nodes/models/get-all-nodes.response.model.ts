@@ -1,6 +1,7 @@
 import { InboundsEntity } from '@modules/inbounds/entities';
 
 import { NodesEntity } from '../entities';
+import { fromNanoToNumber } from '@common/utils/nano';
 
 export class GetAllNodesResponseModel {
     public uuid: string;
@@ -21,7 +22,7 @@ export class GetAllNodesResponseModel {
     public cpuCount: null | number;
     public cpuModel: null | string;
     public totalRam: null | string;
-
+    public consumptionMultiplier: number;
     public trafficLimitBytes: null | number;
     public trafficUsedBytes: null | number;
     public notifyPercent: null | number;
@@ -53,6 +54,7 @@ export class GetAllNodesResponseModel {
         this.trafficUsedBytes = Number(data.trafficUsedBytes);
         this.notifyPercent = data.notifyPercent;
         this.usersOnline = data.usersOnline;
+        this.consumptionMultiplier = fromNanoToNumber(data.consumptionMultiplier);
 
         this.cpuCount = data.cpuCount;
         this.cpuModel = data.cpuModel;

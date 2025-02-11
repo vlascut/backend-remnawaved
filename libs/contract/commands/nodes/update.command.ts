@@ -35,6 +35,12 @@ export namespace UpdateNodeCommand {
         countryCode: z.optional(
             z.string().max(2, 'Country code must be 2 characters').toUpperCase(),
         ),
+        consumptionMultiplier: z.optional(
+            z
+                .number()
+                .min(0.1, 'Consumption multiplier must be greater than 0')
+                .transform((n) => Number(n.toFixed(1))),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

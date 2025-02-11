@@ -24,6 +24,7 @@ export const NodesSchema = z.object({
 
     viewPosition: z.number().int(),
     countryCode: z.string(),
+    consumptionMultiplier: z.number(),
 
     cpuCount: z.nullable(z.number().int()),
     cpuModel: z.nullable(z.string()),

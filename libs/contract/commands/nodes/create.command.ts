@@ -39,6 +39,12 @@ export namespace CreateNodeCommand {
             .max(2, 'Country code must be 2 characters')
             .toUpperCase()
             .default('XX'),
+        consumptionMultiplier: z.optional(
+            z
+                .number()
+                .min(0.1, 'Consumption multiplier must be greater than 0')
+                .transform((n) => Number(n.toFixed(1))),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

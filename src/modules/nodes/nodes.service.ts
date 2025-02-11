@@ -15,6 +15,7 @@ import { StartAllNodesEvent } from './events/start-all-nodes';
 import { StartNodeEvent } from './events/start-node';
 import { StopNodeEvent } from './events/stop-node';
 import { NodesEntity } from './entities';
+import { toNano } from '@common/utils/nano';
 
 @Injectable()
 export class NodesService {
@@ -40,6 +41,9 @@ export class NodesService {
                 isXrayRunning: false,
                 trafficLimitBytes: nodeData.trafficLimitBytes
                     ? BigInt(nodeData.trafficLimitBytes)
+                    : undefined,
+                consumptionMultiplier: nodeData.consumptionMultiplier
+                    ? toNano(nodeData.consumptionMultiplier)
                     : undefined,
             });
             const result = await this.nodesRepository.create(nodeEntity);
@@ -231,6 +235,9 @@ export class NodesService {
                 ...nodeData,
                 trafficLimitBytes: nodeData.trafficLimitBytes
                     ? BigInt(nodeData.trafficLimitBytes)
+                    : undefined,
+                consumptionMultiplier: nodeData.consumptionMultiplier
+                    ? toNano(nodeData.consumptionMultiplier)
                     : undefined,
             });
 

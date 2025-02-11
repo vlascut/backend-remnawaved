@@ -27,6 +27,7 @@ export class NodesEntity implements Nodes {
 
     public viewPosition: number;
     public countryCode: string;
+    public consumptionMultiplier: bigint;
 
     public cpuCount: null | number;
     public cpuModel: null | string;

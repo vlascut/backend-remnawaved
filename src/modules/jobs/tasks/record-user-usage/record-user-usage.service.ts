@@ -21,6 +21,7 @@ import { NodesEntity } from '@modules/nodes';
 import { JOBS_INTERVALS } from '../../intervals';
 import { METRIC_NAMES } from '@libs/contracts/constants';
 import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
+import { fromNanoToNumber } from '@common/utils/nano';
 
 @Injectable()
 export class RecordUserUsageService {
@@ -132,7 +133,7 @@ export class RecordUserUsageService {
 
             await this.incrementUsedTraffic({
                 userUuid: user.uuid,
-                bytes: BigInt(totalBytes),
+                bytes: this.multiplyConsumption(node, totalBytes),
             });
         }
 
@@ -188,5 +189,14 @@ export class RecordUserUsageService {
         return this.commandBus.execute<UpdateNodeCommand, ICommandResponse<NodesEntity>>(
             new UpdateNodeCommand(dto.node),
         );
+    }
+
+    private multiplyConsumption(node: NodesEntity, totalBytes: number): bigint {
+        if (node.consumptionMultiplier === BigInt(1000000000)) {
+            // skip if 1:1 ratio
+            return BigInt(totalBytes);
+        }
+
+        return BigInt(fromNanoToNumber(node.consumptionMultiplier) * totalBytes);
     }
 }
