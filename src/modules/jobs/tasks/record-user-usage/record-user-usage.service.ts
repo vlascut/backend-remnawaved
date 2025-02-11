@@ -197,6 +197,6 @@ export class RecordUserUsageService {
             return BigInt(totalBytes);
         }
 
-        return BigInt(fromNanoToNumber(node.consumptionMultiplier) * totalBytes);
+        return BigInt(Math.floor(fromNanoToNumber(node.consumptionMultiplier) * totalBytes));
     }
 }
