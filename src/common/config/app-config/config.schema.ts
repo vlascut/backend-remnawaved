@@ -8,9 +8,27 @@ export const configSchema = z
             .string()
             .default('3000')
             .transform((port) => parseInt(port, 10)),
-        SUPERADMIN_USERNAME: z.string(),
-        SUPERADMIN_PASSWORD: z.string(),
-        JWT_AUTH_SECRET: z.string(),
+        SUPERADMIN_USERNAME: z
+            .string()
+            .refine(
+                (val) => val !== 'change_me',
+                'SUPERADMIN_USERNAME cannot be set to "change_me"',
+            ),
+        SUPERADMIN_PASSWORD: z
+            .string()
+            .refine(
+                (val) => val !== 'change_me',
+                'SUPERADMIN_PASSWORD cannot be set to "change_me"',
+            ),
+        JWT_AUTH_SECRET: z
+            .string()
+            .refine((val) => val !== 'change_me', 'JWT_AUTH_SECRET cannot be set to "change_me"'),
+        JWT_API_TOKENS_SECRET: z
+            .string()
+            .refine(
+                (val) => val !== 'change_me',
+                'JWT_API_TOKENS_SECRET cannot be set to "change_me"',
+            ),
         TELEGRAM_BOT_TOKEN: z.string(),
         TELEGRAM_ADMIN_ID: z.string(),
         NODES_NOTIFY_CHAT_ID: z.string(),
@@ -18,7 +36,6 @@ export const configSchema = z
         IS_DOCS_ENABLED: z.string().default('false'),
         SCALAR_PATH: z.string().default('/scalar'),
         SWAGGER_PATH: z.string().default('/docs'),
-        JWT_API_TOKENS_SECRET: z.string(),
         EXPIRED_USER_REMARKS: z.string().transform((str) => {
             try {
                 return JSON.parse(str) as string[];
