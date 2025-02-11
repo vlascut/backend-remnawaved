@@ -21,9 +21,9 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
-          status: ${{ job.status }}
-          notify_fields: 'actor,repository,workflow,branch,commit'
-          title: '@${{ github.REPOSITORY }}@${{ github.ref_name }}'
+          status: info
+          notify_fields: 'repository,branch,commit'
+          title: 'Build started.'
 
   build-docker-image:
     runs-on: ubuntu-latest
@@ -113,8 +113,8 @@ jobs:
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
           status: ${{ job.status }}
-          notify_fields: 'actor,repository,workflow,branch,commit'
-          title: '@${{ github.REPOSITORY }}@${{ github.ref_name }}'
+          notify_fields: 'repository,branch,commit'
+          title: 'Build finished with status: '
 
   notify-on-error:
     runs-on: ubuntu-latest
@@ -131,5 +131,5 @@ jobs:
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
           status: ${{ job.status }}
-          notify_fields: 'actor,repository,workflow,branch,commit'
+          notify_fields: 'repository,branch,commit'
           title: '@${{ github.REPOSITORY }}@${{ github.ref_name }}'
