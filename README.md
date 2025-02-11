@@ -1,12 +1,14 @@
 ## Remnawave Backend
 
-Work in progress
+Backend for Remnawave Panel.
+
+Learn more about Remnawave Panel [here](https://remna.st/).
 
 # Contributors
 
 We ❤️‍🔥 contributors! If you'd like to contribute, please check out our [Contributing Guidelines](CONTRIBUTING.md) and feel free to submit a pull request or open an issue.
 
-Check [open issues](https://github.com/remnawave/backend/issues) to help the progress of this project.
+Check [open issues](https://github.com/remnawave/panel/issues) to help the progress of this project.
 
 <p align="center">
 Thanks to the all contributors who have helped improve Remnawave:
