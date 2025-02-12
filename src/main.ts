@@ -97,7 +97,7 @@ async function bootstrap(): Promise<void> {
     app.useGlobalPipes(new ZodValidationPipe());
     app.enableShutdownHooks();
 
-    await app.listen(Number(config.getOrThrow<string>('APP_PORT')));
+    await app.listen(Number(config.getOrThrow<string>('APP_PORT')), '127.0.0.1');
 
     const axiosService = app.get(AxiosService);
     await axiosService.setJwt();
