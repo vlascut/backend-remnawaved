@@ -5,14 +5,7 @@ import semver from 'semver';
 import { isDevelopment } from '@common/utils/startup-app';
 
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
-
-const SINGBOX_LEGACY_TEMPLATE_PATH = isDevelopment()
-    ? path.join(__dirname, '../../../../../../configs/singbox/singbox_legacy.json')
-    : path.join('/var/lib/remnawave/configs/singbox/singbox_legacy.json');
-
-const SINGBOX_TEMPLATE_PATH = isDevelopment()
-    ? path.join(__dirname, '../../../../../../configs/singbox/singbox_template.json')
-    : path.join('/var/lib/remnawave/configs/singbox/singbox_template.json');
+import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
 
 interface OutboundConfig {
     flow?: string;
@@ -82,17 +75,22 @@ export class SingBoxConfiguration {
     private user_agent_list: string[];
     private settings: any;
     private version: null | string;
-    constructor(hosts: FormattedHosts[], version: null | string) {
+    constructor(
+        hosts: FormattedHosts[],
+        version: null | string,
+        private readonly configTemplatesService: ConfigTemplatesService,
+    ) {
         this.hosts = hosts;
         this.version = version;
 
         this.proxy_remarks = [];
 
         if (this.version && semver.gte(this.version, '1.11.0')) {
-            const templateContent = readFileSync(SINGBOX_TEMPLATE_PATH, 'utf-8');
+            const templateContent = this.configTemplatesService.getTemplate('SINGBOX_TEMPLATE');
             this.config = JSON.parse(templateContent);
         } else {
-            const templateContent = readFileSync(SINGBOX_LEGACY_TEMPLATE_PATH, 'utf-8');
+            const templateContent =
+                this.configTemplatesService.getTemplate('SINGBOX_LEGACY_TEMPLATE');
             this.config = JSON.parse(templateContent);
         }
         if (this.version && semver.satisfies(this.version, '>=1.10.0')) {
@@ -162,9 +160,13 @@ export class SingBoxConfiguration {
         return this.render();
     }
 
-    public static generateConfig(hosts: FormattedHosts[], version: null | string): string {
+    public static generateConfig(
+        hosts: FormattedHosts[],
+        version: null | string,
+        configTemplatesService: ConfigTemplatesService,
+    ): string {
         try {
-            return new SingBoxConfiguration(hosts, version).generate();
+            return new SingBoxConfiguration(hosts, version, configTemplatesService).generate();
         } catch {
             return '';
         }

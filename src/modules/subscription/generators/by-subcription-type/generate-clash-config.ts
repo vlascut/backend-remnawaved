@@ -6,6 +6,7 @@ import path from 'node:path';
 import { isDevelopment } from '@common/utils/startup-app';
 
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
+import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
 
 const env = nunjucks.configure({ autoescape: false });
 env.addFilter('yaml', (obj: any) => yamlDump(obj));
@@ -15,14 +16,6 @@ env.addFilter('indent', (str: string, width: number) => {
         .map((line) => ' '.repeat(width) + line)
         .join('\n');
 });
-
-const CLASH_TEMPLATE_PATH = isDevelopment()
-    ? path.join(__dirname, '../../../../../../configs/clash/clash_template.yml')
-    : path.join('/var/lib/remnawave/configs/clash/clash_template.yml');
-
-const STASH_TEMPLATE_PATH = isDevelopment()
-    ? path.join(__dirname, '../../../../../../configs/stash/stash_template.yml')
-    : path.join('/var/lib/remnawave/configs/stash/stash_template.yml');
 
 export interface NetworkConfig {
     'early-data-header-name'?: string;
@@ -74,7 +67,11 @@ export class ClashConfiguration {
     protected isStash: boolean;
     private hosts: FormattedHosts[];
 
-    constructor(hosts: FormattedHosts[], isStash = false) {
+    constructor(
+        hosts: FormattedHosts[],
+        private readonly configTemplatesService: ConfigTemplatesService,
+        isStash = false,
+    ) {
         this.hosts = hosts;
         this.data = {
             proxies: [],
@@ -94,7 +91,9 @@ export class ClashConfiguration {
         };
 
         return env.renderString(
-            readFileSync(this.isStash ? STASH_TEMPLATE_PATH : CLASH_TEMPLATE_PATH, 'utf8'),
+            this.configTemplatesService.getTemplate(
+                this.isStash ? 'STASH_TEMPLATE' : 'CLASH_TEMPLATE',
+            ),
             context,
         );
     }
@@ -111,9 +110,13 @@ export class ClashConfiguration {
         return this.render();
     }
 
-    public static generateConfig(hosts: FormattedHosts[], isStash = false): string {
+    public static generateConfig(
+        hosts: FormattedHosts[],
+        configTemplatesService: ConfigTemplatesService,
+        isStash = false,
+    ): string {
         try {
-            return new ClashConfiguration(hosts, isStash).generate();
+            return new ClashConfiguration(hosts, configTemplatesService, isStash).generate();
         } catch {
             return '';
         }

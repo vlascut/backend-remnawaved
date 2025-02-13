@@ -25,6 +25,7 @@ import { generateSubscription } from './generators/generate-subscription';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
 import { XrayLinksGenerator } from './generators/by-subcription-type';
 import { FormatHosts } from './utils/format-hosts';
+import { ConfigTemplatesService } from './config-templates.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -34,6 +35,7 @@ export class SubscriptionService {
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
+        private readonly configTemplatesService: ConfigTemplatesService,
     ) {}
 
     public async getSubscriptionByShortUuid(
@@ -84,6 +86,7 @@ export class SubscriptionService {
                 configService: this.configService,
                 isOutlineConfig,
                 encodedTag,
+                configTemplatesService: this.configTemplatesService,
             });
 
             return new SubscriptionWithConfigResponse({
