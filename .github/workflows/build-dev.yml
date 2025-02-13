@@ -21,9 +21,9 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
-          status: info
-          notify_fields: 'repository,branch,commit,workflow'
-          title: 'Building image from dev branch.'
+          status: pending
+          notify_fields: 'repo_with_tag,commit,workflow'
+          title: 'Building docker image.'
 
   build-docker-image:
     runs-on: ubuntu-latest
@@ -81,7 +81,7 @@ jobs:
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
           status: ${{ job.status }}
-          notify_fields: 'repository,branch,commit'
+          notify_fields: 'repo_with_tag,commit,workflow'
           title: 'Build Dev finished.'
 
   notify-on-error:
@@ -99,5 +99,5 @@ jobs:
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
           status: failure
-          notify_fields: 'repository,branch,commit,workflow'
+          notify_fields: 'repo_with_tag,commit,workflow'
           title: 'Build Dev failed.'
