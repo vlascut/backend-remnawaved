@@ -96,6 +96,7 @@ async function bootstrap(): Promise<void> {
     });
 
     app.useGlobalPipes(new ZodValidationPipe());
+
     app.useGlobalGuards(new ProxyCheckGuard());
 
     app.enableShutdownHooks();
