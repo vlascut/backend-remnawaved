@@ -62,21 +62,8 @@ export const configSchema = z
         METRICS_PASS: z.string(),
         SUB_PUBLIC_DOMAIN: z.string(),
         WEBHOOK_ENABLED: z.string().default('false'),
-        WEBHOOK_URL: z
-            .string()
-            .refine((url) => url.startsWith('https://'), {
-                message: 'WEBHOOK_URL must start with https://',
-            })
-            .optional(),
-        WEBHOOK_SECRET_HEADER: z
-            .string()
-            .refine((header) => header.length === 64, {
-                message: 'WEBHOOK_SECRET_HEADER must be 64 characters long',
-            })
-            .refine((header) => /^[a-zA-Z0-9]+$/.test(header), {
-                message: 'WEBHOOK_SECRET_HEADER must contain only letters and numbers',
-            })
-            .optional(),
+        WEBHOOK_URL: z.string().optional(),
+        WEBHOOK_SECRET_HEADER: z.string().optional(),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -86,13 +73,35 @@ export const configSchema = z
                     message: 'WEBHOOK_URL is required when WEBHOOK_ENABLED is true',
                     path: ['WEBHOOK_URL'],
                 });
+            } else if (!data.WEBHOOK_URL.startsWith('https://')) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'WEBHOOK_URL must start with https://',
+                    path: ['WEBHOOK_URL'],
+                });
             }
+
             if (!data.WEBHOOK_SECRET_HEADER) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: 'WEBHOOK_SECRET_HEADER is required when WEBHOOK_ENABLED is true',
                     path: ['WEBHOOK_SECRET_HEADER'],
                 });
+            } else {
+                if (data.WEBHOOK_SECRET_HEADER.length < 32) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'WEBHOOK_SECRET_HEADER must be at least 32 characters long',
+                        path: ['WEBHOOK_SECRET_HEADER'],
+                    });
+                }
+                if (!/^[a-zA-Z0-9]+$/.test(data.WEBHOOK_SECRET_HEADER)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'WEBHOOK_SECRET_HEADER must contain only letters and numbers',
+                        path: ['WEBHOOK_SECRET_HEADER'],
+                    });
+                }
             }
         }
 
