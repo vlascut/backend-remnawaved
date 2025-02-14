@@ -15,6 +15,7 @@ import { METRICS_ROOT, ROOT } from '@contract/api';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
+import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 
 patchNestJsSwagger();
 
@@ -95,9 +96,11 @@ async function bootstrap(): Promise<void> {
     });
 
     app.useGlobalPipes(new ZodValidationPipe());
+    app.useGlobalGuards(new ProxyCheckGuard());
+
     app.enableShutdownHooks();
 
-    await app.listen(Number(config.getOrThrow<string>('APP_PORT')), '0.0.0.0'); // 127.0.0.1 will not work with docker bridge network.
+    await app.listen(Number(config.getOrThrow<string>('APP_PORT'))); // 127.0.0.1 will not work with docker bridge network.
 
     const axiosService = app.get(AxiosService);
     await axiosService.setJwt();
