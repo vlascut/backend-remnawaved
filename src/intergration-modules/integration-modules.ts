@@ -7,8 +7,8 @@ import { WebhookModule } from './webhook-module/webhook.module';
 
 @Module({
     imports: [
-        TelegramBotModule,
         PrometheusReporterModule,
+        ConditionalModule.registerWhen(TelegramBotModule, 'IS_TELEGRAM_ENABLED'),
         ConditionalModule.registerWhen(WebhookModule, 'WEBHOOK_ENABLED'),
     ],
 })

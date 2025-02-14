@@ -29,9 +29,10 @@ export const configSchema = z
                 (val) => val !== 'change_me',
                 'JWT_API_TOKENS_SECRET cannot be set to "change_me"',
             ),
-        TELEGRAM_BOT_TOKEN: z.string(),
-        TELEGRAM_ADMIN_ID: z.string(),
-        NODES_NOTIFY_CHAT_ID: z.string(),
+        TELEGRAM_BOT_TOKEN: z.string().optional(),
+        TELEGRAM_ADMIN_ID: z.string().optional(),
+        NODES_NOTIFY_CHAT_ID: z.string().optional(),
+        IS_TELEGRAM_ENABLED: z.string().default('false'),
         FRONT_END_DOMAIN: z.string(),
         IS_DOCS_ENABLED: z.string().default('false'),
         SCALAR_PATH: z.string().default('/scalar'),
@@ -91,6 +92,30 @@ export const configSchema = z
                     code: z.ZodIssueCode.custom,
                     message: 'WEBHOOK_SECRET_HEADER is required when WEBHOOK_ENABLED is true',
                     path: ['WEBHOOK_SECRET_HEADER'],
+                });
+            }
+        }
+
+        if (data.IS_TELEGRAM_ENABLED === 'true') {
+            if (!data.TELEGRAM_BOT_TOKEN) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'TELEGRAM_BOT_TOKEN is required when IS_TELEGRAM_ENABLED is true',
+                    path: ['TELEGRAM_BOT_TOKEN'],
+                });
+            }
+            if (!data.TELEGRAM_ADMIN_ID) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'TELEGRAM_ADMIN_ID is required when IS_TELEGRAM_ENABLED is true',
+                    path: ['TELEGRAM_ADMIN_ID'],
+                });
+            }
+            if (!data.NODES_NOTIFY_CHAT_ID) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'NODES_NOTIFY_CHAT_ID is required when IS_TELEGRAM_ENABLED is true',
+                    path: ['NODES_NOTIFY_CHAT_ID'],
                 });
             }
         }
