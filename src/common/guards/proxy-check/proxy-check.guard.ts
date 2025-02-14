@@ -9,6 +9,9 @@ export class ProxyCheckGuard implements CanActivate {
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         const request = context.switchToHttp().getRequest<Request>();
+
+        this.logger.log(request.headers); // dev only, remove before push to main
+
         const isProxy = Boolean(request.headers['x-forwarded-for']);
 
         this.logger.log(`Request is behind proxy: ${isProxy}`);
