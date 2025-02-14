@@ -1,10 +1,4 @@
-import {
-    Injectable,
-    CanActivate,
-    ExecutionContext,
-    HttpStatus,
-    BadRequestException,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
 import { Logger } from '@nestjs/common';
@@ -14,6 +8,10 @@ export class ProxyCheckGuard implements CanActivate {
     private readonly logger = new Logger(ProxyCheckGuard.name);
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        if (isDevelopment()) {
+            return true;
+        }
+
         const request = context.switchToHttp().getRequest<Request>();
 
         const isProxy = Boolean(request.headers['x-forwarded-for']);
@@ -23,7 +21,7 @@ export class ProxyCheckGuard implements CanActivate {
             `X-Forwarded-For: ${request.headers['x-forwarded-for']}, X-Forwarded-Proto: ${request.headers['x-forwarded-proto']}`,
         );
 
-        if ((!isHttps || !isProxy) && isDevelopment()) {
+        if (!isHttps || !isProxy) {
             const response = context.switchToHttp().getResponse();
             response.socket?.destroy();
 
