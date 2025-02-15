@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { USERS_STATUS_VALUES } from '../../constants';
+import { USERS_STATUS } from '../../constants';
 import { REST_API } from '../../api';
 
 export namespace GetSubscriptionInfoByShortUuidCommand {
@@ -24,7 +24,7 @@ export namespace GetSubscriptionInfoByShortUuidCommand {
                 username: z.string(),
                 expiresAt: z.string().transform((str) => new Date(str)),
                 isActive: z.boolean(),
-                userStatus: z.enum([USERS_STATUS_VALUES[0], ...USERS_STATUS_VALUES]),
+                userStatus: z.nativeEnum(USERS_STATUS),
             }),
         }),
     });
