@@ -101,6 +101,14 @@ export class RecordUserUsageService {
         let usersOnline = 0;
 
         for (const xrayUser of response.response.users) {
+            if (
+                xrayUser.username.startsWith('https://') ||
+                xrayUser.username.startsWith('http://')
+            ) {
+                this.logger.debug(`Skipping user with https:// or http:// in username`);
+                continue;
+            }
+
             const totalDownlink = xrayUser.downlink;
             const totalUplink = xrayUser.uplink;
 
