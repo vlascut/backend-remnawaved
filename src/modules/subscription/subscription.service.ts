@@ -197,9 +197,9 @@ export class SubscriptionService {
             'content-disposition': `attachment; filename="${user.username}"`,
             'profile-web-page-url': this.configService.getOrThrow('SUB_WEBPAGE_URL'),
             'support-url': this.configService.getOrThrow('SUB_SUPPORT_URL'),
-            'profile-title': Buffer.from(
+            'profile-title': `base64:${Buffer.from(
                 this.configService.getOrThrow('SUB_PROFILE_TITLE'),
-            ).toString('base64'),
+            ).toString('base64')}`,
             'profile-update-interval': this.configService.getOrThrow('SUB_UPDATE_INTERVAL'),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
                 .map(([key, val]) => `${key}=${val}`)
