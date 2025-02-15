@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { USERS_STATUS_VALUES, USERS_STATUS } from '../../constants';
+import { USERS_STATUS } from '../../constants';
 import { REST_API } from '../../api';
 
 export namespace GetSubscriptionInfoByShortUuidCommand {
