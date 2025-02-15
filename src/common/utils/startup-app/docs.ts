@@ -6,7 +6,7 @@ import { SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerTheme } from 'swagger-themes';
 import { readPackageJSON } from 'pkg-types';
-
+// import fs from 'node:fs';
 export async function getDocs(app: INestApplication<unknown>, config: ConfigService) {
     const isSwaggerEnabled = config.getOrThrow<string>('IS_DOCS_ENABLED');
 
@@ -38,6 +38,10 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
             .setVersion(pkg.version!)
             .build();
         const documentFactory = () => SwaggerModule.createDocument(app, configSwagger);
+
+        // const document = documentFactory();
+
+        // fs.writeFileSync('./openapi.json', JSON.stringify(document, null, 2));
 
         const theme = new SwaggerTheme();
         const options = {

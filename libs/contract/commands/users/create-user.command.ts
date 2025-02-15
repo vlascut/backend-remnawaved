@@ -85,26 +85,20 @@ export namespace CreateUserCommand {
                 required_error: 'Expiration date is required',
                 invalid_type_error: 'Invalid expiration date format',
             })
-            .refine(() => new Date(), {
-                message: 'Expiration date cannot be in the past',
-            }),
+            .describe('Date format: 2025-01-17T15:38:45.065Z'),
         createdAt: z.coerce
             .date({
                 required_error: 'Expiration date is required',
                 invalid_type_error: 'Invalid expiration date format',
             })
-            .refine(() => new Date(), {
-                message: 'Expiration date cannot be in the past',
-            })
+            .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),
         lastTrafficResetAt: z.coerce
             .date({
                 required_error: 'Expiration date is required',
                 invalid_type_error: 'Invalid expiration date format',
             })
-            .refine(() => new Date(), {
-                message: 'Expiration date cannot be in the past',
-            })
+            .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),
         description: z.string().optional(),
         activateAllInbounds: z.boolean().optional(),

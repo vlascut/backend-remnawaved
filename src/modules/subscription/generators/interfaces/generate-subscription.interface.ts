@@ -4,6 +4,7 @@ import { XRayConfig } from '@common/helpers/xray-config';
 
 import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
 import { HostWithInboundTagEntity } from '../../../hosts/entities/host-with-inbound-tag.entity';
+import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
 
 export interface IGenerateSubscription {
     config: XRayConfig;
@@ -13,4 +14,5 @@ export interface IGenerateSubscription {
     isOutlineConfig: boolean;
     user: UserWithActiveInboundsEntity;
     userAgent: string;
+    configTemplatesService: ConfigTemplatesService;
 }

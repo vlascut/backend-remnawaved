@@ -148,7 +148,8 @@ export class UsersService {
             const result = await this.userRepository.update({
                 uuid: user.uuid,
                 expireAt: expireAt ? new Date(expireAt) : undefined,
-                trafficLimitBytes: trafficLimitBytes ? BigInt(trafficLimitBytes) : undefined,
+                trafficLimitBytes:
+                    trafficLimitBytes !== undefined ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy: trafficLimitStrategy || undefined,
                 status: newStatus || undefined,
                 description: description || undefined,
@@ -264,7 +265,8 @@ export class UsersService {
                 vlessUuid: vlessUuid || this.createUuid(),
                 ssPassword: ssPassword || this.createSSPassword(),
                 status,
-                trafficLimitBytes: BigInt(trafficLimitBytes || 0),
+                trafficLimitBytes:
+                    trafficLimitBytes !== undefined ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy,
                 expireAt: new Date(expireAt),
                 createdAt: createdAt ? new Date(createdAt) : undefined,

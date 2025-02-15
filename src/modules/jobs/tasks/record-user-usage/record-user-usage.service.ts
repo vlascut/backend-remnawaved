@@ -6,12 +6,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import pMap from '@cjs-exporter/p-map';
 import { Gauge } from 'prom-client';
 
-import { IncrementUsedTrafficCommand } from '@modules/users/commands/increment-used-traffic/increment-used-traffic.command';
-import { NodesUserUsageHistoryEntity } from '@modules/nodes-user-usage-history/entities/nodes-user-usage-history.entity';
+import { IncrementUsedTrafficCommand } from '@modules/users/commands/increment-used-traffic';
+import { NodesUserUsageHistoryEntity } from '@modules/nodes-user-usage-history/entities';
 import { UpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/upsert-user-history-entry';
-import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username/get-user-by-username.query';
-import { GetOnlineNodesQuery } from '@modules/nodes/queries/get-online-nodes/get-online-nodes.query';
-import { UpdateNodeCommand } from '@modules/nodes/commands/update-node/update-node.command';
+import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
+import { GetOnlineNodesQuery } from '@modules/nodes/queries/get-online-nodes';
+import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities';
 import { ICommandResponse } from '@common/types/command-response.type';
@@ -63,7 +63,7 @@ export class RecordUserUsageService {
 
             const nodesResponse = await this.getOnlineNodes();
             if (!nodesResponse.isOk || !nodesResponse.response) {
-                this.logger.error('No connected nodes found');
+                this.logger.debug('No connected nodes found.');
                 return;
             }
 
@@ -101,6 +101,14 @@ export class RecordUserUsageService {
         let usersOnline = 0;
 
         for (const xrayUser of response.response.users) {
+            if (
+                xrayUser.username.startsWith('https://') ||
+                xrayUser.username.startsWith('http://')
+            ) {
+                this.logger.debug(`Skipping user with https:// or http:// in username`);
+                continue;
+            }
+
             const totalDownlink = xrayUser.downlink;
             const totalUplink = xrayUser.uplink;
 
@@ -112,7 +120,9 @@ export class RecordUserUsageService {
 
             const userResponse = await this.getUserByUsername(xrayUser.username);
             if (!userResponse.isOk || !userResponse.response) {
-                this.logger.error(`User ${xrayUser.username} not found`);
+                this.logger.error(
+                    `Username ${xrayUser.username} from XTLS-Core not found in database, node: ${node.name}`,
+                );
                 continue;
             }
 

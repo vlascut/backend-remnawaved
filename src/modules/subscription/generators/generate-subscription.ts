@@ -18,6 +18,7 @@ export function generateSubscription({
     configService,
     isOutlineConfig,
     encodedTag,
+    configTemplatesService,
 }: IGenerateSubscription): {
     contentType: string;
     sub: string;
@@ -39,22 +40,27 @@ export function generateSubscription({
             contentType: configParams.CONTENT_TYPE,
         }),
         CLASH: () => ({
-            sub: ClashConfiguration.generateConfig(formattedHosts),
+            sub: ClashConfiguration.generateConfig(formattedHosts, configTemplatesService, false),
             contentType: configParams.CONTENT_TYPE,
         }),
         CLASH_META: () => ({
-            sub: ClashMetaConfiguration.generateConfig(formattedHosts),
+            sub: ClashMetaConfiguration.generateConfig(
+                formattedHosts,
+                configTemplatesService,
+                false,
+            ),
             contentType: configParams.CONTENT_TYPE,
         }),
         SING_BOX: () => ({
             sub: SingBoxConfiguration.generateConfig(
                 formattedHosts,
                 parseSingBoxVersion(userAgent),
+                configTemplatesService,
             ),
             contentType: configParams.CONTENT_TYPE,
         }),
         STASH: () => ({
-            sub: ClashConfiguration.generateConfig(formattedHosts, true),
+            sub: ClashConfiguration.generateConfig(formattedHosts, configTemplatesService, true),
             contentType: configParams.CONTENT_TYPE,
         }),
         OUTLINE: () => ({

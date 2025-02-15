@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { RESET_PERIODS_VALUES, USERS_STATUS_VALUES } from '../constants';
+import { RESET_PERIODS, RESET_PERIODS_VALUES, USERS_STATUS } from '../constants';
 import { InboundsSchema } from './inbounds.schema';
 
 export const UsersSchema = z.object({
@@ -9,18 +9,16 @@ export const UsersSchema = z.object({
     shortUuid: z.string(),
     username: z.string(),
 
-    status: z
-        .enum([USERS_STATUS_VALUES[0], ...USERS_STATUS_VALUES])
-        .default(USERS_STATUS_VALUES[0]),
+    status: z.nativeEnum(USERS_STATUS).default(USERS_STATUS.ACTIVE),
 
     usedTrafficBytes: z.number(),
     lifetimeUsedTrafficBytes: z.number(),
     trafficLimitBytes: z.number().int().default(0),
     trafficLimitStrategy: z
-        .enum([RESET_PERIODS_VALUES[0], ...RESET_PERIODS_VALUES], {
+        .nativeEnum(RESET_PERIODS, {
             description: 'Available reset periods',
         })
-        .default(RESET_PERIODS_VALUES[0]),
+        .default(RESET_PERIODS.NO_RESET),
     subLastUserAgent: z.nullable(z.string()),
     subLastOpenedAt: z.nullable(z.string().transform((str) => new Date(str))),
 

@@ -42,7 +42,6 @@ export class OutlineConfiguration {
     }
 
     private addDirectly(outbound: OutlineOutbound): void {
-        // Просто обновляем объект конфига
         Object.assign(this.config, outbound);
     }
 
