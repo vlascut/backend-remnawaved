@@ -9,7 +9,7 @@ export const UsersSchema = z.object({
     shortUuid: z.string(),
     username: z.string(),
 
-    status: z.nativeEnum(USERS_STATUS),
+    status: z.nativeEnum(USERS_STATUS).default(USERS_STATUS.ACTIVE),
 
     usedTrafficBytes: z.number(),
     lifetimeUsedTrafficBytes: z.number(),
@@ -18,7 +18,7 @@ export const UsersSchema = z.object({
         .nativeEnum(RESET_PERIODS, {
             description: 'Available reset periods',
         })
-        .default(RESET_PERIODS_VALUES[0]),
+        .default(RESET_PERIODS.NO_RESET),
     subLastUserAgent: z.nullable(z.string()),
     subLastOpenedAt: z.nullable(z.string().transform((str) => new Date(str))),
 
