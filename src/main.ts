@@ -97,7 +97,7 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalPipes(new ZodValidationPipe());
 
-    app.useGlobalGuards(new ProxyCheckGuard());
+    app.useGlobalGuards(new ProxyCheckGuard({ exclude: [ROOT + METRICS_ROOT] }));
 
     app.enableShutdownHooks();
 
