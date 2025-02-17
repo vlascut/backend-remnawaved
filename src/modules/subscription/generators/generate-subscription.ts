@@ -24,6 +24,7 @@ export function generateSubscription({
     sub: string;
 } {
     const configType = parseUserAgentType(userAgent);
+
     const configParams = SUBSCRIPTION_CONFIG_TYPES[configType];
     const formattedHosts = FormatHosts.format(config, hosts, user, configService);
 
