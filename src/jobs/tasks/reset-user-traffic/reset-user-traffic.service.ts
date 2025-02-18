@@ -9,12 +9,12 @@ import { UserEvent } from '@intergration-modules/telegram-bot/events/users/inter
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 
-import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../users/commands/update-status-and-traffic-and-reset-at';
-import { CreateUserTrafficHistoryCommand } from '../../../user-traffic-history/commands/create-user-traffic-history';
-import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
-import { GetAllUsersQuery } from '../../../users/queries/get-all-users/get-all-users.query';
-import { AddUserToNodeEvent } from '../../../nodes/events/add-user-to-node';
-import { UserTrafficHistoryEntity } from '../../../user-traffic-history';
+import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../modules/users/commands/update-status-and-traffic-and-reset-at';
+import { CreateUserTrafficHistoryCommand } from '../../../modules/user-traffic-history/commands/create-user-traffic-history';
+import { UserWithActiveInboundsEntity } from '../../../modules/users/entities/user-with-active-inbounds.entity';
+import { GetAllUsersQuery } from '../../../modules/users/queries/get-all-users/get-all-users.query';
+import { AddUserToNodeEvent } from '../../../modules/nodes/events/add-user-to-node';
+import { UserTrafficHistoryEntity } from '../../../modules/user-traffic-history';
 import { JOBS_INTERVALS } from '../../intervals';
 
 @Injectable()

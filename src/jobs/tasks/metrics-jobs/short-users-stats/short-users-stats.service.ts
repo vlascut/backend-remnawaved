@@ -10,7 +10,7 @@ import { EVENTS, METRIC_NAMES, USERS_STATUS } from '@libs/contracts/constants';
 
 import { GetShortUserStatsQuery } from '@modules/users/queries/get-short-user-stats/get-short-user-stats.query';
 import { ShortUserStats } from '@modules/users/interfaces/user-stats.interface';
-import { JOBS_INTERVALS } from '@modules/jobs/intervals';
+import { JOBS_INTERVALS } from 'src/jobs/intervals';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { Gauge } from 'prom-client';
 

@@ -8,10 +8,10 @@ import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS, USERS_STATUS } from '@libs/contracts/constants';
 
-import { ChangeUserStatusCommand } from '../../../users/commands/change-user-status/change-user-status.command';
-import { UserWithActiveInboundsEntity } from '../../../users/entities/user-with-active-inbounds.entity';
-import { GetActiveUsersQuery } from '../../../users/queries/get-active-users/get-active-users.query';
-import { RemoveUserFromNodeEvent } from '../../../nodes/events/remove-user-from-node';
+import { ChangeUserStatusCommand } from '../../../modules/users/commands/change-user-status/change-user-status.command';
+import { UserWithActiveInboundsEntity } from '../../../modules/users/entities/user-with-active-inbounds.entity';
+import { GetActiveUsersQuery } from '../../../modules/users/queries/get-active-users/get-active-users.query';
+import { RemoveUserFromNodeEvent } from '../../../modules/nodes/events/remove-user-from-node';
 import { JOBS_INTERVALS } from '../../intervals';
 
 @Injectable()

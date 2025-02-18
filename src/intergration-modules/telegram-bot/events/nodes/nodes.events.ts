@@ -1,7 +1,7 @@
 import { parseMode } from '@grammyjs/parse-mode';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
-import { InjectBot } from '@grammyjs/nestjs';
+import { InjectBot } from '@kastov/grammy-nestjs';
 import { Bot, Context } from 'grammy';
 import dayjs from 'dayjs';
 

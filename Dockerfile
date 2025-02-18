@@ -34,8 +34,14 @@ COPY configs /var/lib/remnawave/configs
 COPY package*.json ./
 COPY libs ./libs
 
+COPY ecosystem.config.js ./
+COPY docker-entrypoint.sh ./
+
 RUN npm ci --omit=dev --legacy-peer-deps \
     && npm run migrate:generate \
-    && npm cache clean --force
+    && npm cache clean --force \
+    && npm install pm2 -g
 
-CMD [ "npm", "run", "prod:deploy" ]
+# CMD [ "npm", "run", "migrate:deploy", "&&", "pm2-runtime", "start", "ecosystem.config.js", "--env", "production" ]
+
+CMD [ "/bin/sh", "docker-entrypoint.sh" ]

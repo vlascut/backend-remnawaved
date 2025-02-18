@@ -1,5 +1,5 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { NestjsGrammyModule } from '@grammyjs/nestjs';
+import { NestjsGrammyModule } from '@kastov/grammy-nestjs';
 import { HttpModule } from '@nestjs/axios';
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
@@ -18,7 +18,9 @@ import { TELEGRAM_BOT_EVENTS } from './events';
             botName: BOT_NAME,
             useFactory: async (configService: ConfigService) => ({
                 token: configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN'),
+                disableUpdates: true,
             }),
+
             inject: [ConfigService],
         }),
     ],
