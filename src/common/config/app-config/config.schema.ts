@@ -8,6 +8,10 @@ export const configSchema = z
             .string()
             .default('3000')
             .transform((port) => parseInt(port, 10)),
+        WORKER_PORT: z
+            .string()
+            .default('3001')
+            .transform((port) => parseInt(port, 10)),
         SUPERADMIN_USERNAME: z
             .string()
             .refine(
