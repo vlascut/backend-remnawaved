@@ -14,9 +14,9 @@ import { JOBS_INTERVALS } from 'src/jobs/intervals';
 import { GetExceededTrafficUsageUsersQuery } from '@modules/users/queries/get-exceeded-traffic-usage-users';
 
 @Injectable()
-export class FindExeecedUsageUsersService {
-    private static readonly CRON_NAME = 'findExeecedUsageUsers';
-    private readonly logger = new Logger(FindExeecedUsageUsersService.name);
+export class FindExceededUsageUsersService {
+    private static readonly CRON_NAME = 'findExceededUsageUsers';
+    private readonly logger = new Logger(FindExceededUsageUsersService.name);
     private isJobRunning: boolean;
     private cronName: string;
 
@@ -28,7 +28,7 @@ export class FindExeecedUsageUsersService {
         private readonly eventEmitter: EventEmitter2,
     ) {
         this.isJobRunning = false;
-        this.cronName = FindExeecedUsageUsersService.CRON_NAME;
+        this.cronName = FindExceededUsageUsersService.CRON_NAME;
     }
 
     private checkJobRunning(): boolean {
@@ -42,7 +42,7 @@ export class FindExeecedUsageUsersService {
     }
 
     @Cron(JOBS_INTERVALS.FIND_EXCEEDED_TRAFFIC_USAGE_USERS, {
-        name: FindExeecedUsageUsersService.CRON_NAME,
+        name: FindExceededUsageUsersService.CRON_NAME,
     })
     async handleCron() {
         try {
@@ -75,7 +75,7 @@ export class FindExeecedUsageUsersService {
                 `Exceeded traffic usage users reviewed. Time: ${formatExecutionTime(ct)}`,
             );
         } catch (error) {
-            this.logger.error(`Error in FindExeecedUsageUsersService: ${error}`);
+            this.logger.error(`Error in FindExceededUsageUsersService: ${error}`);
         } finally {
             this.isJobRunning = false;
         }
