@@ -1,9 +1,9 @@
-name: Build Dev
+name: Build Clusters
 
 on:
   push:
     branches:
-      - dev
+      - clusters
 
   workflow_dispatch:
 
@@ -64,7 +64,6 @@ jobs:
           push: true
           tags: |
             remnawave/backend:clusters
-            ghcr.io/remnawave/backend:clusters
 
   send-finish-tg-msg:
     name: Send TG message
