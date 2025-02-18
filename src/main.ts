@@ -37,7 +37,7 @@ const logger = createLogger({
         nestWinstonModuleUtilities.format.nestLike('', {
             colors: true,
             prettyPrint: true,
-            processId: false,
+            processId: true,
             appName: false,
         }),
     ),
