@@ -149,6 +149,73 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
+    public async findExceededTrafficUsers(): Promise<UserWithActiveInboundsEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            where: {
+                AND: [
+                    {
+                        status: USERS_STATUS.ACTIVE,
+                    },
+                    {
+                        trafficLimitBytes: {
+                            not: 0,
+                        },
+                    },
+                    {
+                        usedTrafficBytes: {
+                            gte: this.prisma.tx.users.fields.trafficLimitBytes,
+                        },
+                    },
+                ],
+            },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
+    public async findExpiredUsers(): Promise<UserWithActiveInboundsEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            where: {
+                AND: [
+                    {
+                        status: USERS_STATUS.ACTIVE,
+                    },
+                    {
+                        expireAt: {
+                            lt: new Date(),
+                        },
+                    },
+                ],
+            },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
     public async getUsersForConfig(): Promise<UserForConfigEntity[]> {
         const result = await this.prisma.tx.users.findMany({
             where: {
