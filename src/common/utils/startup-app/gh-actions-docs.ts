@@ -40,9 +40,8 @@ export async function ghActionsDocs(app: INestApplication<unknown>) {
         .setDescription(description)
         .setVersion(pkg.version!)
         .setLicense('AGPL-3.0', 'https://github.com/remnawave/panel?tab=AGPL-3.0-1-ov-file')
-        .setContact('Remnawave', 'https://remna.st', '')
-        .setVersion(pkg.version!)
         .build();
+
     const documentFactory = () => SwaggerModule.createDocument(app, configSwagger);
 
     const document = documentFactory();

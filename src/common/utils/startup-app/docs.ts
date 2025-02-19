@@ -46,7 +46,7 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
             .setDescription(description)
             .setVersion(pkg.version!)
             .setLicense('AGPL-3.0', 'https://github.com/remnawave/panel?tab=AGPL-3.0-1-ov-file')
-            .setContact('Remnawave', 'https://remna.st', '')
+
             .build();
         const documentFactory = () => SwaggerModule.createDocument(app, configSwagger);
 
