@@ -2,8 +2,8 @@ name: Build Clusters
 
 on:
   push:
-    branches:
-      - clusters
+    tags:
+      - '*'
 
   workflow_dispatch:
 
