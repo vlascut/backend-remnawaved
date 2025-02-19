@@ -6,6 +6,7 @@ import { GetActiveUsersHandler } from './get-active-users';
 import { GetAllUsersHandler } from './get-all-users';
 import { GetExceededTrafficUsageUsersHandler } from './get-exceeded-traffic-usage-users';
 import { GetExpiredUsersHandler } from './get-expired-users';
+import { GetUsersByTrafficStrategyAndStatusHandler } from './get-users-by-traffic-strategy-and-status';
 
 export const QUERIES = [
     GetUsersForConfigHandler,
@@ -16,4 +17,5 @@ export const QUERIES = [
     GetShortUserStatsHandler,
     GetExceededTrafficUsageUsersHandler,
     GetExpiredUsersHandler,
+    GetUsersByTrafficStrategyAndStatusHandler,
 ];

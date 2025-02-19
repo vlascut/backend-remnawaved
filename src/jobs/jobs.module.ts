@@ -1,4 +1,3 @@
-import { makeGaugeProvider } from '@willsoto/nestjs-prometheus';
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
 

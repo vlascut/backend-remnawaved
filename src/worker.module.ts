@@ -13,14 +13,8 @@ import { PrismaService } from '@common/database/prisma.service';
 import { configSchema, Env } from '@common/config/app-config';
 import { AxiosModule } from '@common/axios/axios.module';
 import { PrismaModule } from '@common/database';
-import { BullModule } from '@nestjs/bullmq';
-import { QueueModule } from './microservices/queue.module';
-import { BullBoardModule } from '@bull-board/nestjs';
-import { ExpressAdapter } from '@bull-board/express';
-import { BasicAuthMiddleware } from '@common/middlewares/basic-auth.middleware';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
-import { TEST_QUEUE_NAME } from './microservices/processors/test.processor';
 import { JobsModule } from './jobs/jobs.module';
+import { PrometheusReporterModule } from '@intergration-modules/prometheus-reporter/prometheus-reporter.module';
 
 @Module({
     imports: [
@@ -70,6 +64,7 @@ import { JobsModule } from './jobs/jobs.module';
         // }),
         JobsModule,
         // QueueModule,
+        PrometheusReporterModule,
     ],
     controllers: [],
 })

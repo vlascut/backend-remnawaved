@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
-import { TUsersStatus, USERS_STATUS } from '@contract/constants';
+import { TResetPeriods, TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
 import { ICrud } from '@common/types/crud-port';
 
@@ -14,6 +14,7 @@ import { UserForConfigEntity } from '../entities/users-for-config';
 import { IUserOnlineStats, IUserStats } from '../interfaces';
 import { UserEntity } from '../entities/users.entity';
 import { UserConverter } from '../users.converter';
+import { BatchResetUsersUsageBuilder } from '../builders/batch-reset-users-usage/batch-reset-users-usage.builder';
 
 dayjs.extend(utc);
 
@@ -213,6 +214,33 @@ export class UsersRepository implements ICrud<UserEntity> {
                 },
             },
         });
+        return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
+    public async getAllUsersByTrafficStrategyAndStatus(
+        strategy: TResetPeriods,
+        status: TUsersStatus,
+    ): Promise<UserWithActiveInboundsEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            where: {
+                trafficLimitStrategy: strategy,
+                status: status,
+            },
+            include: {
+                activeUserInbounds: {
+                    select: {
+                        inbound: {
+                            select: {
+                                uuid: true,
+                                tag: true,
+                                type: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
@@ -580,5 +608,12 @@ export class UsersRepository implements ICrud<UserEntity> {
             lastWeek: Number(result.lastWeek),
             neverOnline: Number(result.neverOnline),
         };
+    }
+
+    public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
+        const { query } = new BatchResetUsersUsageBuilder(strategy);
+        await this.prisma.tx.$queryRaw<void>(query);
+
+        return;
     }
 }

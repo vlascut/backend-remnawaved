@@ -2,24 +2,24 @@ import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import dayjs from 'dayjs';
 
-import { EVENTS, RESET_PERIODS, TResetPeriods, USERS_STATUS } from '@libs/contracts/constants';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+import { EVENTS, RESET_PERIODS, USERS_STATUS } from '@libs/contracts/constants';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { JOBS_INTERVALS } from 'src/jobs/intervals';
+import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
 import { UserTrafficHistoryEntity } from '@modules/user-traffic-history/entities/user-traffic-history.entity';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { GetAllUsersQuery } from '@modules/users/queries/get-all-users';
 import { UpdateStatusAndTrafficAndResetAtCommand } from '@modules/users/commands/update-status-and-traffic-and-reset-at';
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
-import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
+import { GetUsersByTrafficStrategyAndStatusQuery } from '@modules/users/queries/get-users-by-traffic-strategy-and-status';
+import { BatchResetUserTrafficCommand } from '@modules/users/commands/batch-reset-user-traffic';
 
 @Injectable()
-export class ResetUserTrafficService {
-    private static readonly CRON_NAME = 'resetUserTraffic';
-    private readonly logger = new Logger(ResetUserTrafficService.name);
+export class ResetUserTrafficCalendarDayService {
+    private static readonly CRON_NAME = 'resetUserTrafficCalendarDay';
+    private readonly logger = new Logger(ResetUserTrafficCalendarDayService.name);
     private isJobRunning: boolean;
     private cronName: string;
 
@@ -31,7 +31,7 @@ export class ResetUserTrafficService {
         private readonly eventEmitter: EventEmitter2,
     ) {
         this.isJobRunning = false;
-        this.cronName = ResetUserTrafficService.CRON_NAME;
+        this.cronName = ResetUserTrafficCalendarDayService.CRON_NAME;
     }
 
     private checkJobRunning(): boolean {
@@ -44,8 +44,8 @@ export class ResetUserTrafficService {
         return true;
     }
 
-    @Cron(JOBS_INTERVALS.RESET_USER_TRAFFIC, {
-        name: ResetUserTrafficService.CRON_NAME,
+    @Cron(JOBS_INTERVALS.RESET_USER_TRAFFIC.DAILY, {
+        name: ResetUserTrafficCalendarDayService.CRON_NAME,
     })
     async handleCron() {
         let users: UserWithActiveInboundsEntity[] | null = null;
@@ -55,36 +55,40 @@ export class ResetUserTrafficService {
             const ct = getTime();
             this.isJobRunning = true;
 
-            const usersResponse = await this.getAllUsers();
+            const batchResetResponse = await this.batchResetUserTraffic({
+                strategy: RESET_PERIODS.DAY,
+            });
+
+            if (!batchResetResponse.isOk) {
+                this.logger.debug('No users found for Batch Reset Daily Users Traffic.');
+            } else {
+                this.logger.debug(
+                    `Batch Reset Daily Users Traffic. Time: ${formatExecutionTime(ct)}`,
+                );
+            }
+
+            const usersResponse = await this.getAllUsers({
+                strategy: RESET_PERIODS.DAY,
+                status: USERS_STATUS.LIMITED,
+            });
+
             if (!usersResponse.isOk || !usersResponse.response) {
-                this.logger.error('No users found');
+                this.logger.debug('No users found');
                 return;
             }
 
             const users = usersResponse.response;
 
             for (const user of users) {
-                if (user.trafficLimitStrategy === RESET_PERIODS.NO_RESET) continue;
-                if (user.trafficLimitStrategy === RESET_PERIODS.CALENDAR_MONTH) continue;
-
-                const days = this.enumToDays(user.trafficLimitStrategy);
-                const lastResetDate = dayjs(user.lastTrafficResetAt ?? user.createdAt);
-                const currentDate = dayjs();
-
-                const daysSinceLastReset = currentDate.diff(lastResetDate, 'day');
-
-                if (daysSinceLastReset < days) continue;
-
                 let status = undefined;
 
-                if (user.status === USERS_STATUS.LIMITED) {
-                    status = USERS_STATUS.ACTIVE;
-                    this.eventEmitter.emit(
-                        EVENTS.USER.ENABLED,
-                        new UserEvent(user, EVENTS.USER.ENABLED),
-                    );
-                    this.eventBus.publish(new AddUserToNodeEvent(user));
-                }
+                status = USERS_STATUS.ACTIVE;
+                this.eventEmitter.emit(
+                    EVENTS.USER.ENABLED,
+                    new UserEvent(user, EVENTS.USER.ENABLED),
+                );
+
+                this.eventBus.publish(new AddUserToNodeEvent(user));
 
                 await this.updateUserStatusAndTrafficAndResetAt({
                     userUuid: user.uuid,
@@ -101,36 +105,22 @@ export class ResetUserTrafficService {
                 });
             }
 
-            this.logger.debug(`Reseted user traffic. Time: ${formatExecutionTime(ct)}`);
+            this.logger.debug(`Reseted Daily Users Traffic. Time: ${formatExecutionTime(ct)}`);
         } catch (error) {
-            this.logger.error(`Error in ResetUserTrafficService: ${error}`);
+            this.logger.error(`Error in ResetUserDailyTrafficService: ${error}`);
         } finally {
-            this.isJobRunning = false;
             users = null;
+            this.isJobRunning = false;
         }
     }
 
-    private enumToDays(period: TResetPeriods): number {
-        switch (period) {
-            case RESET_PERIODS.DAY:
-                return 1;
-            case RESET_PERIODS.WEEK:
-                return 7;
-            case RESET_PERIODS.MONTH:
-                return 30;
-            case RESET_PERIODS.YEAR:
-                return 365;
-            case RESET_PERIODS.NO_RESET:
-                return 0;
-            case RESET_PERIODS.CALENDAR_MONTH:
-                return 31;
-        }
-    }
-    private async getAllUsers(): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
+    private async getAllUsers(
+        dto: GetUsersByTrafficStrategyAndStatusQuery,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
         return this.queryBus.execute<
-            GetAllUsersQuery,
+            GetUsersByTrafficStrategyAndStatusQuery,
             ICommandResponse<UserWithActiveInboundsEntity[]>
-        >(new GetAllUsersQuery());
+        >(new GetUsersByTrafficStrategyAndStatusQuery(dto.strategy, dto.status));
     }
 
     private async updateUserStatusAndTrafficAndResetAt(
@@ -140,6 +130,17 @@ export class ResetUserTrafficService {
             UpdateStatusAndTrafficAndResetAtCommand,
             ICommandResponse<void>
         >(new UpdateStatusAndTrafficAndResetAtCommand(dto.userUuid, dto.lastResetAt, dto.status));
+    }
+
+    private async batchResetUserTraffic(
+        dto: BatchResetUserTrafficCommand,
+    ): Promise<ICommandResponse<{ affectedRows: number }>> {
+        return this.commandBus.execute<
+            BatchResetUserTrafficCommand,
+            ICommandResponse<{
+                affectedRows: number;
+            }>
+        >(new BatchResetUserTrafficCommand(dto.strategy));
     }
 
     private async createUserUsageHistory(

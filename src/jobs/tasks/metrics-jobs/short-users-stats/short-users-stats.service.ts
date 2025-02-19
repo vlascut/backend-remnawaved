@@ -1,12 +1,10 @@
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { QueryBus } from '@nestjs/cqrs';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { EVENTS, METRIC_NAMES, USERS_STATUS } from '@libs/contracts/constants';
+import { METRIC_NAMES } from '@libs/contracts/constants';
 
 import { GetShortUserStatsQuery } from '@modules/users/queries/get-short-user-stats/get-short-user-stats.query';
 import { ShortUserStats } from '@modules/users/interfaces/user-stats.interface';
@@ -45,12 +43,14 @@ export class ShortUsersStatsService {
         name: ShortUsersStatsService.CRON_NAME,
     })
     async handleCron() {
+        let usersResponse: ICommandResponse<ShortUserStats> | null = null;
+
         try {
             if (!this.checkJobRunning()) return;
             const ct = getTime();
             this.isJobRunning = true;
 
-            const usersResponse = await this.getShortUserStats();
+            usersResponse = await this.getShortUserStats();
             if (!usersResponse.isOk || !usersResponse.response) {
                 this.logger.error('No active users found');
                 return;
@@ -64,11 +64,12 @@ export class ShortUsersStatsService {
 
             this.usersTotal.set({ type: 'all' }, stats.statusCounts.totalUsers);
 
-            this.logger.debug(`Users statuses updated. Time: ${formatExecutionTime(ct)}`);
+            this.logger.debug(`Short users stats updated. Time: ${formatExecutionTime(ct)}`);
         } catch (error) {
             this.logger.error(`Error in ShortUsersStatsService: ${error}`);
         } finally {
             this.isJobRunning = false;
+            usersResponse = null;
         }
     }
 

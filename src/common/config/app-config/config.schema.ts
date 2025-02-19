@@ -8,7 +8,7 @@ export const configSchema = z
             .string()
             .default('3000')
             .transform((port) => parseInt(port, 10)),
-        WORKER_PORT: z
+        METRICS_PORT: z
             .string()
             .default('3001')
             .transform((port) => parseInt(port, 10)),
@@ -68,8 +68,6 @@ export const configSchema = z
         WEBHOOK_ENABLED: z.string().default('false'),
         WEBHOOK_URL: z.string().optional(),
         WEBHOOK_SECRET_HEADER: z.string().optional(),
-        BULLUI_USERNAME: z.string(),
-        BULLUI_PASSWORD: z.string(),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {

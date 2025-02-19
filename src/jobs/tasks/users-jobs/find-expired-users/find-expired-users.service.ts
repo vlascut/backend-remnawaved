@@ -41,7 +41,7 @@ export class FindExpiredUsersService {
         return true;
     }
 
-    @Cron(JOBS_INTERVALS.FIND_EXPIRED_USERS, {
+    @Cron(JOBS_INTERVALS.REVIEW_USERS.FIND_EXPIRED_USERS, {
         name: FindExpiredUsersService.CRON_NAME,
     })
     async handleCron() {

@@ -15,6 +15,7 @@ import { WorkerModule } from './worker.module';
 import { WorkerRoutesGuard } from '@common/guards/worker-routes/worker-routes.guard';
 import { NotFoundExceptionFilter } from '@common/exception/not-found-exception.filter';
 import { ConfigService } from '@nestjs/config';
+import { METRICS_ROOT, ROOT } from '@libs/contracts/api';
 
 patchNestJsSwagger();
 
@@ -72,11 +73,11 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalFilters(new NotFoundExceptionFilter());
 
-    app.useGlobalGuards(new WorkerRoutesGuard({ allowedPaths: ['/queues'] }));
+    app.useGlobalGuards(new WorkerRoutesGuard({ allowedPaths: [ROOT + METRICS_ROOT] }));
 
     app.enableShutdownHooks();
 
-    await app.listen(Number(config.getOrThrow<string>('WORKER_PORT')));
+    await app.listen(Number(config.getOrThrow<string>('METRICS_PORT')));
 
     const axiosService = app.get(AxiosService);
     await axiosService.setJwt();

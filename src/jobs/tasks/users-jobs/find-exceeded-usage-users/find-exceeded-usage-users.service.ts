@@ -8,7 +8,7 @@ import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS, USERS_STATUS } from '@libs/contracts/constants';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { ChangeUserStatusCommand } from '@modules/users/commands/change-user-status/change-user-status.command';
+import { ChangeUserStatusCommand } from '@modules/users/commands/change-user-status';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { JOBS_INTERVALS } from 'src/jobs/intervals';
 import { GetExceededTrafficUsageUsersQuery } from '@modules/users/queries/get-exceeded-traffic-usage-users';
@@ -41,7 +41,7 @@ export class FindExceededUsageUsersService {
         return true;
     }
 
-    @Cron(JOBS_INTERVALS.FIND_EXCEEDED_TRAFFIC_USAGE_USERS, {
+    @Cron(JOBS_INTERVALS.REVIEW_USERS.FIND_EXCEEDED_TRAFFIC_USAGE_USERS, {
         name: FindExceededUsageUsersService.CRON_NAME,
     })
     async handleCron() {
