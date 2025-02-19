@@ -29,6 +29,9 @@ jobs:
     name: Push OpenAPI specs to R2
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
