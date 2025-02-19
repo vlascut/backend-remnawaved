@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { RESET_PERIODS } from '../../constants';
-import { UsersSchema } from '../../models';
+import { LastConnectedNodeSchema, UsersSchema } from '../../models';
 import { REST_API } from '../../api';
 
 export namespace UpdateUserCommand {
@@ -57,6 +57,7 @@ export namespace UpdateUserCommand {
     export const ResponseSchema = z.object({
         response: UsersSchema.extend({
             subscriptionUrl: z.string(),
+            lastConnectedNode: LastConnectedNodeSchema,
         }),
     });
 

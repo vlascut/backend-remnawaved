@@ -20,15 +20,17 @@ import { GetAllUsersV2Command } from '@libs/contracts/commands';
 import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
 import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
-import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node/readd-user-to-node.event';
-import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node/add-user-to-node.event';
-import { UserWithLifetimeTrafficEntity } from './entities/user-with-lifetime-traffic.entity';
-import { UserWithActiveInboundsEntity } from './entities/user-with-active-inbounds.entity';
+import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node';
+import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node';
+import { UserWithLifetimeTrafficEntity, UserWithActiveInboundsEntity } from './entities';
 import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
-import { DeleteUserResponseModel } from './models/delete-user.response.model';
+import { DeleteUserResponseModel } from './models';
 import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
 import { UsersRepository } from './repositories/users.repository';
 import { UserEntity } from './entities/users.entity';
+import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
+import { IGetUserWithLastConnectedNode } from './interfaces/get-user-with-last-connected-node.interface';
 
 dayjs.extend(utc);
 
@@ -61,17 +63,16 @@ export class UsersService {
         return user;
     }
 
-    public async updateUser(dto: UpdateUserRequestDto): Promise<
-        ICommandResponse<{
-            inboubdsChanged: boolean;
-            oldInboundTags: string[];
-            user: UserWithActiveInboundsEntity;
-        }>
-    > {
+    public async updateUser(
+        dto: UpdateUserRequestDto,
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         const user = await this.updateUserTransactional(dto);
 
         if (!user.isOk || !user.response) {
-            return user;
+            return {
+                isOk: false,
+                ...ERRORS.UPDATE_USER_ERROR,
+            };
         }
 
         if (user.response.inboubdsChanged) {
@@ -89,7 +90,15 @@ export class UsersService {
             new UserEvent(user.response.user, EVENTS.USER.MODIFIED),
         );
 
-        return user;
+        const lastConnectedNode = await this.getUserLastConnectedNode(user.response.user.uuid);
+
+        return {
+            isOk: true,
+            response: {
+                user: user.response.user,
+                lastConnectedNode: lastConnectedNode.response || null,
+            },
+        };
     }
 
     @Transactional()
@@ -383,7 +392,7 @@ export class UsersService {
 
     public async getUserByShortUuid(
         shortUuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const result = await this.userRepository.getUserByShortUuid(shortUuid);
 
@@ -394,9 +403,14 @@ export class UsersService {
                 };
             }
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
+
             return {
                 isOk: true,
-                response: result,
+                response: {
+                    user: result,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -409,7 +423,7 @@ export class UsersService {
 
     public async getUserByUsername(
         username: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const result = await this.userRepository.findUserByUsername(username);
 
@@ -420,9 +434,14 @@ export class UsersService {
                 };
             }
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
+
             return {
                 isOk: true,
-                response: result,
+                response: {
+                    user: result,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -435,7 +454,7 @@ export class UsersService {
 
     public async getUserByUuid(
         uuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const result = await this.userRepository.getUserByUUID(uuid);
 
@@ -446,9 +465,14 @@ export class UsersService {
                 };
             }
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
+
             return {
                 isOk: true,
-                response: result,
+                response: {
+                    user: result,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -461,7 +485,7 @@ export class UsersService {
 
     public async getUserBySubscriptionUuid(
         subscriptionUuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const result = await this.userRepository.getUserBySubscriptionUuid(subscriptionUuid);
 
@@ -472,9 +496,14 @@ export class UsersService {
                 };
             }
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
+
             return {
                 isOk: true,
-                response: result,
+                response: {
+                    user: result,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -487,7 +516,7 @@ export class UsersService {
 
     public async revokeUserSubscription(
         userUuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const user = await this.userRepository.getUserByUUID(userUuid);
             if (!user) {
@@ -516,9 +545,14 @@ export class UsersService {
                 new UserEvent(updatedUser, EVENTS.USER.REVOKED),
             );
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
+
             return {
                 isOk: true,
-                response: updatedUser,
+                response: {
+                    user: updatedUser,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -554,7 +588,7 @@ export class UsersService {
 
     public async disableUser(
         userUuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const user = await this.userRepository.getUserByUUID(userUuid);
             if (!user) {
@@ -582,9 +616,14 @@ export class UsersService {
                 new UserEvent(updatedUser, EVENTS.USER.DISABLED),
             );
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
+
             return {
                 isOk: true,
-                response: updatedUser,
+                response: {
+                    user: updatedUser,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -597,7 +636,7 @@ export class UsersService {
 
     public async enableUser(
         userUuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const user = await this.userRepository.getUserByUUID(userUuid);
             if (!user) {
@@ -626,9 +665,14 @@ export class UsersService {
                 new UserEvent(updatedUser, EVENTS.USER.ENABLED),
             );
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
+
             return {
                 isOk: true,
-                response: updatedUser,
+                response: {
+                    user: updatedUser,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -641,7 +685,7 @@ export class UsersService {
 
     public async resetUserTraffic(
         userUuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const user = await this.userRepository.getUserByUUID(userUuid);
             if (!user) {
@@ -684,9 +728,14 @@ export class UsersService {
                 };
             }
 
+            const lastConnectedNode = await this.getUserLastConnectedNode(newUser.uuid);
+
             return {
                 isOk: true,
-                response: newUser,
+                response: {
+                    user: newUser,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -761,5 +810,14 @@ export class UsersService {
         return this.queryBus.execute<GetAllInboundsQuery, ICommandResponse<InboundsEntity[]>>(
             new GetAllInboundsQuery(),
         );
+    }
+
+    private async getUserLastConnectedNode(
+        userUuid: string,
+    ): Promise<ICommandResponse<ILastConnectedNode | null>> {
+        return this.queryBus.execute<
+            GetUserLastConnectedNodeQuery,
+            ICommandResponse<ILastConnectedNode | null>
+        >(new GetUserLastConnectedNodeQuery(userUuid));
     }
 }

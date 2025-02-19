@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { UsersSchema } from '../../models/users.schema';
 import { REST_API } from '../../api';
+import { LastConnectedNodeSchema } from '@libs/contracts/models';
 
 export namespace GetUserByShortUuidCommand {
     export const url = REST_API.USERS.GET_BY_SHORT_UUID;
@@ -14,7 +15,10 @@ export namespace GetUserByShortUuidCommand {
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({
-        response: UsersSchema,
+        response: UsersSchema.extend({
+            subscriptionUrl: z.string(),
+            lastConnectedNode: LastConnectedNodeSchema,
+        }),
     });
 
     export type Response = z.infer<typeof ResponseSchema>;

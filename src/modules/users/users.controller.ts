@@ -19,6 +19,7 @@ import {
     ApiOkResponse,
     ApiOperation,
     ApiParam,
+    ApiQuery,
     ApiTags,
 } from '@nestjs/swagger';
 
@@ -63,6 +64,7 @@ import {
     UserWithLifetimeTrafficResponseModel,
 } from './models';
 import { UsersService } from './users.service';
+import { ConfigService } from '@nestjs/config';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Users Controller')
@@ -71,7 +73,13 @@ import { UsersService } from './users.service';
 @UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    public readonly subPublicDomain: string;
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly configService: ConfigService,
+    ) {
+        this.subPublicDomain = this.configService.getOrThrow<string>('SUB_PUBLIC_DOMAIN');
+    }
 
     @ApiBody({ type: CreateUserRequestDto })
     @ApiOkResponse({
@@ -86,7 +94,7 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new CreateUserResponseModel(data),
+            response: new CreateUserResponseModel(data, this.subPublicDomain),
         };
     }
 
@@ -103,7 +111,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data.user),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -112,6 +124,18 @@ export class UsersController {
         description: 'Users fetched successfully',
     })
     @ApiOperation({ summary: 'Get All Users', description: 'Get all users' })
+    @ApiQuery({
+        name: 'start',
+        type: 'number',
+        required: false,
+        description: 'Offset for pagination',
+    })
+    @ApiQuery({
+        name: 'size',
+        type: 'number',
+        required: false,
+        description: 'Page size for pagination',
+    })
     @Get(USERS_ROUTES.GET_ALL_V2)
     @HttpCode(HttpStatus.OK)
     async getAllUsersV2(@Query() query: GetAllUsersV2QueryDto): Promise<GetAllUsersV2ResponseDto> {
@@ -129,7 +153,9 @@ export class UsersController {
         return {
             response: new GetAllUsersResponseModel({
                 total: data.total,
-                users: data.users.map((item) => new UserWithLifetimeTrafficResponseModel(item)),
+                users: data.users.map(
+                    (item) => new UserWithLifetimeTrafficResponseModel(item, this.subPublicDomain),
+                ),
             }),
         };
     }
@@ -157,7 +183,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -184,7 +214,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -216,7 +250,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -241,7 +279,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -266,7 +308,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -289,7 +335,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -335,7 +385,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 
@@ -360,7 +414,11 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(data),
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
         };
     }
 }

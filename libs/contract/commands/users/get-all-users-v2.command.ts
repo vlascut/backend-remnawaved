@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { UsersSchema } from '../../models/users.schema';
 import { REST_API } from '../../api';
+import { LastConnectedNodeSchema } from '@libs/contracts/models';
 
 export namespace GetAllUsersV2Command {
     export const url = REST_API.USERS.GET_ALL_V2;
@@ -51,12 +52,7 @@ export namespace GetAllUsersV2Command {
             users: z.array(
                 UsersSchema.extend({
                     subscriptionUrl: z.string(),
-                    lastConnection: z
-                        .object({
-                            nodeName: z.string(),
-                            connectedAt: z.string().transform((str) => new Date(str)),
-                        })
-                        .nullable(),
+                    lastConnectedNode: LastConnectedNodeSchema,
                 }),
             ),
 

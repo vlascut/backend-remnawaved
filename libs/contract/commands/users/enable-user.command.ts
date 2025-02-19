@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { UsersSchema } from '../../models/users.schema';
 import { REST_API } from '../../api';
+import { LastConnectedNodeSchema } from '@libs/contracts/models';
 
 export namespace EnableUserCommand {
     export const url = REST_API.USERS.ENABLE_USER;
@@ -16,6 +17,7 @@ export namespace EnableUserCommand {
     export const ResponseSchema = z.object({
         response: UsersSchema.extend({
             subscriptionUrl: z.string(),
+            lastConnectedNode: LastConnectedNodeSchema,
         }),
     });
 

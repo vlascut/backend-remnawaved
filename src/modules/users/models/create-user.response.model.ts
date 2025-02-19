@@ -2,6 +2,7 @@ import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 
 export class CreateUserResponseModel {
     public readonly uuid: string;
@@ -26,7 +27,12 @@ export class CreateUserResponseModel {
     public readonly vlessUuid: string;
     public readonly ssPassword: string;
     public readonly description: null | string;
-    constructor(entity: UserWithActiveInboundsEntity) {
+
+    public readonly subscriptionUrl: string;
+
+    public readonly lastConnectedNode: ILastConnectedNode | null;
+
+    constructor(entity: UserWithActiveInboundsEntity, subPublicDomain: string) {
         this.uuid = entity.uuid;
         this.username = entity.username;
         this.shortUuid = entity.shortUuid;
@@ -49,5 +55,8 @@ export class CreateUserResponseModel {
         this.vlessUuid = entity.vlessUuid;
         this.ssPassword = entity.ssPassword;
         this.description = entity.description;
+
+        this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
+        this.lastConnectedNode = null;
     }
 }
