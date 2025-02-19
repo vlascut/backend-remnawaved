@@ -7,6 +7,15 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerTheme } from 'swagger-themes';
 import { readPackageJSON } from 'pkg-types';
 
+const description = `
+Remnawave is a powerful proxy managment tool, built on top of Xray-core, with a focus on simplicity and ease of use.
+
+## Resources
+* https://t.me/remnawave
+* https://github.com/remnawave
+* https://remna.st
+`;
+
 export async function getDocs(app: INestApplication<unknown>, config: ConfigService) {
     const isSwaggerEnabled = config.getOrThrow<string>('IS_DOCS_ENABLED');
 
@@ -14,7 +23,7 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
         const pkg = await readPackageJSON();
 
         const configSwagger = new DocumentBuilder()
-            .setTitle('Remnawave API Schema')
+            .setTitle(`Remnawave API v${pkg.version}`)
             .addBearerAuth(
                 {
                     type: 'http',
@@ -34,8 +43,10 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
                 },
                 'Prometheus',
             )
-            .setDescription(pkg.description!)
+            .setDescription(description)
             .setVersion(pkg.version!)
+            .setLicense('AGPL-3.0', 'https://github.com/remnawave/panel?tab=AGPL-3.0-1-ov-file')
+            .setContact('Remnawave', 'https://remna.st', '')
             .build();
         const documentFactory = () => SwaggerModule.createDocument(app, configSwagger);
 
