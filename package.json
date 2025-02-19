@@ -31,7 +31,7 @@
     "migrate:generate": "prisma generate",
     "migrate:deploy": "prisma migrate deploy",
     "docs:serve": "compodoc -p tsconfig.json -s",
-    "generate:openapi": "GENERATE_OPENAPI_JSON=true IS_DOCS_ENABLED=true nest start"
+    "generate:openapi": "nest start --config nest-cli.gen-doc.json"
   },
   "dependencies": {
     "@bull-board/api": "^6.7.7",
