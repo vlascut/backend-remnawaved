@@ -4,7 +4,7 @@ module.exports = {
             name: 'remnawave-api',
             script: 'dist/src/main.js',
             watch: false,
-            instances: process.env.INSTANCES || 1,
+            instances: process.env.API_INSTANCES || 1,
             merge_logs: true,
             exec_mode: 'cluster',
             instance_var: 'INSTANCE_ID',
