@@ -56,6 +56,8 @@ export class RecordUserUsageService {
         name: RecordUserUsageService.CRON_NAME,
     })
     async handleCron() {
+        let nodes: NodesEntity[] | null = null;
+
         try {
             if (!this.checkJobRunning()) return;
             const ct = getTime();
@@ -94,13 +96,17 @@ export class RecordUserUsageService {
             this.logger.error(`Error in RecordUserUsageService: ${error}`);
         } finally {
             this.isJobRunning = false;
+            nodes = null;
         }
     }
 
     private async handleOk(node: NodesEntity, response: GetUsersStatsCommand.Response) {
         let usersOnline = 0;
+        let users: GetUsersStatsCommand.Response['response']['users'] | null = null;
 
-        for (const xrayUser of response.response.users) {
+        users = response.response.users;
+
+        for (const xrayUser of users) {
             if (
                 xrayUser.username.startsWith('https://') ||
                 xrayUser.username.startsWith('http://')
@@ -162,6 +168,10 @@ export class RecordUserUsageService {
             },
             usersOnline,
         );
+
+        users = null;
+
+        return;
     }
 
     private async getOnlineNodes(): Promise<ICommandResponse<NodesEntity[]>> {

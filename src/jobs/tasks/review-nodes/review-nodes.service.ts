@@ -44,6 +44,7 @@ export class ReviewNodesService {
         name: ReviewNodesService.CRON_NAME,
     })
     async handleCron() {
+        let nodes: NodesEntity[] | null = null;
         try {
             if (!this.checkJobRunning()) return;
             const ct = getTime();
@@ -88,6 +89,7 @@ export class ReviewNodesService {
             this.logger.error(error);
         } finally {
             this.isJobRunning = false;
+            nodes = null;
         }
     }
 

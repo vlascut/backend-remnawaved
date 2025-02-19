@@ -2,30 +2,24 @@ import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
+import { EVENTS, RESET_PERIODS, TResetPeriods, USERS_STATUS } from '@libs/contracts/constants';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
-import { EVENTS, RESET_PERIODS, USERS_STATUS } from '@libs/contracts/constants';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
-
-import { UpdateStatusAndTrafficAndResetAtCommand } from '../../../modules/users/commands/update-status-and-traffic-and-reset-at';
-import { CreateUserTrafficHistoryCommand } from '../../../modules/user-traffic-history/commands/create-user-traffic-history';
-import { UserWithActiveInboundsEntity } from '../../../modules/users/entities/user-with-active-inbounds.entity';
-import { GetAllUsersQuery } from '../../../modules/users/queries/get-all-users/get-all-users.query';
-import { AddUserToNodeEvent } from '../../../modules/nodes/events/add-user-to-node';
-import { UserTrafficHistoryEntity } from '../../../modules/user-traffic-history';
-import { JOBS_INTERVALS } from '../../intervals';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { JOBS_INTERVALS } from 'src/jobs/intervals';
+import { UserTrafficHistoryEntity } from '@modules/user-traffic-history/entities/user-traffic-history.entity';
+import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
+import { GetAllUsersQuery } from '@modules/users/queries/get-all-users';
+import { UpdateStatusAndTrafficAndResetAtCommand } from '@modules/users/commands/update-status-and-traffic-and-reset-at';
+import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
+import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
 
 @Injectable()
-export class ResetUserTrafficCalendarMonthService {
-    private static readonly CRON_NAME = 'resetUserTrafficCalendarMonth';
-    private readonly logger = new Logger(ResetUserTrafficCalendarMonthService.name);
+export class ResetUserTrafficService {
+    private static readonly CRON_NAME = 'resetUserTraffic';
+    private readonly logger = new Logger(ResetUserTrafficService.name);
     private isJobRunning: boolean;
     private cronName: string;
 
@@ -37,7 +31,7 @@ export class ResetUserTrafficCalendarMonthService {
         private readonly eventEmitter: EventEmitter2,
     ) {
         this.isJobRunning = false;
-        this.cronName = ResetUserTrafficCalendarMonthService.CRON_NAME;
+        this.cronName = ResetUserTrafficService.CRON_NAME;
     }
 
     private checkJobRunning(): boolean {
@@ -50,10 +44,12 @@ export class ResetUserTrafficCalendarMonthService {
         return true;
     }
 
-    @Cron(JOBS_INTERVALS.RESET_USER_TRAFFIC_CALENDAR_MONTH, {
-        name: ResetUserTrafficCalendarMonthService.CRON_NAME,
+    @Cron(JOBS_INTERVALS.RESET_USER_TRAFFIC, {
+        name: ResetUserTrafficService.CRON_NAME,
     })
     async handleCron() {
+        let users: UserWithActiveInboundsEntity[] | null = null;
+
         try {
             if (!this.checkJobRunning()) return;
             const ct = getTime();
@@ -68,19 +64,16 @@ export class ResetUserTrafficCalendarMonthService {
             const users = usersResponse.response;
 
             for (const user of users) {
-                if (user.trafficLimitStrategy !== RESET_PERIODS.CALENDAR_MONTH) continue;
+                if (user.trafficLimitStrategy === RESET_PERIODS.NO_RESET) continue;
+                if (user.trafficLimitStrategy === RESET_PERIODS.CALENDAR_MONTH) continue;
 
-                const today = dayjs().utc();
-                const currentDay = today.date();
-                const firstDayOfMonth = today.startOf('month').date();
+                const days = this.enumToDays(user.trafficLimitStrategy);
+                const lastResetDate = dayjs(user.lastTrafficResetAt ?? user.createdAt);
+                const currentDate = dayjs();
 
-                const lastResetDate = dayjs(user.lastTrafficResetAt ?? user.createdAt).utc();
+                const daysSinceLastReset = currentDate.diff(lastResetDate, 'day');
 
-                if (currentDay !== firstDayOfMonth) continue;
-
-                if (currentDay === firstDayOfMonth && lastResetDate.isSame(today, 'day')) {
-                    continue;
-                }
+                if (daysSinceLastReset < days) continue;
 
                 let status = undefined;
 
@@ -113,9 +106,26 @@ export class ResetUserTrafficCalendarMonthService {
             this.logger.error(`Error in ResetUserTrafficService: ${error}`);
         } finally {
             this.isJobRunning = false;
+            users = null;
         }
     }
 
+    private enumToDays(period: TResetPeriods): number {
+        switch (period) {
+            case RESET_PERIODS.DAY:
+                return 1;
+            case RESET_PERIODS.WEEK:
+                return 7;
+            case RESET_PERIODS.MONTH:
+                return 30;
+            case RESET_PERIODS.YEAR:
+                return 365;
+            case RESET_PERIODS.NO_RESET:
+                return 0;
+            case RESET_PERIODS.CALENDAR_MONTH:
+                return 31;
+        }
+    }
     private async getAllUsers(): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
         return this.queryBus.execute<
             GetAllUsersQuery,
