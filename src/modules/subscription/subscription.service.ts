@@ -162,6 +162,7 @@ export class SubscriptionService {
                 expiresAt: user.expireAt,
                 isActive: user.status === USERS_STATUS.ACTIVE,
                 userStatus: user.status,
+                trafficLimitStrategy: user.trafficLimitStrategy,
             },
             links,
             ssConfLinks,
