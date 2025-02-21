@@ -14,7 +14,7 @@ module.exports = {
             env_production: {
                 NODE_ENV: 'production',
             },
-            name: 'api',
+            namespace: 'api',
         },
         {
             name: 'remnawave-jobs',

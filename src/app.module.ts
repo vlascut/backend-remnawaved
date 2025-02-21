@@ -3,7 +3,6 @@ import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ScheduleModule } from '@nestjs/schedule';
 import { Module } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
 import { join } from 'node:path';
@@ -37,7 +36,6 @@ import { PrismaModule } from '@common/database';
             global: true,
             middleware: { mount: true },
         }),
-        ScheduleModule.forRoot(),
         EventEmitterModule.forRoot({
             wildcard: true,
             delimiter: '.',

@@ -44,6 +44,7 @@ import { PrometheusReporterModule } from '@intergration-modules/prometheus-repor
         }),
         IntegrationModules,
         RemnawaveModules,
+        PrometheusReporterModule,
         // BullModule.forRoot({
         //     connection: {
         //         host: '127.0.0.1',
@@ -62,9 +63,8 @@ import { PrometheusReporterModule } from '@intergration-modules/prometheus-repor
         //         },
         //     },
         // }),
-        JobsModule,
         // QueueModule,
-        PrometheusReporterModule,
+        JobsModule,
     ],
     controllers: [],
 })

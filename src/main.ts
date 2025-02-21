@@ -29,16 +29,20 @@ patchNestJsSwagger();
 //     silly: 6,
 // };
 
+const instanedId = process.env.INSTANCE_ID || '0';
+
 const logger = createLogger({
     transports: [new winston.transports.Console()],
     format: winston.format.combine(
-        winston.format.timestamp(),
+        winston.format.timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss.SSS',
+        }),
         winston.format.ms(),
-        nestWinstonModuleUtilities.format.nestLike('', {
+        nestWinstonModuleUtilities.format.nestLike(`Remnawave API: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
-            processId: true,
-            appName: false,
+            processId: false,
+            appName: true,
         }),
     ),
     level: isDevelopment() ? 'debug' : 'http',
