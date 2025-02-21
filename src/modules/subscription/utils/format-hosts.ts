@@ -135,10 +135,9 @@ export class FormatHosts {
             const pbk = inbound.streamSettings?.realitySettings?.publicKey || '';
 
             // Short ID
+            const shortIds = inbound.streamSettings?.realitySettings?.shortIds || [];
             const sid =
-                (inbound.streamSettings?.realitySettings?.shortIds || [])
-                    .filter(Boolean)
-                    .join(',') || '';
+                shortIds.length > 0 ? shortIds[Math.floor(Math.random() * shortIds.length)] : '';
 
             const spx = inbound.streamSettings?.realitySettings?.spiderX || '';
 

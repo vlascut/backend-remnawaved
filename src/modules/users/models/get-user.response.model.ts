@@ -2,6 +2,7 @@ import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
 import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 
 export class GetUserResponseModel {
     public readonly uuid: string;
@@ -25,10 +26,17 @@ export class GetUserResponseModel {
     public readonly vlessUuid: string;
     public readonly ssPassword: string;
     public readonly activeUserInbounds: InboundsEntity[];
-    public readonly subscriptionUrl: string;
     public readonly description: null | string;
 
-    constructor(entity: UserWithActiveInboundsEntity) {
+    public readonly subscriptionUrl: string;
+
+    public readonly lastConnectedNode: ILastConnectedNode | null;
+
+    constructor(
+        entity: UserWithActiveInboundsEntity,
+        lastConnectedNode: ILastConnectedNode | null,
+        subPublicDomain: string,
+    ) {
         this.uuid = entity.uuid;
         this.username = entity.username;
         this.shortUuid = entity.shortUuid;
@@ -50,7 +58,9 @@ export class GetUserResponseModel {
         this.trojanPassword = entity.trojanPassword;
         this.vlessUuid = entity.vlessUuid;
         this.ssPassword = entity.ssPassword;
-        this.subscriptionUrl = `https://${process.env.SUB_PUBLIC_DOMAIN}/${entity.shortUuid}`; // TODO: find a better way to get the subscription url
         this.description = entity.description;
+
+        this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
+        this.lastConnectedNode = lastConnectedNode;
     }
 }

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { UsersSchema } from '../../models/users.schema';
 import { REST_API } from '../../api';
+import { LastConnectedNodeSchema } from '../../models';
 
 export namespace RevokeUserSubscriptionCommand {
     export const url = REST_API.USERS.REVOKE_SUBSCRIPTION;
@@ -16,6 +17,7 @@ export namespace RevokeUserSubscriptionCommand {
     export const ResponseSchema = z.object({
         response: UsersSchema.extend({
             subscriptionUrl: z.string(),
+            lastConnectedNode: LastConnectedNodeSchema,
         }),
     });
 

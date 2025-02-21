@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { USERS_STATUS } from '../../constants';
+import { RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { REST_API } from '../../api';
 
 export namespace GetSubscriptionInfoByShortUuidCommand {
@@ -25,7 +25,11 @@ export namespace GetSubscriptionInfoByShortUuidCommand {
                 expiresAt: z.string().transform((str) => new Date(str)),
                 isActive: z.boolean(),
                 userStatus: z.nativeEnum(USERS_STATUS),
+                trafficLimitStrategy: z.nativeEnum(RESET_PERIODS),
             }),
+            links: z.array(z.string()),
+            ssConfLinks: z.record(z.string(), z.string()),
+            subscriptionUrl: z.string(),
         }),
     });
 
