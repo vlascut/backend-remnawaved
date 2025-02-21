@@ -39,7 +39,7 @@ const logger = createLogger({
         }),
         winston.format.ms(),
         winston.format.align(),
-        nestWinstonModuleUtilities.format.nestLike(`Remnawave Jobs: #${instanedId}`, {
+        nestWinstonModuleUtilities.format.nestLike(`Job Worker: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
             processId: false,

@@ -38,7 +38,7 @@ const logger = createLogger({
             format: 'YYYY-MM-DD HH:mm:ss.SSS',
         }),
         winston.format.ms(),
-        nestWinstonModuleUtilities.format.nestLike(`Remnawave API: #${instanedId}`, {
+        nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
             processId: false,
