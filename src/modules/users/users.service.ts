@@ -24,8 +24,12 @@ import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node';
 import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node';
 import { UserWithLifetimeTrafficEntity, UserWithActiveInboundsEntity } from './entities';
 import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
-import { DeleteUserResponseModel } from './models';
-import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
+import { BulkDeleteByStatusResponseModel, DeleteUserResponseModel } from './models';
+import {
+    BulkDeleteUsersByStatusRequestDto,
+    CreateUserRequestDto,
+    UpdateUserRequestDto,
+} from './dtos';
 import { UsersRepository } from './repositories/users.repository';
 import { UserEntity } from './entities/users.entity';
 import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
@@ -742,6 +746,25 @@ export class UsersService {
             return {
                 isOk: false,
                 ...ERRORS.RESET_USER_TRAFFIC_ERROR,
+            };
+        }
+    }
+
+    public async bulkDeleteUsersByStatus(
+        dto: BulkDeleteUsersByStatusRequestDto,
+    ): Promise<ICommandResponse<BulkDeleteByStatusResponseModel>> {
+        try {
+            const result = await this.userRepository.deleteManyByStatus(dto.status);
+
+            return {
+                isOk: true,
+                response: new BulkDeleteByStatusResponseModel(result),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_DELETE_USERS_BY_STATUS_ERROR,
             };
         }
     }

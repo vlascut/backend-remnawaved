@@ -25,7 +25,7 @@ export class BatchResetUserTrafficHandler
                 isOk: true,
             };
         } catch (error: unknown) {
-            this.logger.error(`Error: ${error}`);
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.UPDATE_USER_ERROR,

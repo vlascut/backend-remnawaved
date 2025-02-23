@@ -32,6 +32,8 @@ import { RolesGuard } from '@common/guards/roles';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
+    BulkDeleteUsersByStatusRequestDto,
+    BulkDeleteUsersByStatusResponseDto,
     CreateUserRequestDto,
     CreateUserResponseDto,
     DeleteUserRequestDto,
@@ -419,6 +421,28 @@ export class UsersController {
                 data.lastConnectedNode,
                 this.subPublicDomain,
             ),
+        };
+    }
+
+    @ApiBody({ type: BulkDeleteUsersByStatusRequestDto })
+    @ApiOkResponse({
+        type: BulkDeleteUsersByStatusResponseDto,
+        description: 'Users deleted successfully',
+    })
+    @ApiOperation({
+        summary: 'Bulk Delete Users By Status',
+        description: 'Bulk delete users by status',
+    })
+    @HttpCode(HttpStatus.CREATED)
+    @Post(USERS_ROUTES.BULK.DELETE_BY_STATUS)
+    async bulkDeleteUsersByStatus(
+        @Body() body: BulkDeleteUsersByStatusRequestDto,
+    ): Promise<BulkDeleteUsersByStatusResponseDto> {
+        const result = await this.usersService.bulkDeleteUsersByStatus(body);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
         };
     }
 }

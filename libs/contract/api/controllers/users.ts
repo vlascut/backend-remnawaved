@@ -13,4 +13,7 @@ export const USERS_ROUTES = {
     DELETE_USER: 'delete',
     UPDATE: 'update',
     RESET_USER_TRAFFIC: 'reset-traffic',
+    BULK: {
+        DELETE_BY_STATUS: 'bulk/delete-by-status',
+    },
 } as const;

@@ -10,3 +10,4 @@ export * from './get-user-by-uuid.dto';
 export * from './reset-user-traffic.dto';
 export * from './revoke-user-subscription.dto';
 export * from './update-user.dto';
+export * from './bulk';

@@ -15,6 +15,7 @@ import { IUserOnlineStats, IUserStats } from '../interfaces';
 import { UserEntity } from '../entities/users.entity';
 import { UserConverter } from '../users.converter';
 import { BatchResetUsersUsageBuilder } from '../builders/batch-reset-users-usage/batch-reset-users-usage.builder';
+import { BulkDeleteByStatusBuilder } from '../builders/bulk-delete-by-status/bulk-delete-by-status.builder';
 
 dayjs.extend(utc);
 
@@ -612,8 +613,16 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
         const { query } = new BatchResetUsersUsageBuilder(strategy);
-        await this.prisma.tx.$queryRaw<void>(query);
+        await this.prisma.tx.$executeRaw<void>(query);
 
         return;
+    }
+
+    public async deleteManyByStatus(status: TUsersStatus): Promise<number> {
+        const { query } = new BulkDeleteByStatusBuilder(status);
+
+        const result = await this.prisma.tx.$executeRaw<unknown>(query);
+
+        return result || 0;
     }
 }
