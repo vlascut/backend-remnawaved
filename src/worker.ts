@@ -78,7 +78,7 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalFilters(new NotFoundExceptionFilter());
 
-    app.useGlobalGuards(new WorkerRoutesGuard({ allowedPaths: [ROOT + METRICS_ROOT] }));
+    app.useGlobalGuards(new WorkerRoutesGuard({ allowedPaths: [METRICS_ROOT] }));
 
     app.enableShutdownHooks();
 
