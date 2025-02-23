@@ -15,6 +15,7 @@ import {
 import {
     ApiBearerAuth,
     ApiBody,
+    ApiCreatedResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
     ApiOperation,
@@ -84,7 +85,7 @@ export class UsersController {
     }
 
     @ApiBody({ type: CreateUserRequestDto })
-    @ApiOkResponse({
+    @ApiCreatedResponse({
         type: CreateUserResponseDto,
         description: 'User created successfully',
     })
@@ -106,7 +107,7 @@ export class UsersController {
         description: 'User updated successfully',
     })
     @ApiOperation({ summary: 'Update User', description: 'Update a user' })
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.OK)
     @Post(USERS_ROUTES.UPDATE)
     async updateUser(@Body() body: UpdateUserRequestDto): Promise<UpdateUserResponseDto> {
         const result = await this.usersService.updateUser(body);
@@ -433,7 +434,7 @@ export class UsersController {
         summary: 'Bulk Delete Users By Status',
         description: 'Bulk delete users by status',
     })
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.OK)
     @Post(USERS_ROUTES.BULK.DELETE_BY_STATUS)
     async bulkDeleteUsersByStatus(
         @Body() body: BulkDeleteUsersByStatusRequestDto,
