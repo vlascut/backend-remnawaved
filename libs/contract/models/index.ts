@@ -5,3 +5,4 @@ export * from './hosts.schema';
 export * from './inbounds.schema';
 export * from './nodes.schema';
 export * from './users.schema';
+export * from './last-connected-node.schema';

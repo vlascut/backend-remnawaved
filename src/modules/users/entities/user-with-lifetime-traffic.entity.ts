@@ -3,6 +3,7 @@ import { TResetPeriods } from '@libs/contracts/constants';
 import { TUsersStatus } from '@libs/contracts/constants';
 
 import { IUserWithLifetimeTraffic } from '../interfaces';
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
 
 export class UserWithLifetimeTrafficEntity {
     public uuid: string;
@@ -33,10 +34,7 @@ export class UserWithLifetimeTrafficEntity {
 
     public activeUserInbounds: InboundsEntity[];
 
-    public lastConnection: null | {
-        connectedAt: Date;
-        nodeName: string;
-    };
+    public lastConnectedNode: null | ILastConnectedNode;
 
     constructor(user: Partial<IUserWithLifetimeTraffic>) {
         Object.assign(this, user);
@@ -50,12 +48,12 @@ export class UserWithLifetimeTrafficEntity {
         }
 
         if (user.nodesUserUsageHistory && user.nodesUserUsageHistory.length > 0) {
-            this.lastConnection = {
+            this.lastConnectedNode = {
                 nodeName: user.nodesUserUsageHistory[0].node.name,
                 connectedAt: user.nodesUserUsageHistory[0].updatedAt,
             };
         } else {
-            this.lastConnection = null;
+            this.lastConnectedNode = null;
         }
 
         return this;

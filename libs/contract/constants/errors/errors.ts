@@ -286,4 +286,9 @@ export const ERRORS = {
         message: 'Get all inbounds error',
         httpCode: 500,
     },
+    BULK_DELETE_USERS_BY_STATUS_ERROR: {
+        code: 'A059',
+        message: 'Bulk delete users by status error',
+        httpCode: 500,
+    },
 } as const;

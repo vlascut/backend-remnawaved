@@ -6,6 +6,7 @@ import { ICrud } from '@common/types/crud-port';
 
 import { NodesUserUsageHistoryEntity } from '../entities/nodes-user-usage-history.entity';
 import { NodesUserUsageHistoryConverter } from '../nodes-user-usage-history.converter';
+import { ILastConnectedNode } from '../interfaces';
 
 @Injectable()
 export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHistoryEntity> {
@@ -83,6 +84,26 @@ export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHist
             where: dto,
         });
         return this.converter.fromPrismaModelsToEntities(list);
+    }
+
+    public async getUserLastConnectedNode(userUuid: string): Promise<ILastConnectedNode | null> {
+        const result = await this.prisma.tx.nodesUserUsageHistory.findFirst({
+            where: { userUuid },
+            orderBy: {
+                updatedAt: 'desc',
+            },
+            include: {
+                node: true,
+            },
+            take: 1,
+        });
+        if (!result) {
+            return null;
+        }
+        return {
+            nodeName: result.node.name,
+            connectedAt: result.updatedAt,
+        };
     }
 
     public async deleteByUUID(uuid: string): Promise<boolean> {

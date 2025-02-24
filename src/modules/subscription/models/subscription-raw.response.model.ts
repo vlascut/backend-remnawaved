@@ -1,4 +1,4 @@
-import { TUsersStatus } from '@libs/contracts/constants';
+import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
 export class SubscriptionRawResponse {
     public isFound: boolean;
@@ -11,6 +11,7 @@ export class SubscriptionRawResponse {
         trafficUsed: string;
         username: string;
         userStatus: TUsersStatus;
+        trafficLimitStrategy: TResetPeriods;
     };
     public links: string[];
     public ssConfLinks: Record<string, string>;

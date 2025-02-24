@@ -32,7 +32,7 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
             const nodes = await this.nodesRepository.findConnectedNodes();
 
             if (nodes.length === 0) {
-                throw new Error('No connected nodes found');
+                return;
             }
 
             if (userEntity.activeUserInbounds.length === 0) {

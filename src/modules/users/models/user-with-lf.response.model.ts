@@ -2,6 +2,7 @@ import { GetInboundsResponseModel } from 'src/modules/inbounds/models/get-inboun
 import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
 import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
 
 export class UserWithLifetimeTrafficResponseModel {
     public uuid: string;
@@ -31,13 +32,10 @@ export class UserWithLifetimeTrafficResponseModel {
     public activeUserInbounds: GetInboundsResponseModel[];
 
     public subscriptionUrl: string;
-    public lastConnection: null | {
-        connectedAt: Date;
-        nodeName: string;
-    };
+    public lastConnectedNode: null | ILastConnectedNode;
     public description: null | string;
 
-    constructor(data: UserWithLifetimeTrafficEntity) {
+    constructor(data: UserWithLifetimeTrafficEntity, subPublicDomain: string) {
         this.uuid = data.uuid;
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
@@ -61,10 +59,11 @@ export class UserWithLifetimeTrafficResponseModel {
         this.activeUserInbounds = data.activeUserInbounds.map(
             (item) => new GetInboundsResponseModel(item),
         );
-        this.subscriptionUrl = `https://${process.env.SUB_PUBLIC_DOMAIN}/${this.shortUuid}`;
-        this.lastConnection = data.lastConnection;
+        this.lastConnectedNode = data.lastConnectedNode;
 
         this.description = data.description;
+
+        this.subscriptionUrl = `https://${subPublicDomain}/${this.shortUuid}`;
 
         return this;
     }

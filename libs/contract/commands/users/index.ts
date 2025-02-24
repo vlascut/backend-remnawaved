@@ -10,3 +10,4 @@ export * from './get-user-by-uuid.command';
 export * from './reset-user-traffic.command';
 export * from './revoke-user-subscription.command';
 export * from './update-user.command';
+export * from './bulk';

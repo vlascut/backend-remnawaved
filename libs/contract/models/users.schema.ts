@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { RESET_PERIODS, RESET_PERIODS_VALUES, USERS_STATUS } from '../constants';
+import { RESET_PERIODS, USERS_STATUS } from '../constants';
 import { InboundsSchema } from './inbounds.schema';
 
 export const UsersSchema = z.object({

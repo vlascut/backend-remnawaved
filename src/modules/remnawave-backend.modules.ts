@@ -14,7 +14,6 @@ import { NodesModule } from './nodes/nodes.module';
 import { UsersModule } from './users/users.module';
 import { XrayConfigModule } from './xray-config';
 import { AuthModule } from './auth/auth.module';
-import { JobsModule } from './jobs/jobs.module';
 
 @Module({
     imports: [
@@ -31,7 +30,6 @@ import { JobsModule } from './jobs/jobs.module';
         NodesUsageHistoryModule,
         InboundsModule,
         XrayConfigModule,
-        JobsModule,
         SystemModule,
     ],
 })

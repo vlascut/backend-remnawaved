@@ -59,6 +59,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          file: DockerfileDev
           # platforms: linux/amd64,linux/arm64
           platforms: linux/amd64 # ARM64 is not supported.
           push: true
