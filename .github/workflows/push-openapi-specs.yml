@@ -1,4 +1,4 @@
-name: Build Clusters
+name: Build&Push OpenAPI Specs
 
 on:
   push:
