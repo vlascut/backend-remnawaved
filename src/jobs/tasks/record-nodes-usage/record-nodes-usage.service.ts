@@ -54,7 +54,7 @@ export class RecordNodesUsageService {
 
             const nodesResponse = await this.getOnlineNodes();
             if (!nodesResponse.isOk || !nodesResponse.response) {
-                this.logger.error('No connected nodes found');
+                this.logger.debug('No connected nodes found');
                 return;
             }
 
