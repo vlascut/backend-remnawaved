@@ -33,7 +33,8 @@ export class ReaddUserToNodeHandler implements IEventHandler<ReaddUserToNodeEven
             const nodes = await this.nodesRepository.findConnectedNodes();
 
             if (nodes.length === 0) {
-                throw new Error('No connected nodes found');
+                this.logger.debug('No connected nodes found');
+                return;
             }
 
             let oldInboundTags: string[] = [];
