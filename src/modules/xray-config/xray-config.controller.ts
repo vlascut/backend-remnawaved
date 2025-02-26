@@ -25,7 +25,7 @@ import { XrayConfigService } from './xray-config.service';
 
 @ApiTags('Xray Config Controller')
 @Controller(XRAY_CONTROLLER)
-@Roles(ROLE.ADMIN)
+@Roles(ROLE.ADMIN, ROLE.API)
 @UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 export class XrayConfigController {
