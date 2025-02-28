@@ -5,8 +5,8 @@ import { AxiosService } from './axios.service';
 
 @Global()
 @Module({
+    imports: [CqrsModule],
     providers: [AxiosService],
     exports: [AxiosService],
-    imports: [CqrsModule],
 })
 export class AxiosModule {}

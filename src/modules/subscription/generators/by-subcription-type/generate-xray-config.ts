@@ -1,31 +1,21 @@
 import { XrayShadowsocksLink } from './interfaces/xray-shadowsocks-link.interface';
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
-import { XrayTrojanLink } from './interfaces/xray-trojan-link.interface';
-import { XrayVlessLink } from './interfaces/xray-vless-link.interface';
-
-type NetworkType = 'grpc' | 'http' | 'kcp' | 'quic' | 'tcp' | 'ws';
-// type TLSType = 'tls' | 'reality';
+import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
 const NETWORK_CONFIGS: Record<
-    NetworkType,
-    (params: XrayTrojanLink) => Partial<Record<string, unknown>>
+    StreamSettingsObject['network'],
+    (params: FormattedHosts) => Partial<Record<string, unknown>>
 > = {
-    http: (params) => ({ path: params.path, host: params.host }),
     ws: (params) => ({ path: params.path, host: params.host }),
     tcp: (params) => ({ path: params.path, host: params.host }),
-    kcp: (params) => ({ seed: params.path, host: params.host }),
-    quic: (params) => ({ key: params.path, quicSecurity: params.host }),
-    grpc: (params) => ({
-        serviceName: params.path,
-        authority: params.host,
-        multiMode: 'multi',
-    }),
+    raw: (params) => ({ path: params.path, host: params.host }),
+    xhttp: (params) => ({ path: params.path, host: params.host }),
 };
 
 export class XrayLinksGenerator {
-    private links: string[];
+    private links: string[] = [];
 
-    private hosts: FormattedHosts[];
+    private hosts: FormattedHosts[] = [];
 
     private isBase64: boolean;
 
@@ -58,48 +48,10 @@ export class XrayLinksGenerator {
 
         switch (host.protocol) {
             case 'trojan':
-                link = XrayLinksGenerator.trojan({
-                    remark: host.remark,
-                    address: host.address,
-                    port: host.port,
-                    protocol: host.protocol,
-                    path: host.path,
-                    host: host.host,
-                    tls: host.tls,
-                    sni: host.sni,
-                    fp: host.fp,
-                    alpn: host.alpn,
-                    pbk: host.pbk,
-                    sid: host.sid,
-                    spx: host.spx,
-                    ais: host.ais,
-                    password: host.password,
-                    network: host.network,
-                });
+                link = XrayLinksGenerator.trojan(host);
                 break;
             case 'vless':
-                link = XrayLinksGenerator.vless({
-                    remark: host.remark,
-                    address: host.address,
-                    port: host.port,
-                    protocol: host.protocol,
-                    id: host.password.vlessPassword,
-                    net: host.network,
-                    path: host.path,
-                    host: host.host.toString(),
-                    type: '',
-                    flow: 'xtls-rprx-vision',
-                    tls: host.tls,
-                    sni: host.sni,
-                    fp: host.fp,
-                    alpn: host.alpn,
-                    pbk: host.pbk,
-                    sid: host.sid,
-                    spx: host.spx,
-                    ais: false,
-                    fs: '',
-                    multiMode: false,
-                });
+                link = XrayLinksGenerator.vless(host);
                 break;
             case 'shadowsocks':
                 link = XrayLinksGenerator.shadowsocks({
@@ -117,110 +69,152 @@ export class XrayLinksGenerator {
         }
     }
 
-    private static trojan(params: XrayTrojanLink): string {
+    private static trojan(params: FormattedHosts): string {
         const payload: Record<string, unknown> = {
             security: params.tls,
             type: params.network,
-            headerType: '',
+            headerType: params.headerType || '',
         };
 
         const network = params.network || 'tcp';
         if (network in NETWORK_CONFIGS) {
-            Object.assign(payload, NETWORK_CONFIGS[network as NetworkType](params));
+            Object.assign(
+                payload,
+                NETWORK_CONFIGS[network as StreamSettingsObject['network']](params),
+            );
         }
-
-        const tlsConfig = XrayLinksGenerator.getTLSConfig(params);
-        Object.assign(payload, tlsConfig);
-
-        const stringPayload = XrayLinksGenerator.convertPayloadToString(payload);
-        return XrayLinksGenerator.formatTrojanURL(params, stringPayload);
-    }
-
-    private static vless(params: XrayVlessLink): string {
-        const payload: Record<string, unknown> = {
-            security: params.tls || 'none',
-            type: params.net || 'ws',
-            headerType: params.type || '',
-        };
 
         if (
-            params.flow &&
-            params.tls &&
-            ['reality', 'tls'].includes(params.tls) &&
-            params.net &&
-            ['kcp', 'raw', 'tcp'].includes(params.net) &&
-            params.type !== 'http'
+            ['tls', 'reality'].includes(params.tls) &&
+            ['tcp', 'raw'].includes(params.network) &&
+            params.headerType !== 'http'
         ) {
-            payload.flow = params.flow;
+            Object.assign(payload, {
+                flow: 'xtls-rprx-vision',
+            });
         }
 
-        const network = params.net || 'tcp';
-        if (network === 'grpc') {
-            Object.assign(payload, {
-                serviceName: params.path,
-                authority: params.host,
-                mode: params.multiMode ? 'multi' : 'gun',
-            });
-        } else if (network === 'quic') {
-            Object.assign(payload, {
-                key: params.path,
-                quicSecurity: params.host,
-            });
-        } else if (['splithttp', 'xhttp'].includes(network)) {
-            const extra: Record<string, unknown> = {
-                scMaxEachPostBytes: params.scMaxEachPostBytes || 1000000,
-                scMaxConcurrentPosts: params.scMaxConcurrentPosts || 100,
-                scMinPostsIntervalMs: params.scMinPostsIntervalMs || 30,
-                xPaddingBytes: params.xPaddingBytes || '100-1000',
-                noGRPCHeader: params.noGRPCHeader || false,
+        if (params.network === 'xhttp') {
+            const extra: FormattedHosts['additionalParams'] = {
+                scMaxEachPostBytes: params.additionalParams?.scMaxEachPostBytes,
+                scMaxConcurrentPosts: params.additionalParams?.scMaxConcurrentPosts,
+                scMinPostsIntervalMs: params.additionalParams?.scMinPostsIntervalMs,
+                xPaddingBytes: params.additionalParams?.xPaddingBytes,
+                noGRPCHeader: params.additionalParams?.noGRPCHeader,
             };
 
-            if (params.keepAlivePeriod) {
-                extra.keepAlivePeriod = params.keepAlivePeriod;
-            }
-            if (params.xmux && Object.keys(params.xmux).length > 0) {
-                extra.xmux = params.xmux;
-            }
-
             Object.assign(payload, {
                 path: params.path,
                 host: params.host,
-                mode: params.mode || 'auto',
+                mode: params.additionalParams?.mode || 'auto',
                 extra: JSON.stringify(extra),
             });
-        } else if (network === 'ws') {
-            Object.assign(payload, {
-                path: params.path,
-                host: params.host,
-                ...(params.heartbeatPeriod && { heartbeatPeriod: params.heartbeatPeriod }),
-            });
-        } else {
-            Object.assign(payload, {
-                path: params.path,
-                host: params.host,
-            });
         }
+
+        if (params.network === 'ws') {
+            if (params.additionalParams?.heartbeatPeriod) {
+                Object.assign(payload, {
+                    heartbeatPeriod: params.additionalParams?.heartbeatPeriod,
+                });
+            }
+        }
+
+        const tlsParams: Record<string, unknown> = {};
 
         if (params.tls === 'tls') {
-            Object.assign(payload, {
+            Object.assign(tlsParams, {
                 sni: params.sni,
-                fp: params.fp,
+                fp: params.fingerprint,
                 ...(params.alpn && { alpn: params.alpn }),
-                ...(params.fs && { fragment: params.fs }),
-                ...(params.ais && { allowInsecure: 1 }),
             });
         } else if (params.tls === 'reality') {
-            Object.assign(payload, {
+            Object.assign(tlsParams, {
                 sni: params.sni,
-                fp: params.fp,
-                pbk: params.pbk,
-                sid: params.sid,
-                ...(params.spx && { spx: params.spx }),
+                fp: params.fingerprint,
+                pbk: params.publicKey,
+                sid: params.shortId,
+                ...(params.spiderX && { spx: params.spiderX }),
             });
         }
 
+        Object.assign(payload, tlsParams);
+
         const stringPayload = XrayLinksGenerator.convertPayloadToString(payload);
-        return `vless://${params.id}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
+        return `trojan://${encodeURIComponent(params.password.trojanPassword)}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
+    }
+
+    private static vless(params: FormattedHosts): string {
+        const payload: Record<string, unknown> = {
+            security: params.tls,
+            type: params.network,
+            headerType: params.headerType || '',
+        };
+
+        const network = params.network || 'tcp';
+        if (network in NETWORK_CONFIGS) {
+            Object.assign(
+                payload,
+                NETWORK_CONFIGS[network as StreamSettingsObject['network']](params),
+            );
+        }
+
+        if (
+            ['tls', 'reality'].includes(params.tls) &&
+            ['tcp', 'raw'].includes(params.network) &&
+            params.headerType !== 'http'
+        ) {
+            Object.assign(payload, {
+                flow: 'xtls-rprx-vision',
+            });
+        }
+
+        if (params.network === 'xhttp') {
+            const extra: FormattedHosts['additionalParams'] = {
+                scMaxEachPostBytes: params.additionalParams?.scMaxEachPostBytes,
+                scMaxConcurrentPosts: params.additionalParams?.scMaxConcurrentPosts,
+                scMinPostsIntervalMs: params.additionalParams?.scMinPostsIntervalMs,
+                xPaddingBytes: params.additionalParams?.xPaddingBytes,
+                noGRPCHeader: params.additionalParams?.noGRPCHeader,
+            };
+
+            Object.assign(payload, {
+                path: params.path,
+                host: params.host,
+                mode: params.additionalParams?.mode || 'auto',
+                extra: JSON.stringify(extra),
+            });
+        }
+
+        if (params.network === 'ws') {
+            if (params.additionalParams?.heartbeatPeriod) {
+                Object.assign(payload, {
+                    heartbeatPeriod: params.additionalParams?.heartbeatPeriod,
+                });
+            }
+        }
+
+        const tlsParams: Record<string, unknown> = {};
+
+        if (params.tls === 'tls') {
+            Object.assign(tlsParams, {
+                sni: params.sni,
+                fp: params.fingerprint,
+                ...(params.alpn && { alpn: params.alpn }),
+            });
+        } else if (params.tls === 'reality') {
+            Object.assign(tlsParams, {
+                sni: params.sni,
+                fp: params.fingerprint,
+                pbk: params.publicKey,
+                sid: params.shortId,
+                ...(params.spiderX && { spx: params.spiderX }),
+            });
+        }
+
+        Object.assign(payload, tlsParams);
+
+        const stringPayload = XrayLinksGenerator.convertPayloadToString(payload);
+        return `vless://${params.password.vlessPassword}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
     }
 
     private static shadowsocks(params: XrayShadowsocksLink): string {
@@ -233,29 +227,6 @@ export class XrayLinksGenerator {
         return `ss://${base64Credentials}@${params.address}:${params.port}#${encodedRemark}`;
     }
 
-    private static getTLSConfig(params: XrayTrojanLink): Record<string, unknown> {
-        const config: Record<string, unknown> = {};
-
-        if (params.tls === 'tls') {
-            Object.assign(config, {
-                sni: params.sni,
-                fp: params.fp,
-                ...(params.alpn && { alpn: params.alpn }),
-                ...(params.ais && { allowInsecure: 1 }),
-            });
-        } else if (params.tls === 'reality') {
-            Object.assign(config, {
-                sni: params.sni,
-                fp: params.fp,
-                pbk: params.pbk,
-                sid: params.sid,
-                ...(params.spx && { spx: params.spx }),
-            });
-        }
-
-        return config;
-    }
-
     private static convertPayloadToString(
         payload: Record<string, unknown>,
     ): Record<string, string> {
@@ -265,13 +236,6 @@ export class XrayLinksGenerator {
                 .filter(([_, v]) => v !== undefined)
                 .map(([k, v]) => [k, String(v)]),
         );
-    }
-
-    private static formatTrojanURL(
-        params: XrayTrojanLink,
-        stringPayload: Record<string, string>,
-    ): string {
-        return `trojan://${encodeURIComponent(params.password.trojanPassword)}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
     }
 
     private generate(): string | string[] {

@@ -8,6 +8,8 @@ export type INodeWithExcludedInbounds = Prisma.NodesGetPayload<{
                     select: {
                         tag: true;
                         type: true;
+                        network: true;
+                        security: true;
                         uuid: true;
                     };
                 };

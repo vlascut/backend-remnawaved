@@ -39,11 +39,10 @@ export namespace UpdateUserCommand {
                 invalid_type_error: 'Enabled inbounds must be an array of UUIDs',
             })
             .optional(),
-        expireAt: z.coerce
-            .date({
-                required_error: 'Expiration date is required',
-                invalid_type_error: 'Invalid expiration date format',
-            })
+        expireAt: z
+            .string()
+            .datetime({ message: 'Invalid date format' })
+            .transform((str) => new Date(str))
             .refine((date) => date > new Date(), {
                 message: 'Expiration date cannot be in the past',
             })

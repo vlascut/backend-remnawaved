@@ -1,9 +1,5 @@
 import { dump as yamlDump } from 'js-yaml';
-import { readFileSync } from 'node:fs';
 import nunjucks from 'nunjucks';
-import path from 'node:path';
-
-import { isDevelopment } from '@common/utils/startup-app';
 
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
@@ -61,8 +57,6 @@ interface ProxyNode {
 export class ClashMetaConfiguration {
     protected data: ClashData;
     protected proxyRemarks: string[];
-    protected muxTemplate: string;
-    protected userAgentList: string[];
     protected settings: any = {};
     protected isStash: boolean;
     private hosts: FormattedHosts[];
@@ -79,8 +73,6 @@ export class ClashMetaConfiguration {
             rules: [],
         };
         this.proxyRemarks = [];
-        this.muxTemplate = '';
-        this.userAgentList = [];
         this.isStash = isStash;
     }
 
@@ -126,7 +118,7 @@ export class ClashMetaConfiguration {
         return this.render();
     }
 
-    protected httpConfig(path = '', host = '', randomUserAgent = false): NetworkConfig {
+    protected httpConfig(path = '', host = ''): NetworkConfig {
         const config: NetworkConfig = {
             ...(this.settings['http-opts'] || { headers: {} }),
         };
@@ -136,13 +128,6 @@ export class ClashMetaConfiguration {
         }
         if (host) {
             config.Host = host;
-        }
-        if (randomUserAgent) {
-            if (!config.headers) {
-                config.headers = {};
-            }
-            config.headers['User-Agent'] =
-                this.userAgentList[Math.floor(Math.random() * this.userAgentList.length)];
         }
 
         return config;
@@ -170,10 +155,7 @@ export class ClashMetaConfiguration {
         if (host && config.headers) {
             config.headers.Host = host;
         }
-        if (randomUserAgent && config.headers) {
-            config.headers['User-Agent'] =
-                this.userAgentList[Math.floor(Math.random() * this.userAgentList.length)];
-        }
+
         if (maxEarlyData) {
             config['max-early-data'] = maxEarlyData;
             config['early-data-header-name'] = earlyDataHeaderName;
@@ -200,21 +182,6 @@ export class ClashMetaConfiguration {
         return config;
     }
 
-    protected h2Config(path = '', host = ''): NetworkConfig {
-        const config: NetworkConfig = {
-            ...(this.settings['h2-opts'] || {}),
-        };
-
-        if (path) {
-            config.path = path;
-        }
-        if (host) {
-            config.host = [host];
-        }
-
-        return config;
-    }
-
     protected tcpConfig(path = '', host = ''): NetworkConfig {
         const config: NetworkConfig = {
             ...(this.settings['tcp-opts'] || {}),
@@ -234,18 +201,15 @@ export class ClashMetaConfiguration {
     }
 
     protected makeNode(params: {
-        ais?: boolean;
         alpn?: string;
         fp?: string;
         headers?: string;
         host: string;
-        muxEnable?: boolean;
         name: string;
         network: string;
         path: string;
         pbk?: string;
         port: number;
-        randomUserAgent?: boolean;
         remark: string;
         server: string;
         sid?: string;
@@ -264,16 +228,9 @@ export class ClashMetaConfiguration {
             headers = '',
             udp = true,
             alpn = '',
-            ais = false,
-            muxEnable = false,
-            randomUserAgent = false,
         } = params;
 
         let { type, network, path } = params;
-
-        // if (network === 'grpc' || network === 'gun') {
-        //     path = getGrpcGun(path);
-        // }
 
         if (type === 'shadowsocks') {
             type = 'ss';
@@ -317,17 +274,11 @@ export class ClashMetaConfiguration {
             if (alpn) {
                 node.alpn = alpn.split(',');
             }
-            if (ais) {
-                node['skip-cert-verify'] = ais;
-            }
         }
 
         let netOpts: NetworkConfig = {};
 
         switch (network) {
-            case 'http':
-                netOpts = this.httpConfig(path, host, randomUserAgent);
-                break;
             case 'ws':
                 netOpts = this.wsConfig(
                     path,
@@ -335,15 +286,7 @@ export class ClashMetaConfiguration {
                     maxEarlyData,
                     earlyDataHeaderName,
                     isHttpupgrade,
-                    randomUserAgent,
                 );
-                break;
-            case 'grpc':
-            case 'gun':
-                netOpts = this.grpcConfig(path);
-                break;
-            case 'h2':
-                netOpts = this.h2Config(path, host);
                 break;
             case 'tcp':
             case 'raw':
@@ -353,15 +296,6 @@ export class ClashMetaConfiguration {
 
         if (Object.keys(netOpts).length > 0) {
             node[`${network}-opts`] = netOpts;
-        }
-
-        if (muxEnable) {
-            const muxJson = JSON.parse(this.muxTemplate);
-            const muxConfig = muxJson.clash;
-            netOpts.smux = {
-                ...muxConfig,
-                enabled: true,
-            };
         }
 
         if (params.fp) {
@@ -378,7 +312,7 @@ export class ClashMetaConfiguration {
     }
 
     public add(host: FormattedHosts): void {
-        if (['kcp', 'splithttp'].includes(host.network || '') || host.network === 'quic') {
+        if (host.network === 'xhttp') {
             return;
         }
 
@@ -398,18 +332,16 @@ export class ClashMetaConfiguration {
             headers: '',
             udp: true,
             alpn: host.alpn,
-            fp: host.fp,
-            pbk: host.pbk,
-            sid: host.sid,
-            ais: host.ais,
-            muxEnable: false,
-            randomUserAgent: false,
+            fp: host.fingerprint,
+            pbk: host.publicKey,
+            sid: host.shortId,
         });
 
         switch (host.protocol) {
             case 'vless':
                 node.uuid = host.password.vlessPassword;
                 node.flow = 'xtls-rprx-vision';
+
                 // !TODO add flow
 
                 // if (

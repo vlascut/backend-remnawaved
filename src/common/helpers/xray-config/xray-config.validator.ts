@@ -1,17 +1,19 @@
 import { readFileSync } from 'fs';
 
-import { InboundsWithTagsAndType } from '@modules/inbounds/interfaces/inboubds-with-tags-and-type.interface';
+import { InboundsWithTagsAndType } from '@modules/inbounds/interfaces/inbounds-with-tags-and-type.interface';
 import { UserForConfigEntity } from '@modules/users/entities/users-for-config';
 
 import {
     CertificateObject as Certificate,
     InboundObject as Inbound,
+    InboundSettings,
     IXrayConfig,
     ShadowsocksSettings,
     TCtrXRayConfig,
     TrojanSettings,
     VLessSettings,
 } from './interfaces';
+import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
 
 export class XRayConfig {
     private config: IXrayConfig;
@@ -64,8 +66,16 @@ export class XRayConfig {
             throw new Error("Config doesn't have inbounds.");
         }
 
-        if (!this.config.outbounds || this.config.outbounds.length === 0) {
-            throw new Error("Config doesn't have outbounds.");
+        for (const inbound of this.config.inbounds) {
+            const network = inbound.streamSettings?.network;
+
+            if (network && !['raw', 'xhttp', 'ws', 'tcp'].includes(network)) {
+                throw new Error(
+                    `Invalid network type "${network}" in inbound "${inbound.tag}". Allowed values are: raw, xhttp, ws, tcp`,
+                );
+            }
+
+            // console.log(`Inbound ${inbound.tag} network: ${network || 'not set'}`);
         }
 
         for (const inbound of this.config.inbounds) {
@@ -74,12 +84,6 @@ export class XRayConfig {
             }
             if (inbound.tag.includes(',')) {
                 throw new Error("Character ',' is not allowed in inbound tag.");
-            }
-        }
-
-        for (const outbound of this.config.outbounds) {
-            if (!outbound.tag) {
-                throw new Error('All outbounds must have a unique tag.');
             }
         }
     }
@@ -111,10 +115,6 @@ export class XRayConfig {
 
     private getInbounds(): Inbound[] {
         return this.inbounds;
-    }
-
-    private getOutbound(tag: string): any {
-        return this.config.outbounds.find((outbound) => outbound.tag === tag);
     }
 
     private getConfig(): IXrayConfig {
@@ -194,6 +194,8 @@ export class XRayConfig {
         return this.inbounds.map((inbound) => ({
             tag: inbound.tag,
             type: inbound.protocol,
+            network: inbound.streamSettings?.network ?? null,
+            security: inbound.streamSettings?.security ?? null,
         }));
     }
 
@@ -208,7 +210,7 @@ export class XRayConfig {
                 continue;
             }
 
-            inbound.settings ??= {};
+            inbound.settings ??= {} as InboundSettings;
             // inbound.settings.clients ??= [];
 
             switch (inbound.protocol) {
@@ -224,7 +226,7 @@ export class XRayConfig {
                     (inbound.settings as VLessSettings).clients.push({
                         id: user.vlessUuid,
                         email: `${user.username}`,
-                        flow: 'xtls-rprx-vision',
+                        flow: getVlessFlow(inbound),
                     });
                     break;
                 case 'shadowsocks':

@@ -2,9 +2,8 @@ import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/tra
 
 export interface FormattedHosts {
     address: string;
-    ais: boolean;
     alpn: string;
-    fp: string;
+    fingerprint: string;
     host: string | string[];
     network: StreamSettingsObject['network'];
     password: {
@@ -13,12 +12,23 @@ export interface FormattedHosts {
         vlessPassword: string;
     };
     path: string;
-    pbk: string;
+    publicKey: string;
     port: number;
     protocol: string;
     remark: string;
-    sid: string;
+    shortId: string;
     sni: string;
-    spx: string;
+    spiderX: string;
     tls: string;
+    headerType?: string;
+    additionalParams?: {
+        mode?: string;
+        scMaxEachPostBytes?: number;
+        scMaxBufferedPosts?: number;
+        scMaxConcurrentPosts?: number;
+        scMinPostsIntervalMs?: number;
+        xPaddingBytes?: string;
+        noGRPCHeader?: boolean;
+        heartbeatPeriod?: number;
+    };
 }

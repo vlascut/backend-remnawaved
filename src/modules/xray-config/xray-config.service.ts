@@ -9,7 +9,7 @@ import { isDevelopment } from '@common/utils/startup-app';
 import { XRayConfig } from '@common/helpers/xray-config';
 import { ERRORS } from '@contract/constants';
 
-import { InboundsWithTagsAndType } from '../inbounds/interfaces/inboubds-with-tags-and-type.interface';
+import { InboundsWithTagsAndType } from '../inbounds/interfaces/inbounds-with-tags-and-type.interface';
 import { DeleteManyInboundsCommand } from '../inbounds/commands/delete-many-inbounds';
 import { CreateManyInboundsCommand } from '../inbounds/commands/create-many-inbounds';
 import { XrayConfigRepository } from './repositories/xray-config.repository';
@@ -19,6 +19,7 @@ import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
 import { StartAllNodesEvent } from '../nodes/events/start-all-nodes';
 import { UpdateConfigRequestDto } from './dtos/update-config.dto';
 import { XrayConfigEntity } from './entities/xray-config.entity';
+import { UpdateInboundCommand } from '@modules/inbounds/commands/update-inbound';
 
 @Injectable()
 export class XrayConfigService {
@@ -92,9 +93,15 @@ export class XrayConfigService {
             };
         } catch (error) {
             this.logger.error(error);
+            if (error instanceof Error) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_VALIDATION_ERROR.withMessage(error.message),
+                };
+            }
             return {
                 isOk: false,
-                ...ERRORS.UPDATE_CONFIG_ERROR,
+                ...ERRORS.CONFIG_VALIDATION_ERROR,
             };
         }
     }
@@ -236,7 +243,59 @@ export class XrayConfigService {
                 await this.createManyInbounds(inboundsToAdd);
             }
 
-            this.logger.log('Inbounds synced successfully');
+            if (inboundsToAdd.length === 0 && inboundsToRemove.length === 0) {
+                const inboundsToUpdate = configInbounds
+                    .filter((configInbound) => {
+                        if (!existingInbounds.response) {
+                            return false;
+                        }
+
+                        const existingInbound = existingInbounds.response.find(
+                            (ei) => ei.tag === configInbound.tag,
+                        );
+
+                        if (!existingInbound) {
+                            return false;
+                        }
+
+                        const securityChanged = configInbound.security !== existingInbound.security;
+                        const networkChanged = configInbound.network !== existingInbound.network;
+
+                        return securityChanged || networkChanged;
+                    })
+                    .map((configInbound) => {
+                        const existingInbound = existingInbounds.response?.find(
+                            (ei) => ei.tag === configInbound.tag,
+                        );
+
+                        // TODO: check this
+
+                        if (!existingInbound) {
+                            throw new Error(`Inbound with tag ${configInbound.tag} not found`);
+                        }
+
+                        return existingInbound;
+                    });
+
+                if (inboundsToUpdate.length) {
+                    this.logger.log(
+                        `Updating inbounds: ${inboundsToUpdate.map((i) => i.tag).join(', ')}`,
+                    );
+                    for (const inbound of inboundsToUpdate) {
+                        await this.updateInbound({
+                            uuid: inbound.uuid,
+                            tag: inbound.tag,
+                            security: inbound.security,
+                            network: inbound.network,
+                            type: inbound.type,
+                        });
+                    }
+                }
+
+                return;
+            }
+
+            this.logger.log('Inbounds synced/updated successfully');
         } catch (error) {
             if (error instanceof Error) {
                 this.logger.error('Failed to sync inbounds:', error.message);
@@ -260,6 +319,12 @@ export class XrayConfigService {
     ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<CreateManyInboundsCommand, ICommandResponse<void>>(
             new CreateManyInboundsCommand(inbounds),
+        );
+    }
+
+    private async updateInbound(inbound: InboundsEntity): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<UpdateInboundCommand, ICommandResponse<void>>(
+            new UpdateInboundCommand(inbound),
         );
     }
 

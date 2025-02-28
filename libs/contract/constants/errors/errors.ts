@@ -291,4 +291,19 @@ export const ERRORS = {
         message: 'Bulk delete users by status error',
         httpCode: 500,
     },
+    UPDATE_INBOUND_ERROR: {
+        code: 'A060',
+        message: 'Update inbound error',
+        httpCode: 500,
+    },
+    CONFIG_VALIDATION_ERROR: {
+        code: 'A061',
+        message: '',
+        httpCode: 500,
+        withMessage: (message: string) => ({
+            code: 'A061',
+            message,
+            httpCode: 500,
+        }),
+    },
 } as const;

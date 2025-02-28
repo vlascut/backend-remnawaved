@@ -22,7 +22,10 @@ export namespace GetSubscriptionInfoByShortUuidCommand {
                 trafficUsed: z.string(),
                 trafficLimit: z.string(),
                 username: z.string(),
-                expiresAt: z.string().transform((str) => new Date(str)),
+                expiresAt: z
+                    .string()
+                    .datetime()
+                    .transform((str) => new Date(str)),
                 isActive: z.boolean(),
                 userStatus: z.nativeEnum(USERS_STATUS),
                 trafficLimitStrategy: z.nativeEnum(RESET_PERIODS),

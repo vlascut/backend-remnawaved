@@ -13,6 +13,7 @@ import { AxiosService } from '@common/axios';
 import { NodesRepository } from '../../repositories/nodes.repository';
 import { ReaddUserToNodeEvent } from './readd-user-to-node.event';
 import { NodesEntity } from '../../entities/nodes.entity';
+import { getVlessFlowFromDbInbound } from '@common/utils/flow/get-vless-flow';
 
 @EventsHandler(ReaddUserToNodeEvent)
 export class ReaddUserToNodeHandler implements IEventHandler<ReaddUserToNodeEvent> {
@@ -82,7 +83,7 @@ export class ReaddUserToNodeHandler implements IEventHandler<ReaddUserToNodeEven
                                 type: inboundType,
                                 username: userEntity.username,
                                 uuid: userEntity.vlessUuid,
-                                flow: 'xtls-rprx-vision',
+                                flow: getVlessFlowFromDbInbound(inbound),
                                 level: 0,
                                 tag: inbound.tag,
                             };

@@ -80,24 +80,28 @@ export namespace CreateUserCommand {
                 invalid_type_error: 'Enabled inbounds must be an array',
             })
             .optional(),
-        expireAt: z.coerce
-            .date({
+        expireAt: z
+            .string({
                 required_error: 'Expiration date is required',
-                invalid_type_error: 'Invalid expiration date format',
+                invalid_type_error: 'Invalid date format',
             })
+            .datetime({ message: 'Invalid date format', offset: true, local: true })
+            .transform((str) => new Date(str))
             .describe('Date format: 2025-01-17T15:38:45.065Z'),
-        createdAt: z.coerce
-            .date({
-                required_error: 'Expiration date is required',
-                invalid_type_error: 'Invalid expiration date format',
+        createdAt: z
+            .string({
+                invalid_type_error: 'Invalid date format',
             })
+            .datetime({ message: 'Invalid date format', offset: true, local: true })
+            .transform((str) => new Date(str))
             .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),
-        lastTrafficResetAt: z.coerce
-            .date({
-                required_error: 'Expiration date is required',
-                invalid_type_error: 'Invalid expiration date format',
+        lastTrafficResetAt: z
+            .string({
+                invalid_type_error: 'Invalid date format',
             })
+            .datetime({ message: 'Invalid date format', offset: true, local: true })
+            .transform((str) => new Date(str))
             .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),
         description: z.string().optional(),

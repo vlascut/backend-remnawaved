@@ -189,9 +189,11 @@ model XrayConfig {
 }
 
 model Inbounds {
-  uuid String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tag  String @unique @map("tag")
-  type String @map("type")
+  uuid     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tag      String  @unique @map("tag")
+  type     String  @map("type")
+  network  String? @map("network")
+  security String? @map("security")
 
   hosts              Hosts[]
   activeUserInbounds ActiveUserInbounds[]

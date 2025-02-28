@@ -6,6 +6,12 @@ export const ApiTokensSchema = z.object({
     tokenName: z.string(),
     tokenDescription: z.nullable(z.string()),
 
-    createdAt: z.string().transform((str) => new Date(str)),
-    updatedAt: z.string().transform((str) => new Date(str)),
+    createdAt: z
+        .string()
+        .datetime()
+        .transform((str) => new Date(str)),
+    updatedAt: z
+        .string()
+        .datetime()
+        .transform((str) => new Date(str)),
 });
