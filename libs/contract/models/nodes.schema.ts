@@ -12,7 +12,12 @@ export const NodesSchema = z.object({
     isConnecting: z.boolean(),
     isNodeOnline: z.boolean(),
     isXrayRunning: z.boolean(),
-    lastStatusChange: z.nullable(z.string().transform((str) => new Date(str))),
+    lastStatusChange: z.nullable(
+        z
+            .string()
+            .datetime()
+            .transform((str) => new Date(str)),
+    ),
     lastStatusMessage: z.nullable(z.string()),
     xrayVersion: z.nullable(z.string()),
     isTrafficTrackingActive: z.boolean(),
@@ -30,8 +35,14 @@ export const NodesSchema = z.object({
     cpuModel: z.nullable(z.string()),
     totalRam: z.nullable(z.string()),
 
-    createdAt: z.string().transform((str) => new Date(str)),
-    updatedAt: z.string().transform((str) => new Date(str)),
+    createdAt: z
+        .string()
+        .datetime()
+        .transform((str) => new Date(str)),
+    updatedAt: z
+        .string()
+        .datetime()
+        .transform((str) => new Date(str)),
 
     excludedInbounds: z.array(InboundsSchema),
 });

@@ -20,12 +20,37 @@ export const UsersSchema = z.object({
         })
         .default(RESET_PERIODS.NO_RESET),
     subLastUserAgent: z.nullable(z.string()),
-    subLastOpenedAt: z.nullable(z.string().transform((str) => new Date(str))),
+    subLastOpenedAt: z.nullable(
+        z
+            .string()
+            .datetime()
+            .transform((str) => new Date(str)),
+    ),
 
-    expireAt: z.nullable(z.string().transform((str) => new Date(str))),
-    onlineAt: z.nullable(z.string().transform((str) => new Date(str))),
-    subRevokedAt: z.nullable(z.string().transform((str) => new Date(str))),
-    lastTrafficResetAt: z.nullable(z.string().transform((str) => new Date(str))),
+    expireAt: z.nullable(
+        z
+            .string()
+            .datetime()
+            .transform((str) => new Date(str)),
+    ),
+    onlineAt: z.nullable(
+        z
+            .string()
+            .datetime()
+            .transform((str) => new Date(str)),
+    ),
+    subRevokedAt: z.nullable(
+        z
+            .string()
+            .datetime()
+            .transform((str) => new Date(str)),
+    ),
+    lastTrafficResetAt: z.nullable(
+        z
+            .string()
+            .datetime()
+            .transform((str) => new Date(str)),
+    ),
 
     trojanPassword: z.string(),
     vlessUuid: z.string().uuid(),
@@ -33,8 +58,14 @@ export const UsersSchema = z.object({
 
     description: z.nullable(z.string()),
 
-    createdAt: z.string().transform((str) => new Date(str)),
-    updatedAt: z.string().transform((str) => new Date(str)),
+    createdAt: z
+        .string()
+        .datetime()
+        .transform((str) => new Date(str)),
+    updatedAt: z
+        .string()
+        .datetime()
+        .transform((str) => new Date(str)),
 
     activeUserInbounds: z.array(InboundsSchema),
 });
