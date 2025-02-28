@@ -112,9 +112,11 @@ export class XrayLinksGenerator {
         }
 
         if (params.network === 'ws') {
-            Object.assign(payload, {
-                heartbeatPeriod: params.additionalParams?.heartbeatPeriod,
-            });
+            if (params.additionalParams?.heartbeatPeriod) {
+                Object.assign(payload, {
+                    heartbeatPeriod: params.additionalParams?.heartbeatPeriod,
+                });
+            }
         }
 
         const tlsParams: Record<string, unknown> = {};

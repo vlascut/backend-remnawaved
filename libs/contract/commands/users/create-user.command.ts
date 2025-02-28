@@ -92,7 +92,7 @@ export namespace CreateUserCommand {
             .string({
                 invalid_type_error: 'Invalid date format',
             })
-            .datetime({ message: 'Invalid date format', offset: true })
+            .datetime({ message: 'Invalid date format', offset: true, local: true })
             .transform((str) => new Date(str))
             .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),
@@ -100,7 +100,7 @@ export namespace CreateUserCommand {
             .string({
                 invalid_type_error: 'Invalid date format',
             })
-            .datetime({ message: 'Invalid date format', offset: true })
+            .datetime({ message: 'Invalid date format', offset: true, local: true })
             .transform((str) => new Date(str))
             .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),

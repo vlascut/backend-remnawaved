@@ -105,7 +105,7 @@ export class FormatHosts {
             const port = inputHost.port;
             const network = inbound.streamSettings?.network || 'tcp';
 
-            let streamSettings: WebSocketObject | xHttpObject | RawObject | TcpObject;
+            let streamSettings: WebSocketObject | xHttpObject | RawObject | TcpObject | undefined;
             let pathFromConfig: string | undefined;
             let hostFromConfig: string | undefined;
             let additionalParams: FormattedHosts['additionalParams'] | undefined;
@@ -113,7 +113,7 @@ export class FormatHosts {
 
             switch (network) {
                 case 'xhttp': {
-                    const settings = inbound.streamSettings!.xhttpSettings as xHttpObject;
+                    const settings = inbound.streamSettings?.xhttpSettings as xHttpObject;
                     streamSettings = settings;
                     pathFromConfig = settings?.path;
                     hostFromConfig = settings?.host;
@@ -131,20 +131,20 @@ export class FormatHosts {
                     break;
                 }
                 case 'ws': {
-                    const settings = inbound.streamSettings!.wsSettings as WebSocketObject;
+                    const settings = inbound.streamSettings?.wsSettings as WebSocketObject;
                     streamSettings = settings;
                     pathFromConfig = settings?.path;
                     break;
                 }
                 case 'raw':
-                    streamSettings = inbound.streamSettings!.rawSettings as RawObject;
+                    streamSettings = inbound.streamSettings?.rawSettings as RawObject;
                     break;
                 case 'tcp': {
                     if (inbound.protocol === 'shadowsocks') {
                         break;
                     }
 
-                    const settings = inbound.streamSettings!.tcpSettings as TcpObject;
+                    const settings = inbound.streamSettings?.tcpSettings as TcpObject;
                     streamSettings = settings;
                     headerType = settings?.header?.type;
 
@@ -262,7 +262,7 @@ export class FormatHosts {
         try {
             return new FormatHosts(config, hosts, user, configService).generate();
         } catch (error) {
-            console.log(error);
+            // silence error
             return [];
         }
     }

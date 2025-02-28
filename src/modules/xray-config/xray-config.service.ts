@@ -264,16 +264,17 @@ export class XrayConfigService {
                         return securityChanged || networkChanged;
                     })
                     .map((configInbound) => {
-                        const existingInbound = existingInbounds.response!.find(
+                        const existingInbound = existingInbounds.response?.find(
                             (ei) => ei.tag === configInbound.tag,
-                        )!;
-                        return {
-                            uuid: existingInbound.uuid,
-                            tag: existingInbound.tag,
-                            type: existingInbound.type,
-                            security: configInbound.security || null,
-                            network: configInbound.network || null,
-                        };
+                        );
+
+                        // TODO: check this
+
+                        if (!existingInbound) {
+                            throw new Error(`Inbound with tag ${configInbound.tag} not found`);
+                        }
+
+                        return existingInbound;
                     });
 
                 if (inboundsToUpdate.length) {
@@ -294,7 +295,7 @@ export class XrayConfigService {
                 return;
             }
 
-            this.logger.log('Inbounds synced successfully');
+            this.logger.log('Inbounds synced/updated successfully');
         } catch (error) {
             if (error instanceof Error) {
                 this.logger.error('Failed to sync inbounds:', error.message);

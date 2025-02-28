@@ -372,7 +372,7 @@ export class SingBoxConfiguration {
 
             this.add_outbound(outbound);
         } catch (error) {
-            console.log(error);
+            // silence error
         }
     }
 }

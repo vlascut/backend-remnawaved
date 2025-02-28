@@ -302,7 +302,7 @@ export const ERRORS = {
         httpCode: 500,
         withMessage: (message: string) => ({
             code: 'A061',
-            message: message,
+            message,
             httpCode: 500,
         }),
     },
