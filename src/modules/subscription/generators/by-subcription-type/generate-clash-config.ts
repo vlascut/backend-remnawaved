@@ -1,9 +1,5 @@
 import { dump as yamlDump } from 'js-yaml';
-import { readFileSync } from 'node:fs';
 import nunjucks from 'nunjucks';
-import path from 'node:path';
-
-import { isDevelopment } from '@common/utils/startup-app';
 
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
@@ -79,8 +75,6 @@ export class ClashConfiguration {
             rules: [],
         };
         this.proxyRemarks = [];
-        this.muxTemplate = '';
-        this.userAgentList = [];
         this.isStash = isStash;
     }
 
@@ -188,33 +182,6 @@ export class ClashConfiguration {
         return config;
     }
 
-    protected grpcConfig(path = ''): NetworkConfig {
-        const config: NetworkConfig = {
-            ...(this.settings['grpc-opts'] || {}),
-        };
-
-        if (path) {
-            config['grpc-service-name'] = path;
-        }
-
-        return config;
-    }
-
-    protected h2Config(path = '', host = ''): NetworkConfig {
-        const config: NetworkConfig = {
-            ...(this.settings['h2-opts'] || {}),
-        };
-
-        if (path) {
-            config.path = path;
-        }
-        if (host) {
-            config.host = [host];
-        }
-
-        return config;
-    }
-
     protected tcpConfig(path = '', host = ''): NetworkConfig {
         const config: NetworkConfig = {
             ...(this.settings['tcp-opts'] || {}),
@@ -234,11 +201,9 @@ export class ClashConfiguration {
     }
 
     protected makeNode(params: {
-        ais?: boolean;
         alpn?: string;
         headers?: string;
         host: string;
-        muxEnable?: boolean;
         name: string;
         network: string;
         path: string;
@@ -261,16 +226,10 @@ export class ClashConfiguration {
             headers = '',
             udp = true,
             alpn = '',
-            ais = false,
-            muxEnable = false,
             randomUserAgent = false,
         } = params;
 
         let { type, network, path } = params;
-
-        // if (network === 'grpc' || network === 'gun') {
-        //     path = getGrpcGun(path);
-        // }
 
         if (type === 'shadowsocks') {
             type = 'ss';
@@ -314,17 +273,11 @@ export class ClashConfiguration {
             if (alpn) {
                 node.alpn = alpn.split(',');
             }
-            if (ais) {
-                node['skip-cert-verify'] = ais;
-            }
         }
 
         let netOpts: NetworkConfig = {};
 
         switch (network) {
-            case 'http':
-                netOpts = this.httpConfig(path, host, randomUserAgent);
-                break;
             case 'ws':
                 netOpts = this.wsConfig(
                     path,
@@ -334,13 +287,6 @@ export class ClashConfiguration {
                     isHttpupgrade,
                     randomUserAgent,
                 );
-                break;
-            case 'grpc':
-            case 'gun':
-                netOpts = this.grpcConfig(path);
-                break;
-            case 'h2':
-                netOpts = this.h2Config(path, host);
                 break;
             case 'tcp':
             case 'raw':
@@ -352,20 +298,11 @@ export class ClashConfiguration {
             node[`${network}-opts`] = netOpts;
         }
 
-        if (muxEnable) {
-            const muxJson = JSON.parse(this.muxTemplate);
-            const muxConfig = muxJson.clash;
-            netOpts.smux = {
-                ...muxConfig,
-                enabled: true,
-            };
-        }
-
         return node;
     }
 
     public add(host: FormattedHosts): void {
-        if (['kcp', 'splithttp'].includes(host.network || '')) {
+        if (host.network === 'xhttp') {
             return;
         }
 
@@ -385,9 +322,6 @@ export class ClashConfiguration {
             headers: '',
             udp: true,
             alpn: host.alpn,
-            ais: host.ais,
-            muxEnable: false,
-            randomUserAgent: false,
         });
 
         switch (host.protocol) {

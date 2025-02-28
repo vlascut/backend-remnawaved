@@ -43,7 +43,9 @@ export class AxiosService {
             const jwt = response.response;
 
             if (!jwt) {
-                throw new Error('JWT is not defined');
+                throw new Error(
+                    'There are a problem with the JWT token. Please restart Remnawave.',
+                );
             }
 
             this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
@@ -51,6 +53,7 @@ export class AxiosService {
             this.logger.log('Axios interceptor registered');
         } catch (error) {
             this.logger.error(`Error in onApplicationBootstrap: ${error}`);
+            throw error;
         }
     }
 

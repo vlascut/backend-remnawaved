@@ -48,7 +48,11 @@ export class ApiTokensController {
     constructor(private readonly apiTokensService: ApiTokensService) {}
 
     @ApiBody({ type: CreateApiTokenRequestDto })
-    @ApiOperation({ summary: 'Create new API token' })
+    @ApiOperation({
+        summary: 'Create new API token',
+        description:
+            'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
+    })
     @ApiResponse({ status: 201, description: 'Token created successfully' })
     @HttpCode(HttpStatus.CREATED)
     @Post(API_TOKENS_ROUTES.CREATE)
@@ -61,7 +65,11 @@ export class ApiTokensController {
         };
     }
 
-    @ApiOperation({ summary: 'Delete API token' })
+    @ApiOperation({
+        summary: 'Delete API token',
+        description:
+            'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
+    })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the API token' })
     @ApiResponse({ status: 200, description: 'Token deleted successfully' })
     @Delete(`${API_TOKENS_ROUTES.DELETE}/:uuid`)
@@ -74,7 +82,11 @@ export class ApiTokensController {
         };
     }
 
-    @ApiOperation({ summary: 'Get all API tokens' })
+    @ApiOperation({
+        summary: 'Get all API tokens',
+        description:
+            'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
+    })
     @ApiResponse({ status: 200, description: 'Tokens fetched successfully' })
     @Get(API_TOKENS_ROUTES.GET_ALL)
     @HttpCode(HttpStatus.OK)

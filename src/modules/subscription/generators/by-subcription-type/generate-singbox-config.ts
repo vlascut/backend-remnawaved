@@ -1,8 +1,4 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import semver from 'semver';
-
-import { isDevelopment } from '@common/utils/startup-app';
 
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
@@ -21,6 +17,10 @@ interface OutboundConfig {
     transport?: any;
     type: string;
     uuid?: string;
+    headers?: Record<string, unknown>;
+    path?: string;
+    max_early_data?: number;
+    early_data_header_name?: string;
 }
 
 interface TlsConfig {
@@ -70,10 +70,8 @@ interface TransportConfig {
 export class SingBoxConfiguration {
     private hosts: FormattedHosts[];
     private proxy_remarks: string[] = [];
-    private config: any;
-    private mux_template: string;
-    private user_agent_list: string[];
-    private settings: any;
+    private config: Record<string, any>;
+    private settings: Record<string, any>;
     private version: null | string;
     constructor(
         hosts: FormattedHosts[],
@@ -136,16 +134,6 @@ export class SingBoxConfiguration {
                 this.config.inbounds[tunInboundIndex] = tunInbound;
             }
         }
-        // this.mux_template = JSON.stringify({ 'sing-box': { enabled: true } });
-        // const user_agent_data = { list: [] };
-
-        // this.user_agent_list = user_agent_data?.list || [];
-
-        // try {
-        //     this.settings = {};
-        // } catch {
-        //     this.settings = {};
-        // }
     }
 
     private generate(): string {
@@ -177,7 +165,7 @@ export class SingBoxConfiguration {
     }
 
     public render(): string {
-        const urltest_types = ['vmess', 'vless', 'trojan', 'shadowsocks'];
+        const urltest_types = ['vless', 'trojan', 'shadowsocks'];
         const urltest_tags = this.config.outbounds
             .filter((outbound: OutboundConfig) => urltest_types.includes(outbound.type))
             .map((outbound: OutboundConfig) => outbound.tag);
@@ -206,7 +194,6 @@ export class SingBoxConfiguration {
         pbk?: string,
         sid?: string,
         alpn?: string | string[],
-        ais?: string,
     ): TlsConfig {
         const config: TlsConfig = {};
 
@@ -216,10 +203,6 @@ export class SingBoxConfiguration {
 
         if (sni) {
             config.server_name = sni;
-        }
-
-        if (tls === 'tls' && ais) {
-            config.insecure = Boolean(ais);
         }
 
         if (tls === 'reality') {
@@ -242,7 +225,7 @@ export class SingBoxConfiguration {
         if (!fp && tls === 'reality') {
             config.utls = {
                 enabled: true,
-                fingerprint: 'chrome',
+                fingerprint: fp || 'chrome',
             };
         }
 
@@ -253,43 +236,9 @@ export class SingBoxConfiguration {
         return config;
     }
 
-    public http_config(
-        host: string = '',
-        path: string = '',
-        random_user_agent: boolean = false,
-    ): TransportConfig {
-        const config = structuredClone(
-            this.settings?.httpSettings || {
-                idle_timeout: '15s',
-                ping_timeout: '15s',
-                method: 'GET',
-                headers: {},
-            },
-        );
-
-        if (!config.headers) {
-            config.headers = {};
-        }
-
-        config.host = [];
-        if (path) {
-            config.path = path;
-        }
-        if (host) {
-            config.host = [host];
-        }
-        if (random_user_agent && this.user_agent_list.length > 0) {
-            config.headers['User-Agent'] =
-                this.user_agent_list[Math.floor(Math.random() * this.user_agent_list.length)];
-        }
-
-        return config;
-    }
-
     public ws_config(
         host: string = '',
         path: string = '',
-        random_user_agent: boolean = false,
         max_early_data?: number,
         early_data_header_name?: string,
     ): TransportConfig {
@@ -305,48 +254,12 @@ export class SingBoxConfiguration {
         if (host) {
             config.headers.Host = host;
         }
-        if (random_user_agent && this.user_agent_list.length > 0) {
-            config.headers['User-Agent'] =
-                this.user_agent_list[Math.floor(Math.random() * this.user_agent_list.length)];
-        }
+
         if (max_early_data !== undefined) {
             config.max_early_data = max_early_data;
         }
         if (early_data_header_name) {
             config.early_data_header_name = early_data_header_name;
-        }
-
-        return config;
-    }
-
-    public grpc_config(path: string = ''): TransportConfig {
-        const config = structuredClone(this.settings?.grpcSettings || {});
-
-        if (path) {
-            config.service_name = path;
-        }
-
-        return config;
-    }
-
-    public httpupgrade_config(
-        host: string = '',
-        path: string = '',
-        random_user_agent: boolean = false,
-    ): TransportConfig {
-        const config = structuredClone(this.settings?.httpupgradeSettings || { headers: {} });
-
-        if (!config.headers) {
-            config.headers = {};
-        }
-
-        config.host = host;
-        if (path) {
-            config.path = path;
-        }
-        if (random_user_agent && this.user_agent_list.length > 0) {
-            config.headers['User-Agent'] =
-                this.user_agent_list[Math.floor(Math.random() * this.user_agent_list.length)];
         }
 
         return config;
@@ -358,29 +271,18 @@ export class SingBoxConfiguration {
         path: string = '',
         max_early_data?: number,
         early_data_header_name?: string,
-        random_user_agent: boolean = false,
     ): TransportConfig {
         let transport_config: TransportConfig = { type: transport_type };
 
         if (transport_type) {
             switch (transport_type) {
-                case 'http':
-                    transport_config = this.http_config(host, path, random_user_agent);
-                    break;
                 case 'ws':
                     transport_config = this.ws_config(
                         host,
                         path,
-                        random_user_agent,
                         max_early_data,
                         early_data_header_name,
                     );
-                    break;
-                case 'grpc':
-                    transport_config = this.grpc_config(path);
-                    break;
-                case 'httpupgrade':
-                    transport_config = this.httpupgrade_config(host, path, random_user_agent);
                     break;
             }
         }
@@ -389,147 +291,88 @@ export class SingBoxConfiguration {
         return transport_config;
     }
 
-    public make_outbound(
-        type: string,
-        remark: string,
-        address: string,
-        port: number | string,
-        net: string = '',
-        path: string = '',
-        host: string = '',
-        flow: string = '',
-        tls: string = '',
-        sni: string = '',
-        fp: string = '',
-        alpn: string | string[] = '',
-        pbk: string = '',
-        sid: string = '',
-        headers: string = '',
-        ais: string = '',
-        // mux_enable: boolean = false,
-        random_user_agent: boolean = false,
-    ): OutboundConfig {
-        if (typeof port === 'string') {
-            const ports = port.split(',');
-            port = parseInt(ports[Math.floor(Math.random() * ports.length)]);
-        }
-
+    public make_outbound(params: FormattedHosts): OutboundConfig {
         const config: OutboundConfig = {
-            type,
-            tag: remark,
-            server: address,
-            server_port: port,
+            type: params.protocol,
+            tag: params.remark,
+            server: params.address,
+            server_port: params.port,
         };
 
-        if (type === 'shadowsocks' || type === 'vless') {
-            config.network = 'tcp';
-        }
-
-        if (type === 'vless') {
+        if (
+            ['tcp', 'raw'].includes(params.network) &&
+            params.headerType !== 'http' &&
+            ['tls', 'reality'].includes(params.tls) &&
+            params.protocol === 'vless'
+        ) {
             config.flow = 'xtls-rprx-vision';
         }
 
-        if (
-            (net === 'tcp' || net === 'raw' || net === 'kcp') &&
-            headers !== 'http' &&
-            (tls || tls !== 'none')
-        ) {
-            if (flow) {
-                config.flow = flow;
-            }
+        if (params.protocol === 'shadowsocks') {
+            config.network = 'tcp';
         }
 
-        if (net === 'h2') {
-            net = 'http';
-            alpn = 'h2';
-        } else if (net === 'h3') {
-            net = 'http';
-            alpn = 'h3';
-        } else if ((net === 'tcp' || net === 'raw') && headers === 'http') {
-            net = 'http';
-        }
-
-        if (['grpc', 'http', 'httpupgrade', 'quic', 'ws'].includes(net)) {
+        if (['ws'].includes(params.network)) {
             let max_early_data: number | undefined;
             let early_data_header_name: string | undefined;
 
-            if (path.includes('?ed=')) {
-                const [pathPart, edPart] = path.split('?ed=');
-                path = pathPart;
+            if (params.path.includes('?ed=')) {
+                const [pathPart, edPart] = params.path.split('?ed=');
+                params.path = pathPart;
                 [max_early_data] = edPart.split('/').map(Number);
                 early_data_header_name = 'Sec-WebSocket-Protocol';
             }
 
             config.transport = this.transport_config(
-                net,
-                host,
-                path,
+                params.network,
+                params.host[0],
+                params.path,
                 max_early_data,
                 early_data_header_name,
-                random_user_agent,
             );
         }
 
-        if (tls === 'tls' || tls === 'reality') {
-            config.tls = this.tls_config(sni, fp, tls, pbk, sid, alpn, ais);
+        if (['tls', 'reality'].includes(params.tls)) {
+            config.tls = this.tls_config(
+                params.sni,
+                params.fingerprint,
+                params.tls,
+                params.publicKey,
+                params.shortId,
+                params.alpn,
+            );
         }
-
         return config;
     }
 
     public add(host: FormattedHosts): void {
-        const net = host.network || 'tcp';
-        const path = host.path;
+        try {
+            if (host.network === 'xhttp') {
+                return;
+            }
 
-        if (net === 'kcp' || net === 'quic') {
-            return;
+            const remark = host.remark;
+            this.proxy_remarks.push(remark);
+
+            const outbound = this.make_outbound(host);
+
+            switch (host.protocol) {
+                case 'vless':
+                    outbound.uuid = host.password.vlessPassword;
+                    break;
+                case 'trojan':
+                    outbound.password = host.password.trojanPassword;
+                    break;
+                case 'shadowsocks':
+                    outbound.password = host.password.ssPassword;
+                    outbound.method = 'chacha20-ietf-poly1305';
+
+                    break;
+            }
+
+            this.add_outbound(outbound);
+        } catch (error) {
+            console.log(error);
         }
-
-        // if (net === 'grpc' || net === 'gun') {
-        //     path = this.getGrpcGun(path);
-        // }
-
-        const alpn = host.alpn;
-
-        const remark = host.remark;
-        this.proxy_remarks.push(remark);
-
-        const outbound = this.make_outbound(
-            host.protocol,
-            remark,
-            host.address,
-            host.port,
-            net,
-            path,
-            host.host[0],
-            '',
-            host.tls,
-            host.sni,
-            host.fp || '',
-            alpn ? alpn.split(',') : undefined,
-            host.pbk || '',
-            host.sid || '',
-            '',
-            '',
-            false,
-            // false,
-        );
-
-        switch (host.protocol) {
-            case 'vmess':
-            case 'vless':
-                outbound.uuid = host.password.vlessPassword;
-                break;
-            case 'trojan':
-                outbound.password = host.password.trojanPassword;
-                break;
-            case 'shadowsocks':
-                outbound.password = host.password.ssPassword;
-                outbound.method = 'chacha20-ietf-poly1305';
-
-                break;
-        }
-
-        this.add_outbound(outbound);
     }
 }

@@ -3,6 +3,7 @@ import { DeleteManyActiveInboubdsByUserUuidHandler } from './delete-many-active-
 import { CreateManyUserActiveInboundsHandler } from './create-many-user-active-inbounds';
 import { DeleteManyInboundsHandler } from './delete-many-inbounds';
 import { CreateManyInboundsHandler } from './create-many-inbounds';
+import { UpdateInboundHandler } from './update-inbound/update-inbound.handler';
 
 export const COMMANDS = [
     DeleteManyInboundsHandler,
@@ -10,4 +11,5 @@ export const COMMANDS = [
     CreateManyUserActiveInboundsHandler,
     DeleteManyActiveInboubdsByUserUuidHandler,
     ResetNodeInboundExclusionByNodeUuidHandler,
+    UpdateInboundHandler,
 ];

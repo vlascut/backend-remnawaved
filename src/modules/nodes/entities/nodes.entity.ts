@@ -46,6 +46,8 @@ export class NodesEntity implements Nodes {
                 uuid: item.inbound.uuid,
                 tag: item.inbound.tag,
                 type: item.inbound.type,
+                network: item.inbound.network,
+                security: item.inbound.security,
             }));
         }
 

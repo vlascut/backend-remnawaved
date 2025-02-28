@@ -14,6 +14,8 @@ const entityToModel = (entity: InboundsEntity): Inbounds => {
         uuid: entity.uuid,
         tag: entity.tag,
         type: entity.type,
+        network: entity.network,
+        security: entity.security,
     };
 };
 

@@ -17,6 +17,8 @@ export class GetAllUsersHandler
 
     async execute(): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
         try {
+            // REMINDER: don't use this query!
+
             const users = await this.usersRepository.getAllUsersWithActiveInbounds();
 
             return {
