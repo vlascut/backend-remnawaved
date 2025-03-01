@@ -274,6 +274,9 @@ export class XrayConfigService {
                             throw new Error(`Inbound with tag ${configInbound.tag} not found`);
                         }
 
+                        existingInbound.security = configInbound.security;
+                        existingInbound.network = configInbound.network;
+
                         return existingInbound;
                     });
 
@@ -281,6 +284,7 @@ export class XrayConfigService {
                     this.logger.log(
                         `Updating inbounds: ${inboundsToUpdate.map((i) => i.tag).join(', ')}`,
                     );
+
                     for (const inbound of inboundsToUpdate) {
                         await this.updateInbound({
                             uuid: inbound.uuid,
@@ -291,8 +295,6 @@ export class XrayConfigService {
                         });
                     }
                 }
-
-                return;
             }
 
             this.logger.log('Inbounds synced/updated successfully');

@@ -27,37 +27,13 @@ export class GetPreparedConfigWithUsersHandler
             const { excludedInbounds } = query;
             const excludedTags = new Set(excludedInbounds.map((inbound) => inbound.tag));
 
-            console.log(
-                '31:',
-                Object.entries(process.memoryUsage()).reduce(
-                    (acc, [key, val]) => ({ ...acc, [key]: `${Math.round(val / 1024 / 1024)}MB` }),
-                    {},
-                ),
-            );
-
             const users = await this.getUsersForConfig();
 
             if (!users.isOk || !users.response) {
                 throw new Error('Failed to get users for config');
             }
 
-            console.log(
-                '45:',
-                Object.entries(process.memoryUsage()).reduce(
-                    (acc, [key, val]) => ({ ...acc, [key]: `${Math.round(val / 1024 / 1024)}MB` }),
-                    {},
-                ),
-            );
-
             const config = await this.xrayService.getConfigWithUsers(users.response);
-
-            console.log(
-                '55:',
-                Object.entries(process.memoryUsage()).reduce(
-                    (acc, [key, val]) => ({ ...acc, [key]: `${Math.round(val / 1024 / 1024)}MB` }),
-                    {},
-                ),
-            );
 
             if (!config.response) {
                 throw new Error('Config response is empty');
@@ -69,14 +45,6 @@ export class GetPreparedConfigWithUsersHandler
                     (inbound) => !excludedTags.has(inbound.tag),
                 ),
             };
-
-            console.log(
-                '64:',
-                Object.entries(process.memoryUsage()).reduce(
-                    (acc, [key, val]) => ({ ...acc, [key]: `${Math.round(val / 1024 / 1024)}MB` }),
-                    {},
-                ),
-            );
 
             return {
                 isOk: true,

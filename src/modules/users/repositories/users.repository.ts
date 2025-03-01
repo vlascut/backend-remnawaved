@@ -182,25 +182,8 @@ export class UsersRepository implements ICrud<UserEntity> {
     }
 
     public async getUsersForConfig(): Promise<UserForConfigEntity[]> {
-        try {
-            const { query } = new UsersWithInboundTagBuilder();
-            const result = await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
-
-            console.log(result);
-
-            console.log(
-                'Memory:',
-                Object.entries(process.memoryUsage()).reduce(
-                    (acc, [key, val]) => ({ ...acc, [key]: `${Math.round(val / 1024 / 1024)}MB` }),
-                    {},
-                ),
-            );
-
-            return result;
-        } catch (error) {
-            console.log(error);
-            return [];
-        }
+        const { query } = new UsersWithInboundTagBuilder();
+        return await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
     }
 
     public async getAllUsersWithActiveInbounds(): Promise<UserWithActiveInboundsEntity[]> {
@@ -385,8 +368,6 @@ export class UsersRepository implements ICrud<UserEntity> {
             where: dto,
             include: USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
         });
-
-        console.log(user);
 
         if (!user) {
             return null;
