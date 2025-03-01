@@ -41,7 +41,7 @@ const logger = createLogger({
         nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
-            processId: true,
+            processId: false,
             appName: true,
         }),
     ),

@@ -27,8 +27,6 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
     }
     async handle() {
         try {
-            this.logMemoryUsage('StartAllNodesHandler');
-
             const nodes = await this.nodesRepository.findByCriteria({
                 isDisabled: false,
             });
@@ -62,7 +60,6 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                             lastStatusChange: new Date(),
                             isConnected: false,
                             isConnecting: false,
-                            isDisabled: false,
                             usersOnline: 0,
                         });
 
@@ -81,7 +78,6 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
                             isConnected: nodeResponse.isStarted,
                             lastStatusMessage: nodeResponse.error ?? null,
                             lastStatusChange: new Date(),
-                            isDisabled: false,
                             isConnecting: false,
                             usersOnline: 0,
                             cpuCount: nodeResponse.systemInformation?.cpuCores ?? null,
@@ -98,8 +94,6 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
             return;
         } catch (error) {
             this.logger.error(`Error in Event StartAllNodesHandler: ${error}`);
-        } finally {
-            this.logMemoryUsage('StartAllNodesHandler finally');
         }
     }
 
@@ -110,17 +104,5 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
             GetPreparedConfigWithUsersQuery,
             ICommandResponse<IXrayConfig>
         >(new GetPreparedConfigWithUsersQuery(dto.excludedInbounds));
-    }
-
-    private logMemoryUsage(label: string) {
-        const used = process.memoryUsage();
-
-        this.logger.log(`Memory usage at ${label}:`);
-        this.logger.log(`RSS: ${Math.round(used.rss / 1024 / 1024)}MB`);
-        this.logger.log(`Heap Total: ${Math.round(used.heapTotal / 1024 / 1024)}MB`);
-        this.logger.log(`Heap Used: ${Math.round(used.heapUsed / 1024 / 1024)}MB`);
-        this.logger.log(`External: ${Math.round(used.external / 1024 / 1024)}MB`);
-        this.logger.log(`ArrayBuffers: ${Math.round(used.arrayBuffers / 1024 / 1024)}MB`);
-        this.logger.log('-------------------');
     }
 }
