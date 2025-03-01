@@ -68,6 +68,10 @@ export const REST_API = {
         BULK: {
             DELETE_BY_STATUS: `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.BULK.DELETE_BY_STATUS}`,
         },
+        GET_BY_TELEGRAM_ID: (telegramId: string) =>
+            `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY_TELEGRAM_ID}/${telegramId}`,
+        GET_BY_EMAIL: (email: string) =>
+            `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY_EMAIL}/${email}`,
     },
     SUBSCRIPTION: {
         GET: (shortUuid: string) =>

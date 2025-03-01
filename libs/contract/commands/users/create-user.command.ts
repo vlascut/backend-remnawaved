@@ -105,6 +105,10 @@ export namespace CreateUserCommand {
             .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),
         description: z.string().optional(),
+
+        telegramId: z.number().optional(),
+        email: z.string().optional(),
+
         activateAllInbounds: z.boolean().optional(),
     });
 

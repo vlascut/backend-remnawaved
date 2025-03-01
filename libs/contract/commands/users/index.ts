@@ -11,3 +11,5 @@ export * from './reset-user-traffic.command';
 export * from './revoke-user-subscription.command';
 export * from './update-user.command';
 export * from './bulk';
+export * from './get-user-by-telegram-id.command';
+export * from './get-user-by-email.command';

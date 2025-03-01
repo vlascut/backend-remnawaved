@@ -28,6 +28,9 @@ export class GetUserResponseModel {
     public readonly activeUserInbounds: InboundsEntity[];
     public readonly description: null | string;
 
+    public readonly telegramId: number | null;
+    public readonly email: string | null;
+
     public readonly subscriptionUrl: string;
 
     public readonly lastConnectedNode: ILastConnectedNode | null;
@@ -59,6 +62,9 @@ export class GetUserResponseModel {
         this.vlessUuid = entity.vlessUuid;
         this.ssPassword = entity.ssPassword;
         this.description = entity.description;
+
+        this.telegramId = entity.telegramId ? Number(entity.telegramId) : null;
+        this.email = entity.email;
 
         this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
         this.lastConnectedNode = lastConnectedNode;

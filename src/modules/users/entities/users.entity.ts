@@ -26,6 +26,8 @@ export class UserEntity implements Users {
     public ssPassword: string;
 
     public description: null | string;
+    public telegramId: bigint | null;
+    public email: string | null;
 
     public createdAt: Date;
     public updatedAt: Date;

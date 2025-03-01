@@ -49,6 +49,9 @@ export namespace UpdateUserCommand {
             .describe('Expiration date: 2025-01-17T15:38:45.065Z')
             .optional(),
         description: z.string().optional(),
+
+        telegramId: z.number().optional(),
+        email: z.string().optional(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

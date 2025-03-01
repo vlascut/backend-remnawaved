@@ -1,10 +1,10 @@
 import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
-import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
 import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
+import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
 
-export class CreateUserResponseModel {
+export class GetFullUserResponseModel {
     public readonly uuid: string;
     public readonly username: string;
     public readonly shortUuid: string;
@@ -22,10 +22,10 @@ export class CreateUserResponseModel {
     public readonly onlineAt: Date | null;
     public readonly subRevokedAt: Date | null;
     public readonly lastTrafficResetAt: Date | null;
-    public readonly activeUserInbounds: InboundsEntity[];
     public readonly trojanPassword: string;
     public readonly vlessUuid: string;
     public readonly ssPassword: string;
+    public readonly activeUserInbounds: InboundsEntity[];
     public readonly description: null | string;
 
     public readonly telegramId: number | null;
@@ -35,7 +35,7 @@ export class CreateUserResponseModel {
 
     public readonly lastConnectedNode: ILastConnectedNode | null;
 
-    constructor(entity: UserWithActiveInboundsEntity, subPublicDomain: string) {
+    constructor(entity: UserWithActiveInboundsAndLastConnectedNodeEntity, subPublicDomain: string) {
         this.uuid = entity.uuid;
         this.username = entity.username;
         this.shortUuid = entity.shortUuid;
@@ -63,6 +63,6 @@ export class CreateUserResponseModel {
         this.email = entity.email;
 
         this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
-        this.lastConnectedNode = null;
+        this.lastConnectedNode = entity.lastConnectedNode;
     }
 }

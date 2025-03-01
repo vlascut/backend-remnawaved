@@ -16,4 +16,6 @@ export const USERS_ROUTES = {
     BULK: {
         DELETE_BY_STATUS: 'bulk/delete-by-status',
     },
+    GET_BY_TELEGRAM_ID: 'tg',
+    GET_BY_EMAIL: 'email',
 } as const;

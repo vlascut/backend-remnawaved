@@ -306,4 +306,14 @@ export const ERRORS = {
             httpCode: 500,
         }),
     },
+    USERS_NOT_FOUND: {
+        code: 'A062',
+        message: 'Users not found',
+        httpCode: 404,
+    },
+    GET_USER_BY_UNIQUE_FIELDS_NOT_FOUND: {
+        code: 'A063',
+        message: 'User with specified params not found',
+        httpCode: 404,
+    },
 } as const;

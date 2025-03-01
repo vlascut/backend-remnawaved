@@ -34,6 +34,9 @@ const entityToModel = (entity: UserEntity): UserEntity => {
 
         description: entity.description,
 
+        telegramId: entity.telegramId,
+        email: entity.email,
+
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };

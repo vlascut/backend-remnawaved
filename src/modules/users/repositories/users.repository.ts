@@ -15,12 +15,14 @@ import {
     IUserOnlineStats,
     IUserStats,
     USER_INCLUDE_INBOUNDS,
+    USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
     USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
 } from '../interfaces';
 import { UserEntity } from '../entities/users.entity';
 import { UserConverter } from '../users.converter';
 import { BatchResetUsersUsageBuilder } from '../builders/batch-reset-users-usage/batch-reset-users-usage.builder';
 import { BulkDeleteByStatusBuilder } from '../builders/bulk-delete-by-status/bulk-delete-by-status.builder';
+import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
 
 dayjs.extend(utc);
 
@@ -389,6 +391,33 @@ export class UsersRepository implements ICrud<UserEntity> {
             where: dto,
         });
         return this.userConverter.fromPrismaModelsToEntities(bannerList);
+    }
+
+    public async findUniqueByCriteria(
+        dto: Partial<Pick<UserEntity, 'uuid' | 'subscriptionUuid' | 'shortUuid' | 'username'>>,
+    ): Promise<UserWithActiveInboundsAndLastConnectedNodeEntity | null> {
+        const user = await this.prisma.tx.users.findFirst({
+            where: dto,
+            include: USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
+        });
+
+        console.log(user);
+
+        if (!user) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsAndLastConnectedNodeEntity(user);
+    }
+
+    public async findByCriteriaWithInboundsAndLastConnectedNode(
+        dto: Partial<UserEntity>,
+    ): Promise<UserWithActiveInboundsAndLastConnectedNodeEntity[]> {
+        const bannerList = await this.prisma.tx.users.findMany({
+            where: dto,
+            include: USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
+        });
+        return bannerList.map((user) => new UserWithActiveInboundsAndLastConnectedNodeEntity(user));
     }
 
     public async findFirstByCriteria(dto: Partial<UserEntity>): Promise<null | UserEntity> {

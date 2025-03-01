@@ -29,6 +29,9 @@ export class UserWithLifetimeTrafficEntity {
 
     public description: null | string;
 
+    public telegramId: bigint | null;
+    public email: string | null;
+
     public createdAt: Date;
     public updatedAt: Date;
 

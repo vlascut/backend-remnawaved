@@ -37,6 +37,9 @@ model Users {
 
   description String? @map("description")
 
+  telegramId BigInt? @map("telegram_id")
+  email      String? @map("email")
+
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 

@@ -35,6 +35,9 @@ export class UserWithLifetimeTrafficResponseModel {
     public lastConnectedNode: null | ILastConnectedNode;
     public description: null | string;
 
+    public telegramId: number | null;
+    public email: string | null;
+
     constructor(data: UserWithLifetimeTrafficEntity, subPublicDomain: string) {
         this.uuid = data.uuid;
         this.createdAt = data.createdAt;
@@ -62,6 +65,9 @@ export class UserWithLifetimeTrafficResponseModel {
         this.lastConnectedNode = data.lastConnectedNode;
 
         this.description = data.description;
+
+        this.telegramId = data.telegramId ? Number(data.telegramId) : null;
+        this.email = data.email;
 
         this.subscriptionUrl = `https://${subPublicDomain}/${this.shortUuid}`;
 

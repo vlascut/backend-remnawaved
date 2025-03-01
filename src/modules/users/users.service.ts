@@ -22,7 +22,11 @@ import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
 import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node';
 import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node';
-import { UserWithLifetimeTrafficEntity, UserWithActiveInboundsEntity } from './entities';
+import {
+    UserWithLifetimeTrafficEntity,
+    UserWithActiveInboundsEntity,
+    UserWithActiveInboundsAndLastConnectedNodeEntity,
+} from './entities';
 import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
 import { BulkDeleteByStatusResponseModel, DeleteUserResponseModel } from './models';
 import {
@@ -34,7 +38,12 @@ import { UsersRepository } from './repositories/users.repository';
 import { UserEntity } from './entities/users.entity';
 import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
-import { IGetUserWithLastConnectedNode } from './interfaces/get-user-with-last-connected-node.interface';
+
+import {
+    IGetUserByUnique,
+    IGetUsersByTelegramIdOrEmail,
+    IGetUserWithLastConnectedNode,
+} from './interfaces';
 
 dayjs.extend(utc);
 
@@ -123,6 +132,8 @@ export class UsersService {
                 status,
                 activeUserInbounds,
                 description,
+                telegramId,
+                email,
             } = dto;
 
             const user = await this.userRepository.getUserByUUID(uuid);
@@ -166,6 +177,8 @@ export class UsersService {
                 trafficLimitStrategy: trafficLimitStrategy || undefined,
                 status: newStatus || undefined,
                 description: description || undefined,
+                telegramId: telegramId ? BigInt(telegramId) : undefined,
+                email: email || undefined,
             });
 
             let inboundsChanged = false;
@@ -268,6 +281,8 @@ export class UsersService {
                 lastTrafficResetAt,
                 description,
                 activateAllInbounds,
+                telegramId,
+                email,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -281,6 +296,8 @@ export class UsersService {
                 trafficLimitBytes:
                     trafficLimitBytes !== undefined ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy,
+                email: email || null,
+                telegramId: telegramId ? BigInt(telegramId) : null,
                 expireAt: new Date(expireAt),
                 createdAt: createdAt ? new Date(createdAt) : undefined,
                 lastTrafficResetAt: lastTrafficResetAt ? new Date(lastTrafficResetAt) : undefined,
@@ -394,27 +411,27 @@ export class UsersService {
         }
     }
 
-    public async getUserByShortUuid(
-        shortUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    public async getUserByUniqueFields(
+        dto: IGetUserByUnique,
+    ): Promise<ICommandResponse<UserWithActiveInboundsAndLastConnectedNodeEntity>> {
         try {
-            const result = await this.userRepository.getUserByShortUuid(shortUuid);
+            const result = await this.userRepository.findUniqueByCriteria({
+                username: dto.username || undefined,
+                subscriptionUuid: dto.subscriptionUuid || undefined,
+                shortUuid: dto.shortUuid || undefined,
+                uuid: dto.uuid || undefined,
+            });
 
             if (!result) {
                 return {
                     isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
+                    ...ERRORS.GET_USER_BY_UNIQUE_FIELDS_NOT_FOUND,
                 };
             }
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
             return {
                 isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: result,
             };
         } catch (error) {
             this.logger.error(error);
@@ -425,89 +442,27 @@ export class UsersService {
         }
     }
 
-    public async getUserByUsername(
-        username: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    public async getUsersByTelegramIdOrEmail(
+        dto: IGetUsersByTelegramIdOrEmail,
+    ): Promise<ICommandResponse<UserWithActiveInboundsAndLastConnectedNodeEntity[]>> {
         try {
-            const result = await this.userRepository.findUserByUsername(username);
+            const result = await this.userRepository.findByCriteriaWithInboundsAndLastConnectedNode(
+                {
+                    email: dto.email || undefined,
+                    telegramId: dto.telegramId ? BigInt(dto.telegramId) : undefined,
+                },
+            );
 
-            if (!result) {
+            if (!result || result.length === 0) {
                 return {
                     isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
+                    ...ERRORS.USERS_NOT_FOUND,
                 };
             }
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
             return {
                 isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
-            };
-        } catch (error) {
-            this.logger.error(error);
-            return {
-                isOk: false,
-                ...ERRORS.GET_USER_BY_ERROR,
-            };
-        }
-    }
-
-    public async getUserByUuid(
-        uuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
-        try {
-            const result = await this.userRepository.getUserByUUID(uuid);
-
-            if (!result) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
-            }
-
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
-            return {
-                isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
-            };
-        } catch (error) {
-            this.logger.error(error);
-            return {
-                isOk: false,
-                ...ERRORS.GET_USER_BY_ERROR,
-            };
-        }
-    }
-
-    public async getUserBySubscriptionUuid(
-        subscriptionUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
-        try {
-            const result = await this.userRepository.getUserBySubscriptionUuid(subscriptionUuid);
-
-            if (!result) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
-            }
-
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
-            return {
-                isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: result,
             };
         } catch (error) {
             this.logger.error(error);
