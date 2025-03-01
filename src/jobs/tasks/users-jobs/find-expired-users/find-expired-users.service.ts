@@ -64,6 +64,8 @@ export class FindExpiredUsersService {
                     status: USERS_STATUS.EXPIRED,
                 });
 
+                user.status = USERS_STATUS.EXPIRED;
+
                 this.eventEmitter.emit(
                     EVENTS.USER.EXPIRED,
                     new UserEvent(user, EVENTS.USER.EXPIRED),
