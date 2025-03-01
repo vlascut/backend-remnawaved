@@ -23,6 +23,7 @@ import { UserConverter } from '../users.converter';
 import { BatchResetUsersUsageBuilder } from '../builders/batch-reset-users-usage/batch-reset-users-usage.builder';
 import { BulkDeleteByStatusBuilder } from '../builders/bulk-delete-by-status/bulk-delete-by-status.builder';
 import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
+import { UsersWithInboundTagBuilder } from '../builders/users-with-inbound-tag/users-with-inbound-tag.builder';
 
 dayjs.extend(utc);
 
@@ -181,41 +182,25 @@ export class UsersRepository implements ICrud<UserEntity> {
     }
 
     public async getUsersForConfig(): Promise<UserForConfigEntity[]> {
-        const result = await this.prisma.tx.users.findMany({
-            where: {
-                status: USERS_STATUS.ACTIVE,
-            },
-            select: {
-                subscriptionUuid: true,
-                username: true,
-                trojanPassword: true,
-                vlessUuid: true,
-                ssPassword: true,
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                tag: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+        try {
+            const { query } = new UsersWithInboundTagBuilder();
+            const result = await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
 
-        return result.flatMap((user) =>
-            user.activeUserInbounds.map(
-                (activeInbound) =>
-                    new UserForConfigEntity({
-                        subscriptionUuid: user.subscriptionUuid,
-                        username: user.username,
-                        trojanPassword: user.trojanPassword,
-                        vlessUuid: user.vlessUuid,
-                        ssPassword: user.ssPassword,
-                        tag: activeInbound.inbound.tag,
-                    }),
-            ),
-        );
+            console.log(result);
+
+            console.log(
+                'Memory:',
+                Object.entries(process.memoryUsage()).reduce(
+                    (acc, [key, val]) => ({ ...acc, [key]: `${Math.round(val / 1024 / 1024)}MB` }),
+                    {},
+                ),
+            );
+
+            return result;
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
     }
 
     public async getAllUsersWithActiveInbounds(): Promise<UserWithActiveInboundsEntity[]> {

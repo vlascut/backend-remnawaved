@@ -9,7 +9,7 @@ import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { getDocs, isDevelopment } from '@common/utils/startup-app';
+import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
 import { getRealIp } from '@common/middlewares/get-real-ip';
 import { METRICS_ROOT, ROOT } from '@contract/api';
 import { AxiosService } from '@common/axios';
@@ -41,7 +41,7 @@ const logger = createLogger({
         nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
-            processId: false,
+            processId: true,
             appName: true,
         }),
     ),
@@ -79,17 +79,19 @@ async function bootstrap(): Promise<void> {
 
     app.use(getRealIp);
 
-    app.use(
-        morgan(
-            ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-            {
-                skip: (req) => req.url === ROOT + METRICS_ROOT,
-                stream: {
-                    write: (message) => logger.http(message.trim()),
+    if (isProduction()) {
+        app.use(
+            morgan(
+                ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+                {
+                    skip: (req) => req.url === ROOT + METRICS_ROOT,
+                    stream: {
+                        write: (message) => logger.http(message.trim()),
+                    },
                 },
-            },
-        ),
-    );
+            ),
+        );
+    }
 
     app.setGlobalPrefix(ROOT);
 

@@ -50,5 +50,22 @@ module.exports = {
         //         NODE_ENV: 'production',
         //     },
         // },
+
+        // {
+        //     name: 'debug-dev',
+        //     script: 'npm run start:dev',
+        //     watch: false,
+        //     instances: 1,
+        //     exec_mode: 'fork',
+        //     merge_logs: true,
+        //     ignore_watch: ['node_modules', 'dist', 'logs'],
+        //     instance_var: 'INSTANCE_ID',
+        //     env_development: {
+        //         NODE_ENV: 'development',
+        //     },
+        //     env_production: {
+        //         NODE_ENV: 'production',
+        //     },
+        // },
     ],
 };

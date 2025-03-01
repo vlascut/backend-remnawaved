@@ -16,8 +16,10 @@ export class GetUsersForConfigHandler
     constructor(private readonly usersRepository: UsersRepository) {}
 
     async execute(): Promise<ICommandResponse<UserForConfigEntity[]>> {
+        let users: UserForConfigEntity[] | null = null;
+
         try {
-            const users = await this.usersRepository.getUsersForConfig();
+            users = await this.usersRepository.getUsersForConfig();
 
             return {
                 isOk: true,
@@ -29,6 +31,8 @@ export class GetUsersForConfigHandler
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,
             };
+        } finally {
+            users = null;
         }
     }
 }
