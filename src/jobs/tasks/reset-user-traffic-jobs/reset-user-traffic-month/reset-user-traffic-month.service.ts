@@ -83,6 +83,8 @@ export class ResetUserTrafficCalendarMonthService {
                 let status = undefined;
 
                 status = USERS_STATUS.ACTIVE;
+                user.status = status;
+
                 this.eventEmitter.emit(
                     EVENTS.USER.ENABLED,
                     new UserEvent(user, EVENTS.USER.ENABLED),

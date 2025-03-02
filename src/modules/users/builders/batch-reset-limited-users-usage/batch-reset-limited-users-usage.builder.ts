@@ -2,7 +2,7 @@ import { TResetPeriods } from '@libs/contracts/constants';
 import { USERS_STATUS } from '@libs/contracts/constants';
 import { Prisma } from '@prisma/client';
 
-export class BatchResetUsersUsageBuilder {
+export class BatchResetLimitedUsersUsageBuilder {
     public query: Prisma.Sql;
 
     constructor(strategy: TResetPeriods) {
@@ -16,7 +16,7 @@ export class BatchResetUsersUsageBuilder {
             SELECT uuid, used_traffic_bytes 
                 FROM users 
                 WHERE traffic_limit_strategy = '${strategy.toUpperCase()}'
-                AND status != '${USERS_STATUS.LIMITED.toUpperCase()}'
+                AND status === '${USERS_STATUS.LIMITED.toUpperCase()}'
             ),
             insert_history AS (
                 INSERT INTO user_traffic_history (user_uuid, used_bytes)
@@ -27,6 +27,7 @@ export class BatchResetUsersUsageBuilder {
         SET used_traffic_bytes = 0,
             last_traffic_reset_at = NOW()
         WHERE uuid IN (SELECT uuid FROM users_to_reset);
+        RETURNING uuid;
     `;
         return Prisma.raw(query);
     }

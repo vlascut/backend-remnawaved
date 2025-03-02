@@ -24,6 +24,7 @@ import { BatchResetUsersUsageBuilder } from '../builders/batch-reset-users-usage
 import { BulkDeleteByStatusBuilder } from '../builders/bulk-delete-by-status/bulk-delete-by-status.builder';
 import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
 import { UsersWithInboundTagBuilder } from '../builders/users-with-inbound-tag/users-with-inbound-tag.builder';
+import { BatchResetLimitedUsersUsageBuilder } from '../builders/batch-reset-limited-users-usage/batch-reset-limited-users-usage.builder';
 
 dayjs.extend(utc);
 
@@ -540,6 +541,13 @@ export class UsersRepository implements ICrud<UserEntity> {
         await this.prisma.tx.$executeRaw<void>(query);
 
         return;
+    }
+
+    public async resetLimitedUsersTraffic(strategy: TResetPeriods): Promise<{ uuid: string }[]> {
+        const { query } = new BatchResetLimitedUsersUsageBuilder(strategy);
+        const result = await this.prisma.tx.$queryRaw<{ uuid: string }[]>(query);
+
+        return result;
     }
 
     public async deleteManyByStatus(status: TUsersStatus): Promise<number> {

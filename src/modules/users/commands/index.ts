@@ -5,6 +5,7 @@ import { ChangeUserStatusHandler } from './change-user-status';
 import { BatchResetUserTrafficHandler } from './batch-reset-user-traffic';
 import { UpdateExpiredUsersHandler } from './update-expired-users';
 import { UpdateExceededTrafficUsersHandler } from './update-exceeded-users';
+import { BatchResetLimitedUsersTrafficHandler } from './batch-reset-limited-users-traffic';
 
 export const COMMANDS = [
     IncrementUsedTrafficHandler,
@@ -14,4 +15,5 @@ export const COMMANDS = [
     BatchResetUserTrafficHandler,
     UpdateExpiredUsersHandler,
     UpdateExceededTrafficUsersHandler,
+    BatchResetLimitedUsersTrafficHandler,
 ];
