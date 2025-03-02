@@ -12,18 +12,6 @@ export const configSchema = z
             .string()
             .default('3001')
             .transform((port) => parseInt(port, 10)),
-        SUPERADMIN_USERNAME: z
-            .string()
-            .refine(
-                (val) => val !== 'change_me',
-                'SUPERADMIN_USERNAME cannot be set to "change_me"',
-            ),
-        SUPERADMIN_PASSWORD: z
-            .string()
-            .refine(
-                (val) => val !== 'change_me',
-                'SUPERADMIN_PASSWORD cannot be set to "change_me"',
-            ),
         JWT_AUTH_SECRET: z
             .string()
             .refine((val) => val !== 'change_me', 'JWT_AUTH_SECRET cannot be set to "change_me"'),

@@ -321,4 +321,16 @@ export const ERRORS = {
         message: 'Update exceeded traffic users error',
         httpCode: 500,
     },
+    ADMIN_NOT_FOUND: {
+        code: 'A065',
+        message: 'Admin not found',
+        httpCode: 404,
+    },
+    CREATE_ADMIN_ERROR: {
+        code: 'A066',
+        message: 'Create admin error',
+        httpCode: 500,
+    },
+    GET_AUTH_STATUS_ERROR: { code: 'A067', message: 'Get auth status error', httpCode: 500 },
+    FORBIDDEN: { code: 'A068', message: 'Forbidden', httpCode: 403 },
 } as const;

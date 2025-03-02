@@ -5,3 +5,4 @@ export const ROLE = {
 
 export type TRole = typeof ROLE;
 export type TRolesKeys = (typeof ROLE)[keyof typeof ROLE];
+export type TRoleTypes = [keyof typeof ROLE][number];

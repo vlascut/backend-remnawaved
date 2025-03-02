@@ -14,9 +14,11 @@ import { NodesModule } from './nodes/nodes.module';
 import { UsersModule } from './users/users.module';
 import { XrayConfigModule } from './xray-config';
 import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
     imports: [
+        AdminModule,
         AuthModule,
         UsersModule,
         SubscriptionModule,

@@ -62,6 +62,18 @@ model ApiTokens {
   @@map("api_tokens")
 }
 
+model Admin {
+  uuid         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username     String @unique @map("username")
+  passwordHash String @map("password_hash")
+  role         String @map("role")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@map("admin")
+}
+
 model Keygen {
   uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   privKey String @map("priv_key")
