@@ -7,6 +7,7 @@ import { GetAllUsersHandler } from './get-all-users';
 import { GetExceededTrafficUsageUsersHandler } from './get-exceeded-traffic-usage-users';
 import { GetExpiredUsersHandler } from './get-expired-users';
 import { GetUsersByTrafficStrategyAndStatusHandler } from './get-users-by-traffic-strategy-and-status';
+import { GetUserByUuidHandler } from './get-user-by-uuid';
 
 export const QUERIES = [
     GetUsersForConfigHandler,
@@ -18,4 +19,5 @@ export const QUERIES = [
     GetExceededTrafficUsageUsersHandler,
     GetExpiredUsersHandler,
     GetUsersByTrafficStrategyAndStatusHandler,
+    GetUserByUuidHandler,
 ];

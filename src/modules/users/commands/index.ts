@@ -3,6 +3,7 @@ import { UpdateSubLastOpenedAndUserAgentHandler } from './update-sub-last-opened
 import { IncrementUsedTrafficHandler } from './increment-used-traffic';
 import { ChangeUserStatusHandler } from './change-user-status';
 import { BatchResetUserTrafficHandler } from './batch-reset-user-traffic';
+import { UpdateExpiredUsersHandler } from './update-expired-users';
 
 export const COMMANDS = [
     IncrementUsedTrafficHandler,
@@ -10,4 +11,5 @@ export const COMMANDS = [
     UpdateStatusAndTrafficAndResetAtHandler,
     UpdateSubLastOpenedAndUserAgentHandler,
     BatchResetUserTrafficHandler,
+    UpdateExpiredUsersHandler,
 ];

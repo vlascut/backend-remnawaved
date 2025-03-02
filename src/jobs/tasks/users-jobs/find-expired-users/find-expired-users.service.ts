@@ -6,12 +6,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { EVENTS, USERS_STATUS } from '@libs/contracts/constants';
+import { EVENTS } from '@libs/contracts/constants';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { ChangeUserStatusCommand } from '@modules/users/commands/change-user-status/change-user-status.command';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { JOBS_INTERVALS } from 'src/jobs/intervals';
-import { GetExpiredUsersQuery } from '@modules/users/queries/get-expired-users';
+import { UpdateExpiredUsersCommand } from '@modules/users/commands/update-expired-users';
+import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
+import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
 
 @Injectable()
 export class FindExpiredUsersService {
@@ -50,21 +51,39 @@ export class FindExpiredUsersService {
             const ct = getTime();
             this.isJobRunning = true;
 
-            const usersResponse = await this.getAllExpiredUsers();
+            const usersResponse = await this.updateExpiredUsers();
             if (!usersResponse.isOk || !usersResponse.response) {
                 this.logger.error('No expired users found');
                 return;
             }
 
+            const updatedUsers = usersResponse.response;
+
+            if (updatedUsers.length === 0) {
+                this.logger.debug('No expired users found');
+                return;
+            }
+
             const users = usersResponse.response;
 
-            for (const user of users) {
-                await this.changeUserStatus({
-                    userUuid: user.uuid,
-                    status: USERS_STATUS.EXPIRED,
-                });
+            if (users.length >= 10_000) {
+                this.logger.log(
+                    'More than 10,000 expired users found, skipping webhook/telegram events.',
+                );
 
-                user.status = USERS_STATUS.EXPIRED;
+                this.eventBus.publish(new StartAllNodesEvent());
+
+                return;
+            }
+
+            for (const userUuid of users) {
+                const userResponse = await this.getUserByUuid(userUuid.uuid);
+                if (!userResponse.isOk || !userResponse.response) {
+                    this.logger.debug('User not found');
+                    continue;
+                }
+
+                const user = userResponse.response;
 
                 this.eventEmitter.emit(
                     EVENTS.USER.EXPIRED,
@@ -82,16 +101,19 @@ export class FindExpiredUsersService {
         }
     }
 
-    private async getAllExpiredUsers(): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
+    private async getUserByUuid(
+        uuid: string,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
         return this.queryBus.execute<
-            GetExpiredUsersQuery,
-            ICommandResponse<UserWithActiveInboundsEntity[]>
-        >(new GetExpiredUsersQuery());
+            GetUserByUuidQuery,
+            ICommandResponse<UserWithActiveInboundsEntity>
+        >(new GetUserByUuidQuery(uuid));
     }
 
-    private async changeUserStatus(dto: ChangeUserStatusCommand): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<ChangeUserStatusCommand, ICommandResponse<void>>(
-            new ChangeUserStatusCommand(dto.userUuid, dto.status),
-        );
+    private async updateExpiredUsers(): Promise<ICommandResponse<{ uuid: string }[]>> {
+        return this.commandBus.execute<
+            UpdateExpiredUsersCommand,
+            ICommandResponse<{ uuid: string }[]>
+        >(new UpdateExpiredUsersCommand());
     }
 }

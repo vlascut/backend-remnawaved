@@ -98,6 +98,19 @@ export class UsersRepository implements ICrud<UserEntity> {
         return new UserWithActiveInboundsEntity(result);
     }
 
+    public async findUserByUuid(uuid: string): Promise<null | UserWithActiveInboundsEntity> {
+        const result = await this.prisma.tx.users.findUnique({
+            where: { uuid },
+            include: USER_INCLUDE_INBOUNDS,
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsEntity(result);
+    }
+
     public async getUserWithActiveInbounds(
         uuid: string,
     ): Promise<null | UserWithActiveInboundsEntity> {
@@ -164,6 +177,31 @@ export class UsersRepository implements ICrud<UserEntity> {
             include: USER_INCLUDE_INBOUNDS,
         });
         return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
+    public async updateExpiredUsers(): Promise<{ uuid: string }[]> {
+        const result = await this.prisma.tx.users.updateManyAndReturn({
+            select: {
+                uuid: true,
+            },
+            where: {
+                AND: [
+                    {
+                        status: USERS_STATUS.ACTIVE,
+                    },
+                    {
+                        expireAt: {
+                            lt: new Date(),
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: USERS_STATUS.EXPIRED,
+            },
+        });
+
+        return result;
     }
 
     public async getAllUsersByTrafficStrategyAndStatus(
