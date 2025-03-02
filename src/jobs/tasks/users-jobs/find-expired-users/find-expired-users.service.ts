@@ -76,6 +76,10 @@ export class FindExpiredUsersService {
                 return;
             }
 
+            this.logger.log(
+                `Job ${FindExpiredUsersService.CRON_NAME} Found ${users.length} expired users.`,
+            );
+
             for (const userUuid of users) {
                 const userResponse = await this.getUserByUuid(userUuid.uuid);
                 if (!userResponse.isOk || !userResponse.response) {

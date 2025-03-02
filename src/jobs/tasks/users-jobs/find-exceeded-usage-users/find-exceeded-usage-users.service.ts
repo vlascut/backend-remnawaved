@@ -11,7 +11,9 @@ import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-
 import { ChangeUserStatusCommand } from '@modules/users/commands/change-user-status';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { JOBS_INTERVALS } from 'src/jobs/intervals';
-import { GetExceededTrafficUsageUsersQuery } from '@modules/users/queries/get-exceeded-traffic-usage-users';
+import { UpdateExceededTrafficUsersCommand } from '@modules/users/commands/update-exceeded-users';
+import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
+import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
 
 @Injectable()
 export class FindExceededUsageUsersService {
@@ -50,15 +52,44 @@ export class FindExceededUsageUsersService {
             const ct = getTime();
             this.isJobRunning = true;
 
-            const usersResponse = await this.getAllExceededTrafficUsageUsers();
+            const usersResponse = await this.updateExceededTrafficUsers();
             if (!usersResponse.isOk || !usersResponse.response) {
                 this.logger.error('No exceeded traffic usage users found');
                 return;
             }
 
+            const updatedUsers = usersResponse.response;
+
+            if (updatedUsers.length === 0) {
+                this.logger.debug('No exceeded traffic usage users found');
+                return;
+            }
+
             const users = usersResponse.response;
 
-            for (const user of users) {
+            if (users.length >= 10_000) {
+                this.logger.log(
+                    'More than 10,000 exceeded traffic usage users found, skipping webhook/telegram events.',
+                );
+
+                this.eventBus.publish(new StartAllNodesEvent());
+
+                return;
+            }
+
+            this.logger.log(
+                `Job ${FindExceededUsageUsersService.CRON_NAME} Found ${users.length} exceeded traffic usage users.`,
+            );
+
+            for (const userUuid of users) {
+                const userResponse = await this.getUserByUuid(userUuid.uuid);
+                if (!userResponse.isOk || !userResponse.response) {
+                    this.logger.debug('User not found');
+                    continue;
+                }
+
+                const user = userResponse.response;
+
                 await this.changeUserStatus({
                     userUuid: user.uuid,
                     status: USERS_STATUS.LIMITED,
@@ -81,18 +112,25 @@ export class FindExceededUsageUsersService {
         }
     }
 
-    private async getAllExceededTrafficUsageUsers(): Promise<
-        ICommandResponse<UserWithActiveInboundsEntity[]>
-    > {
-        return this.queryBus.execute<
-            GetExceededTrafficUsageUsersQuery,
-            ICommandResponse<UserWithActiveInboundsEntity[]>
-        >(new GetExceededTrafficUsageUsersQuery());
-    }
-
     private async changeUserStatus(dto: ChangeUserStatusCommand): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<ChangeUserStatusCommand, ICommandResponse<void>>(
             new ChangeUserStatusCommand(dto.userUuid, dto.status),
         );
+    }
+
+    private async getUserByUuid(
+        uuid: string,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+        return this.queryBus.execute<
+            GetUserByUuidQuery,
+            ICommandResponse<UserWithActiveInboundsEntity>
+        >(new GetUserByUuidQuery(uuid));
+    }
+
+    private async updateExceededTrafficUsers(): Promise<ICommandResponse<{ uuid: string }[]>> {
+        return this.commandBus.execute<
+            UpdateExceededTrafficUsersCommand,
+            ICommandResponse<{ uuid: string }[]>
+        >(new UpdateExceededTrafficUsersCommand());
     }
 }

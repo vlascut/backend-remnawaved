@@ -160,6 +160,36 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
+    public async updateExceededTrafficUsers(): Promise<{ uuid: string }[]> {
+        const result = await this.prisma.tx.users.updateManyAndReturn({
+            select: {
+                uuid: true,
+            },
+            where: {
+                AND: [
+                    {
+                        status: USERS_STATUS.ACTIVE,
+                    },
+                    {
+                        trafficLimitBytes: {
+                            not: 0,
+                        },
+                    },
+                    {
+                        usedTrafficBytes: {
+                            gte: this.prisma.tx.users.fields.trafficLimitBytes,
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: USERS_STATUS.EXPIRED,
+            },
+        });
+
+        return result;
+    }
+
     public async findExpiredUsers(): Promise<UserWithActiveInboundsEntity[]> {
         const result = await this.prisma.tx.users.findMany({
             where: {

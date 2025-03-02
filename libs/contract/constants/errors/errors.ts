@@ -316,4 +316,9 @@ export const ERRORS = {
         message: 'User with specified params not found',
         httpCode: 404,
     },
+    UPDATE_EXCEEDED_TRAFFIC_USERS_ERROR: {
+        code: 'A064',
+        message: 'Update exceeded traffic users error',
+        httpCode: 500,
+    },
 } as const;
