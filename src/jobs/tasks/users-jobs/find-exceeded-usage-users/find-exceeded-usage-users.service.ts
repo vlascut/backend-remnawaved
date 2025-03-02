@@ -78,7 +78,7 @@ export class FindExceededUsageUsersService {
             }
 
             this.logger.log(
-                `Job ${FindExceededUsageUsersService.CRON_NAME} Found ${users.length} exceeded traffic usage users.`,
+                `Job ${FindExceededUsageUsersService.CRON_NAME} has found ${users.length} exceeded traffic usage users.`,
             );
 
             for (const userUuid of users) {
@@ -90,10 +90,6 @@ export class FindExceededUsageUsersService {
 
                 const user = userResponse.response;
 
-                await this.changeUserStatus({
-                    userUuid: user.uuid,
-                    status: USERS_STATUS.LIMITED,
-                });
                 this.eventEmitter.emit(
                     EVENTS.USER.LIMITED,
                     new UserEvent(user, EVENTS.USER.LIMITED),
@@ -110,12 +106,6 @@ export class FindExceededUsageUsersService {
         } finally {
             this.isJobRunning = false;
         }
-    }
-
-    private async changeUserStatus(dto: ChangeUserStatusCommand): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<ChangeUserStatusCommand, ICommandResponse<void>>(
-            new ChangeUserStatusCommand(dto.userUuid, dto.status),
-        );
     }
 
     private async getUserByUuid(

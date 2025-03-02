@@ -183,7 +183,7 @@ export class UsersRepository implements ICrud<UserEntity> {
                 ],
             },
             data: {
-                status: USERS_STATUS.EXPIRED,
+                status: USERS_STATUS.LIMITED,
             },
         });
 
