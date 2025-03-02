@@ -30,9 +30,6 @@ import { PrismaModule } from '@common/database';
                     imports: [PrismaModule],
                     adapter: new TransactionalAdapterPrisma({
                         prismaInjectionToken: PrismaService,
-                        defaultTxOptions: {
-                            timeout: 60_000,
-                        },
                     }),
                 }),
             ],

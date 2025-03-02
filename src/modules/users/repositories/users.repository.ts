@@ -25,6 +25,7 @@ import { BulkDeleteByStatusBuilder } from '../builders/bulk-delete-by-status/bul
 import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
 import { UsersWithInboundTagBuilder } from '../builders/users-with-inbound-tag/users-with-inbound-tag.builder';
 import { BatchResetLimitedUsersUsageBuilder } from '../builders/batch-reset-limited-users-usage/batch-reset-limited-users-usage.builder';
+import { BulkUpdateUserUsedTrafficBuilder } from '../builders/bulk-update-user-used-traffic/bulk-update-user-used-traffic.builder';
 
 dayjs.extend(utc);
 
@@ -53,6 +54,20 @@ export class UsersRepository implements ICrud<UserEntity> {
                 lifetimeUsedTrafficBytes: { increment: bytes },
             },
         });
+    }
+
+    public async bulkIncrementUsedTraffic(
+        userUsageList: { userUuid: string; bytes: bigint }[],
+    ): Promise<number> {
+        const chunkSize = 5_000;
+        let affectedRows = 0;
+        for (let i = 0; i < userUsageList.length; i += chunkSize) {
+            const chunk = userUsageList.slice(i, i + chunkSize);
+            const { query } = new BulkUpdateUserUsedTrafficBuilder(chunk);
+            const result = await this.prisma.tx.$executeRaw<void>(query);
+            affectedRows += result;
+        }
+        return affectedRows;
     }
 
     public async changeUserStatus(userUuid: string, status: TUsersStatus): Promise<void> {

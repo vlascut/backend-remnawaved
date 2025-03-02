@@ -6,9 +6,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import pMap from '@cjs-exporter/p-map';
 import { Gauge } from 'prom-client';
 
-import { IncrementUsedTrafficCommand } from '@modules/users/commands/increment-used-traffic';
 import { NodesUserUsageHistoryEntity } from '@modules/nodes-user-usage-history/entities';
-import { UpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/upsert-user-history-entry';
 import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
 import { GetOnlineNodesQuery } from '@modules/nodes/queries/get-online-nodes';
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
@@ -22,6 +20,8 @@ import { JOBS_INTERVALS } from '../../intervals';
 import { METRIC_NAMES } from '@libs/contracts/constants';
 import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 import { fromNanoToNumber } from '@common/utils/nano';
+import { BulkUpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/bulk-upsert-user-history-entry';
+import { BulkIncrementUsedTrafficCommand } from '@modules/users/commands/bulk-increment-used-traffic';
 
 @Injectable()
 export class RecordUserUsageService {
@@ -102,54 +102,60 @@ export class RecordUserUsageService {
 
     private async handleOk(node: NodesEntity, response: GetUsersStatsCommand.Response) {
         let usersOnline = 0;
-        let users: GetUsersStatsCommand.Response['response']['users'] | null = null;
-
-        users = response.response.users;
-
-        for (const xrayUser of users) {
-            if (
-                xrayUser.username.startsWith('https://') ||
-                xrayUser.username.startsWith('http://')
-            ) {
+        let users = response.response.users.filter((user) => {
+            if (user.username.startsWith('http')) {
                 this.logger.debug(`Skipping user with https:// or http:// in username`);
-                continue;
+                return false;
             }
-
-            const totalDownlink = xrayUser.downlink;
-            const totalUplink = xrayUser.uplink;
-
-            if (totalDownlink === 0 && totalUplink === 0) {
-                continue;
+            if (user.downlink === 0 && user.uplink === 0) {
+                return false;
             }
-
             usersOnline++;
+            return true;
+        });
 
-            const userResponse = await this.getUserByUsername(xrayUser.username);
-            if (!userResponse.isOk || !userResponse.response) {
-                this.logger.error(
-                    `Username ${xrayUser.username} from XTLS-Core not found in database, node: ${node.name}`,
-                );
-                continue;
-            }
+        let allUsageRecords: NodesUserUsageHistoryEntity[] = [];
+        let userUsageList: { userUuid: string; bytes: bigint }[] = [];
 
-            const user = userResponse.response;
+        if (users.length > 0) {
+            await pMap(
+                users,
+                async (xrayUser) => {
+                    const userResponse = await this.getUserByUsername(xrayUser.username);
+                    if (!userResponse.isOk || !userResponse.response) {
+                        this.logger.error(
+                            `Username ${xrayUser.username} from XTLS-Core not found in database, node: ${node.name}`,
+                        );
+                        return;
+                    }
 
-            const totalBytes = totalDownlink + totalUplink;
+                    const user = userResponse.response;
+                    const totalBytes = xrayUser.downlink + xrayUser.uplink;
 
-            await this.reportUserUsageHistory({
-                userUsageHistory: new NodesUserUsageHistoryEntity({
-                    nodeUuid: node.uuid,
-                    userUuid: user.uuid,
-                    totalBytes: BigInt(totalBytes),
-                    uploadBytes: BigInt(totalUplink),
-                    downloadBytes: BigInt(totalDownlink),
-                    createdAt: new Date(),
-                }),
+                    allUsageRecords.push(
+                        new NodesUserUsageHistoryEntity({
+                            nodeUuid: node.uuid,
+                            userUuid: user.uuid,
+                            totalBytes: BigInt(totalBytes),
+                            uploadBytes: BigInt(xrayUser.uplink),
+                            downloadBytes: BigInt(xrayUser.downlink),
+                        }),
+                    );
+
+                    userUsageList.push({
+                        userUuid: user.uuid,
+                        bytes: this.multiplyConsumption(node, totalBytes),
+                    });
+                },
+                { concurrency: 40 },
+            );
+
+            await this.reportBulkUserUsageHistory({
+                userUsageHistoryList: allUsageRecords,
             });
 
-            await this.incrementUsedTraffic({
-                userUuid: user.uuid,
-                bytes: this.multiplyConsumption(node, totalBytes),
+            await this.bulkIncrementUsedTraffic({
+                userUsageList,
             });
         }
 
@@ -169,7 +175,9 @@ export class RecordUserUsageService {
             usersOnline,
         );
 
-        users = null;
+        allUsageRecords = [];
+        userUsageList = [];
+        users = [];
 
         return;
     }
@@ -189,19 +197,19 @@ export class RecordUserUsageService {
         >(new GetUserByUsernameQuery(username));
     }
 
-    private async reportUserUsageHistory(
-        dto: UpsertUserHistoryEntryCommand,
+    private async reportBulkUserUsageHistory(
+        dto: BulkUpsertUserHistoryEntryCommand,
     ): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<UpsertUserHistoryEntryCommand, ICommandResponse<void>>(
-            new UpsertUserHistoryEntryCommand(dto.userUsageHistory),
+        return this.commandBus.execute<BulkUpsertUserHistoryEntryCommand, ICommandResponse<void>>(
+            new BulkUpsertUserHistoryEntryCommand(dto.userUsageHistoryList),
         );
     }
 
-    private async incrementUsedTraffic(
-        dto: IncrementUsedTrafficCommand,
-    ): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<IncrementUsedTrafficCommand, ICommandResponse<void>>(
-            new IncrementUsedTrafficCommand(dto.userUuid, dto.bytes),
+    private async bulkIncrementUsedTraffic(
+        dto: BulkIncrementUsedTrafficCommand,
+    ): Promise<ICommandResponse<number>> {
+        return this.commandBus.execute<BulkIncrementUsedTrafficCommand, ICommandResponse<number>>(
+            new BulkIncrementUsedTrafficCommand(dto.userUsageList),
         );
     }
 

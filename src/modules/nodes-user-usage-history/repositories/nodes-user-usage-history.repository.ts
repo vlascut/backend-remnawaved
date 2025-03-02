@@ -7,6 +7,7 @@ import { ICrud } from '@common/types/crud-port';
 import { NodesUserUsageHistoryEntity } from '../entities/nodes-user-usage-history.entity';
 import { NodesUserUsageHistoryConverter } from '../nodes-user-usage-history.converter';
 import { ILastConnectedNode } from '../interfaces';
+import { BulkUpsertHistoryEntryBuilder } from '../builders/bulk-upsert-history-entry/bulk-upsert-history-entry.builder';
 
 @Injectable()
 export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHistoryEntity> {
@@ -109,5 +110,16 @@ export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHist
     public async deleteByUUID(uuid: string): Promise<boolean> {
         const result = await this.prisma.tx.nodesUserUsageHistory.delete({ where: { uuid } });
         return !!result;
+    }
+
+    public async bulkUpsertUsageHistory(
+        userUsageHistoryList: NodesUserUsageHistoryEntity[],
+    ): Promise<void> {
+        const chunkSize = 4000;
+        for (let i = 0; i < userUsageHistoryList.length; i += chunkSize) {
+            const chunk = userUsageHistoryList.slice(i, i + chunkSize);
+            const { query } = new BulkUpsertHistoryEntryBuilder(chunk);
+            await this.prisma.tx.$executeRaw<void>(query);
+        }
     }
 }
