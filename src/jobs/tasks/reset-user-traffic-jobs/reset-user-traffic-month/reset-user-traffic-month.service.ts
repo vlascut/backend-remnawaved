@@ -4,17 +4,16 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
-import { EVENTS, RESET_PERIODS, USERS_STATUS } from '@libs/contracts/constants';
+import { EVENTS, RESET_PERIODS } from '@libs/contracts/constants';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { JOBS_INTERVALS } from 'src/jobs/intervals';
 import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
-import { UserTrafficHistoryEntity } from '@modules/user-traffic-history/entities/user-traffic-history.entity';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { UpdateStatusAndTrafficAndResetAtCommand } from '@modules/users/commands/update-status-and-traffic-and-reset-at';
-import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
-import { GetUsersByTrafficStrategyAndStatusQuery } from '@modules/users/queries/get-users-by-traffic-strategy-and-status';
 import { BatchResetUserTrafficCommand } from '@modules/users/commands/batch-reset-user-traffic';
+import { BatchResetLimitedUsersTrafficCommand } from '@modules/users/commands/batch-reset-limited-users-traffic';
+import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
+import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
 
 @Injectable()
 export class ResetUserTrafficCalendarMonthService {
@@ -67,23 +66,46 @@ export class ResetUserTrafficCalendarMonthService {
                 );
             }
 
-            const usersResponse = await this.getAllUsers({
+            const updatedUsersUuids = await this.batchResetLimitedUsersTraffic({
                 strategy: RESET_PERIODS.MONTH,
-                status: USERS_STATUS.LIMITED,
             });
 
-            if (!usersResponse.isOk || !usersResponse.response) {
+            if (!updatedUsersUuids.isOk || !updatedUsersUuids.response) {
                 this.logger.debug('No users found');
                 return;
             }
 
-            const users = usersResponse.response;
+            const updatedUsers = updatedUsersUuids.response;
 
-            for (const user of users) {
-                let status = undefined;
+            if (updatedUsers.length === 0) {
+                this.logger.debug('No expired users found');
+                return;
+            }
 
-                status = USERS_STATUS.ACTIVE;
-                user.status = status;
+            const users = updatedUsersUuids.response;
+
+            if (users.length >= 10_000) {
+                this.logger.log(
+                    `Job ${ResetUserTrafficCalendarMonthService.CRON_NAME} has found more than 10,000 users, skipping webhook/telegram events. Restarting all nodes.`,
+                );
+
+                this.eventBus.publish(new StartAllNodesEvent());
+
+                return;
+            }
+
+            this.logger.log(
+                `Job ${ResetUserTrafficCalendarMonthService.CRON_NAME} has found ${users.length} users.`,
+            );
+
+            for (const userUuid of users) {
+                const userResponse = await this.getUserByUuid(userUuid.uuid);
+                if (!userResponse.isOk || !userResponse.response) {
+                    this.logger.debug('User not found');
+                    continue;
+                }
+
+                const user = userResponse.response;
 
                 this.eventEmitter.emit(
                     EVENTS.USER.ENABLED,
@@ -91,20 +113,6 @@ export class ResetUserTrafficCalendarMonthService {
                 );
 
                 this.eventBus.publish(new AddUserToNodeEvent(user));
-
-                await this.updateUserStatusAndTrafficAndResetAt({
-                    userUuid: user.uuid,
-                    lastResetAt: new Date(),
-                    status,
-                });
-
-                await this.createUserUsageHistory({
-                    userTrafficHistory: new UserTrafficHistoryEntity({
-                        userUuid: user.uuid,
-                        resetAt: new Date(),
-                        usedBytes: BigInt(user.usedTrafficBytes),
-                    }),
-                });
             }
 
             this.logger.debug(`Reseted Monthly Users Traffic. Time: ${formatExecutionTime(ct)}`);
@@ -114,24 +122,6 @@ export class ResetUserTrafficCalendarMonthService {
             users = null;
             this.isJobRunning = false;
         }
-    }
-
-    private async getAllUsers(
-        dto: GetUsersByTrafficStrategyAndStatusQuery,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
-        return this.queryBus.execute<
-            GetUsersByTrafficStrategyAndStatusQuery,
-            ICommandResponse<UserWithActiveInboundsEntity[]>
-        >(new GetUsersByTrafficStrategyAndStatusQuery(dto.strategy, dto.status));
-    }
-
-    private async updateUserStatusAndTrafficAndResetAt(
-        dto: UpdateStatusAndTrafficAndResetAtCommand,
-    ): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<
-            UpdateStatusAndTrafficAndResetAtCommand,
-            ICommandResponse<void>
-        >(new UpdateStatusAndTrafficAndResetAtCommand(dto.userUuid, dto.lastResetAt, dto.status));
     }
 
     private async batchResetUserTraffic(
@@ -145,11 +135,25 @@ export class ResetUserTrafficCalendarMonthService {
         >(new BatchResetUserTrafficCommand(dto.strategy));
     }
 
-    private async createUserUsageHistory(
-        dto: CreateUserTrafficHistoryCommand,
-    ): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<CreateUserTrafficHistoryCommand, ICommandResponse<void>>(
-            new CreateUserTrafficHistoryCommand(dto.userTrafficHistory),
-        );
+    private async getUserByUuid(
+        uuid: string,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+        return this.queryBus.execute<
+            GetUserByUuidQuery,
+            ICommandResponse<UserWithActiveInboundsEntity>
+        >(new GetUserByUuidQuery(uuid));
+    }
+
+    private async batchResetLimitedUsersTraffic(
+        dto: BatchResetLimitedUsersTrafficCommand,
+    ): Promise<ICommandResponse<{ uuid: string }[]>> {
+        return this.commandBus.execute<
+            BatchResetLimitedUsersTrafficCommand,
+            ICommandResponse<
+                {
+                    uuid: string;
+                }[]
+            >
+        >(new BatchResetLimitedUsersTrafficCommand(dto.strategy));
     }
 }

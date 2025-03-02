@@ -31,6 +31,9 @@ import { PrometheusReporterModule } from '@intergration-modules/prometheus-repor
                     imports: [PrismaModule],
                     adapter: new TransactionalAdapterPrisma({
                         prismaInjectionToken: PrismaService,
+                        defaultTxOptions: {
+                            timeout: 60_000,
+                        },
                     }),
                 }),
             ],
