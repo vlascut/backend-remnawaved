@@ -155,9 +155,7 @@ export class XRayConfig {
     }
 
     private processCertificates(config: IXrayConfig): IXrayConfig {
-        const newConfig = config;
-
-        for (const inbound of newConfig.inbounds) {
+        for (const inbound of config.inbounds) {
             const tlsSettings = inbound?.streamSettings?.tlsSettings;
             if (!tlsSettings?.certificates) continue;
 
@@ -194,7 +192,7 @@ export class XRayConfig {
             });
         }
 
-        return newConfig;
+        return config;
     }
 
     public getAllInbounds(): InboundsWithTagsAndType[] {
@@ -206,34 +204,40 @@ export class XRayConfig {
         }));
     }
 
-    public includeUsers(users: UserForConfigEntity[]): IXrayConfig {
-        const config = JSON.parse(JSON.stringify(this.config)) as IXrayConfig;
+    private includeUsers(users: UserForConfigEntity[]): IXrayConfig {
+        let config: IXrayConfig | null = null;
+        try {
+            config = JSON.parse(JSON.stringify(this.config)) as IXrayConfig;
 
-        const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
+            const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
 
-        const usersByTag = new Map<string, UserForConfigEntity[]>();
-        for (const user of users) {
-            if (!usersByTag.has(user.tag)) {
-                usersByTag.set(user.tag, []);
+            const usersByTag = new Map<string, UserForConfigEntity[]>();
+            for (const user of users) {
+                if (!usersByTag.has(user.tag)) {
+                    usersByTag.set(user.tag, []);
+                }
+                usersByTag.get(user.tag)!.push(user);
             }
-            usersByTag.get(user.tag)!.push(user);
+
+            for (const [tag, tagUsers] of usersByTag) {
+                const inbound = inboundMap.get(tag);
+                if (!inbound) continue;
+
+                inbound.settings ??= {} as InboundSettings;
+
+                this.addUsersToInbound(inbound, tagUsers);
+            }
+
+            return config;
+        } catch (error) {
+            throw error;
+        } finally {
+            config = null;
         }
-
-        for (const [tag, tagUsers] of usersByTag) {
-            const inbound = inboundMap.get(tag);
-            if (!inbound) continue;
-
-            inbound.settings ??= {} as InboundSettings;
-
-            this.addUsersToInbound(inbound, tagUsers);
-        }
-
-        return config;
     }
 
     public prepareConfigForNode(users: UserForConfigEntity[]): IXrayConfig {
-        const configWithUsers = this.includeUsers(users);
-        return this.processCertificates(configWithUsers);
+        return this.processCertificates(this.includeUsers(users));
     }
 
     public getSortedConfig(): IXrayConfig {
