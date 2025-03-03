@@ -124,7 +124,7 @@ export class XRayConfig {
         return this.inbounds;
     }
 
-    private getConfig(): IXrayConfig {
+    public getConfig(): IXrayConfig {
         return this.config;
     }
 
@@ -154,7 +154,9 @@ export class XRayConfig {
         return sortedObj as T;
     }
 
-    private processCertificates(config: IXrayConfig): IXrayConfig {
+    public processCertificates(): IXrayConfig {
+        const config = this.config;
+
         for (const inbound of config.inbounds) {
             const tlsSettings = inbound?.streamSettings?.tlsSettings;
             if (!tlsSettings?.certificates) continue;
@@ -219,8 +221,6 @@ export class XRayConfig {
                 usersByTag.get(user.tag)!.push(user);
             }
 
-            users.length = 0;
-
             for (const [tag, tagUsers] of usersByTag) {
                 const inbound = inboundMap.get(tag);
                 if (!inbound) continue;
@@ -230,6 +230,8 @@ export class XRayConfig {
                 this.addUsersToInbound(inbound, tagUsers);
             }
 
+            usersByTag.clear();
+
             return config;
         } catch (error) {
             throw error;
@@ -238,9 +240,9 @@ export class XRayConfig {
         }
     }
 
-    public prepareConfigForNode(users: UserForConfigEntity[]): IXrayConfig {
-        return this.processCertificates(this.includeUsers(users));
-    }
+    // public prepareConfigForNode(users: UserForConfigEntity[]): IXrayConfig {
+    //     return this.processCertificates(this.includeUsers(users));
+    // }
 
     public getSortedConfig(): IXrayConfig {
         return this.sortObjectByKeys<IXrayConfig>(this.config);
@@ -280,5 +282,30 @@ export class XRayConfig {
             default:
                 throw new Error(`Protocol ${inbound.protocol} is not supported.`);
         }
+    }
+
+    public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
+        const usersByTag = new Map<string, UserForConfigEntity[]>();
+        for (const user of users) {
+            if (!usersByTag.has(user.tag)) {
+                usersByTag.set(user.tag, []);
+            }
+            usersByTag.get(user.tag)!.push(user);
+        }
+
+        const inboundMap = new Map(this.config.inbounds.map((inbound) => [inbound.tag, inbound]));
+
+        for (const [tag, tagUsers] of usersByTag) {
+            const inbound = inboundMap.get(tag);
+            if (!inbound) continue;
+
+            inbound.settings ??= {} as InboundSettings;
+
+            this.addUsersToInbound(inbound, tagUsers);
+        }
+
+        usersByTag.clear();
+
+        return this.config;
     }
 }

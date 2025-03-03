@@ -11,5 +11,6 @@ import { QUERIES } from './queries';
     imports: [CqrsModule],
     controllers: [UsersController],
     providers: [UsersRepository, UserConverter, UsersService, ...QUERIES, ...COMMANDS],
+    exports: [UsersRepository],
 })
 export class UsersModule {}

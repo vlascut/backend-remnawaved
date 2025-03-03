@@ -172,9 +172,8 @@ export class XrayConfigService implements OnApplicationBootstrap {
     }
 
     public async getConfigWithUsers(
-        users: UserForConfigEntity[],
+        users: UserForConfigEntity[] | AsyncGenerator<UserForConfigEntity[]>,
     ): Promise<ICommandResponse<IXrayConfig>> {
-        let configWithUsers: IXrayConfig | null = null;
         try {
             const config = await this.getConfig();
             if (!config.response) {
@@ -183,11 +182,20 @@ export class XrayConfigService implements OnApplicationBootstrap {
                     ...ERRORS.GET_CONFIG_ERROR,
                 };
             }
+
             const parsedConf = new XRayConfig(config.response);
-            configWithUsers = parsedConf.prepareConfigForNode(users);
+            parsedConf.processCertificates();
+
+            let fConfig = parsedConf.getConfig();
+
+            const generator = users as AsyncGenerator<UserForConfigEntity[]>;
+            for await (const userBatch of generator) {
+                fConfig = parsedConf.includeUserBatch(userBatch);
+            }
+
             return {
                 isOk: true,
-                response: configWithUsers,
+                response: fConfig,
             };
         } catch (error) {
             this.logger.error(error);
@@ -195,8 +203,6 @@ export class XrayConfigService implements OnApplicationBootstrap {
                 isOk: false,
                 ...ERRORS.GET_CONFIG_WITH_USERS_ERROR,
             };
-        } finally {
-            configWithUsers = null;
         }
     }
 
