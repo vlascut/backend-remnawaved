@@ -1,6 +1,3 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-
 import { ERRORS } from '@contract/constants';
 
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
@@ -8,7 +5,6 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
-import { isDevelopment } from '@common/utils/startup-app';
 import { XRayConfig } from '@common/helpers/xray-config';
 
 import { UpdateInboundCommand } from '@modules/inbounds/commands/update-inbound';
@@ -27,18 +23,13 @@ import { XrayConfigEntity } from './entities/xray-config.entity';
 @Injectable()
 export class XrayConfigService {
     private readonly logger = new Logger(XrayConfigService.name);
-    private readonly configPath: string;
 
     constructor(
         private readonly xrayConfigRepository: XrayConfigRepository,
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus,
         private readonly eventBus: EventBus,
-    ) {
-        this.configPath = isDevelopment()
-            ? path.join(__dirname, '../../../../configs/xray/config/xray_config.json')
-            : path.join('/var/lib/remnawave/configs/xray/config/xray_config.json');
-    }
+    ) {}
 
     public async updateConfig(config: object): Promise<ICommandResponse<XrayConfigEntity>> {
         try {
@@ -130,8 +121,8 @@ export class XrayConfigService {
         try {
             let config: object | string;
             const dbConfig = await this.xrayConfigRepository.findFirst();
-            if (!dbConfig?.config) {
-                config = await fs.readFile(this.configPath, 'utf-8');
+            if (!dbConfig || !dbConfig.config) {
+                throw new Error('No XTLS config found in DB!');
             } else {
                 config = dbConfig.config;
             }
@@ -164,8 +155,8 @@ export class XrayConfigService {
         try {
             let config: object | string;
             const dbConfig = await this.xrayConfigRepository.findFirst();
-            if (!dbConfig?.config) {
-                config = await fs.readFile(this.configPath, 'utf-8');
+            if (!dbConfig || !dbConfig.config) {
+                throw new Error('No XTLS config found in DB!');
             } else {
                 config = dbConfig.config;
             }

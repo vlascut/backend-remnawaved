@@ -76,6 +76,12 @@ export class XRayConfig {
                 );
             }
 
+            if (!['shadowsocks', 'trojan', 'vless'].includes(inbound.protocol)) {
+                throw new Error(
+                    `Invalid protocol in inbound "${inbound.tag}". Allowed values are: shadowsocks, trojan, vless`,
+                );
+            }
+
             // console.log(`Inbound ${inbound.tag} network: ${network || 'not set'}`);
         }
 
