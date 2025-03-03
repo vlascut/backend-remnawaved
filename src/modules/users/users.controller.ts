@@ -27,10 +27,10 @@ import { ConfigService } from '@nestjs/config';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { USERS_CONTROLLER, USERS_ROUTES } from '@libs/contracts/api';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { USERS_CONTROLLER, USERS_ROUTES } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -78,10 +78,10 @@ import { UsersService } from './users.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Users Controller')
-@Controller(USERS_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(USERS_CONTROLLER)
 export class UsersController {
     public readonly subPublicDomain: string;
     constructor(

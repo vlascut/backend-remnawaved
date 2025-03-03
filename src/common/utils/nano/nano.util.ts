@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /**
  * Copyright (c) Whales Corp.
  * All Rights Reserved.

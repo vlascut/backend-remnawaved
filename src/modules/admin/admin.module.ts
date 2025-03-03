@@ -5,8 +5,8 @@ import { PrismaModule } from '@common/database';
 
 import { AdminRepository } from './repositories/admin.repository';
 import { AdminConverter } from './admin.converter';
-import { QUERIES } from './queries';
 import { COMMANDS } from './commands';
+import { QUERIES } from './queries';
 
 @Module({
     imports: [CqrsModule, PrismaModule],

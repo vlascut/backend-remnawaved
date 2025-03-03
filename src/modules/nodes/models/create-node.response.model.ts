@@ -1,7 +1,8 @@
+import { fromNanoToNumber } from '@common/utils/nano';
+
 import { InboundsEntity } from '@modules/inbounds/entities';
 
 import { NodesEntity } from '../entities/nodes.entity';
-import { fromNano, fromNanoToNumber } from '@common/utils/nano';
 
 export class CreateNodeResponseModel {
     public uuid: string;

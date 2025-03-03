@@ -1,8 +1,9 @@
 import { dump as yamlDump } from 'js-yaml';
 import nunjucks from 'nunjucks';
 
-import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
+
+import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 
 const env = nunjucks.configure({ autoescape: false });
 env.addFilter('yaml', (obj: any) => yamlDump(obj));

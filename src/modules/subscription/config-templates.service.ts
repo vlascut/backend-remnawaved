@@ -1,6 +1,8 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+
 import { isDevelopment } from '@common/utils/startup-app';
 
 @Injectable()

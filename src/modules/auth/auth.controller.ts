@@ -8,10 +8,9 @@ import {
 } from '@nestjs/swagger';
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseFilters } from '@nestjs/common';
 
-import { AUTH_CONTROLLER, AUTH_ROUTES } from '@libs/contracts/api/controllers/auth';
-
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { AUTH_CONTROLLER, AUTH_ROUTES } from '@libs/contracts/api/controllers/auth';
 
 import {
     GetStatusResponseDto,

@@ -3,12 +3,14 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
-import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
-import { InboundsEntity } from '@modules/inbounds/entities';
-import { EVENTS } from '@libs/contracts/constants';
 import { AxiosService } from '@common/axios';
+import { EVENTS } from '@libs/contracts/constants';
+
+import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+
+import { InboundsEntity } from '@modules/inbounds/entities';
 
 import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
 import { NodesRepository } from '../../repositories/nodes.repository';

@@ -1,7 +1,9 @@
-import { sleep } from '@common/utils/sleep';
-import { Processor, WorkerHost, OnWorkerEvent, InjectQueue } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+
+import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
+import { Logger } from '@nestjs/common';
+
+import { sleep } from '@common/utils/sleep';
 
 export const TEST_QUEUE_NAME = 'test';
 export const InjectTestQueue = (): ParameterDecorator => InjectQueue(TEST_QUEUE_NAME);

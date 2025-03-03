@@ -111,6 +111,7 @@ export default [
             'perfectionist/sort-interfaces': ['off'],
             'perfectionist/sort-union-types': ['off'],
             'perfectionist/sort-named-imports': ['off'],
+            'perfectionist/sort-modules': ['off'],
             'paths/alias': 'error',
             '@typescript-eslint/interface-name-prefix': 'off',
             '@typescript-eslint/explicit-function-return-type': 'off',

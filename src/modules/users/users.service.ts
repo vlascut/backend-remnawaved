@@ -1,17 +1,17 @@
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { Transactional } from '@nestjs-cls/transactional';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
-import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
-import { GetAllUsersV2Command } from '@libs/contracts/commands';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { Transactional } from '@nestjs-cls/transactional';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
+import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
 import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 

@@ -1,16 +1,8 @@
-import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import dayjs from 'dayjs';
 
-import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
-import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
-import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
-import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
-import { USERS_STATUS } from '@libs/contracts/constants';
+import { ConfigService } from '@nestjs/config';
 
-import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
-import { HostWithInboundTagEntity } from '../../hosts/entities/host-with-inbound-tag.entity';
-import { FormattedHosts } from '../generators/interfaces/formatted-hosts.interface';
 import {
     RawObject,
     StreamSettingsObject,
@@ -18,6 +10,15 @@ import {
     WebSocketObject,
 } from '@common/helpers/xray-config/interfaces/transport.config';
 import { xHttpObject } from '@common/helpers/xray-config/interfaces/transport.config';
+import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
+import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
+import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
+import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
+import { USERS_STATUS } from '@libs/contracts/constants';
+
+import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
+import { HostWithInboundTagEntity } from '../../hosts/entities/host-with-inbound-tag.entity';
+import { FormattedHosts } from '../generators/interfaces/formatted-hosts.interface';
 
 export class FormatHosts {
     private config: XRayConfig;
@@ -145,6 +146,7 @@ export class FormatHosts {
                     }
 
                     const settings = inbound.streamSettings?.tcpSettings as TcpObject;
+                    // eslint-disable-next-line
                     streamSettings = settings;
                     headerType = settings?.header?.type;
 
@@ -261,7 +263,7 @@ export class FormatHosts {
     ): FormattedHosts[] {
         try {
             return new FormatHosts(config, hosts, user, configService).generate();
-        } catch (error) {
+        } catch {
             // silence error
             return [];
         }

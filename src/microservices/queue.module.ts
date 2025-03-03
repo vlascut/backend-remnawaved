@@ -1,7 +1,9 @@
-import { Module } from '@nestjs/common';
-import { BullBoardModule } from '@bull-board/nestjs';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { BullBoardModule } from '@bull-board/nestjs';
+
 import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
+
 import { TEST_QUEUE_NAME, TestProcessor } from './processors/test.processor';
 
 @Module({

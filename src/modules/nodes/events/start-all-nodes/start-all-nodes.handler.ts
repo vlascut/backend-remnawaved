@@ -1,7 +1,8 @@
+import pMap from '@cjs-exporter/p-map';
+
 import { IEventHandler, QueryBus } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
-import pMap from '@cjs-exporter/p-map';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';

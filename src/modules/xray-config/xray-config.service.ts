@@ -1,13 +1,17 @@
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { Injectable, Logger } from '@nestjs/common';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+
+import { ERRORS } from '@contract/constants';
+
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { isDevelopment } from '@common/utils/startup-app';
 import { XRayConfig } from '@common/helpers/xray-config';
-import { ERRORS } from '@contract/constants';
+
+import { UpdateInboundCommand } from '@modules/inbounds/commands/update-inbound';
 
 import { InboundsWithTagsAndType } from '../inbounds/interfaces/inbounds-with-tags-and-type.interface';
 import { DeleteManyInboundsCommand } from '../inbounds/commands/delete-many-inbounds';
@@ -19,7 +23,6 @@ import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
 import { StartAllNodesEvent } from '../nodes/events/start-all-nodes';
 import { UpdateConfigRequestDto } from './dtos/update-config.dto';
 import { XrayConfigEntity } from './entities/xray-config.entity';
-import { UpdateInboundCommand } from '@modules/inbounds/commands/update-inbound';
 
 @Injectable()
 export class XrayConfigService {

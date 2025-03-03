@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { Users } from '@prisma/client';
+
+import { Injectable } from '@nestjs/common';
 
 import { UniversalConverter } from '@common/converter/universalConverter';
 

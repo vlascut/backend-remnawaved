@@ -1,7 +1,8 @@
 import semver from 'semver';
 
-import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
+
+import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
 
 interface OutboundConfig {
     flow?: string;
@@ -300,9 +301,9 @@ export class SingBoxConfiguration {
         };
 
         if (
-            ['tcp', 'raw'].includes(params.network) &&
+            ['raw', 'tcp'].includes(params.network) &&
             params.headerType !== 'http' &&
-            ['tls', 'reality'].includes(params.tls) &&
+            ['reality', 'tls'].includes(params.tls) &&
             params.protocol === 'vless'
         ) {
             config.flow = 'xtls-rprx-vision';
@@ -332,7 +333,7 @@ export class SingBoxConfiguration {
             );
         }
 
-        if (['tls', 'reality'].includes(params.tls)) {
+        if (['reality', 'tls'].includes(params.tls)) {
             config.tls = this.tls_config(
                 params.sni,
                 params.fingerprint,
@@ -371,7 +372,7 @@ export class SingBoxConfiguration {
             }
 
             this.add_outbound(outbound);
-        } catch (error) {
+        } catch {
             // silence error
         }
     }

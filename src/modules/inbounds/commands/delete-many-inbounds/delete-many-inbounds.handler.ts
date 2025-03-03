@@ -1,9 +1,10 @@
+import { ERRORS } from '@contract/constants';
+
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@contract/constants';
 
 import { InboundsRepository } from '../../repositories/inbounds.repository';
 import { DeleteManyInboundsCommand } from './delete-many-inbounds.command';

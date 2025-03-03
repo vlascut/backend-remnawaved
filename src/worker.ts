@@ -1,12 +1,13 @@
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger } from 'nestjs-zod';
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
 import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
 import { json } from 'express';
 import helmet from 'helmet';
+
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 
 import { NotFoundExceptionFilter } from '@common/exception/not-found-exception.filter';
 import { WorkerRoutesGuard } from '@common/guards/worker-routes/worker-routes.guard';

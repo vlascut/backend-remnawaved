@@ -1,20 +1,24 @@
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { ClsPluginTransactional } from '@nestjs-cls/transactional';
-import { ConfigModule } from '@nestjs/config';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ScheduleModule } from '@nestjs/schedule';
-import { Module } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
 
-import { IntegrationModules } from '@intergration-modules/integration-modules';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { ClsPluginTransactional } from '@nestjs-cls/transactional';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config';
+import { Module } from '@nestjs/common';
+
 import { validateEnvConfig } from '@common/utils/validate-env-config';
-import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 import { PrismaService } from '@common/database/prisma.service';
 import { configSchema, Env } from '@common/config/app-config';
 import { AxiosModule } from '@common/axios/axios.module';
 import { PrismaModule } from '@common/database';
-import { JobsModule } from './jobs/jobs.module';
+
 import { PrometheusReporterModule } from '@intergration-modules/prometheus-reporter/prometheus-reporter.module';
+import { IntegrationModules } from '@intergration-modules/integration-modules';
+
+import { RemnawaveModules } from '@modules/remnawave-backend.modules';
+
+import { JobsModule } from '@jobs/jobs.module';
 
 @Module({
     imports: [

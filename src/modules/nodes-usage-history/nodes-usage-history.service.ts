@@ -1,7 +1,8 @@
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Injectable, Logger } from '@nestjs/common';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
+
+import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';

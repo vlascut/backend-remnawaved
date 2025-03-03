@@ -15,16 +15,17 @@ process.env.NODE_ENV = 'development';
 
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
-import { NestFactory } from '@nestjs/core';
 import { createLogger } from 'winston';
 import * as winston from 'winston';
 
-import { getDocs, isDevelopment } from '@common/utils/startup-app';
 import { ROOT } from '@contract/api';
-import { AxiosService } from '@common/axios';
+
+import { NestFactory } from '@nestjs/core';
+
+import { ghActionsDocs } from '@common/utils/startup-app/gh-actions-docs';
+import { isDevelopment } from '@common/utils/startup-app';
 
 import { AppModule } from './app.module';
-import { ghActionsDocs } from '@common/utils/startup-app/gh-actions-docs';
 
 patchNestJsSwagger();
 
@@ -70,6 +71,6 @@ async function bootstrap(): Promise<void> {
 
     await app.init();
 }
-bootstrap().catch((error) => {
+bootstrap().catch(() => {
     process.exit(0); // Явно завершаем процесс с успешным статусом
 });

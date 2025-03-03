@@ -1,12 +1,13 @@
+import dayjs from 'dayjs';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
-import dayjs from 'dayjs';
 
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
 import { XRayConfig } from '@common/helpers/xray-config';
+import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
 
 import {
     SubscriptionNotFoundResponse,
@@ -24,8 +25,8 @@ import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
 import { generateSubscription } from './generators/generate-subscription';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
 import { XrayLinksGenerator } from './generators/by-subcription-type';
-import { FormatHosts } from './utils/format-hosts';
 import { ConfigTemplatesService } from './config-templates.service';
+import { FormatHosts } from './utils/format-hosts';
 
 @Injectable()
 export class SubscriptionService {

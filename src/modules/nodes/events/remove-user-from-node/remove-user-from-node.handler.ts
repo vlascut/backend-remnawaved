@@ -1,8 +1,10 @@
-import { RemoveUserCommand as RemoveUserFromNodeCommandSdk } from '@remnawave/node-contract/build/commands';
+import pMap from '@cjs-exporter/p-map';
+
 import { IEventHandler } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
-import pMap from '@cjs-exporter/p-map';
+
+import { RemoveUserCommand as RemoveUserFromNodeCommandSdk } from '@remnawave/node-contract/build/commands';
 
 import { AxiosService } from '@common/axios';
 

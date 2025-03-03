@@ -1,7 +1,8 @@
-import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
-import { InboundsEntity } from '@modules/inbounds/entities';
 import { TResetPeriods } from '@libs/contracts/constants';
 import { TUsersStatus } from '@libs/contracts/constants';
+
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
+import { InboundsEntity } from '@modules/inbounds/entities';
 
 import { IUserWithLifetimeTraffic } from '../interfaces';
 

@@ -1,7 +1,8 @@
+import { NextFunction, Request, Response } from 'express';
+import * as bcrypt from 'bcrypt';
+
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
-import { NextFunction, Request, Response } from 'express';
 
 @Injectable()
 export class BasicAuthMiddleware implements NestMiddleware {

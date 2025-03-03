@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { generateKeyPair } from 'crypto';
 import { promisify } from 'util';
+
+import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';

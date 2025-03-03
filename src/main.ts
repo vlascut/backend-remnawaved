@@ -1,7 +1,5 @@
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
 import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
@@ -9,10 +7,14 @@ import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
+import { METRICS_ROOT, ROOT } from '@contract/api';
+
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
 import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 import { getRealIp } from '@common/middlewares/get-real-ip';
-import { METRICS_ROOT, ROOT } from '@contract/api';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';

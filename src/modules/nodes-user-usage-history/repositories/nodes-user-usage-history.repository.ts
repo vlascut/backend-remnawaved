@@ -4,10 +4,10 @@ import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
 
+import { BulkUpsertHistoryEntryBuilder } from '../builders/bulk-upsert-history-entry/bulk-upsert-history-entry.builder';
 import { NodesUserUsageHistoryEntity } from '../entities/nodes-user-usage-history.entity';
 import { NodesUserUsageHistoryConverter } from '../nodes-user-usage-history.converter';
 import { ILastConnectedNode } from '../interfaces';
-import { BulkUpsertHistoryEntryBuilder } from '../builders/bulk-upsert-history-entry/bulk-upsert-history-entry.builder';
 
 @Injectable()
 export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHistoryEntity> {

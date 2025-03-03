@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 import { UsersSchema } from '../../models/users.schema';
-import { REST_API } from '../../api';
 import { LastConnectedNodeSchema } from '../../models';
+import { REST_API } from '../../api';
 
 export namespace EnableUserCommand {
     export const url = REST_API.USERS.ENABLE_USER;

@@ -21,11 +21,11 @@ import {
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { API_TOKENS_ROUTES } from '@libs/contracts/api/controllers';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { API_TOKENS_CONTROLLER } from '@libs/contracts/api';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { API_TOKENS_ROUTES } from '@libs/contracts/api/controllers';
+import { API_TOKENS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -40,10 +40,10 @@ import { CreateApiTokenResponseModel } from './models';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('API Tokens Management')
-@Controller(API_TOKENS_CONTROLLER)
 @Roles(ROLE.ADMIN)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(API_TOKENS_CONTROLLER)
 export class ApiTokensController {
     constructor(private readonly apiTokensService: ApiTokensService) {}
 
@@ -72,8 +72,8 @@ export class ApiTokensController {
     })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the API token' })
     @ApiResponse({ status: 200, description: 'Token deleted successfully' })
-    @Delete(`${API_TOKENS_ROUTES.DELETE}/:uuid`)
     @HttpCode(HttpStatus.OK)
+    @Delete(`${API_TOKENS_ROUTES.DELETE}/:uuid`)
     async delete(@Param() paramData: DeleteApiTokenRequestDto): Promise<DeleteApiTokenResponseDto> {
         const result = await this.apiTokensService.delete(paramData.uuid);
         const data = errorHandler(result);
@@ -88,8 +88,8 @@ export class ApiTokensController {
             'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
     })
     @ApiResponse({ status: 200, description: 'Tokens fetched successfully' })
-    @Get(API_TOKENS_ROUTES.GET_ALL)
     @HttpCode(HttpStatus.OK)
+    @Get(API_TOKENS_ROUTES.GET_ALL)
     async findAll(): Promise<FindAllApiTokensResponseDto> {
         const result = await this.apiTokensService.findAll();
         const data = errorHandler(result);

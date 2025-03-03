@@ -1,5 +1,6 @@
-import { TRoleTypes } from '@libs/contracts/constants';
 import { Admin } from '@prisma/client';
+
+import { TRoleTypes } from '@libs/contracts/constants';
 
 export class AdminEntity implements Admin {
     public uuid: string;

@@ -1,9 +1,11 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 
-import { ICommandResponse } from '@common/types/command-response.type';
 import { IJWTAuthPayload } from 'src/modules/auth/interfaces';
+
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
+import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, ROLE } from '@libs/contracts/constants';
 
 import { GetNodeJwtCommand } from './get-node-jwt.command';

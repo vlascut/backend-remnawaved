@@ -1,8 +1,9 @@
 import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
-import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
+
 import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
+import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 
 export class GetFullUserResponseModel {
     public readonly uuid: string;

@@ -1,9 +1,10 @@
+import { createHmac } from 'node:crypto';
+import * as bcrypt from 'bcrypt';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { createHmac } from 'node:crypto';
-import * as bcrypt from 'bcrypt';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';

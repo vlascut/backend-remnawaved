@@ -4,9 +4,9 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
-import { AdminEntity } from '../../entities/admin.entity';
-import { AdminRepository } from '../../repositories/admin.repository';
 import { GetAdminByUsernameQuery } from './get-admin-by-username.query';
+import { AdminRepository } from '../../repositories/admin.repository';
+import { AdminEntity } from '../../entities/admin.entity';
 
 @QueryHandler(GetAdminByUsernameQuery)
 export class GetAdminByUsernameHandler

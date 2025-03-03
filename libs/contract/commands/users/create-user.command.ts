@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { LastConnectedNodeSchema, UsersSchema } from '../../models';
+import { RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { REST_API } from '../../api';
 
 export namespace CreateUserCommand {

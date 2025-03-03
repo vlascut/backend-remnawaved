@@ -1,13 +1,15 @@
+import { ERRORS } from '@contract/constants';
+
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@contract/constants';
 
-import { CreateAdminCommand } from './create-admin.command';
-import { AdminRepository } from '../../repositories/admin.repository';
 import { AdminEntity } from '@modules/admin/entities/admin.entity';
+
+import { AdminRepository } from '../../repositories/admin.repository';
+import { CreateAdminCommand } from './create-admin.command';
 
 @CommandHandler(CreateAdminCommand)
 export class CreateAdminHandler

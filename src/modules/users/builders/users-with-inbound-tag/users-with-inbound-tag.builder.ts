@@ -1,5 +1,6 @@
-import { USERS_STATUS } from '@libs/contracts/constants';
 import { Prisma } from '@prisma/client';
+
+import { USERS_STATUS } from '@libs/contracts/constants';
 
 export class UsersWithInboundTagBuilder {
     public query: Prisma.Sql;

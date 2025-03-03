@@ -5,8 +5,8 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
 import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
-import { GetUserByUuidQuery } from './get-user-by-uuid.query';
 import { UsersRepository } from '../../repositories/users.repository';
+import { GetUserByUuidQuery } from './get-user-by-uuid.query';
 
 @QueryHandler(GetUserByUuidQuery)
 export class GetUserByUuidHandler

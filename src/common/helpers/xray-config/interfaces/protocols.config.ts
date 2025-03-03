@@ -1,6 +1,6 @@
 import { ShadowsocksSettings, TrojanSettings, VLessSettings } from './protocol-settings.config';
-import { FallbackObject } from './routing.config';
 import { StreamSettingsObject } from './transport.config';
+import { FallbackObject } from './routing.config';
 
 export interface InboundObject {
     allocate?: unknown;

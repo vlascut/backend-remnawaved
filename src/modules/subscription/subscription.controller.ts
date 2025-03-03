@@ -1,10 +1,11 @@
-import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
-import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
+import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
 
 import { GetSubscriptionInfoRequestDto, GetSubscriptionInfoResponseDto } from './dto';
 import { GetSubscriptionByShortUuidRequestDto } from './dto/get-subscription.dto';
@@ -12,8 +13,8 @@ import { SubscriptionNotFoundResponse, SubscriptionRawResponse } from './models'
 import { SubscriptionService } from './subscription.service';
 
 @ApiTags('Subscription Controller')
-@Controller(SUBSCRIPTION_CONTROLLER)
 @UseFilters(HttpExceptionFilter)
+@Controller(SUBSCRIPTION_CONTROLLER)
 export class SubscriptionController {
     constructor(private readonly subscriptionService: SubscriptionService) {}
 

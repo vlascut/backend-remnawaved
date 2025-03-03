@@ -1,18 +1,20 @@
+import pMap from '@cjs-exporter/p-map';
+
+import { IEventHandler } from '@nestjs/cqrs';
+import { EventsHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import {
     AddUserCommand as AddUserToNodeCommandSdk,
     CipherType,
 } from '@remnawave/node-contract/build/commands';
-import { IEventHandler } from '@nestjs/cqrs';
-import { EventsHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
-import pMap from '@cjs-exporter/p-map';
 
+import { getVlessFlowFromDbInbound } from '@common/utils/flow/get-vless-flow';
 import { AxiosService } from '@common/axios';
 
 import { NodesRepository } from '../../repositories/nodes.repository';
 import { AddUserToNodeEvent } from './add-user-to-node.event';
 import { NodesEntity } from '../../entities/nodes.entity';
-import { getVlessFlowFromDbInbound } from '@common/utils/flow/get-vless-flow';
 
 @EventsHandler(AddUserToNodeEvent)
 export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {

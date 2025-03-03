@@ -1,5 +1,7 @@
 import { readFileSync } from 'fs';
 
+import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
+
 import { InboundsWithTagsAndType } from '@modules/inbounds/interfaces/inbounds-with-tags-and-type.interface';
 import { UserForConfigEntity } from '@modules/users/entities/users-for-config';
 
@@ -13,7 +15,6 @@ import {
     TrojanSettings,
     VLessSettings,
 } from './interfaces';
-import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
 
 export class XRayConfig {
     private config: IXrayConfig;
@@ -69,7 +70,7 @@ export class XRayConfig {
         for (const inbound of this.config.inbounds) {
             const network = inbound.streamSettings?.network;
 
-            if (network && !['raw', 'xhttp', 'ws', 'tcp'].includes(network)) {
+            if (network && !['raw', 'tcp', 'ws', 'xhttp'].includes(network)) {
                 throw new Error(
                     `Invalid network type "${network}" in inbound "${inbound.tag}". Allowed values are: raw, xhttp, ws, tcp`,
                 );

@@ -1,4 +1,5 @@
 import { InboundObject } from '@common/helpers/xray-config/interfaces/protocols.config';
+
 import { InboundsEntity } from '@modules/inbounds/entities';
 
 export const getVlessFlow = (inbound: InboundObject) => {

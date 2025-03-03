@@ -1,3 +1,10 @@
+import axios, { AxiosError, AxiosInstance } from 'axios';
+
+import { ERRORS } from '@contract/constants';
+
+import { Injectable, Logger } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
+
 import {
     AddUserCommand,
     GetAllInboundsStatsCommand,
@@ -14,12 +21,8 @@ import {
     StartXrayCommand,
     StopXrayCommand,
 } from '@remnawave/node-contract';
-import axios, { AxiosError, AxiosInstance } from 'axios';
-import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
 
 import { GetNodeJwtCommand } from '@modules/keygen/commands/get-node-jwt';
-import { ERRORS } from '@contract/constants';
 
 import { ICommandResponse } from '../types/command-response.type';
 

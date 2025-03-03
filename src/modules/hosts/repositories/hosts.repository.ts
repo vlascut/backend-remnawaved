@@ -1,8 +1,9 @@
+import { IReorderHost } from 'src/modules/hosts/interfaces/reorder-host.interface';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { IReorderHost } from 'src/modules/hosts/interfaces/reorder-host.interface';
 import { ICrud } from '@common/types/crud-port';
 
 import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';

@@ -1,6 +1,7 @@
+import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
+
 import { XrayShadowsocksLink } from './interfaces/xray-shadowsocks-link.interface';
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
-import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
 const NETWORK_CONFIGS: Record<
     StreamSettingsObject['network'],
@@ -85,8 +86,8 @@ export class XrayLinksGenerator {
         }
 
         if (
-            ['tls', 'reality'].includes(params.tls) &&
-            ['tcp', 'raw'].includes(params.network) &&
+            ['reality', 'tls'].includes(params.tls) &&
+            ['raw', 'tcp'].includes(params.network) &&
             params.headerType !== 'http'
         ) {
             Object.assign(payload, {
@@ -159,8 +160,8 @@ export class XrayLinksGenerator {
         }
 
         if (
-            ['tls', 'reality'].includes(params.tls) &&
-            ['tcp', 'raw'].includes(params.network) &&
+            ['reality', 'tls'].includes(params.tls) &&
+            ['raw', 'tcp'].includes(params.network) &&
             params.headerType !== 'http'
         ) {
             Object.assign(payload, {

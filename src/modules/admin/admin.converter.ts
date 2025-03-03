@@ -1,5 +1,6 @@
+import { Admin } from '@prisma/client';
+
 import { Injectable } from '@nestjs/common';
-import { Admin, ApiTokens } from '@prisma/client';
 
 import { UniversalConverter } from '@common/converter/universalConverter';
 

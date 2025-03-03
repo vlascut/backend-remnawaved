@@ -1,7 +1,8 @@
+import { fromNanoToNumber } from '@common/utils/nano';
+
 import { InboundsEntity } from '@modules/inbounds/entities';
 
 import { NodesEntity } from '../entities';
-import { fromNanoToNumber } from '@common/utils/nano';
 
 export class GetAllNodesResponseModel {
     public uuid: string;
