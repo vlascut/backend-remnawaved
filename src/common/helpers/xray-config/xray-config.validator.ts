@@ -207,45 +207,25 @@ export class XRayConfig {
     }
 
     public includeUsers(users: UserForConfigEntity[]): IXrayConfig {
-        const config = structuredClone(this.config);
+        const config = JSON.parse(JSON.stringify(this.config)) as IXrayConfig;
 
         const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
 
+        const usersByTag = new Map<string, UserForConfigEntity[]>();
         for (const user of users) {
-            const inbound = inboundMap.get(user.tag);
-            if (!inbound) {
-                continue;
+            if (!usersByTag.has(user.tag)) {
+                usersByTag.set(user.tag, []);
             }
+            usersByTag.get(user.tag)!.push(user);
+        }
+
+        for (const [tag, tagUsers] of usersByTag) {
+            const inbound = inboundMap.get(tag);
+            if (!inbound) continue;
 
             inbound.settings ??= {} as InboundSettings;
-            // inbound.settings.clients ??= [];
 
-            switch (inbound.protocol) {
-                case 'trojan':
-                    (inbound.settings as TrojanSettings).clients ??= [];
-                    (inbound.settings as TrojanSettings).clients.push({
-                        password: user.trojanPassword,
-                        email: `${user.username}`,
-                    });
-                    break;
-                case 'vless':
-                    (inbound.settings as VLessSettings).clients ??= [];
-                    (inbound.settings as VLessSettings).clients.push({
-                        id: user.vlessUuid,
-                        email: `${user.username}`,
-                        flow: getVlessFlow(inbound),
-                    });
-                    break;
-                case 'shadowsocks':
-                    (inbound.settings as ShadowsocksSettings).clients.push({
-                        password: user.ssPassword,
-                        method: 'chacha20-ietf-poly1305',
-                        email: user.username,
-                    });
-                    break;
-                default:
-                    throw new Error(`Protocol ${inbound.protocol} is not supported.`);
-            }
+            this.addUsersToInbound(inbound, tagUsers);
         }
 
         return config;
@@ -258,5 +238,41 @@ export class XRayConfig {
 
     public getSortedConfig(): IXrayConfig {
         return this.sortObjectByKeys<IXrayConfig>(this.config);
+    }
+
+    private addUsersToInbound(inbound: Inbound, users: UserForConfigEntity[]): void {
+        switch (inbound.protocol) {
+            case 'trojan':
+                (inbound.settings as TrojanSettings).clients ??= [];
+                for (const user of users) {
+                    (inbound.settings as TrojanSettings).clients.push({
+                        password: user.trojanPassword,
+                        email: `${user.username}`,
+                    });
+                }
+                break;
+            case 'vless':
+                (inbound.settings as VLessSettings).clients ??= [];
+                for (const user of users) {
+                    (inbound.settings as VLessSettings).clients.push({
+                        id: user.vlessUuid,
+                        email: `${user.username}`,
+                        flow: getVlessFlow(inbound),
+                    });
+                }
+                break;
+            case 'shadowsocks':
+                (inbound.settings as ShadowsocksSettings).clients ??= [];
+                for (const user of users) {
+                    (inbound.settings as ShadowsocksSettings).clients.push({
+                        password: user.ssPassword,
+                        method: 'chacha20-ietf-poly1305',
+                        email: user.username,
+                    });
+                }
+                break;
+            default:
+                throw new Error(`Protocol ${inbound.protocol} is not supported.`);
+        }
     }
 }

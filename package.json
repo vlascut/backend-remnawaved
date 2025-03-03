@@ -35,6 +35,7 @@
     "migrate:generate": "prisma generate",
     "migrate:deploy": "PRISMA_HIDE_UPDATE_MESSAGE=true prisma migrate deploy",
     "migrate:seed": "prisma db seed",
+    "migrate:seed:dev": "npm run build:seed && prisma db seed",
     "docs:serve": "compodoc -p tsconfig.json -s",
     "generate:openapi": "nest start --config nest-cli.gen-doc.json"
   },

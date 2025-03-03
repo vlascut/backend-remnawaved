@@ -10,12 +10,14 @@ import { Injectable } from '@nestjs/common';
 import { ICrud } from '@common/types/crud-port';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
+import { InboundsEntity } from '@modules/inbounds/entities';
+
 import {
     BatchResetLimitedUsersUsageBuilder,
     BatchResetUsersUsageBuilder,
     BulkDeleteByStatusBuilder,
     BulkUpdateUserUsedTrafficBuilder,
-    UsersWithInboundTagBuilder,
+    UsersWithInboundTagAndExcludedInboundsBuilder,
 } from '../builders';
 import {
     UserEntity,
@@ -271,8 +273,10 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
-    public async getUsersForConfig(): Promise<UserForConfigEntity[]> {
-        const { query } = new UsersWithInboundTagBuilder();
+    public async getUsersForConfig(
+        excludedInbounds: InboundsEntity[],
+    ): Promise<UserForConfigEntity[]> {
+        const { query } = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
         return await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
     }
 

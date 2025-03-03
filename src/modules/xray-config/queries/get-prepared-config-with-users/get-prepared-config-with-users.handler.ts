@@ -23,32 +23,29 @@ export class GetPreparedConfigWithUsersHandler
     ) {}
 
     async execute(query: GetPreparedConfigWithUsersQuery): Promise<ICommandResponse<IXrayConfig>> {
+        let config: ICommandResponse<IXrayConfig> | null = null;
+        let users: ICommandResponse<UserForConfigEntity[]> | null = null;
+
         try {
             const { excludedInbounds } = query;
-            const excludedTags = new Set(excludedInbounds.map((inbound) => inbound.tag));
 
-            const users = await this.getUsersForConfig();
+            users = await this.getUsersForConfig({
+                excludedInbounds,
+            });
 
             if (!users.isOk || !users.response) {
                 throw new Error('Failed to get users for config');
             }
 
-            const config = await this.xrayService.getConfigWithUsers(users.response);
+            config = await this.xrayService.getConfigWithUsers(users.response);
 
             if (!config.response) {
                 throw new Error('Config response is empty');
             }
 
-            const filteredConfig: IXrayConfig = {
-                ...config.response,
-                inbounds: config.response.inbounds.filter(
-                    (inbound) => !excludedTags.has(inbound.tag),
-                ),
-            };
-
             return {
                 isOk: true,
-                response: filteredConfig,
+                response: config.response,
             };
         } catch (error) {
             this.logger.error(error);
@@ -56,13 +53,18 @@ export class GetPreparedConfigWithUsersHandler
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,
             };
+        } finally {
+            config = null;
+            users = null;
         }
     }
 
-    private getUsersForConfig(): Promise<ICommandResponse<UserForConfigEntity[]>> {
+    private getUsersForConfig(
+        dto: GetPreparedConfigWithUsersQuery,
+    ): Promise<ICommandResponse<UserForConfigEntity[]>> {
         return this.queryBus.execute<
             GetUsersForConfigQuery,
             ICommandResponse<UserForConfigEntity[]>
-        >(new GetUsersForConfigQuery());
+        >(new GetUsersForConfigQuery(dto.excludedInbounds));
     }
 }

@@ -15,11 +15,11 @@ export class GetUsersForConfigHandler
     private readonly logger = new Logger(GetUsersForConfigHandler.name);
     constructor(private readonly usersRepository: UsersRepository) {}
 
-    async execute(): Promise<ICommandResponse<UserForConfigEntity[]>> {
+    async execute(query: GetUsersForConfigQuery): Promise<ICommandResponse<UserForConfigEntity[]>> {
         let users: UserForConfigEntity[] | null = null;
 
         try {
-            users = await this.usersRepository.getUsersForConfig();
+            users = await this.usersRepository.getUsersForConfig(query.excludedInbounds);
 
             return {
                 isOk: true,

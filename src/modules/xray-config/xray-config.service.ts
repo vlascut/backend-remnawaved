@@ -1,7 +1,7 @@
 import { ERRORS } from '@contract/constants';
 
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
@@ -21,15 +21,19 @@ import { UpdateConfigRequestDto } from './dtos/update-config.dto';
 import { XrayConfigEntity } from './entities/xray-config.entity';
 
 @Injectable()
-export class XrayConfigService {
+export class XrayConfigService implements OnApplicationBootstrap {
     private readonly logger = new Logger(XrayConfigService.name);
 
     constructor(
-        private readonly xrayConfigRepository: XrayConfigRepository,
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus,
         private readonly eventBus: EventBus,
+        private readonly xrayConfigRepository: XrayConfigRepository,
     ) {}
+
+    async onApplicationBootstrap() {
+        await this.syncInbounds();
+    }
 
     public async updateConfig(config: object): Promise<ICommandResponse<XrayConfigEntity>> {
         try {
@@ -170,6 +174,7 @@ export class XrayConfigService {
     public async getConfigWithUsers(
         users: UserForConfigEntity[],
     ): Promise<ICommandResponse<IXrayConfig>> {
+        let configWithUsers: IXrayConfig | null = null;
         try {
             const config = await this.getConfig();
             if (!config.response) {
@@ -179,7 +184,7 @@ export class XrayConfigService {
                 };
             }
             const parsedConf = new XRayConfig(config.response);
-            const configWithUsers = parsedConf.prepareConfigForNode(users);
+            configWithUsers = parsedConf.prepareConfigForNode(users);
             return {
                 isOk: true,
                 response: configWithUsers,
@@ -190,6 +195,8 @@ export class XrayConfigService {
                 isOk: false,
                 ...ERRORS.GET_CONFIG_WITH_USERS_ERROR,
             };
+        } finally {
+            configWithUsers = null;
         }
     }
 
