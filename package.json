@@ -15,10 +15,11 @@
     "url": "https://github.com/remnawave/backend/issues"
   },
   "prisma": {
-    "seed": "node -r ts-node/register prisma/seed/config.seed.ts"
+    "seed": "node dist/prisma/config.seed.js"
   },
   "scripts": {
     "build": "nest build",
+    "build:seed": "tsc -p prisma/tsconfig.seed.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",

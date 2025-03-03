@@ -22,13 +22,15 @@ COPY . .
 
 RUN npm run migrate:generate
 RUN npm run build
+RUN npm run build:seed
 
 FROM node:22
 WORKDIR /opt/app
 
 COPY --from=build /opt/app/dist ./dist
 COPY --from=build /opt/app/frontend ./frontend
-COPY --from=build /opt/app/prisma ./prisma
+COPY --from=build /opt/app/prisma/schema.prisma ./prisma/
+COPY --from=build /opt/app/prisma/migrations ./prisma/migrations
 
 COPY configs /var/lib/remnawave/configs
 COPY package*.json ./
