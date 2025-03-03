@@ -10,12 +10,12 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
+import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 import { getRealIp } from '@common/middlewares/get-real-ip';
 import { METRICS_ROOT, ROOT } from '@contract/api';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
-import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 
 patchNestJsSwagger();
 

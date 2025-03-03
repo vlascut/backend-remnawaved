@@ -1,9 +1,9 @@
-import { InboundsEntity } from 'src/modules/inbounds/entities/inbounds.entity';
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
+import { InboundsEntity } from '@modules/inbounds/entities';
 import { TResetPeriods } from '@libs/contracts/constants';
 import { TUsersStatus } from '@libs/contracts/constants';
 
 import { IUserWithLifetimeTraffic } from '../interfaces';
-import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
 
 export class UserWithLifetimeTrafficEntity {
     public uuid: string;

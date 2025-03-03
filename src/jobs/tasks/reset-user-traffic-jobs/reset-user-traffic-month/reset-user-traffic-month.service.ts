@@ -3,17 +3,20 @@ import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
-import { EVENTS, RESET_PERIODS } from '@libs/contracts/constants';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { JOBS_INTERVALS } from 'src/jobs/intervals';
-import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
+import { EVENTS, RESET_PERIODS } from '@libs/contracts/constants';
+
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+
+import { BatchResetLimitedUsersTrafficCommand } from '@modules/users/commands/batch-reset-limited-users-traffic';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
 import { BatchResetUserTrafficCommand } from '@modules/users/commands/batch-reset-user-traffic';
-import { BatchResetLimitedUsersTrafficCommand } from '@modules/users/commands/batch-reset-limited-users-traffic';
-import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
 import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
+import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
+import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
+
+import { JOBS_INTERVALS } from '@jobs/intervals';
 
 @Injectable()
 export class ResetUserTrafficCalendarMonthService {
@@ -47,7 +50,7 @@ export class ResetUserTrafficCalendarMonthService {
         name: ResetUserTrafficCalendarMonthService.CRON_NAME,
     })
     async handleCron() {
-        let users: UserWithActiveInboundsEntity[] | null = null;
+        let users: { uuid: string }[] | null = null;
 
         try {
             if (!this.checkJobRunning()) return;
@@ -82,7 +85,7 @@ export class ResetUserTrafficCalendarMonthService {
                 return;
             }
 
-            const users = updatedUsersUuids.response;
+            users = updatedUsersUuids.response;
 
             if (users.length >= 10_000) {
                 this.logger.log(
@@ -119,8 +122,8 @@ export class ResetUserTrafficCalendarMonthService {
         } catch (error) {
             this.logger.error(`Error in ResetUserMonthlyTrafficService: ${error}`);
         } finally {
-            users = null;
             this.isJobRunning = false;
+            users = null;
         }
     }
 

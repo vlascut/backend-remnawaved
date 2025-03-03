@@ -7,6 +7,7 @@ import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/c
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, EVENTS } from '@contract/constants';
+import { toNano } from '@common/utils/nano';
 
 import { CreateNodeRequestDto, ReorderNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
@@ -15,7 +16,6 @@ import { StartAllNodesEvent } from './events/start-all-nodes';
 import { StartNodeEvent } from './events/start-node';
 import { StopNodeEvent } from './events/stop-node';
 import { NodesEntity } from './entities';
-import { toNano } from '@common/utils/nano';
 
 @Injectable()
 export class NodesService {
@@ -204,7 +204,7 @@ export class NodesService {
                 }),
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.DELETE_NODE_ERROR,

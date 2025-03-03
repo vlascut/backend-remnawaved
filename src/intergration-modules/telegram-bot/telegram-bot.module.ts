@@ -1,5 +1,6 @@
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NestjsGrammyModule } from '@kastov/grammy-nestjs';
+
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';

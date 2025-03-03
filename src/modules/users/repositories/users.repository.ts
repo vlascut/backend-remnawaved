@@ -8,9 +8,20 @@ import { TResetPeriods, TUsersStatus, USERS_STATUS } from '@contract/constants';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
 import { ICrud } from '@common/types/crud-port';
 
-import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
-import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
-import { UserForConfigEntity } from '../entities/users-for-config';
+import {
+    BatchResetLimitedUsersUsageBuilder,
+    BatchResetUsersUsageBuilder,
+    BulkDeleteByStatusBuilder,
+    BulkUpdateUserUsedTrafficBuilder,
+    UsersWithInboundTagBuilder,
+} from '../builders';
+import {
+    UserEntity,
+    UserForConfigEntity,
+    UserWithActiveInboundsAndLastConnectedNodeEntity,
+    UserWithActiveInboundsEntity,
+    UserWithLifetimeTrafficEntity,
+} from '../entities';
 import {
     IUserOnlineStats,
     IUserStats,
@@ -18,14 +29,7 @@ import {
     USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
     USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
 } from '../interfaces';
-import { UserEntity } from '../entities/users.entity';
 import { UserConverter } from '../users.converter';
-import { BatchResetUsersUsageBuilder } from '../builders/batch-reset-users-usage/batch-reset-users-usage.builder';
-import { BulkDeleteByStatusBuilder } from '../builders/bulk-delete-by-status/bulk-delete-by-status.builder';
-import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
-import { UsersWithInboundTagBuilder } from '../builders/users-with-inbound-tag/users-with-inbound-tag.builder';
-import { BatchResetLimitedUsersUsageBuilder } from '../builders/batch-reset-limited-users-usage/batch-reset-limited-users-usage.builder';
-import { BulkUpdateUserUsedTrafficBuilder } from '../builders/bulk-update-user-used-traffic/bulk-update-user-used-traffic.builder';
 
 dayjs.extend(utc);
 

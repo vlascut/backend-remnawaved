@@ -3,16 +3,19 @@ import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS } from '@libs/contracts/constants';
+
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
-import { JOBS_INTERVALS } from 'src/jobs/intervals';
 import { UpdateExpiredUsersCommand } from '@modules/users/commands/update-expired-users';
+import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
 import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
+
+import { JOBS_INTERVALS } from '../../../intervals';
 
 @Injectable()
 export class FindExpiredUsersService {

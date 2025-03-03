@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { createHmac } from 'node:crypto';
@@ -8,13 +9,13 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';
 import { ROLE } from '@libs/contracts/constants';
 
-import { ILogin, IRegister } from './interfaces';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { CountAdminsByRoleQuery } from '@modules/admin/queries/count-admins-by-role';
-import { GetStatusResponseModel } from './model/get-status.response.model';
-import { CreateAdminCommand } from '@modules/admin/commands/create-admin';
 import { GetAdminByUsernameQuery } from '@modules/admin/queries/get-admin-by-username';
+import { CountAdminsByRoleQuery } from '@modules/admin/queries/count-admins-by-role';
+import { CreateAdminCommand } from '@modules/admin/commands/create-admin';
 import { AdminEntity } from '@modules/admin/entities/admin.entity';
+
+import { GetStatusResponseModel } from './model/get-status.response.model';
+import { ILogin, IRegister } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -110,11 +111,7 @@ export class AuthService {
         try {
             const { username, password } = dto;
 
-            console.log(username, password);
-
             const statusResponse = await this.getStatus();
-
-            console.log(statusResponse);
 
             if (!statusResponse.isOk || !statusResponse.response) {
                 return {
@@ -134,8 +131,6 @@ export class AuthService {
                 username,
                 role: ROLE.ADMIN,
             });
-
-            console.log(admin);
 
             if (admin.isOk && admin.response) {
                 return {

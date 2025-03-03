@@ -1,5 +1,6 @@
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
-import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+import { InboundsEntity } from '@modules/inbounds/entities';
+
 import { IUserWithActiveInboundsAndLastConnectedNode } from '../interfaces';
 import { UserEntity } from './users.entity';
 

@@ -27,6 +27,9 @@
       ],
       "@contract/*": [
         "./libs/contract/*"
+      ],
+      "@jobs/*": [
+        "./src/jobs/*"
       ]
     },
     "incremental": true,

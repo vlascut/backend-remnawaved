@@ -1,4 +1,15 @@
 import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiCreatedResponse,
+    ApiNotFoundResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiParam,
+    ApiQuery,
+    ApiTags,
+} from '@nestjs/swagger';
+import {
     Body,
     Controller,
     Delete,
@@ -12,17 +23,7 @@ import {
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import {
-    ApiBearerAuth,
-    ApiBody,
-    ApiCreatedResponse,
-    ApiNotFoundResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiParam,
-    ApiQuery,
-    ApiTags,
-} from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -67,14 +68,13 @@ import {
     GetUserResponseModel,
     UserWithLifetimeTrafficResponseModel,
 } from './models';
-import { UsersService } from './users.service';
-import { ConfigService } from '@nestjs/config';
 import {
     GetUserByTelegramIdRequestDto,
     GetUserByTelegramIdResponseDto,
 } from './dtos/get-user-by-telegram-id.dto';
 import { GetUserByEmailResponseDto } from './dtos/get-user-by-email.dto';
 import { GetUserByEmailRequestDto } from './dtos/get-user-by-email.dto';
+import { UsersService } from './users.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Users Controller')
@@ -146,8 +146,8 @@ export class UsersController {
         required: false,
         description: 'Page size for pagination',
     })
-    @Get(USERS_ROUTES.GET_ALL_V2)
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_ALL_V2)
     async getAllUsersV2(@Query() query: GetAllUsersV2QueryDto): Promise<GetAllUsersV2ResponseDto> {
         const { start, size, filters, filterModes, globalFilterMode, sorting } = query;
         const result = await this.usersService.getAllUsersV2({
@@ -238,8 +238,8 @@ export class UsersController {
         description: 'Delete user',
     })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @Delete(USERS_ROUTES.DELETE_USER + '/:uuid')
     @HttpCode(HttpStatus.OK)
+    @Delete(USERS_ROUTES.DELETE_USER + '/:uuid')
     async deleteUser(@Param() paramData: DeleteUserRequestDto): Promise<DeleteUserResponseDto> {
         const result = await this.usersService.deleteUser(paramData.uuid);
 
@@ -348,8 +348,8 @@ export class UsersController {
         description: 'Short UUID of the user',
         required: true,
     })
-    @Get(USERS_ROUTES.GET_BY_SHORT_UUID + '/:shortUuid')
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_SHORT_UUID + '/:shortUuid')
     async getUserByShortUuid(
         @Param() paramData: GetUserByShortUuidRequestDto,
     ): Promise<GetUserByShortUuidResponseDto> {
@@ -380,8 +380,8 @@ export class UsersController {
         description: 'UUID of the subscription',
         required: true,
     })
-    @Get(USERS_ROUTES.GET_BY_SUBSCRIPTION_UUID + '/:subscriptionUuid')
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_SUBSCRIPTION_UUID + '/:subscriptionUuid')
     async getUserBySubscriptionUuid(
         @Param() paramData: GetUserBySubscriptionUuidRequestDto,
     ): Promise<GetUserBySubscriptionUuidResponseDto> {
@@ -407,8 +407,8 @@ export class UsersController {
         description: 'Get user by UUID',
     })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @Get(USERS_ROUTES.GET_BY_UUID + '/:uuid')
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_UUID + '/:uuid')
     async getUserByUuid(
         @Param() paramData: GetUserByUuidRequestDto,
     ): Promise<GetUserByUuidResponseDto> {
@@ -434,8 +434,8 @@ export class UsersController {
         description: 'Username of the user',
         required: true,
     })
-    @Get(USERS_ROUTES.GET_BY_USERNAME + '/:username')
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_USERNAME + '/:username')
     async getUserByUsername(
         @Param() paramData: GetUserByUsernameRequestDto,
     ): Promise<GetUserByUsernameResponseDto> {
@@ -463,8 +463,8 @@ export class UsersController {
         description: 'Telegram ID of the user',
         required: true,
     })
-    @Get(USERS_ROUTES.GET_BY_TELEGRAM_ID + '/:telegramId')
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_TELEGRAM_ID + '/:telegramId')
     async getUserByTelegramId(
         @Param() paramData: GetUserByTelegramIdRequestDto,
     ): Promise<GetUserByTelegramIdResponseDto> {
@@ -492,8 +492,8 @@ export class UsersController {
         description: 'Email of the user',
         required: true,
     })
-    @Get(USERS_ROUTES.GET_BY_EMAIL + '/:email')
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_EMAIL + '/:email')
     async getUsersByEmail(
         @Param() paramData: GetUserByEmailRequestDto,
     ): Promise<GetUserByEmailResponseDto> {

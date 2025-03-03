@@ -8,42 +8,44 @@ import { customAlphabet } from 'nanoid';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
-import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
-import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
-import { InboundsEntity } from '@modules/inbounds/entities/inbounds.entity';
-import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
-import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
-import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
-import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
-import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
-import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
-import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node';
-import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node';
-import {
-    UserWithLifetimeTrafficEntity,
-    UserWithActiveInboundsEntity,
-    UserWithActiveInboundsAndLastConnectedNodeEntity,
-} from './entities';
-import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
-import { BulkDeleteByStatusResponseModel, DeleteUserResponseModel } from './models';
-import {
-    BulkDeleteUsersByStatusRequestDto,
-    CreateUserRequestDto,
-    UpdateUserRequestDto,
-} from './dtos';
-import { UsersRepository } from './repositories/users.repository';
-import { UserEntity } from './entities/users.entity';
+import { ICommandResponse } from '@common/types/command-response.type';
+
+import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
+
+import { DeleteManyActiveInboubdsByUserUuidCommand } from '@modules/inbounds/commands/delete-many-active-inboubds-by-user-uuid';
 import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
+import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
+import { CreateManyUserActiveInboundsCommand } from '@modules/inbounds/commands/create-many-user-active-inbounds';
+import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
+import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
+import { ReaddUserToNodeEvent } from '@modules/nodes/events/readd-user-to-node';
+import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
+import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
+import { InboundsEntity } from '@modules/inbounds/entities';
 
 import {
+    UserWithActiveInboundsEntity,
+    UserEntity,
+    UserWithLifetimeTrafficEntity,
+    UserWithActiveInboundsAndLastConnectedNodeEntity,
+} from './entities';
+import {
+    IGetUserWithLastConnectedNode,
     IGetUserByUnique,
     IGetUsersByTelegramIdOrEmail,
-    IGetUserWithLastConnectedNode,
 } from './interfaces';
+import {
+    CreateUserRequestDto,
+    UpdateUserRequestDto,
+    BulkDeleteUsersByStatusRequestDto,
+} from './dtos';
+import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
+import { DeleteUserResponseModel, BulkDeleteByStatusResponseModel } from './models';
+import { UsersRepository } from './repositories/users.repository';
 
 dayjs.extend(utc);
 

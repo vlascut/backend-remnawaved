@@ -1,5 +1,6 @@
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger } from 'nestjs-zod';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { createLogger } from 'winston';
 import compression from 'compression';
@@ -7,15 +8,13 @@ import * as winston from 'winston';
 import { json } from 'express';
 import helmet from 'helmet';
 
+import { NotFoundExceptionFilter } from '@common/exception/not-found-exception.filter';
+import { WorkerRoutesGuard } from '@common/guards/worker-routes/worker-routes.guard';
 import { isDevelopment } from '@common/utils/startup-app';
-
 import { AxiosService } from '@common/axios';
+import { METRICS_ROOT } from '@libs/contracts/api';
 
 import { WorkerModule } from './worker.module';
-import { WorkerRoutesGuard } from '@common/guards/worker-routes/worker-routes.guard';
-import { NotFoundExceptionFilter } from '@common/exception/not-found-exception.filter';
-import { ConfigService } from '@nestjs/config';
-import { METRICS_ROOT, ROOT } from '@libs/contracts/api';
 
 patchNestJsSwagger();
 

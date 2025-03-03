@@ -1,4 +1,3 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseFilters } from '@nestjs/common';
 import {
     ApiBody,
     ApiForbiddenResponse,
@@ -7,12 +6,13 @@ import {
     ApiTags,
     ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseFilters } from '@nestjs/common';
 
 import { AUTH_CONTROLLER, AUTH_ROUTES } from '@libs/contracts/api/controllers/auth';
+
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 
-import { AuthResponseModel } from './model/auth-response.model';
 import {
     GetStatusResponseDto,
     LoginRequestDto,
@@ -20,18 +20,19 @@ import {
     RegisterRequestDto,
     RegisterResponseDto,
 } from './dtos';
-import { AuthService } from './auth.service';
 import { RegisterResponseModel } from './model/register.response.model';
+import { AuthResponseModel } from './model/auth-response.model';
+import { AuthService } from './auth.service';
 
 @ApiTags('Auth Controller')
-@Controller(AUTH_CONTROLLER)
 @UseFilters(HttpExceptionFilter)
+@Controller(AUTH_CONTROLLER)
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @ApiBody({ type: LoginRequestDto })
-    @ApiResponse({ type: LoginResponseDto, description: 'Access token for further requests' })
     @ApiOperation({ summary: 'Login', description: 'Login to the system' })
+    @ApiResponse({ type: LoginResponseDto, description: 'Access token for further requests' })
     @ApiUnauthorizedResponse({
         description: 'Unauthorized - Invalid credentials',
         schema: {
@@ -55,8 +56,6 @@ export class AuthController {
     }
 
     @ApiBody({ type: RegisterRequestDto })
-    @ApiResponse({ type: RegisterResponseDto, description: 'Access token for further requests' })
-    @ApiOperation({ summary: 'Register', description: 'Register to the system' })
     @ApiForbiddenResponse({
         description: 'Forbidden - Registration is not allowed',
         schema: {
@@ -68,6 +67,8 @@ export class AuthController {
             },
         },
     })
+    @ApiOperation({ summary: 'Register', description: 'Register to the system' })
+    @ApiResponse({ type: RegisterResponseDto, description: 'Access token for further requests' })
     @HttpCode(HttpStatus.OK)
     @Post(AUTH_ROUTES.REGISTER)
     async register(@Body() body: RegisterRequestDto): Promise<RegisterResponseDto> {

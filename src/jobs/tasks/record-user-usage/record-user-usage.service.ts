@@ -1,27 +1,30 @@
-import { GetUsersStatsCommand } from '@remnawave/node-contract';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { Injectable, Logger } from '@nestjs/common';
 import pMap from '@cjs-exporter/p-map';
 import { Gauge } from 'prom-client';
 
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { Injectable, Logger } from '@nestjs/common';
+
+import { GetUsersStatsCommand } from '@remnawave/node-contract';
+
+import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
+import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { fromNanoToNumber } from '@common/utils/nano';
+import { AxiosService } from '@common/axios';
+import { METRIC_NAMES } from '@libs/contracts/constants';
+
+import { BulkUpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/bulk-upsert-user-history-entry';
+import { BulkIncrementUsedTrafficCommand } from '@modules/users/commands/bulk-increment-used-traffic';
 import { NodesUserUsageHistoryEntity } from '@modules/nodes-user-usage-history/entities';
 import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
 import { GetOnlineNodesQuery } from '@modules/nodes/queries/get-online-nodes';
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { AxiosService } from '@common/axios';
 import { NodesEntity } from '@modules/nodes';
 
 import { JOBS_INTERVALS } from '../../intervals';
-import { METRIC_NAMES } from '@libs/contracts/constants';
-import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
-import { fromNanoToNumber } from '@common/utils/nano';
-import { BulkUpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/bulk-upsert-user-history-entry';
-import { BulkIncrementUsedTrafficCommand } from '@modules/users/commands/bulk-increment-used-traffic';
 
 @Injectable()
 export class RecordUserUsageService {
@@ -69,7 +72,7 @@ export class RecordUserUsageService {
                 return;
             }
 
-            const nodes = nodesResponse.response;
+            nodes = nodesResponse.response;
 
             const mapper = async (node: NodesEntity) => {
                 const response = await this.axios.getUsersStats(

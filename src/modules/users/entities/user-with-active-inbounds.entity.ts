@@ -1,4 +1,5 @@
-import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+import { InboundsEntity } from '@modules/inbounds/entities';
+
 import { IUserWithActiveInbounds } from '../interfaces';
 import { UserEntity } from './users.entity';
 

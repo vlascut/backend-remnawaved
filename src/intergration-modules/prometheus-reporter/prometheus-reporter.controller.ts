@@ -1,7 +1,8 @@
-import { ApiBasicAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PrometheusController } from '@willsoto/nestjs-prometheus';
-import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
+
+import { ApiBasicAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 
 import { METRICS_ROOT } from '@libs/contracts/api';
 
@@ -16,8 +17,8 @@ export class PrometheusReporterController extends PrometheusController {
     }
 
     @ApiOperation({ summary: 'Prometheus Metrics' })
-    @Get()
     @UseGuards(BasicAuthGuard)
+    @Get()
     async index(@Res({ passthrough: true }) response: Response) {
         return super.index(response);
     }

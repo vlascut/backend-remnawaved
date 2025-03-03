@@ -3,12 +3,14 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
-import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes/get-enabled-nodes.query';
-import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 import { EVENTS } from '@libs/contracts/constants/events/events';
+
+import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+
+import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes/get-enabled-nodes.query';
+import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 
 import { JOBS_INTERVALS } from '../../intervals';
 
@@ -56,7 +58,7 @@ export class ReviewNodesService {
                 return;
             }
 
-            const nodes = nodesResponse.response;
+            nodes = nodesResponse.response;
 
             for (const node of nodes) {
                 if (node.isTrafficTrackingActive === false) continue;

@@ -1,5 +1,6 @@
-import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 import { TNodeEvents } from '@libs/contracts/constants';
+
+import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 
 export class NodeEvent {
     node: NodesEntity;

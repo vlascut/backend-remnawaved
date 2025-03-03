@@ -1,6 +1,9 @@
-import { QueryBus } from '@nestjs/cqrs';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Gauge } from 'prom-client';
+
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { Injectable, Logger } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
 
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
@@ -8,9 +11,8 @@ import { METRIC_NAMES } from '@libs/contracts/constants';
 
 import { GetShortUserStatsQuery } from '@modules/users/queries/get-short-user-stats/get-short-user-stats.query';
 import { ShortUserStats } from '@modules/users/interfaces/user-stats.interface';
-import { JOBS_INTERVALS } from 'src/jobs/intervals';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { Gauge } from 'prom-client';
+
+import { JOBS_INTERVALS } from '@jobs/intervals';
 
 @Injectable()
 export class ShortUsersStatsService {

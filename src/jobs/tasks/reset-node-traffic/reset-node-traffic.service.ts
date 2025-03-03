@@ -1,18 +1,19 @@
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
+
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { Injectable, Logger } from '@nestjs/common';
+
+import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
+import { ICommandResponse } from '@common/types/command-response.type';
 
 import { CreateNodeTrafficUsageHistoryCommand } from '@modules/nodes-traffic-usage-history/commands/create-node-traffic-usage-history';
 import { NodesTrafficUsageHistoryEntity } from '@modules/nodes-traffic-usage-history/entities/nodes-traffic-usage-history.entity';
 import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes/get-enabled-nodes.query';
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
-import { ICommandResponse } from '@common/types/command-response.type';
 import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 
-import { JOBS_INTERVALS } from '../../intervals';
+import { JOBS_INTERVALS } from '@jobs/intervals';
 
 @Injectable()
 export class ResetNodeTrafficService {
@@ -25,8 +26,6 @@ export class ResetNodeTrafficService {
         private readonly schedulerRegistry: SchedulerRegistry,
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
-        private readonly eventBus: EventBus,
-        private readonly eventEmitter: EventEmitter2,
     ) {
         this.isJobRunning = false;
         this.cronName = ResetNodeTrafficService.CRON_NAME;

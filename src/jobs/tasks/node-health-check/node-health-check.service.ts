@@ -1,25 +1,29 @@
-import { GetSystemStatsCommand } from '@remnawave/node-contract';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import pMap from '@cjs-exporter/p-map';
+import { Gauge } from 'prom-client';
+
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import pMap from '@cjs-exporter/p-map';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { Gauge } from 'prom-client';
+
+import { GetSystemStatsCommand } from '@remnawave/node-contract';
+
+import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
+import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
+import { ICommandResponse } from '@common/types/command-response.type';
+import { AxiosService } from '@common/axios';
+import { EVENTS } from '@libs/contracts/constants';
 
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
-import { ICommandResponse } from '@common/types/command-response.type';
-import { EVENTS } from '@libs/contracts/constants';
-import { AxiosService } from '@common/axios';
 
-import { GetEnabledNodesQuery } from '../../../modules/nodes/queries/get-enabled-nodes';
-import { UpdateNodeCommand } from '../../../modules/nodes/commands/update-node';
-import { StartAllNodesEvent } from '../../../modules/nodes/events/start-all-nodes';
-import { StartNodeEvent } from '../../../modules/nodes/events/start-node';
+import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes';
+import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
+import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
+import { StartNodeEvent } from '@modules/nodes/events/start-node';
+import { NodesEntity } from '@modules/nodes';
+
 import { JOBS_INTERVALS } from '../../intervals';
-import { NodesEntity } from '../../../modules/nodes';
-import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 
 @Injectable()
 export class NodeHealthCheckService {

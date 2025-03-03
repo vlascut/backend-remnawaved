@@ -1,19 +1,22 @@
-import { GetAllOutboundsStatsCommand } from '@remnawave/node-contract';
+import pMap from '@cjs-exporter/p-map';
+
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import pMap from '@cjs-exporter/p-map';
+
+import { GetAllOutboundsStatsCommand } from '@remnawave/node-contract';
 
 import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { AxiosService } from '@common/axios';
 
-import { UpsertHistoryEntryCommand } from '../../../modules/nodes-usage-history/commands/upsert-history-entry/upsert-history-entry.command';
-import { NodesUsageHistoryEntity } from '../../../modules/nodes-usage-history/entities/nodes-usage-history.entity';
-import { GetOnlineNodesQuery } from '../../../modules/nodes/queries/get-online-nodes/get-online-nodes.query';
-import { IncrementUsedTrafficCommand } from '../../../modules/nodes/commands/increment-used-traffic';
+import { UpsertHistoryEntryCommand } from '@modules/nodes-usage-history/commands/upsert-history-entry/upsert-history-entry.command';
+import { NodesUsageHistoryEntity } from '@modules/nodes-usage-history/entities/nodes-usage-history.entity';
+import { GetOnlineNodesQuery } from '@modules/nodes/queries/get-online-nodes/get-online-nodes.query';
+import { IncrementUsedTrafficCommand } from '@modules/nodes/commands/increment-used-traffic';
+import { NodesEntity } from '@modules/nodes';
+
 import { JOBS_INTERVALS } from '../../intervals';
-import { NodesEntity } from '../../../modules/nodes';
 
 @Injectable()
 export class RecordNodesUsageService {
