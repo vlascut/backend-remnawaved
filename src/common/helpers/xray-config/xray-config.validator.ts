@@ -219,6 +219,8 @@ export class XRayConfig {
                 usersByTag.get(user.tag)!.push(user);
             }
 
+            users.length = 0;
+
             for (const [tag, tagUsers] of usersByTag) {
                 const inbound = inboundMap.get(tag);
                 if (!inbound) continue;
