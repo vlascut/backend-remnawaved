@@ -97,6 +97,7 @@ export class FindExpiredUsersService {
                     new UserEvent(user, EVENTS.USER.EXPIRED),
                 );
 
+                // TODO: find a better way to do this. If previous user status was limited, this event will throw warning.
                 await this.eventBus.publish(new RemoveUserFromNodeEvent(user));
             }
 

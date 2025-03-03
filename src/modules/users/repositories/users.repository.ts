@@ -192,7 +192,10 @@ export class UsersRepository implements ICrud<UserEntity> {
             where: {
                 AND: [
                     {
-                        status: USERS_STATUS.ACTIVE,
+                        status: {
+                            // TODO: maybe limited users needs their own cron job?
+                            in: [USERS_STATUS.ACTIVE, USERS_STATUS.LIMITED],
+                        },
                     },
                     {
                         trafficLimitBytes: {
