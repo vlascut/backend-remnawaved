@@ -33,7 +33,6 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
             const startTime = Date.now();
             const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
 
-            console.log(config.response?.inbounds[4].settings?.clients.length);
             this.logger.debug(`Generated config for node in ${Date.now() - startTime}ms`);
 
             if (!config.isOk || !config.response) {

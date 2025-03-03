@@ -13,6 +13,6 @@ import { QUERIES } from './queries';
     imports: [CqrsModule, UsersModule],
     controllers: [XrayConfigController],
     providers: [XrayConfigService, XrayConfigRepository, XrayConfigConverter, ...QUERIES],
-    exports: [],
+    exports: [XrayConfigRepository],
 })
 export class XrayConfigModule {}

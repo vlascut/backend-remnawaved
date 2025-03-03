@@ -14,7 +14,6 @@ import { DeleteManyInboundsCommand } from '../inbounds/commands/delete-many-inbo
 import { CreateManyInboundsCommand } from '../inbounds/commands/create-many-inbounds';
 import { XrayConfigRepository } from './repositories/xray-config.repository';
 import { GetAllInboundsQuery } from '../inbounds/queries/get-all-inbounds';
-import { UserForConfigEntity } from '../users/entities/users-for-config';
 import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
 import { StartAllNodesEvent } from '../nodes/events/start-all-nodes';
 import { UpdateConfigRequestDto } from './dtos/update-config.dto';
@@ -168,41 +167,6 @@ export class XrayConfigService implements OnApplicationBootstrap {
             return XRayConfig.getXrayConfigInstance(config);
         } catch {
             return null;
-        }
-    }
-
-    public async getConfigWithUsers(
-        users: UserForConfigEntity[] | AsyncGenerator<UserForConfigEntity[]>,
-    ): Promise<ICommandResponse<IXrayConfig>> {
-        try {
-            const config = await this.getConfig();
-            if (!config.response) {
-                return {
-                    isOk: false,
-                    ...ERRORS.GET_CONFIG_ERROR,
-                };
-            }
-
-            const parsedConf = new XRayConfig(config.response);
-            parsedConf.processCertificates();
-
-            let fConfig = parsedConf.getConfig();
-
-            const generator = users as AsyncGenerator<UserForConfigEntity[]>;
-            for await (const userBatch of generator) {
-                fConfig = parsedConf.includeUserBatch(userBatch);
-            }
-
-            return {
-                isOk: true,
-                response: fConfig,
-            };
-        } catch (error) {
-            this.logger.error(error);
-            return {
-                isOk: false,
-                ...ERRORS.GET_CONFIG_WITH_USERS_ERROR,
-            };
         }
     }
 

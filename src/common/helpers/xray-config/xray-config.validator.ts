@@ -120,6 +120,12 @@ export class XRayConfig {
         return this.config.inbounds.find((inbound) => inbound.tag === tag);
     }
 
+    public excludeInbounds(tags: string[]): void {
+        this.config.inbounds = this.config.inbounds.filter(
+            (inbound) => !tags.includes(inbound.tag),
+        );
+    }
+
     private getInbounds(): Inbound[] {
         return this.inbounds;
     }
