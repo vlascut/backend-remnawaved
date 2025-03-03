@@ -27,6 +27,7 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
         this.CONCURRENCY = 10;
     }
     async handle() {
+        const startTime = Date.now();
         try {
             const nodes = await this.nodesRepository.findByCriteria({
                 isDisabled: false,
@@ -91,6 +92,8 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
             };
 
             await pMap(nodes, mapper, { concurrency: this.CONCURRENCY });
+
+            this.logger.debug(`Started all nodes in ${Date.now() - startTime}ms`);
 
             return;
         } catch (error) {

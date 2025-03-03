@@ -64,6 +64,7 @@ export class UsersWithInboundTagAndExcludedInboundsBuilder {
             ON i.uuid = aui.inbound_uuid
         WHERE u.status = '${USERS_STATUS.ACTIVE}'
             ${excludedUuidsCondition}
+        ORDER BY u.created_at ASC
     `;
 
         return Prisma.raw(query);

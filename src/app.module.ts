@@ -43,6 +43,7 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
             wildcard: true,
             delimiter: '.',
         }),
+
         IntegrationModules,
         RemnawaveModules,
         ServeStaticModule.forRootAsync({

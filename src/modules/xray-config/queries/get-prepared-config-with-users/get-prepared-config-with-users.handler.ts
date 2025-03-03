@@ -1,14 +1,15 @@
-import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
-import { forwardRef, Inject, Logger } from '@nestjs/common';
+import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
 
+import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { ERRORS } from '@libs/contracts/constants';
 
+import { XrayConfigRepository } from '@modules/xray-config/repositories/xray-config.repository';
+import { UsersRepository } from '@modules/users/repositories/users.repository';
+
 import { GetPreparedConfigWithUsersQuery } from './get-prepared-config-with-users.query';
-import { UserForConfigEntity } from '../../../users/entities/users-for-config';
-import { UsersRepository } from '../../../users/repositories/users.repository';
-import { XrayConfigService } from '../../xray-config.service';
 
 @QueryHandler(GetPreparedConfigWithUsersQuery)
 export class GetPreparedConfigWithUsersHandler
@@ -16,31 +17,35 @@ export class GetPreparedConfigWithUsersHandler
 {
     private readonly logger = new Logger(GetPreparedConfigWithUsersHandler.name);
     constructor(
-        @Inject(forwardRef(() => XrayConfigService))
-        private readonly xrayService: XrayConfigService,
-
-        private readonly queryBus: QueryBus,
-        @Inject(forwardRef(() => UsersRepository))
         private readonly usersRepository: UsersRepository,
+        private readonly xrayConfigRepository: XrayConfigRepository,
     ) {}
 
     async execute(query: GetPreparedConfigWithUsersQuery): Promise<ICommandResponse<IXrayConfig>> {
+        let config: XRayConfig | null = null;
         try {
             const { excludedInbounds } = query;
 
-            const usersGenerator = this.getUsersForConfigStream({
-                excludedInbounds,
-            });
+            const dbConfig = await this.xrayConfigRepository.findFirst();
 
-            const config = await this.xrayService.getConfigWithUsers(usersGenerator);
+            if (!dbConfig || !dbConfig.config) {
+                throw new Error('No XTLS config found in DB!');
+            }
 
-            if (!config.response) {
-                throw new Error('Config response is empty');
+            config = new XRayConfig(dbConfig.config);
+            config.excludeInbounds(excludedInbounds.map((inbound) => inbound.tag));
+
+            config.processCertificates();
+
+            const usersStream = this.usersRepository.getUsersForConfigStream(excludedInbounds);
+
+            for await (const userBatch of usersStream) {
+                config.includeUserBatch(userBatch);
             }
 
             return {
                 isOk: true,
-                response: config.response,
+                response: config.getConfig(),
             };
         } catch (error) {
             this.logger.error(error);
@@ -48,12 +53,8 @@ export class GetPreparedConfigWithUsersHandler
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,
             };
+        } finally {
+            config = null;
         }
-    }
-
-    private getUsersForConfigStream(
-        dto: GetPreparedConfigWithUsersQuery,
-    ): AsyncGenerator<UserForConfigEntity[]> {
-        return this.usersRepository.getUsersForConfigStream(dto.excludedInbounds);
     }
 }
