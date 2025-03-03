@@ -5,7 +5,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ROLE } from '@libs/contracts/constants';
 
-import { GetAdminByUsernameQuery } from '@modules/admin/queries/get-admin-by-username/get-admin-by-username.query';
+import { GetAdminByUsernameQuery } from '@modules/admin/queries/get-admin-by-username';
 import { AdminEntity } from '@modules/admin/entities/admin.entity';
 import { IJWTAuthPayload } from '@modules/auth/interfaces';
 
