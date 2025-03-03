@@ -151,10 +151,15 @@ export class UsersService {
             let isNeedToBeAddedToNode =
                 user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
 
-            if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes) {
-                if (BigInt(trafficLimitBytes) > user.trafficLimitBytes) {
-                    newStatus = USERS_STATUS.ACTIVE;
-                    isNeedToBeAddedToNode = true;
+            if (trafficLimitBytes !== undefined) {
+                if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes >= 0) {
+                    if (
+                        BigInt(trafficLimitBytes) > user.trafficLimitBytes ||
+                        trafficLimitBytes === 0
+                    ) {
+                        newStatus = USERS_STATUS.ACTIVE;
+                        isNeedToBeAddedToNode = true;
+                    }
                 }
             }
 
