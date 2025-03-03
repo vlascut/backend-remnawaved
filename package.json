@@ -15,7 +15,7 @@
     "url": "https://github.com/remnawave/backend/issues"
   },
   "prisma": {
-    "seed": "node dist/prisma/config.seed.js"
+    "seed": "node dist/prisma/seed/config.seed.js"
   },
   "scripts": {
     "build": "nest build",
