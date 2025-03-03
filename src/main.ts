@@ -107,19 +107,19 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalGuards(new ProxyCheckGuard({ exclude: [ROOT + METRICS_ROOT] }));
 
-    // app.enableShutdownHooks();
+    app.enableShutdownHooks();
 
     await app.listen(Number(config.getOrThrow<string>('APP_PORT'))); // 127.0.0.1 will not work with docker bridge network.
 
     const axiosService = app.get(AxiosService);
     await axiosService.setJwt();
 
-    process.on('SIGINT', async () => {
-        console.log('SIGINT, waiting for profiling...');
+    // process.on('SIGINT', async () => {
+    //     console.log('SIGINT, waiting for profiling...');
 
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+    //     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        await app.close();
-    });
+    //     await app.close();
+    // });
 }
 void bootstrap();

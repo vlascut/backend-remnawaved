@@ -1,4 +1,3 @@
-import { ScheduleModule } from '@nestjs/schedule';
 import { Module } from '@nestjs/common';
 
 import { NodesTrafficUsageHistoryModule } from './nodes-traffic-usage-history/nodes-traffic-usage-history.module';
@@ -16,7 +15,6 @@ import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
 import { XrayConfigModule } from './xray-config';
 import { AuthModule } from './auth/auth.module';
-import { DebugJob } from './debug.job';
 
 @Module({
     imports: [
@@ -35,8 +33,6 @@ import { DebugJob } from './debug.job';
         InboundsModule,
         XrayConfigModule,
         SystemModule,
-        ScheduleModule.forRoot(),
     ],
-    providers: [DebugJob],
 })
 export class RemnawaveModules {}
