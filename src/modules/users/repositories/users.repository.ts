@@ -623,7 +623,7 @@ export class UsersRepository implements ICrud<UserEntity> {
     public async *getUsersForConfigStream(
         excludedInbounds: InboundsEntity[],
     ): AsyncGenerator<UserForConfigEntity[]> {
-        const BATCH_SIZE = 25_000;
+        const BATCH_SIZE = 15_000;
         let offset = 0;
         let hasMoreData = true;
 
