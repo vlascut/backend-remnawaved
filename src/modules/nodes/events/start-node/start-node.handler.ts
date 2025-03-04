@@ -66,14 +66,17 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                 return;
             }
 
-            console.log('wtf');
-
             const startTime = Date.now();
             console.time('getConfigForNode');
             const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
             console.timeEnd('getConfigForNode');
 
             console.log(config.response?.inbounds[0].settings?.clients.length);
+            console.log(config.response?.inbounds[1]?.settings?.clients.length || 'null');
+            console.log(config.response?.inbounds[2]?.settings?.clients.length || 'null');
+            console.log(config.response?.inbounds[3]?.settings?.clients.length || 'null');
+            console.log(config.response?.inbounds[4]?.settings?.clients.length || 'null');
+            console.log(config.response?.inbounds[5]?.settings?.clients.length || 'null');
 
             this.logger.log(`Generated config for node in ${Date.now() - startTime}ms`);
 

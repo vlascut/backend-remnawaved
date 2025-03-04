@@ -4,7 +4,6 @@ export class UserForConfigEntity {
     public vlessUuid: string;
     public ssPassword: string;
     public tags: string[];
-    public subscriptionUuid: string;
 
     constructor(data: UserForConfigEntity) {
         this.username = data.username;
@@ -12,6 +11,5 @@ export class UserForConfigEntity {
         this.vlessUuid = data.vlessUuid;
         this.ssPassword = data.ssPassword;
         this.tags = data.tags;
-        this.subscriptionUuid = data.subscriptionUuid;
     }
 }
