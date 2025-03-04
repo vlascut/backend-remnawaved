@@ -114,7 +114,6 @@ export class NodeHealthCheckService {
             node: {
                 uuid: node.uuid,
                 isConnected: true,
-                isConnecting: false,
                 isNodeOnline: true,
                 isXrayRunning: true,
                 lastStatusChange: new Date(),
@@ -150,8 +149,6 @@ export class NodeHealthCheckService {
                 isXrayRunning: false,
                 lastStatusChange: new Date(),
                 lastStatusMessage: message,
-                isDisabled: false,
-                isConnecting: false,
                 usersOnline: 0,
             },
         });
