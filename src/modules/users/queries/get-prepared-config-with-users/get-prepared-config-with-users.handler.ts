@@ -40,7 +40,10 @@ export class GetPreparedConfigWithUsersHandler
             const usersStream = this.usersRepository.getUsersForConfigStream(excludedInbounds);
 
             for await (const userBatch of usersStream) {
+                console.time('includeUserBatch');
+
                 config.includeUserBatch(userBatch);
+                console.timeEnd('includeUserBatch');
             }
 
             return {

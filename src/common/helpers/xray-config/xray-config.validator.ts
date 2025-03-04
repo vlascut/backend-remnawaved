@@ -212,39 +212,39 @@ export class XRayConfig {
         }));
     }
 
-    private includeUsers(users: UserForConfigEntity[]): IXrayConfig {
-        let config: IXrayConfig | null = null;
-        try {
-            config = JSON.parse(JSON.stringify(this.config)) as IXrayConfig;
+    // private includeUsers(users: UserForConfigEntity[]): IXrayConfig {
+    //     let config: IXrayConfig | null = null;
+    //     try {
+    //         config = JSON.parse(JSON.stringify(this.config)) as IXrayConfig;
 
-            const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
+    //         const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
 
-            const usersByTag = new Map<string, UserForConfigEntity[]>();
-            for (const user of users) {
-                if (!usersByTag.has(user.tag)) {
-                    usersByTag.set(user.tag, []);
-                }
-                usersByTag.get(user.tag)!.push(user);
-            }
+    //         const usersByTag = new Map<string, UserForConfigEntity[]>();
+    //         for (const user of users) {
+    //             if (!usersByTag.has(user.tag)) {
+    //                 usersByTag.set(user.tag, []);
+    //             }
+    //             usersByTag.get(user.tag)!.push(user);
+    //         }
 
-            for (const [tag, tagUsers] of usersByTag) {
-                const inbound = inboundMap.get(tag);
-                if (!inbound) continue;
+    //         for (const [tag, tagUsers] of usersByTag) {
+    //             const inbound = inboundMap.get(tag);
+    //             if (!inbound) continue;
 
-                inbound.settings ??= {} as InboundSettings;
+    //             inbound.settings ??= {} as InboundSettings;
 
-                this.addUsersToInbound(inbound, tagUsers);
-            }
+    //             this.addUsersToInbound(inbound, tagUsers);
+    //         }
 
-            usersByTag.clear();
+    //         usersByTag.clear();
 
-            return config;
-        } catch (error) {
-            throw error;
-        } finally {
-            config = null;
-        }
-    }
+    //         return config;
+    //     } catch (error) {
+    //         throw error;
+    //     } finally {
+    //         config = null;
+    //     }
+    // }
 
     // public prepareConfigForNode(users: UserForConfigEntity[]): IXrayConfig {
     //     return this.processCertificates(this.includeUsers(users));
@@ -290,13 +290,42 @@ export class XRayConfig {
         }
     }
 
+    // public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
+    //     const usersByTag = new Map<string, UserForConfigEntity[]>();
+    //     for (const user of users) {
+    //         if (!usersByTag.has(user.tag)) {
+    //             usersByTag.set(user.tag, []);
+    //         }
+    //         usersByTag.get(user.tag)!.push(user);
+    //     }
+
+    //     const inboundMap = new Map(this.config.inbounds.map((inbound) => [inbound.tag, inbound]));
+
+    //     for (const [tag, tagUsers] of usersByTag) {
+    //         const inbound = inboundMap.get(tag);
+    //         if (!inbound) continue;
+
+    //         inbound.settings ??= {} as InboundSettings;
+
+    //         this.addUsersToInbound(inbound, tagUsers);
+    //     }
+
+    //     usersByTag.clear();
+
+    //     return this.config;
+    // }
+
     public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
+        console.time('indexing');
+
         const usersByTag = new Map<string, UserForConfigEntity[]>();
         for (const user of users) {
-            if (!usersByTag.has(user.tag)) {
-                usersByTag.set(user.tag, []);
+            for (const tag of user.tags) {
+                if (!usersByTag.has(tag)) {
+                    usersByTag.set(tag, []);
+                }
+                usersByTag.get(tag)!.push(user);
             }
-            usersByTag.get(user.tag)!.push(user);
         }
 
         const inboundMap = new Map(this.config.inbounds.map((inbound) => [inbound.tag, inbound]));
@@ -312,6 +341,34 @@ export class XRayConfig {
 
         usersByTag.clear();
 
+        console.timeEnd('indexing');
+
         return this.config;
     }
+
+    // public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
+    //     console.time('indexing');
+
+    //     for (const inbound of this.config.inbounds) {
+    //         // Подготавливаем инбаунд
+    //         inbound.settings ??= {} as InboundSettings;
+
+    //         // Находим пользователей для этого инбаунда вручную
+    //         const usersForThisInbound: UserForConfigEntity[] = [];
+    //         for (const user of users) {
+    //             if (user.tags.includes(inbound.tag)) {
+    //                 usersForThisInbound.push(user);
+    //             }
+    //         }
+
+    //         // Если есть пользователи для этого инбаунда, добавляем их
+    //         if (usersForThisInbound.length > 0) {
+    //             this.addUsersToInbound(inbound, usersForThisInbound);
+    //         }
+    //     }
+
+    //     console.timeEnd('indexing');
+
+    //     return this.config;
+    // }
 }

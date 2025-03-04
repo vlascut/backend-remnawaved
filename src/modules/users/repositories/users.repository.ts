@@ -623,11 +623,13 @@ export class UsersRepository implements ICrud<UserEntity> {
     public async *getUsersForConfigStream(
         excludedInbounds: InboundsEntity[],
     ): AsyncGenerator<UserForConfigEntity[]> {
-        const BATCH_SIZE = 5000;
+        const BATCH_SIZE = 50_000;
         let offset = 0;
         let hasMoreData = true;
 
         while (hasMoreData) {
+            console.time('getUsersForConfigStream');
+
             const builder = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
 
             const query = Prisma.sql`
@@ -640,6 +642,7 @@ export class UsersRepository implements ICrud<UserEntity> {
             if (result.length < BATCH_SIZE) {
                 hasMoreData = false;
             }
+            console.timeEnd('getUsersForConfigStream');
 
             if (result.length > 0) {
                 yield result;
