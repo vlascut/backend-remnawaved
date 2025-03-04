@@ -10,9 +10,9 @@ import { EVENTS } from '@libs/contracts/constants';
 
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 
+import { GetPreparedConfigWithUsersQuery } from '@modules/users/queries/get-prepared-config-with-users';
 import { InboundsEntity } from '@modules/inbounds/entities';
 
-import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
 import { NodesRepository } from '../../repositories/nodes.repository';
 import { StartNodeEvent } from './start-node.event';
 
@@ -29,6 +29,35 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
     async handle(event: StartNodeEvent) {
         try {
             const nodeEntity = event.node;
+
+            if (nodeEntity.isConnecting) {
+                return;
+            }
+
+            await this.nodesRepository.update({
+                uuid: nodeEntity.uuid,
+                isConnecting: true,
+            });
+
+            const xrayStatusResponse = await this.axios.getXrayStatus(
+                nodeEntity.address,
+                nodeEntity.port,
+            );
+
+            if (!xrayStatusResponse.isOk && !xrayStatusResponse.response) {
+                await this.nodesRepository.update({
+                    uuid: nodeEntity.uuid,
+                    isXrayRunning: false,
+                    isNodeOnline: false,
+                    lastStatusMessage: xrayStatusResponse.message ?? null,
+                    lastStatusChange: new Date(),
+                    isConnected: false,
+                    isConnecting: false,
+                    usersOnline: 0,
+                });
+
+                return;
+            }
 
             const startTime = Date.now();
             const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
@@ -58,7 +87,6 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                     lastStatusChange: new Date(),
                     isConnected: false,
                     isConnecting: false,
-                    isDisabled: false,
                     usersOnline: 0,
                 });
                 return;
@@ -74,7 +102,6 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                 isConnected: nodeResponse.isStarted,
                 lastStatusMessage: nodeResponse.error ?? null,
                 lastStatusChange: new Date(),
-                isDisabled: false,
                 isConnecting: false,
                 cpuCount: nodeResponse.systemInformation?.cpuCores ?? null,
                 cpuModel: nodeResponse.systemInformation?.cpuModel ?? null,

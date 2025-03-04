@@ -8,7 +8,8 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { AxiosService } from '@common/axios';
 
-import { GetPreparedConfigWithUsersQuery } from '../../../xray-config/queries/get-prepared-config-with-users';
+import { GetPreparedConfigWithUsersQuery } from '@modules/users/queries/get-prepared-config-with-users';
+
 import { NodesRepository } from '../../repositories/nodes.repository';
 import { StartAllNodesEvent } from './start-all-nodes.event';
 import { NodesEntity } from '../../entities/nodes.entity';
@@ -28,29 +29,50 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
     }
     async handle() {
         const startTime = Date.now();
+
         try {
             const nodes = await this.nodesRepository.findByCriteria({
                 isDisabled: false,
             });
 
-            const mapper = async (node: NodesEntity) => {
-                let config: ICommandResponse<IXrayConfig> | null = null;
-
-                config = await this.getConfigForNode({
-                    excludedInbounds: node.excludedInbounds,
+            for (const node of nodes) {
+                await this.nodesRepository.update({
+                    uuid: node.uuid,
+                    isConnecting: true,
                 });
+            }
 
-                if (!config.isOk || !config.response) {
-                    return;
+            const config = await this.getConfigForNode({
+                excludedInbounds: [],
+                excludeInboundsFromConfig: false,
+            });
+
+            this.logger.log(`Config for all nodes fetched within: ${Date.now() - startTime}ms`);
+
+            if (!config.isOk || !config.response) {
+                throw new Error('Failed to get config');
+            }
+
+            const mapper = async (node: NodesEntity) => {
+                if (!config.response) {
+                    throw new Error('Failed to get config');
                 }
 
+                const excludedNodeInboundsTags = node.excludedInbounds.map(
+                    (inbound) => inbound.tag,
+                );
+
+                const nodeConfig = config.response;
+
+                nodeConfig.inbounds = nodeConfig.inbounds.filter(
+                    (inbound) => !excludedNodeInboundsTags.includes(inbound.tag),
+                );
+
                 const response = await this.axios.startXray(
-                    config.response as unknown as Record<string, unknown>,
+                    nodeConfig as unknown as Record<string, unknown>,
                     node.address,
                     node.port,
                 );
-
-                config = null;
 
                 switch (response.isOk) {
                     case false:
@@ -93,7 +115,7 @@ export class StartAllNodesHandler implements IEventHandler<StartAllNodesEvent> {
 
             await pMap(nodes, mapper, { concurrency: this.CONCURRENCY });
 
-            this.logger.debug(`Started all nodes in ${Date.now() - startTime}ms`);
+            this.logger.log(`Started all nodes in ${Date.now() - startTime}ms`);
 
             return;
         } catch (error) {

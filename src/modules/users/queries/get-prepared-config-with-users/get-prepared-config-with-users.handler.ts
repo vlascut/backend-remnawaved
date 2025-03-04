@@ -1,4 +1,4 @@
-import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
 import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
@@ -6,7 +6,8 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { ERRORS } from '@libs/contracts/constants';
 
-import { XrayConfigRepository } from '@modules/xray-config/repositories/xray-config.repository';
+import { XrayConfigEntity } from '@modules/xray-config/entities/xray-config.entity';
+import { GetXrayConfigQuery } from '@modules/xray-config/queries/get-xray-config';
 import { UsersRepository } from '@modules/users/repositories/users.repository';
 
 import { GetPreparedConfigWithUsersQuery } from './get-prepared-config-with-users.query';
@@ -18,22 +19,21 @@ export class GetPreparedConfigWithUsersHandler
     private readonly logger = new Logger(GetPreparedConfigWithUsersHandler.name);
     constructor(
         private readonly usersRepository: UsersRepository,
-        private readonly xrayConfigRepository: XrayConfigRepository,
+        private readonly queryBus: QueryBus,
     ) {}
 
     async execute(query: GetPreparedConfigWithUsersQuery): Promise<ICommandResponse<IXrayConfig>> {
         let config: XRayConfig | null = null;
         try {
-            const { excludedInbounds } = query;
+            const { excludedInbounds, excludeInboundsFromConfig } = query;
 
-            const dbConfig = await this.xrayConfigRepository.findFirst();
+            const xrayConfig = await this.getXrayConfig();
 
-            if (!dbConfig || !dbConfig.config) {
-                throw new Error('No XTLS config found in DB!');
+            config = new XRayConfig(xrayConfig.config!);
+
+            if (excludeInboundsFromConfig) {
+                config.excludeInbounds(excludedInbounds.map((inbound) => inbound.tag));
             }
-
-            config = new XRayConfig(dbConfig.config);
-            config.excludeInbounds(excludedInbounds.map((inbound) => inbound.tag));
 
             config.processCertificates();
 
@@ -56,5 +56,11 @@ export class GetPreparedConfigWithUsersHandler
         } finally {
             config = null;
         }
+    }
+
+    private async getXrayConfig(): Promise<XrayConfigEntity> {
+        return this.queryBus.execute<GetXrayConfigQuery, XrayConfigEntity>(
+            new GetXrayConfigQuery(),
+        );
     }
 }

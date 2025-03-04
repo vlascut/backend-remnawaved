@@ -87,6 +87,9 @@ export class AxiosService {
             const response = await this.axiosInstance.post<StartXrayCommand.Response>(
                 nodeUrl,
                 data,
+                {
+                    timeout: 60_000,
+                },
             );
 
             return {
