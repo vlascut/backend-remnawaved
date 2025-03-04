@@ -28,7 +28,14 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
     ) {}
     async handle(event: StartNodeEvent) {
         try {
-            const nodeEntity = event.node;
+            const nodeFromEvent = event.node;
+
+            const nodeEntity = await this.nodesRepository.findByUUID(nodeFromEvent.uuid);
+
+            if (!nodeEntity) {
+                this.logger.error(`Node ${nodeFromEvent.uuid} not found`);
+                return;
+            }
 
             if (nodeEntity.isConnecting) {
                 return;
