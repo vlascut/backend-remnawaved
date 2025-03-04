@@ -12,8 +12,8 @@ import {
     GetInboundStatsCommand,
     GetInboundUsersCommand,
     GetInboundUsersCountCommand,
+    GetNodeHealthCheckCommand,
     GetOutboundStatsCommand,
-    GetStatusAndVersionCommand,
     GetSystemStatsCommand,
     GetUserOnlineStatusCommand,
     GetUsersStatsCommand,
@@ -156,37 +156,23 @@ export class AxiosService {
         }
     }
 
-    public async getXrayStatus(
+    public async getNodeHealth(
         url: string,
         port: null | number,
-    ): Promise<ICommandResponse<GetStatusAndVersionCommand.Response>> {
+    ): Promise<ICommandResponse<GetNodeHealthCheckCommand.Response['response']>> {
         try {
-            const nodeUrl = this.getNodeUrl(url, GetStatusAndVersionCommand.url, port);
-            const response =
-                await this.axiosInstance.get<GetStatusAndVersionCommand.Response>(nodeUrl);
+            const nodeUrl = this.getNodeUrl(url, GetNodeHealthCheckCommand.url, port);
+            const { data } =
+                await this.axiosInstance.get<GetNodeHealthCheckCommand.Response>(nodeUrl);
 
             return {
                 isOk: true,
-                response: response.data,
+                response: data.response,
             };
-        } catch (error) {
-            if (error instanceof AxiosError) {
-                this.logger.error(`Error in axios request: ${error.message}`);
-
-                return {
-                    isOk: false,
-                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
-                };
-            } else {
-                this.logger.error('Error in getXrayStatus:', error);
-
-                return {
-                    isOk: false,
-                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(
-                        JSON.stringify(error) ?? 'Unknown error',
-                    ),
-                };
-            }
+        } catch {
+            return {
+                isOk: false,
+            };
         }
     }
 
@@ -251,7 +237,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getUsersStats:', error);
 
                 return {
                     isOk: false,
@@ -294,7 +280,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getSystemStats:', error);
 
                 return {
                     isOk: false,
@@ -372,7 +358,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getAllInboundStats:', error);
 
                 return {
                     isOk: false,
@@ -419,7 +405,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getAllOutboundStats:', error);
 
                 return {
                     isOk: false,
@@ -489,7 +475,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in addUser:', error);
 
                 return {
                     isOk: false,

@@ -39,12 +39,12 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                 isConnecting: true,
             });
 
-            const xrayStatusResponse = await this.axios.getXrayStatus(
+            const xrayStatusResponse = await this.axios.getNodeHealth(
                 nodeEntity.address,
                 nodeEntity.port,
             );
 
-            if (!xrayStatusResponse.isOk && !xrayStatusResponse.response) {
+            if (!xrayStatusResponse.isOk) {
                 await this.nodesRepository.update({
                     uuid: nodeEntity.uuid,
                     isXrayRunning: false,
@@ -62,7 +62,7 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
             const startTime = Date.now();
             const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
 
-            this.logger.debug(`Generated config for node in ${Date.now() - startTime}ms`);
+            this.logger.log(`Generated config for node in ${Date.now() - startTime}ms`);
 
             if (!config.isOk || !config.response) {
                 throw new Error('Failed to get config for node');
@@ -76,7 +76,7 @@ export class StartNodeHandler implements IEventHandler<StartNodeEvent> {
                 nodeEntity.port,
             );
 
-            this.logger.debug(`Started node in ${Date.now() - reqStartTime}ms`);
+            this.logger.log(`Started node in ${Date.now() - reqStartTime}ms`);
 
             if (!res.isOk || !res.response) {
                 await this.nodesRepository.update({
