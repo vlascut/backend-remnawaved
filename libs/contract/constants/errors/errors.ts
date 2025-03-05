@@ -333,4 +333,9 @@ export const ERRORS = {
     },
     GET_AUTH_STATUS_ERROR: { code: 'A067', message: 'Get auth status error', httpCode: 500 },
     FORBIDDEN: { code: 'A068', message: 'Forbidden', httpCode: 403 },
+    DISABLE_NODE_ERROR: {
+        code: 'A069',
+        message: 'Disable node error',
+        httpCode: 500,
+    },
 } as const;

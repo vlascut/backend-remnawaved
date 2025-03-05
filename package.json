@@ -22,7 +22,7 @@
     "build:seed": "tsc -p prisma/tsconfig.seed.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "dev:api": "NODE_ENV=development nest start --watch",
+    "dev:api": "NODE_ENV=development INSTANCE_TYPE=api nest start --watch",
     "dev:worker": "NODE_ENV=development INSTANCE_TYPE=processor nest start processors --watch",
     "dev:scheduler": "NODE_ENV=development INSTANCE_TYPE=scheduler nest start scheduler --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",

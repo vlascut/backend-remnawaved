@@ -1,4 +1,7 @@
+import { ConditionalModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
+
+import { isRestApi } from '@common/utils/startup-app';
 
 import { NodesTrafficUsageHistoryModule } from './nodes-traffic-usage-history/nodes-traffic-usage-history.module';
 import { NodesUserUsageHistoryModule } from './nodes-user-usage-history/nodes-user-usage-history.module';
@@ -18,11 +21,11 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
-        AdminModule,
-        AuthModule,
+        ConditionalModule.registerWhen(AdminModule, () => isRestApi()),
+        ConditionalModule.registerWhen(AuthModule, () => isRestApi()),
         UsersModule,
-        SubscriptionModule,
-        ApiTokensModule,
+        ConditionalModule.registerWhen(SubscriptionModule, () => isRestApi()),
+        ConditionalModule.registerWhen(ApiTokensModule, () => isRestApi()),
         KeygenModule,
         NodesModule,
         NodesTrafficUsageHistoryModule,
@@ -32,7 +35,7 @@ import { AuthModule } from './auth/auth.module';
         NodesUsageHistoryModule,
         InboundsModule,
         XrayConfigModule,
-        SystemModule,
+        ConditionalModule.registerWhen(SystemModule, () => isRestApi()),
     ],
 })
 export class RemnawaveModules {}

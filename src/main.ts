@@ -7,7 +7,7 @@ import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { METRICS_ROOT, ROOT } from '@contract/api';
+import { ROOT } from '@contract/api';
 
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -85,12 +85,12 @@ async function bootstrap(): Promise<void> {
         app.use(
             morgan(
                 ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-                {
-                    skip: (req) => req.url === ROOT + METRICS_ROOT,
-                    stream: {
-                        write: (message) => logger.http(message.trim()),
-                    },
-                },
+                // {
+                //     skip: (req) => req.url === ROOT + METRICS_ROOT,
+                //     stream: {
+                //         write: (message) => logger.http(message.trim()),
+                //     },
+                // },
             ),
         );
     }
@@ -105,7 +105,7 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalPipes(new ZodValidationPipe());
 
-    app.useGlobalGuards(new ProxyCheckGuard({ exclude: [ROOT + METRICS_ROOT] }));
+    app.useGlobalGuards(new ProxyCheckGuard({ exclude: [] }));
 
     app.enableShutdownHooks();
 

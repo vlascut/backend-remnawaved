@@ -51,5 +51,5 @@ export function useQueueProcessor(): boolean {
  * @returns {boolean} True if instance is Scheduler
  */
 export function useBullBoard(): boolean {
-    return isScheduler();
+    return isRestApi();
 }

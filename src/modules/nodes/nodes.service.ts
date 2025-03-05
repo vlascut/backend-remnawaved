@@ -5,7 +5,7 @@ import { ERRORS, EVENTS } from '@contract/constants';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
+import { CommandBus } from '@nestjs/cqrs';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { toNano } from '@common/utils/nano';
@@ -15,11 +15,11 @@ import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/inter
 import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
 
 import { StartNodeQueueService } from '@queue/start-node/start-node.service';
+import { StopNodeQueueService } from '@queue/stop-node/stop-node.service';
 
 import { CreateNodeRequestDto, ReorderNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
 import { NodesRepository } from './repositories/nodes.repository';
-import { StopNodeEvent } from './events/stop-node';
 import { NodesEntity } from './entities';
 
 @Injectable()
@@ -28,11 +28,11 @@ export class NodesService {
 
     constructor(
         private readonly nodesRepository: NodesRepository,
-        private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
         private readonly commandBus: CommandBus,
         private readonly startAllNodesQueue: StartAllNodesQueueService,
         private readonly startNodeQueue: StartNodeQueueService,
+        private readonly stopNodeQueue: StopNodeQueueService,
     ) {}
 
     public async createNode(body: CreateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
@@ -203,14 +203,15 @@ export class NodesService {
                 };
             }
 
-            const result = await this.nodesRepository.deleteByUUID(node.uuid);
-
-            this.eventBus.publish(new StopNodeEvent(node));
+            await this.stopNodeQueue.stopNode({
+                nodeUuid: node.uuid,
+                isNeedToBeDeleted: true,
+            });
 
             return {
                 isOk: true,
                 response: new DeleteNodeResponseModel({
-                    isDeleted: result,
+                    isDeleted: true,
                 }),
             };
         } catch (error) {
@@ -345,11 +346,15 @@ export class NodesService {
             if (!result) {
                 return {
                     isOk: false,
-                    ...ERRORS.ENABLE_NODE_ERROR,
+                    ...ERRORS.DISABLE_NODE_ERROR,
                 };
             }
 
-            this.eventBus.publish(new StopNodeEvent(result));
+            await this.stopNodeQueue.stopNode({
+                nodeUuid: result.uuid,
+                isNeedToBeDeleted: false,
+            });
+
             this.eventEmitter.emit(
                 EVENTS.NODE.DISABLED,
                 new NodeEvent(result, EVENTS.NODE.DISABLED),

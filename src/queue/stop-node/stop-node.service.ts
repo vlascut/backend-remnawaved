@@ -5,12 +5,12 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 
 import { AbstractQueueService } from '../queue.service';
-import { StartNodeJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
+import { StopNodeJobNames } from './enums';
 
 @Injectable()
-export class StartNodeQueueService extends AbstractQueueService implements OnApplicationBootstrap {
-    protected readonly logger: Logger = new Logger(_.upperFirst(_.camelCase(QueueNames.startNode)));
+export class StopNodeQueueService extends AbstractQueueService implements OnApplicationBootstrap {
+    protected readonly logger: Logger = new Logger(_.upperFirst(_.camelCase(QueueNames.stopNode)));
 
     private _queue: Queue;
 
@@ -18,20 +18,20 @@ export class StartNodeQueueService extends AbstractQueueService implements OnApp
         return this._queue;
     }
 
-    constructor(@InjectQueue(QueueNames.startNode) private readonly startNodeQueue: Queue) {
+    constructor(@InjectQueue(QueueNames.stopNode) private readonly stopNodeQueue: Queue) {
         super();
-        this._queue = this.startNodeQueue;
+        this._queue = this.stopNodeQueue;
     }
 
     public async onApplicationBootstrap(): Promise<void> {
         await this.checkConnection();
     }
 
-    public async startNode(payload: { nodeUuid: string }) {
-        return this.addJob(StartNodeJobNames.startNode, payload, {
-            jobId: `${StartNodeJobNames.startNode}-${payload.nodeUuid}`,
+    public async stopNode(payload: { nodeUuid: string; isNeedToBeDeleted: boolean }) {
+        return this.addJob(StopNodeJobNames.stopNode, payload, {
             removeOnComplete: true,
             removeOnFail: true,
+            jobId: `${StopNodeJobNames.stopNode}-${payload.nodeUuid}`,
         });
     }
 }

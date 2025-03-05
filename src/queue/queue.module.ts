@@ -13,8 +13,16 @@ import { BULLBOARD_ROOT } from '@libs/contracts/api';
 import { NodeHealthCheckQueueModule } from './node-health-check/node-health-check.module';
 import { StartAllNodesQueueModule } from './start-all-nodes/start-all-nodes.module';
 import { StartNodeQueueModule } from './start-node/start-node.module';
+import { NodeUsersQueueModule } from './node-users/node-users.module';
+import { StopNodeQueueModule } from './stop-node/stop-node.module';
 
-const queueModules = [StartAllNodesQueueModule, StartNodeQueueModule, NodeHealthCheckQueueModule];
+const queueModules = [
+    StartAllNodesQueueModule,
+    StartNodeQueueModule,
+    StopNodeQueueModule,
+    NodeHealthCheckQueueModule,
+    NodeUsersQueueModule,
+];
 
 const bullBoard = [
     BullBoardModule.forRoot({

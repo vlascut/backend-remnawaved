@@ -1,8 +1,3 @@
-import { BullBoardModule } from '@bull-board/nestjs';
-
-import { BULLBOARD_QUEUES, BULLMQ_QUEUES } from 'src/processors/queues.definitions';
-
-import { BullModule } from '@nestjs/bullmq';
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
 
