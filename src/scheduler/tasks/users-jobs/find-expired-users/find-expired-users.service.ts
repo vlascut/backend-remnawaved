@@ -13,7 +13,8 @@ import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-
 import { UpdateExpiredUsersCommand } from '@modules/users/commands/update-expired-users';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
-import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
+
+import { StartAllNodesQueueService } from '@queue/start-all-nodes';
 
 import { JOBS_INTERVALS } from '../../../intervals';
 
@@ -30,6 +31,7 @@ export class FindExpiredUsersService {
         private readonly commandBus: CommandBus,
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
+        private readonly startAllNodesQueueService: StartAllNodesQueueService,
     ) {
         this.isJobRunning = false;
         this.cronName = FindExpiredUsersService.CRON_NAME;
@@ -74,7 +76,9 @@ export class FindExpiredUsersService {
                     'More than 10,000 expired users found, skipping webhook/telegram events.',
                 );
 
-                this.eventBus.publish(new StartAllNodesEvent());
+                await this.startAllNodesQueueService.startAllNodes({
+                    emitter: this.cronName,
+                });
 
                 return;
             }

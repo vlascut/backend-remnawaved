@@ -19,7 +19,9 @@ import { NodesRepository } from '@modules/nodes';
 import { StartNodeJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
 
-@Processor(QueueNames.startNode)
+@Processor(QueueNames.startNode, {
+    concurrency: 40,
+})
 export class StartNodeQueueProcessor extends WorkerHost {
     private readonly logger = new Logger(StartNodeQueueProcessor.name);
 
@@ -32,19 +34,9 @@ export class StartNodeQueueProcessor extends WorkerHost {
         super();
     }
 
-    async process(job: Job) {
-        switch (job.name) {
-            case StartNodeJobNames.startNode:
-                return this.handleStartNode(job);
-            default:
-                this.logger.warn(`⚠️ Job "${job.name}" is not handled.`);
-                break;
-        }
-    }
-
-    private async handleStartNode(job: Job<{ nodeUuid: string }>) {
+    async process(job: Job<{ nodeUuid: string }>) {
         this.logger.debug(
-            `✅ Handling "${StartNodeJobNames.startNode}" job with ID: ${job?.id || ''}, data: ${JSON.stringify(job?.data || '')}`,
+            `✅ Handling "${StartNodeJobNames.startNode}" job with ID: ${job?.id || ''}}`,
         );
 
         try {
@@ -154,7 +146,6 @@ export class StartNodeQueueProcessor extends WorkerHost {
 
             return;
         } catch (error) {
-            console.log(error);
             this.logger.error(`❌ Error handling "${StartNodeJobNames.startNode}" job: ${error}`);
         }
     }

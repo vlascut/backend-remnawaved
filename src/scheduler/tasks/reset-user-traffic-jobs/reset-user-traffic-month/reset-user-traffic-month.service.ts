@@ -14,9 +14,10 @@ import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-
 import { BatchResetUserTrafficCommand } from '@modules/users/commands/batch-reset-user-traffic';
 import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
 import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
-import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
 
 import { JOBS_INTERVALS } from '@scheduler/intervals';
+
+import { StartAllNodesQueueService } from '@queue/start-all-nodes';
 
 @Injectable()
 export class ResetUserTrafficCalendarMonthService {
@@ -31,6 +32,7 @@ export class ResetUserTrafficCalendarMonthService {
         private readonly commandBus: CommandBus,
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
+        private readonly startAllNodesQueueService: StartAllNodesQueueService,
     ) {
         this.isJobRunning = false;
         this.cronName = ResetUserTrafficCalendarMonthService.CRON_NAME;
@@ -92,7 +94,9 @@ export class ResetUserTrafficCalendarMonthService {
                     `Job ${ResetUserTrafficCalendarMonthService.CRON_NAME} has found more than 10,000 users, skipping webhook/telegram events. Restarting all nodes.`,
                 );
 
-                this.eventBus.publish(new StartAllNodesEvent());
+                await this.startAllNodesQueueService.startAllNodes({
+                    emitter: this.cronName,
+                });
 
                 return;
             }

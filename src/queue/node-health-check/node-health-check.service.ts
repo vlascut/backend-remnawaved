@@ -6,6 +6,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 
 import { NodesEntity } from '@modules/nodes';
 
+import { NodeHealthCheckPayload } from './interfaces/node-health-check.interface';
 import { AbstractQueueService } from '../queue.service';
 import { NodeHealthCheckJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
@@ -37,16 +38,29 @@ export class NodeHealthCheckQueueService
     }
 
     public async checkNodeHealth(payload: Record<string, string>) {
-        return this.addJob(NodeHealthCheckJobNames.checkNodeHealth, payload);
+        return this.addJob(NodeHealthCheckJobNames.checkNodeHealth, payload, {});
     }
 
     public async checkNodeHealthBulk(payload: NodesEntity[]) {
-        return this.queue.addBulk(
-            payload.map((node) => ({
-                name: NodeHealthCheckJobNames.checkNodeHealth,
-                data: { node },
-                opts: { jobId: `${NodeHealthCheckJobNames.checkNodeHealth}-${node.uuid}` },
-            })),
+        return this.addBulk(
+            payload.map((node) => {
+                const data: NodeHealthCheckPayload = {
+                    nodeUuid: node.uuid,
+                    nodeAddress: node.address,
+                    nodePort: node.port,
+                    isConnected: node.isConnected,
+                };
+
+                return {
+                    name: NodeHealthCheckJobNames.checkNodeHealth,
+                    data,
+                    opts: {
+                        jobId: `${NodeHealthCheckJobNames.checkNodeHealth}-${node.uuid}`,
+                        removeOnComplete: true,
+                        removeOnFail: true,
+                    },
+                };
+            }),
         );
     }
 }

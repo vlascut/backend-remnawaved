@@ -63,8 +63,8 @@ const bullBoard = [
                     password: configService.get<string | undefined>('REDIS_PASSWORD'),
                 },
                 defaultJobOptions: {
-                    // removeOnComplete: true,
-                    // removeOnFail: true,
+                    removeOnComplete: 500,
+                    removeOnFail: 500,
                 },
             }),
             inject: [ConfigService],

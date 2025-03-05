@@ -14,9 +14,9 @@ import { NodeHealthCheckQueueService } from '@queue/node-health-check/node-healt
 import { JOBS_INTERVALS } from '../../intervals';
 
 @Injectable()
-export class NodeHealthCheckService {
+export class NodeHealthCheckTask {
     private static readonly CRON_NAME = 'nodeHealthCheck';
-    private readonly logger = new Logger(NodeHealthCheckService.name);
+    private readonly logger = new Logger(NodeHealthCheckTask.name);
     private cronName: string;
 
     private isNodesRestarted: boolean;
@@ -25,18 +25,19 @@ export class NodeHealthCheckService {
         private readonly startAllNodesQueueService: StartAllNodesQueueService,
         private readonly nodeHealthCheckQueueService: NodeHealthCheckQueueService,
     ) {
-        this.cronName = NodeHealthCheckService.CRON_NAME;
+        this.cronName = NodeHealthCheckTask.CRON_NAME;
         this.isNodesRestarted = false;
     }
 
     @Cron(JOBS_INTERVALS.NODE_HEALTH_CHECK, {
-        name: NodeHealthCheckService.CRON_NAME,
+        name: NodeHealthCheckTask.CRON_NAME,
+        waitForCompletion: true,
     })
     async handleCron() {
         try {
             if (!this.isNodesRestarted) {
                 this.isNodesRestarted = true;
-                this.logger.log('Restarting all nodes on application start');
+                this.logger.log('🔄 Restarting all nodes on application start.');
 
                 await this.startAllNodesQueueService.startAllNodes({
                     emitter: this.cronName,
@@ -51,9 +52,7 @@ export class NodeHealthCheckService {
                 return;
             }
 
-            const nodes = nodesResponse.response;
-
-            await this.nodeHealthCheckQueueService.checkNodeHealthBulk(nodes);
+            await this.nodeHealthCheckQueueService.checkNodeHealthBulk(nodesResponse.response);
 
             return;
         } catch (error) {

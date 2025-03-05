@@ -25,11 +25,14 @@ export class StartNodeQueueService extends AbstractQueueService implements OnApp
 
     public async onApplicationBootstrap(): Promise<void> {
         await this.checkConnection();
+        await this.obliterate();
     }
 
     public async startNode(payload: { nodeUuid: string }) {
         return this.addJob(StartNodeJobNames.startNode, payload, {
             jobId: `${StartNodeJobNames.startNode}-${payload.nodeUuid}`,
+            removeOnComplete: true,
+            removeOnFail: true,
         });
     }
 }

@@ -23,7 +23,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev:api": "NODE_ENV=development nest start --watch",
-    "dev:worker": "NODE_ENV=development nest start processors --watch",
+    "dev:worker": "NODE_ENV=development INSTANCE_TYPE=processor nest start processors --watch",
     "dev:scheduler": "NODE_ENV=development INSTANCE_TYPE=scheduler nest start scheduler --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production NODE_NO_WARNINGS=1 node dist/src/main",
@@ -31,7 +31,7 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "lint:fix:imports": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix --rule 'perfectionist/sort-imports: error'",
-    "prepare": "husky",
+    "prepare": "ts-patch install && husky",
     "migrate:dev": "prisma migrate dev",
     "migrate:generate": "prisma generate",
     "migrate:deploy": "PRISMA_HIDE_UPDATE_MESSAGE=true prisma migrate deploy",
@@ -102,6 +102,7 @@
     "superjson": "1.13.3",
     "swagger-themes": "^1.4.3",
     "systeminformation": "^5.23.5",
+    "typia": "^8.0.0",
     "winston": "^3.17.0",
     "xbytes": "^1.9.1",
     "zod": "^3.22.4"
@@ -133,8 +134,9 @@
     "source-map-support": "^0.5.21",
     "ts-loader": "9.5.2",
     "ts-node": "10.9.2",
+    "ts-patch": "^3.3.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.7.3",
+    "typescript": "~5.8.2",
     "typescript-eslint": "^8.25.0"
   }
 }
