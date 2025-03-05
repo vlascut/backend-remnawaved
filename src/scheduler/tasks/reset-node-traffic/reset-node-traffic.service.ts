@@ -13,7 +13,7 @@ import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes/g
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
 import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 
-import { JOBS_INTERVALS } from '.wip/jobs/intervals';
+import { JOBS_INTERVALS } from '@scheduler/intervals';
 
 @Injectable()
 export class ResetNodeTrafficService {

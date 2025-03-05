@@ -16,7 +16,7 @@ import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
 import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
 import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
 
-import { JOBS_INTERVALS } from '.wip/jobs/intervals';
+import { JOBS_INTERVALS } from '@scheduler/intervals';
 
 @Injectable()
 export class ResetUserTrafficCalendarDayService {

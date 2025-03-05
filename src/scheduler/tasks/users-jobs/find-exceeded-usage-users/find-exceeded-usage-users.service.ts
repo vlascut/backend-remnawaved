@@ -15,7 +15,7 @@ import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-
 import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
 import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
 
-import { JOBS_INTERVALS } from '.wip/jobs/intervals';
+import { JOBS_INTERVALS } from '@scheduler/intervals';
 
 @Injectable()
 export class FindExceededUsageUsersService {

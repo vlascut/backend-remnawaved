@@ -1,4 +1,5 @@
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { JOBS_INTERVALS } from '@scheduler/intervals';
 import { Gauge } from 'prom-client';
 
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
@@ -11,8 +12,6 @@ import { METRIC_NAMES } from '@libs/contracts/constants';
 
 import { GetShortUserStatsQuery } from '@modules/users/queries/get-short-user-stats/get-short-user-stats.query';
 import { ShortUserStats } from '@modules/users/interfaces/user-stats.interface';
-
-import { JOBS_INTERVALS } from '.wip/jobs/intervals';
 
 @Injectable()
 export class ShortUsersStatsService {
