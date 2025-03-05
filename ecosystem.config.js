@@ -10,9 +10,11 @@ module.exports = {
             instance_var: 'INSTANCE_ID',
             env_development: {
                 NODE_ENV: 'development',
+                INSTANCE_TYPE: 'api',
             },
             env_production: {
                 NODE_ENV: 'production',
+                INSTANCE_TYPE: 'api',
             },
             namespace: 'api',
         },
@@ -26,9 +28,11 @@ module.exports = {
             instance_var: 'INSTANCE_ID',
             env_development: {
                 NODE_ENV: 'development',
+                INSTANCE_TYPE: 'scheduler',
             },
             env_production: {
                 NODE_ENV: 'production',
+                INSTANCE_TYPE: 'scheduler',
             },
             namespace: 'scheduler',
         },
@@ -42,9 +46,11 @@ module.exports = {
             instance_var: 'INSTANCE_ID',
             env_development: {
                 NODE_ENV: 'development',
+                INSTANCE_TYPE: 'processor',
             },
             env_production: {
                 NODE_ENV: 'production',
+                INSTANCE_TYPE: 'processor',
             },
             namespace: 'jobs',
         },

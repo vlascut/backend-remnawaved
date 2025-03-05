@@ -1,11 +1,11 @@
-import { ProcessorsModule } from '@processors/processors.module';
 import { ClsModule } from 'nestjs-cls';
+
+import { QueueModule } from 'src/queue/queue.module';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { BullModule } from '@nestjs/bullmq';
+import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 
 import { validateEnvConfig } from '@common/utils/validate-env-config';
@@ -44,20 +44,9 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
             wildcard: true,
             delimiter: '.',
         }),
-        BullModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                connection: {
-                    host: configService.getOrThrow<string>('REDIS_HOST'),
-                    port: configService.getOrThrow<number>('REDIS_PORT'),
-                    db: configService.getOrThrow<number>('REDIS_DB'),
-                    password: configService.get<string | undefined>('REDIS_PASSWORD'),
-                },
-            }),
-            inject: [ConfigService],
-        }),
+
         RemnawaveModules,
-        ProcessorsModule,
+        QueueModule,
     ],
     controllers: [],
 })

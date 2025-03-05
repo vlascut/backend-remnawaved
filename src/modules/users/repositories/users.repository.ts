@@ -629,7 +629,6 @@ export class UsersRepository implements ICrud<UserEntity> {
 
         while (hasMoreData) {
             console.time('getUsersForConfigStream');
-
             const builder = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
 
             const query = Prisma.sql`

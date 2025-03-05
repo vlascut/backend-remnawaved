@@ -1,26 +1,18 @@
-import { QUEUE_NAMES, Queues, QueueUtils } from '@processors/queues.definitions';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import pMap from '@cjs-exporter/p-map';
-import { Gauge } from 'prom-client';
-import { Queue } from 'bullmq';
+import { StartAllNodesQueueService } from 'src/queue/start-all-nodes/start-all-nodes.service';
 
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 
 import { GetSystemStatsCommand } from '@remnawave/node-contract';
 
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
-import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { AxiosService } from '@common/axios';
 import { EVENTS } from '@libs/contracts/constants';
 
 import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
 
 import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes';
-import { StartAllNodesEvent } from '@modules/nodes/events/start-all-nodes';
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
 import { StartNodeEvent } from '@modules/nodes/events/start-node';
 import { NodesEntity } from '@modules/nodes';
@@ -37,11 +29,9 @@ export class NodeHealthCheckService {
     constructor(
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
-        private readonly axios: AxiosService,
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
-        @Queues.injectStartAllNodesQueue() private readonly startAllNodesQueue: Queue,
-        @Queues.injectStartNodeQueue() private readonly startNodeQueue: Queue,
+        private readonly startAllNodesQueueService: StartAllNodesQueueService,
     ) {
         this.cronName = NodeHealthCheckService.CRON_NAME;
         this.isNodesRestarted = false;
@@ -56,19 +46,21 @@ export class NodeHealthCheckService {
                 this.isNodesRestarted = true;
                 this.logger.log('Restarting all nodes on application start');
 
-                // await this.eventBus.publish(new StartAllNodesEvent());
+                await this.startAllNodesQueueService.startAllNodes({
+                    emitter: this.cronName,
+                });
 
-                await this.startAllNodesQueue.add(
-                    QUEUE_NAMES.START_ALL_NODES,
-                    {
-                        test: true,
-                    },
-                    {
-                        deduplication: {
-                            id: QUEUE_NAMES.START_ALL_NODES,
-                        },
-                    },
-                );
+                // await this.startAllNodesQueue.add(
+                //     QUEUE_NAMES.START_ALL_NODES,
+                //     {
+                //         test: true,
+                //     },
+                //     {
+                //         deduplication: {
+                //             id: QUEUE_NAMES.START_ALL_NODES,
+                //         },
+                //     },
+                // );
 
                 return;
             }

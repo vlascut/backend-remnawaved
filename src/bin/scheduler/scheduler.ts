@@ -12,7 +12,7 @@ import { NotFoundExceptionFilter } from '@common/exception/not-found-exception.f
 import { WorkerRoutesGuard } from '@common/guards/worker-routes/worker-routes.guard';
 import { isDevelopment } from '@common/utils/startup-app';
 import { AxiosService } from '@common/axios';
-import { METRICS_ROOT } from '@libs/contracts/api';
+import { BULLBOARD_ROOT, METRICS_ROOT } from '@libs/contracts/api';
 
 import { SchedulerRootModule } from './scheduler.root.module';
 
@@ -75,7 +75,7 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalFilters(new NotFoundExceptionFilter());
 
-    app.useGlobalGuards(new WorkerRoutesGuard({ allowedPaths: [METRICS_ROOT] }));
+    app.useGlobalGuards(new WorkerRoutesGuard({ allowedPaths: [METRICS_ROOT, BULLBOARD_ROOT] }));
 
     app.enableShutdownHooks();
 

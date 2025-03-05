@@ -18,6 +18,8 @@ import { IntegrationModules } from '@intergration-modules/integration-modules';
 
 import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 
+import { QueueModule } from '@queue/queue.module';
+
 @Module({
     imports: [
         AxiosModule,
@@ -61,6 +63,8 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
                 },
             ],
         }),
+
+        QueueModule,
     ],
 })
 export class AppModule {}

@@ -15,7 +15,7 @@ const compat = new FlatCompat({
 
 export default [
     {
-        ignores: ['**/.eslintrc.js', 'prisma/**/*'],
+        ignores: ['**/.eslintrc.js', 'prisma/**/*', '.hygen.js', '.hygen/**/*'],
     },
     ...compat.extends('plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended'),
     perfectionist.configs['recommended-alphabetical'],
@@ -69,7 +69,7 @@ export default [
                         'aliasIntergrationModules',
                         'aliasModules',
                         'aliasScheduler',
-                        'aliasProcessors',
+                        'aliasQueue',
                         ['parent-type', 'sibling-type', 'index-type'],
                         ['parent', 'sibling', 'index'],
                         'object',
@@ -83,7 +83,7 @@ export default [
                             aliasLibs: '@libs/*.',
                             aliasIntergrationModules: '@intergration-modules/*.',
                             aliasScheduler: '@scheduler/*.',
-                            aliasProcessors: '@processors/*.',
+                            aliasQueue: '@queue/*.',
                             remnawave: '@remnawave/*.',
                             nestJs: '@nestjs/*.',
                         },

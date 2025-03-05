@@ -41,7 +41,6 @@ export class GetPreparedConfigWithUsersHandler
 
             for await (const userBatch of usersStream) {
                 console.time('includeUserBatch');
-
                 config.includeUserBatch(userBatch);
                 console.timeEnd('includeUserBatch');
             }

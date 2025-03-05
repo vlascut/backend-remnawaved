@@ -316,8 +316,6 @@ export class XRayConfig {
     // }
 
     public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
-        console.time('indexing');
-
         const usersByTag = new Map<string, UserForConfigEntity[]>();
         for (const user of users) {
             for (const tag of user.tags) {
@@ -340,8 +338,6 @@ export class XRayConfig {
         }
 
         usersByTag.clear();
-
-        console.timeEnd('indexing');
 
         return this.config;
     }

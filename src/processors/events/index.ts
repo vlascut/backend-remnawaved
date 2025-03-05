@@ -1,3 +1,3 @@
-import { StartAllNodesProcessor } from './start-all-nodes/start-all-nodes.processor';
+// import { StartAllNodesProcessor } from './start-all-nodes/start-all-nodes.processor';
 
-export const EVENTS_PROCESSORS = [StartAllNodesProcessor];
+// export const EVENTS_PROCESSORS = [StartAllNodesProcessor];

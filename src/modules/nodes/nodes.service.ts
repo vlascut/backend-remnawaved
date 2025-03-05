@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 
+import { StartAllNodesQueueService } from 'src/queue/start-all-nodes/start-all-nodes.service';
 import { ERRORS, EVENTS } from '@contract/constants';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -13,11 +14,11 @@ import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/inter
 
 import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
 
+import { StartNodeQueueService } from '@queue/start-node/start-node.service';
+
 import { CreateNodeRequestDto, ReorderNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
 import { NodesRepository } from './repositories/nodes.repository';
-import { StartAllNodesEvent } from './events/start-all-nodes';
-import { StartNodeEvent } from './events/start-node';
 import { StopNodeEvent } from './events/stop-node';
 import { NodesEntity } from './entities';
 
@@ -30,6 +31,8 @@ export class NodesService {
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
         private readonly commandBus: CommandBus,
+        private readonly startAllNodesQueue: StartAllNodesQueueService,
+        private readonly startNodeQueue: StartNodeQueueService,
     ) {}
 
     public async createNode(body: CreateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
@@ -65,7 +68,10 @@ export class NodesService {
                 throw new Error('Node not found');
             }
 
-            this.eventBus.publish(new StartNodeEvent(node));
+            await this.startNodeQueue.startNode({
+                nodeUuid: node.uuid,
+            });
+
             this.eventEmitter.emit(EVENTS.NODE.CREATED, new NodeEvent(node, EVENTS.NODE.CREATED));
 
             return {
@@ -118,7 +124,9 @@ export class NodesService {
                 };
             }
 
-            this.eventBus.publish(new StartNodeEvent(node));
+            await this.startNodeQueue.startNode({
+                nodeUuid: node.uuid,
+            });
 
             return {
                 isOk: true,
@@ -145,11 +153,9 @@ export class NodesService {
                 };
             }
 
-            // nodes.forEach((node) => {
-            //     this.eventBus.publish(new StartNodeEvent(node));
-            // });
-
-            this.eventBus.publish(new StartAllNodesEvent());
+            await this.startAllNodesQueue.startAllNodes({
+                emitter: NodesService.name,
+            });
 
             return {
                 isOk: true,
@@ -253,7 +259,9 @@ export class NodesService {
             }
 
             if (!node.isDisabled) {
-                this.eventBus.publish(new StartNodeEvent(result));
+                await this.startNodeQueue.startNode({
+                    nodeUuid: result.uuid,
+                });
             }
 
             this.eventEmitter.emit(
@@ -296,7 +304,10 @@ export class NodesService {
                 };
             }
 
-            this.eventBus.publish(new StartNodeEvent(result));
+            await this.startNodeQueue.startNode({
+                nodeUuid: result.uuid,
+            });
+
             this.eventEmitter.emit(EVENTS.NODE.ENABLED, new NodeEvent(result, EVENTS.NODE.ENABLED));
 
             return {

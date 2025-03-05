@@ -28,8 +28,8 @@
       "@contract/*": [
         "./libs/contract/*"
       ],
-      "@processors/*": [
-        "src/processors/*"
+      "@queue/*": [
+        "src/queue/*"
       ],
       "@scheduler/*": [
         "./src/scheduler/*"

@@ -9,13 +9,14 @@ import { XRayConfig } from '@common/helpers/xray-config';
 
 import { UpdateInboundCommand } from '@modules/inbounds/commands/update-inbound';
 
+import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-nodes.service';
+
 import { InboundsWithTagsAndType } from '../inbounds/interfaces/inbounds-with-tags-and-type.interface';
 import { DeleteManyInboundsCommand } from '../inbounds/commands/delete-many-inbounds';
 import { CreateManyInboundsCommand } from '../inbounds/commands/create-many-inbounds';
 import { XrayConfigRepository } from './repositories/xray-config.repository';
 import { GetAllInboundsQuery } from '../inbounds/queries/get-all-inbounds';
 import { InboundsEntity } from '../inbounds/entities/inbounds.entity';
-import { StartAllNodesEvent } from '../nodes/events/start-all-nodes';
 import { UpdateConfigRequestDto } from './dtos/update-config.dto';
 import { XrayConfigEntity } from './entities/xray-config.entity';
 
@@ -28,6 +29,7 @@ export class XrayConfigService implements OnApplicationBootstrap {
         private readonly queryBus: QueryBus,
         private readonly eventBus: EventBus,
         private readonly xrayConfigRepository: XrayConfigRepository,
+        private readonly startAllNodesQueue: StartAllNodesQueueService,
     ) {}
 
     async onApplicationBootstrap() {
@@ -82,7 +84,9 @@ export class XrayConfigService implements OnApplicationBootstrap {
 
             await this.syncInbounds();
 
-            this.eventBus.publish(new StartAllNodesEvent());
+            await this.startAllNodesQueue.startAllNodes({
+                emitter: XrayConfigService.name,
+            });
 
             return {
                 isOk: true,

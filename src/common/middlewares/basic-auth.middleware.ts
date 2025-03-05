@@ -11,8 +11,8 @@ export class BasicAuthMiddleware implements NestMiddleware {
     private readonly passwordHash: string;
 
     constructor(private readonly configService: ConfigService) {
-        this.username = this.configService.get<string>('BULLUI_USERNAME') || '';
-        this.password = this.configService.get<string>('BULLUI_PASSWORD') || '';
+        this.username = this.configService.getOrThrow<string>('METRICS_USER') || '';
+        this.password = this.configService.getOrThrow<string>('METRICS_PASS') || '';
         this.passwordHash = bcrypt.hashSync(this.password, 10);
     }
 

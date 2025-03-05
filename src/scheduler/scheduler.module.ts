@@ -12,12 +12,7 @@ import { METRIC_PROVIDERS } from './metrics-providers';
 import { JOBS_SERVICES } from './tasks';
 
 @Module({
-    imports: [
-        CqrsModule,
-        PrometheusReporterModule,
-        BullModule.registerQueue(...BULLMQ_QUEUES),
-        BullBoardModule.forFeature(...BULLBOARD_QUEUES),
-    ],
+    imports: [CqrsModule, PrometheusReporterModule],
     providers: [...JOBS_SERVICES, ...METRIC_PROVIDERS],
 })
 export class SchedulerModule {}
