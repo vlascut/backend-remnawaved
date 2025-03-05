@@ -44,6 +44,10 @@ const bullBoard = [
                 },
                 miscLinks: [
                     {
+                        text: 'Return to dashboard',
+                        url: '/dashboard',
+                    },
+                    {
                         text: 'Remnawave',
                         url: 'https://remna.st',
                     },
