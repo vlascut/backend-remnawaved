@@ -10,10 +10,11 @@ import { BasicAuthMiddleware } from '@common/middlewares/basic-auth.middleware';
 import { useBullBoard } from '@common/utils/startup-app';
 import { BULLBOARD_ROOT } from '@libs/contracts/api';
 
+import { NodeHealthCheckQueueModule } from './node-health-check/node-health-check.module';
 import { StartAllNodesQueueModule } from './start-all-nodes/start-all-nodes.module';
 import { StartNodeQueueModule } from './start-node/start-node.module';
 
-const queueModules = [StartAllNodesQueueModule, StartNodeQueueModule];
+const queueModules = [StartAllNodesQueueModule, StartNodeQueueModule, NodeHealthCheckQueueModule];
 
 const bullBoard = [
     BullBoardModule.forRoot({

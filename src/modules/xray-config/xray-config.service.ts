@@ -1,7 +1,7 @@
 import { ERRORS } from '@contract/constants';
 
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
@@ -27,7 +27,6 @@ export class XrayConfigService implements OnApplicationBootstrap {
     constructor(
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus,
-        private readonly eventBus: EventBus,
         private readonly xrayConfigRepository: XrayConfigRepository,
         private readonly startAllNodesQueue: StartAllNodesQueueService,
     ) {}

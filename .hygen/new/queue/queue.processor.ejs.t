@@ -11,6 +11,7 @@ unless_exists: true
 %>import { Job } from 'bullmq';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
 import { <%= QueueJobNamesEnumName %> } from './enums';
@@ -20,12 +21,19 @@ import { QueueNames } from '../queue.enum';
 export class <%= QueueProcessorName %> extends WorkerHost {
     private readonly logger = new Logger(<%= QueueProcessorName %>.name)
 
+    constructor(
+        private readonly queryBus: QueryBus,
+        private readonly commandBus: CommandBus,
+    ) {
+        super();
+    }
+
     async process(job: Job) {
         switch (job.name) {
             case <%= QueueJobNamesEnumName %>.exampleJob:
                 return this.handleExampleJob(job);
             default:
-                this.logger.warn(`⚠️ Job "${job.name}" is not handled.`);
+                this.logger.warn(`🚨 Job "${job.name}" is not handled.`);
                 break;
         }
     }

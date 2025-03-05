@@ -16,6 +16,7 @@ unless_exists: true
 import { BullBoardModule } from '@bull-board/nestjs';
 
 import { BullModule } from '@nestjs/bullmq';
+import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
 
 import { useBullBoard, useQueueProcessor } from '@common/utils/startup-app';
