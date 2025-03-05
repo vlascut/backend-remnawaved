@@ -28,9 +28,6 @@
       "@contract/*": [
         "./libs/contract/*"
       ],
-      "@jobs/*": [
-        ".wip/jobs/*"
-      ],
       "@processors/*": [
         "src/processors/*"
       ],
