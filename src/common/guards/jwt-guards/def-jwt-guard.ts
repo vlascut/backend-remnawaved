@@ -28,31 +28,32 @@ export class JwtDefaultGuard extends AuthGuard('registeredUserJWT') {
             return false;
         }
 
-        if (ROLE.API) {
-            const token = await this.getTokenByUuid({ uuid: user.uuid });
-            if (!token.isOk) {
-                return false;
+        switch (user.role) {
+            case ROLE.API: {
+                const token = await this.getTokenByUuid({ uuid: user.uuid });
+                if (!token.isOk) {
+                    return false;
+                }
+                return true;
             }
+            case ROLE.ADMIN: {
+                if (!user.username) {
+                    return false;
+                }
 
-            return true;
-        }
+                const adminEntity = await this.getAdminByUsername({
+                    username: user.username,
+                    role: user.role,
+                });
 
-        if (user.role === ROLE.ADMIN) {
-            if (!user.username) {
-                return false;
-            }
+                if (!adminEntity.isOk || !adminEntity.response) {
+                    return false;
+                }
 
-            const adminEntity = await this.getAdminByUsername({
-                username: user.username,
-                role: user.role,
-            });
-
-            if (!adminEntity.isOk || !adminEntity.response) {
-                return false;
-            }
-
-            if (adminEntity.response.uuid !== user.uuid) {
-                return false;
+                if (adminEntity.response.uuid !== user.uuid) {
+                    return false;
+                }
+                break;
             }
         }
 
