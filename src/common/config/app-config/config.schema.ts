@@ -56,6 +56,13 @@ export const configSchema = z
         WEBHOOK_ENABLED: z.string().default('false'),
         WEBHOOK_URL: z.string().optional(),
         WEBHOOK_SECRET_HEADER: z.string().optional(),
+        REDIS_HOST: z.string(),
+        REDIS_PORT: z.string().transform((port) => parseInt(port, 10)),
+        REDIS_PASSWORD: z.optional(z.string()),
+        REDIS_DB: z
+            .string()
+            .transform((db) => parseInt(db, 10))
+            .default('1'),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {

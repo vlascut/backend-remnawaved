@@ -29,7 +29,13 @@
         "./libs/contract/*"
       ],
       "@jobs/*": [
-        "./src/jobs/*"
+        ".wip/jobs/*"
+      ],
+      "@processors/*": [
+        "src/processors/*"
+      ],
+      "@scheduler/*": [
+        "./src/scheduler/*"
       ]
     },
     "incremental": true,

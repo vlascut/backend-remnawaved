@@ -6,9 +6,10 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ROLE } from '@libs/contracts/constants';
 
 import { GetAdminByUsernameQuery } from '@modules/admin/queries/get-admin-by-username';
+import { GetTokenByUuidQuery } from '@modules/api-tokens/queries/get-token-by-uuid';
+import { ApiTokenEntity } from '@modules/api-tokens/entities/api-token.entity';
 import { AdminEntity } from '@modules/admin/entities/admin.entity';
 import { IJWTAuthPayload } from '@modules/auth/interfaces';
-
 @Injectable()
 export class JwtDefaultGuard extends AuthGuard('registeredUserJWT') {
     constructor(private readonly queryBus: QueryBus) {
@@ -23,11 +24,24 @@ export class JwtDefaultGuard extends AuthGuard('registeredUserJWT') {
 
         const { user } = context.switchToHttp().getRequest<{ user: IJWTAuthPayload }>();
 
-        if (!user || !user.username || !user.role) {
+        if (!user || !user.role || !user.uuid) {
             return false;
         }
 
+        if (ROLE.API) {
+            const token = await this.getTokenByUuid({ uuid: user.uuid });
+            if (!token.isOk) {
+                return false;
+            }
+
+            return true;
+        }
+
         if (user.role === ROLE.ADMIN) {
+            if (!user.username) {
+                return false;
+            }
+
             const adminEntity = await this.getAdminByUsername({
                 username: user.username,
                 role: user.role,
@@ -50,6 +64,14 @@ export class JwtDefaultGuard extends AuthGuard('registeredUserJWT') {
     ): Promise<ICommandResponse<AdminEntity>> {
         return this.queryBus.execute<GetAdminByUsernameQuery, ICommandResponse<AdminEntity>>(
             new GetAdminByUsernameQuery(dto.username, dto.role),
+        );
+    }
+
+    private async getTokenByUuid(
+        dto: GetTokenByUuidQuery,
+    ): Promise<ICommandResponse<ApiTokenEntity>> {
+        return this.queryBus.execute<GetTokenByUuidQuery, ICommandResponse<ApiTokenEntity>>(
+            new GetTokenByUuidQuery(dto.uuid),
         );
     }
 }

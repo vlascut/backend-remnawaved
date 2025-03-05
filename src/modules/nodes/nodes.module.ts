@@ -13,5 +13,6 @@ import { EVENTS } from './events';
     imports: [CqrsModule],
     controllers: [NodesController],
     providers: [NodesRepository, NodesConverter, NodesService, ...EVENTS, ...QUERIES, ...COMMANDS],
+    exports: [NodesRepository],
 })
 export class NodesModule {}

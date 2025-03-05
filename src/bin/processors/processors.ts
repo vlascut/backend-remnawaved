@@ -1,12 +1,7 @@
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
-import { patchNestJsSwagger } from 'nestjs-zod';
 import { createLogger } from 'winston';
-import compression from 'compression';
 import * as winston from 'winston';
-import { json } from 'express';
-import helmet from 'helmet';
 
-import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
 import { NotFoundExceptionFilter } from '@common/exception/not-found-exception.filter';
@@ -15,9 +10,7 @@ import { isDevelopment } from '@common/utils/startup-app';
 import { AxiosService } from '@common/axios';
 import { METRICS_ROOT } from '@libs/contracts/api';
 
-import { WorkerModule } from '../.wip/worker.module';
-
-patchNestJsSwagger();
+import { ProcessorsRootModule } from './processors.root.module';
 
 // const levels = {
 //     error: 0,
@@ -39,7 +32,7 @@ const logger = createLogger({
         }),
         winston.format.ms(),
         winston.format.align(),
-        nestWinstonModuleUtilities.format.nestLike(`Job Worker: #${instanedId}`, {
+        nestWinstonModuleUtilities.format.nestLike(`Processors: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
             processId: false,
@@ -50,31 +43,11 @@ const logger = createLogger({
 });
 
 async function bootstrap(): Promise<void> {
-    const app = await NestFactory.create(WorkerModule, {
+    const app = await NestFactory.create(ProcessorsRootModule, {
         logger: WinstonModule.createLogger({
             instance: logger,
         }),
     });
-
-    app.use(json({ limit: '100mb' }));
-
-    const config = app.get(ConfigService);
-
-    app.use(
-        helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: ["'self'", '*'],
-                    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", '*'],
-                    imgSrc: ["'self'", 'data:', '*'],
-                    connectSrc: ["'self'", '*'],
-                    workerSrc: ["'self'", 'blob:', '*'],
-                },
-            },
-        }),
-    );
-
-    app.use(compression());
 
     app.useGlobalFilters(new NotFoundExceptionFilter());
 
@@ -82,7 +55,7 @@ async function bootstrap(): Promise<void> {
 
     app.enableShutdownHooks();
 
-    await app.listen(Number(config.getOrThrow<string>('METRICS_PORT')));
+    await app.init();
 
     const axiosService = app.get(AxiosService);
     await axiosService.setJwt();

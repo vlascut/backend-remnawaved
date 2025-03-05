@@ -1,5 +1,4 @@
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
-import { patchNestJsSwagger } from 'nestjs-zod';
 import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
@@ -15,9 +14,7 @@ import { isDevelopment } from '@common/utils/startup-app';
 import { AxiosService } from '@common/axios';
 import { METRICS_ROOT } from '@libs/contracts/api';
 
-import { WorkerModule } from '../.wip/worker.module';
-
-patchNestJsSwagger();
+import { SchedulerRootModule } from './scheduler.root.module';
 
 // const levels = {
 //     error: 0,
@@ -39,7 +36,7 @@ const logger = createLogger({
         }),
         winston.format.ms(),
         winston.format.align(),
-        nestWinstonModuleUtilities.format.nestLike(`Job Worker: #${instanedId}`, {
+        nestWinstonModuleUtilities.format.nestLike(`Scheduler: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
             processId: false,
@@ -50,7 +47,7 @@ const logger = createLogger({
 });
 
 async function bootstrap(): Promise<void> {
-    const app = await NestFactory.create(WorkerModule, {
+    const app = await NestFactory.create(SchedulerRootModule, {
         logger: WinstonModule.createLogger({
             instance: logger,
         }),
