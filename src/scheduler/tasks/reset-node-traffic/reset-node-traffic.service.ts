@@ -1,10 +1,9 @@
 import dayjs from 'dayjs';
 
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 
-import { formatExecutionTime, getTime } from '@common/utils/get-elapsed-time';
 import { ICommandResponse } from '@common/types/command-response.type';
 
 import { CreateNodeTrafficUsageHistoryCommand } from '@modules/nodes-traffic-usage-history/commands/create-node-traffic-usage-history';
@@ -16,44 +15,23 @@ import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 import { JOBS_INTERVALS } from '@scheduler/intervals';
 
 @Injectable()
-export class ResetNodeTrafficService {
+export class ResetNodeTrafficTask {
     private static readonly CRON_NAME = 'resetNodeTraffic';
-    private readonly logger = new Logger(ResetNodeTrafficService.name);
-    private isJobRunning: boolean;
-    private cronName: string;
+    private readonly logger = new Logger(ResetNodeTrafficTask.name);
 
     constructor(
-        private readonly schedulerRegistry: SchedulerRegistry,
         private readonly queryBus: QueryBus,
-
         private readonly commandBus: CommandBus,
-    ) {
-        this.isJobRunning = false;
-        this.cronName = ResetNodeTrafficService.CRON_NAME;
-    }
-
-    private checkJobRunning(): boolean {
-        if (this.isJobRunning) {
-            this.logger.debug(
-                `Job ${this.cronName} is already running. Will retry at ${this.schedulerRegistry.getCronJob(this.cronName).nextDate().toISOTime()}`,
-            );
-            return false;
-        }
-        return true;
-    }
+    ) {}
 
     @Cron(JOBS_INTERVALS.RESET_NODE_TRAFFIC, {
-        name: ResetNodeTrafficService.CRON_NAME,
+        name: ResetNodeTrafficTask.CRON_NAME,
+        waitForCompletion: true,
     })
     async handleCron() {
         try {
-            if (!this.checkJobRunning()) return;
-            const ct = getTime();
-            this.isJobRunning = true;
-
             const nodesResponse = await this.getEnabledNodes();
             if (!nodesResponse.isOk || !nodesResponse.response) {
-                this.logger.error('No enabled nodes found');
                 return;
             }
 
@@ -90,12 +68,8 @@ export class ResetNodeTrafficService {
                     });
                 }
             }
-
-            this.logger.debug(`Reseted node traffic. Time: ${formatExecutionTime(ct)}`);
         } catch (error) {
             this.logger.error(error);
-        } finally {
-            this.isJobRunning = false;
         }
     }
 

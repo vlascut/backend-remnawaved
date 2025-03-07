@@ -22,7 +22,7 @@ export class BulkUpsertHistoryEntryBuilder {
             "total_bytes",
             "created_at",
             "updated_at"
-        ) VALUES ${usageHistoryList.map((usageHistory) => `('${usageHistory.nodeUuid}', '${usageHistory.userUuid}', ${usageHistory.downloadBytes}', '${usageHistory.uploadBytes}', '${usageHistory.totalBytes}', '${date.toISOString()}', NOW())`).join(',')}
+        ) VALUES ${usageHistoryList.map((usageHistory) => `('${usageHistory.nodeUuid}', '${usageHistory.userUuid}', ${usageHistory.downloadBytes}, ${usageHistory.uploadBytes}, ${usageHistory.totalBytes}, '${date.toISOString()}', NOW())`).join(',')}
         ON CONFLICT ("node_uuid","user_uuid","created_at")
         DO UPDATE
             SET

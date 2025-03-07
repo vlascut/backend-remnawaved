@@ -1,7 +1,6 @@
 import { Job } from 'bullmq';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
 import { AxiosService } from '@common/axios';
@@ -17,11 +16,7 @@ import { QueueNames } from '../queue.enum';
 export class NodeUsersQueueProcessor extends WorkerHost {
     private readonly logger = new Logger(NodeUsersQueueProcessor.name);
 
-    constructor(
-        private readonly queryBus: QueryBus,
-        private readonly commandBus: CommandBus,
-        private readonly axios: AxiosService,
-    ) {
+    constructor(private readonly axios: AxiosService) {
         super();
     }
 

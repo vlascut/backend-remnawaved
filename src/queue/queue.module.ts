@@ -10,11 +10,15 @@ import { BasicAuthMiddleware } from '@common/middlewares';
 import { useBullBoard } from '@common/utils/startup-app';
 import { BULLBOARD_ROOT } from '@libs/contracts/api';
 
+import { ResetUserTrafficQueueModule } from './reset-user-traffic/reset-user-traffic.module';
 import { NodeHealthCheckQueueModule } from './node-health-check/node-health-check.module';
+import { RecordNodeUsageQueueModule } from './record-node-usage/record-node-usage.module';
+import { RecordUserUsageQueueModule } from './record-user-usage/record-user-usage.module';
 import { StartAllNodesQueueModule } from './start-all-nodes/start-all-nodes.module';
 import { StartNodeQueueModule } from './start-node/start-node.module';
 import { NodeUsersQueueModule } from './node-users/node-users.module';
 import { StopNodeQueueModule } from './stop-node/stop-node.module';
+import { UserJobsQueueModule } from './user-jobs/user-jobs.module';
 
 const queueModules = [
     StartAllNodesQueueModule,
@@ -22,6 +26,10 @@ const queueModules = [
     StopNodeQueueModule,
     NodeHealthCheckQueueModule,
     NodeUsersQueueModule,
+    RecordNodeUsageQueueModule,
+    RecordUserUsageQueueModule,
+    ResetUserTrafficQueueModule,
+    UserJobsQueueModule,
 ];
 
 const bullBoard = [

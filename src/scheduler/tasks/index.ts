@@ -1,23 +1,5 @@
-import { RecordNodesUsageService } from './record-nodes-usage/record-nodes-usage.service';
-import { ResetNodeTrafficService } from './reset-node-traffic/reset-node-traffic.service';
-import { RecordUserUsageService } from './record-user-usage/record-user-usage.service';
-import { NodeHealthCheckTask } from './node-health-check/node-health-check.task';
-import { ReviewNodesService } from './review-nodes/review-nodes.service';
-import { RESET_USER_TRAFFIC_JOBS } from './reset-user-traffic-jobs';
-import { METRICS_JOBS_SERVICES } from './metrics-jobs';
-import { USERS_JOBS_SERVICES } from './users-jobs';
+import { ResetNodeTrafficTask } from './reset-node-traffic/reset-node-traffic.service';
+import { ExportMetricsTask } from './export-metrics/export-metrics.task';
+import { ReviewNodesTask } from './review-nodes/review-nodes.task';
 
-export const JOBS_SERVICES = [
-    NodeHealthCheckTask,
-    // RecordNodesUsageService,
-    // RecordUserUsageService,
-
-    // ResetNodeTrafficService,
-    // ReviewNodesService,
-
-    // ...METRICS_JOBS_SERVICES,
-
-    // ...USERS_JOBS_SERVICES,
-
-    // ...RESET_USER_TRAFFIC_JOBS,
-];
+export const JOBS_SERVICES = [ResetNodeTrafficTask, ReviewNodesTask, ExportMetricsTask];
