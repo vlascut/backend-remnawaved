@@ -84,13 +84,4 @@ export class XrayConfigController {
     //         response: new KeygenResponseModel(data),
     //     };
     // }
-
-    // @Put(':uuid')
-    // @ApiOperation({ summary: 'Update Xray Config', description: 'Update xray configuration' })
-    // @ApiOkResponse({ description: 'Configuration updated successfully' })
-    // @Roles(ROLE.ADMIN)
-    // async updateConfig(@Param('uuid') uuid: string, @Body() config: object) {
-    //     const result = await this.xrayConfigService.updateConfig(uuid, config);
-    //     return errorHandler(result);
-    // }
 }

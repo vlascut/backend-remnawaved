@@ -134,15 +134,16 @@ export class XrayConfigService implements OnApplicationBootstrap {
             }
 
             const validatedConfig = new XRayConfig(config);
+            const sortedConfig = validatedConfig.getSortedConfig();
 
-            const writeDBConfig = await this.updateConfig(validatedConfig.getSortedConfig());
+            const writeDBConfig = await this.updateConfig(sortedConfig);
             if (!writeDBConfig.isOk) {
                 throw new Error('Failed to write config to DB');
             }
 
             return {
                 isOk: true,
-                response: validatedConfig.getSortedConfig(),
+                response: sortedConfig,
             };
         } catch (error) {
             if (error instanceof Error) {
@@ -175,13 +176,13 @@ export class XrayConfigService implements OnApplicationBootstrap {
 
     public async syncInbounds(): Promise<void> {
         try {
-            const config = await this.getConfig();
+            const config = await this.xrayConfigRepository.findFirst();
 
-            if (!config.isOk || !config.response) {
+            if (!config) {
                 throw new Error('Failed to get config');
             }
 
-            const parsedConf = new XRayConfig(config.response);
+            const parsedConf = new XRayConfig(config);
             const configInbounds = parsedConf.getAllInbounds();
 
             const existingInbounds = await this.getAllInbounds();
