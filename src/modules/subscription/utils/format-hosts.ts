@@ -175,7 +175,30 @@ export class FormatHosts {
                     const realitySettings = inbound.streamSettings?.realitySettings;
                     sniFromConfig = realitySettings?.serverNames?.[0];
                     fingerprintFromConfig = realitySettings?.fingerprint;
+
+                    // try {
+                    //     const configPrivateKey = realitySettings!.privateKey;
+
+                    //     for (let i = 0; i < 100; i++) {
+                    //         console.time('genPublicKeyNodeCrypto');
+                    //         const { publicKey } = this.createX25519KeyPairFromBase64(
+                    //             configPrivateKey!,
+                    //         );
+                    //         const base64PublicKey = publicKey
+                    //             .export({
+                    //                 format: 'der',
+                    //                 type: 'spki',
+                    //             })
+                    //             .toString('base64url');
+
+                    //         console.timeEnd('genPublicKeyNodeCrypto');
+                    //     }
+                    // } catch (error) {
+                    //     console.log(error);
+                    // }
+
                     publicKeyFromConfig = realitySettings?.publicKey;
+
                     spiderXFromConfig = realitySettings?.spiderX;
                     const shortIds = inbound.streamSettings?.realitySettings?.shortIds || [];
                     shortIdFromConfig =
@@ -268,4 +291,29 @@ export class FormatHosts {
             return [];
         }
     }
+
+    // private createX25519KeyPairFromBase64(base64PrivateKey: string) {
+    //     try {
+    //         const rawPrivateKey = Buffer.from(base64PrivateKey, 'base64');
+
+    //         const jwkPrivateKey = {
+    //             kty: 'OKP',
+    //             crv: 'X25519',
+    //             d: Buffer.from(rawPrivateKey).toString('base64url'),
+    //             x: '', // This will be computed by createPrivateKey
+    //         };
+
+    //         const privateKey = createPrivateKey({
+    //             key: jwkPrivateKey,
+    //             format: 'jwk',
+    //         });
+
+    //         const publicKey = createPublicKey(privateKey);
+
+    //         return { privateKey, publicKey };
+    //     } catch (error) {
+    //         console.error('Error converting Base64 to X25519 key pair:', error);
+    //         throw error;
+    //     }
+    // }
 }
