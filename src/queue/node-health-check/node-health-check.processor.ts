@@ -38,7 +38,7 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
     }
     async process(job: Job<NodeHealthCheckPayload>) {
         this.logger.debug(
-            `✅ Handling "${NodeHealthCheckJobNames.checkNodeHealth}" job with ID: ${job?.id || ''}}`,
+            `Handling "${NodeHealthCheckJobNames.checkNodeHealth}" job with ID: ${job?.id || ''}}`,
         );
 
         try {
@@ -52,7 +52,7 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
             }
         } catch (error) {
             this.logger.error(
-                `❌ Error handling "${NodeHealthCheckJobNames.checkNodeHealth}" job: ${error}`,
+                `Error handling "${NodeHealthCheckJobNames.checkNodeHealth}" job: ${error}`,
             );
         }
     }
@@ -75,6 +75,7 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
                 isXrayRunning: true,
                 lastStatusChange: new Date(),
                 lastStatusMessage: '',
+                xrayUptime: response.response.uptime.toString(),
             },
         });
 
@@ -106,6 +107,7 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
                 lastStatusChange: new Date(),
                 lastStatusMessage: message,
                 usersOnline: 0,
+                xrayUptime: '0',
             },
         });
 

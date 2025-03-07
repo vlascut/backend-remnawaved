@@ -24,6 +24,7 @@ const entityToModel = (entity: NodesEntity): Nodes => {
         lastStatusChange: entity.lastStatusChange,
         lastStatusMessage: entity.lastStatusMessage,
         xrayVersion: entity.xrayVersion,
+        xrayUptime: entity.xrayUptime,
         isTrafficTrackingActive: entity.isTrafficTrackingActive,
         trafficResetDay: entity.trafficResetDay,
         trafficLimitBytes: entity.trafficLimitBytes,

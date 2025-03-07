@@ -16,7 +16,10 @@ export class NodesEntity implements Nodes {
     public isXrayRunning: boolean;
     public lastStatusChange: Date | null;
     public lastStatusMessage: null | string;
+
     public xrayVersion: null | string;
+    public xrayUptime: string;
+
     public usersOnline: null | number;
 
     public isTrafficTrackingActive: boolean;
