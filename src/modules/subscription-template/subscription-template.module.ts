@@ -5,7 +5,8 @@ import { SubscriptionTemplateRepository } from './repositories/subscription-temp
 import { SubscriptionTemplateController } from './subscription-template.controller';
 import { SubscriptionTemplateConverter } from './subscription-template.converter';
 import { SubscriptionTemplateService } from './subscription-template.service';
-
+import { RenderTemplatesService } from './render-templates.service';
+import { TEMPLATE_RENDERERS } from './generators';
 @Module({
     imports: [CqrsModule],
     controllers: [SubscriptionTemplateController],
@@ -13,7 +14,9 @@ import { SubscriptionTemplateService } from './subscription-template.service';
         SubscriptionTemplateService,
         SubscriptionTemplateRepository,
         SubscriptionTemplateConverter,
+        ...TEMPLATE_RENDERERS,
+        RenderTemplatesService,
     ],
-    exports: [],
+    exports: [SubscriptionTemplateService, RenderTemplatesService, ...TEMPLATE_RENDERERS],
 })
 export class SubscriptionTemplateModule {}

@@ -16,9 +16,9 @@ import { BasicStrategy } from './strategies';
             controller: PrometheusReporterController,
             useFactory: () => ({
                 defaultLabels: {
-                    app: 'remnawave-scheduler',
+                    app: 'remnawave',
                 },
-                customMetricPrefix: 'remnawave-scheduler',
+                customMetricPrefix: 'remnawave',
             }),
         }),
     ],

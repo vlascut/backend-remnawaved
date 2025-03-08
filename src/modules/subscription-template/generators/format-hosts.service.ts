@@ -2,49 +2,41 @@ import { randomUUID } from 'node:crypto';
 import dayjs from 'dayjs';
 
 import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 
 import {
-    RawObject,
     StreamSettingsObject,
     TcpObject,
     WebSocketObject,
+    xHttpObject,
 } from '@common/helpers/xray-config/interfaces/transport.config';
-import { xHttpObject } from '@common/helpers/xray-config/interfaces/transport.config';
+import { RawObject } from '@common/helpers/xray-config/interfaces/transport.config';
 import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
 import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
 import { USERS_STATUS } from '@libs/contracts/constants';
 
-import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
-import { HostWithInboundTagEntity } from '../../hosts/entities/host-with-inbound-tag.entity';
-import { FormattedHosts } from '../generators/interfaces/formatted-hosts.interface';
+import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
+import { HostWithInboundTagEntity } from '@modules/hosts/entities/host-with-inbound-tag.entity';
 
-export class FormatHosts {
-    private config: XRayConfig;
-    private hosts: HostWithInboundTagEntity[];
-    private user: UserWithActiveInboundsEntity;
-    private configService: ConfigService;
+import { IFormattedHost } from './interfaces/formatted-hosts.interface';
 
-    constructor(
+@Injectable()
+export class FormatHostsService {
+    constructor(private readonly configService: ConfigService) {}
+
+    public async generateFormattedHosts(
         config: XRayConfig,
         hosts: HostWithInboundTagEntity[],
         user: UserWithActiveInboundsEntity,
-        configService: ConfigService,
-    ) {
-        this.config = config;
-        this.hosts = hosts;
-        this.user = user;
-        this.configService = configService;
-    }
-
-    private generate(): FormattedHosts[] {
-        const formattedHosts: FormattedHosts[] = [];
+    ): Promise<IFormattedHost[]> {
+        const formattedHosts: IFormattedHost[] = [];
 
         let specialRemarks: string[] = [];
 
-        if (this.user.status !== USERS_STATUS.ACTIVE) {
-            switch (this.user.status) {
+        if (user.status !== USERS_STATUS.ACTIVE) {
+            switch (user.status) {
                 case USERS_STATUS.EXPIRED:
                     specialRemarks = this.configService.getOrThrow('EXPIRED_USER_REMARKS');
                     break;
@@ -83,23 +75,23 @@ export class FormatHosts {
             return formattedHosts;
         }
 
-        for (const inputHost of this.hosts) {
-            const inbound = this.config.getInbound(inputHost.inboundTag.tag);
+        for (const inputHost of hosts) {
+            const inbound = config.getInbound(inputHost.inboundTag.tag);
 
             if (!inbound) {
                 continue;
             }
 
             const remark = TemplateEngine.replace(inputHost.remark, {
-                DAYS_LEFT: dayjs(this.user.expireAt).diff(dayjs(), 'day'),
-                TRAFFIC_USED: prettyBytesUtil(this.user.usedTrafficBytes, true, 3),
+                DAYS_LEFT: dayjs(user.expireAt).diff(dayjs(), 'day'),
+                TRAFFIC_USED: prettyBytesUtil(user.usedTrafficBytes, true, 3),
                 TRAFFIC_LEFT: prettyBytesUtil(
-                    this.user.trafficLimitBytes - this.user.usedTrafficBytes,
+                    user.trafficLimitBytes - user.usedTrafficBytes,
                     true,
                     3,
                 ),
-                TOTAL_TRAFFIC: prettyBytesUtil(this.user.trafficLimitBytes, true, 3),
-                STATUS: USER_STATUSES_TEMPLATE[this.user.status],
+                TOTAL_TRAFFIC: prettyBytesUtil(user.trafficLimitBytes, true, 3),
+                STATUS: USER_STATUSES_TEMPLATE[user.status],
             });
 
             const address = inputHost.address;
@@ -109,7 +101,7 @@ export class FormatHosts {
             let streamSettings: WebSocketObject | xHttpObject | RawObject | TcpObject | undefined;
             let pathFromConfig: string | undefined;
             let hostFromConfig: string | undefined;
-            let additionalParams: FormattedHosts['additionalParams'] | undefined;
+            let additionalParams: IFormattedHost['additionalParams'] | undefined;
             let headerType: string | undefined;
 
             switch (network) {
@@ -267,9 +259,9 @@ export class FormatHosts {
                 spiderX,
                 network,
                 password: {
-                    trojanPassword: this.user.trojanPassword,
-                    vlessPassword: this.user.vlessUuid,
-                    ssPassword: this.user.ssPassword,
+                    trojanPassword: user.trojanPassword,
+                    vlessPassword: user.vlessUuid,
+                    ssPassword: user.ssPassword,
                 },
                 additionalParams,
             });
@@ -277,43 +269,4 @@ export class FormatHosts {
 
         return formattedHosts;
     }
-
-    public static format(
-        config: XRayConfig,
-        hosts: HostWithInboundTagEntity[],
-        user: UserWithActiveInboundsEntity,
-        configService: ConfigService,
-    ): FormattedHosts[] {
-        try {
-            return new FormatHosts(config, hosts, user, configService).generate();
-        } catch {
-            // silence error
-            return [];
-        }
-    }
-
-    // private createX25519KeyPairFromBase64(base64PrivateKey: string) {
-    //     try {
-    //         const rawPrivateKey = Buffer.from(base64PrivateKey, 'base64');
-
-    //         const jwkPrivateKey = {
-    //             kty: 'OKP',
-    //             crv: 'X25519',
-    //             d: Buffer.from(rawPrivateKey).toString('base64url'),
-    //             x: '', // This will be computed by createPrivateKey
-    //         };
-
-    //         const privateKey = createPrivateKey({
-    //             key: jwkPrivateKey,
-    //             format: 'jwk',
-    //         });
-
-    //         const publicKey = createPublicKey(privateKey);
-
-    //         return { privateKey, publicKey };
-    //     } catch (error) {
-    //         console.error('Error converting Base64 to X25519 key pair:', error);
-    //         throw error;
-    //     }
-    // }
 }

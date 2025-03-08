@@ -75,4 +75,36 @@ export class SubscriptionTemplateService {
             throw new Error('Failed to update template');
         }
     }
+
+    public async getJsonTemplateByType(templateType: TSubscriptionTemplateType): Promise<object> {
+        try {
+            const template =
+                await this.subscriptionTemplateRepository.findFirstByTemplateType(templateType);
+
+            if (!template || !template.templateJson) {
+                throw new Error('Template not found');
+            }
+
+            return template.templateJson;
+        } catch (error) {
+            this.logger.error(error);
+            throw new Error('Failed to get template');
+        }
+    }
+
+    public async getYamlTemplateByType(templateType: TSubscriptionTemplateType): Promise<string> {
+        try {
+            const template =
+                await this.subscriptionTemplateRepository.findFirstByTemplateType(templateType);
+
+            if (!template || !template.templateYaml) {
+                throw new Error('Template not found');
+            }
+
+            return template.templateYaml;
+        } catch (error) {
+            this.logger.error(error);
+            throw new Error('Failed to get template');
+        }
+    }
 }

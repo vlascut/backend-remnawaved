@@ -1,6 +1,6 @@
 import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
-export interface FormattedHosts {
+export interface IFormattedHost {
     address: string;
     alpn: string;
     fingerprint: string;

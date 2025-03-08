@@ -9,6 +9,11 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { XRayConfig } from '@common/helpers/xray-config';
 import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
 
+import { XrayGeneratorService } from '@modules/subscription-template/generators/xray.generator.service';
+import { FormatHostsService } from '@modules/subscription-template/generators/format-hosts.service';
+import { RenderTemplatesService } from '@modules/subscription-template/render-templates.service';
+import { IFormattedHost } from '@modules/subscription-template/generators/interfaces';
+
 import {
     SubscriptionNotFoundResponse,
     SubscriptionRawResponse,
@@ -19,14 +24,9 @@ import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active
 import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
 import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
 import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
-import { FormattedHosts } from './generators/interfaces/formatted-hosts.interface';
 import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
-import { generateSubscription } from './generators/generate-subscription';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
-import { XrayLinksGenerator } from './generators/by-subcription-type';
-import { ConfigTemplatesService } from './config-templates.service';
-import { FormatHosts } from './utils/format-hosts';
 
 @Injectable()
 export class SubscriptionService {
@@ -36,7 +36,9 @@ export class SubscriptionService {
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
-        private readonly configTemplatesService: ConfigTemplatesService,
+        private readonly renderTemplatesService: RenderTemplatesService,
+        private readonly formatHostsService: FormatHostsService,
+        private readonly xrayGeneratorService: XrayGeneratorService,
     ) {}
 
     public async getSubscriptionByShortUuid(
@@ -79,15 +81,13 @@ export class SubscriptionService {
                 subLastUserAgent: userAgent,
             });
 
-            const subscription = generateSubscription({
+            const subscription = await this.renderTemplatesService.generateSubscription({
                 userAgent: userAgent,
                 user: user.response,
                 config,
                 hosts: hosts.response,
-                configService: this.configService,
                 isOutlineConfig,
                 encodedTag,
-                configTemplatesService: this.configTemplatesService,
             });
 
             return new SubscriptionWithConfigResponse({
@@ -122,14 +122,14 @@ export class SubscriptionService {
 
             const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
 
-            const formattedHosts = FormatHosts.format(
+            const formattedHosts = await this.formatHostsService.generateFormattedHosts(
                 config,
                 hosts.response || [],
                 user.response,
-                this.configService,
             );
 
-            const xrayLinks = XrayLinksGenerator.generateLinks(formattedHosts);
+            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+
             const ssConfLinks = await this.generateSsConfLinks(
                 user.response.shortUuid,
                 formattedHosts,
@@ -173,7 +173,7 @@ export class SubscriptionService {
 
     private async generateSsConfLinks(
         subscriptionShortUuid: string,
-        formattedHosts: FormattedHosts[],
+        formattedHosts: IFormattedHost[],
     ): Promise<Record<string, string>> {
         const publicDomain = this.configService.getOrThrow('SUB_PUBLIC_DOMAIN');
         const links: Record<string, string> = {};

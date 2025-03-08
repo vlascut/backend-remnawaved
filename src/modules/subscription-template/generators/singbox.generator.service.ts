@@ -1,8 +1,10 @@
 import semver from 'semver';
 
-import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
+import { Injectable } from '@nestjs/common';
 
-import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
+import { SubscriptionTemplateService } from '@modules/subscription-template/subscription-template.service';
+
+import { IFormattedHost } from './interfaces';
 
 interface OutboundConfig {
     flow?: string;
@@ -50,57 +52,51 @@ interface TransportConfig {
     type: string;
 }
 
-// interface InboundConfig {
-//     protocol: string;
-//     network: string;
-//     path: string;
-//     port: number | string;
-//     tls: string;
-//     sni: string;
-//     host: string;
-//     header_type: string;
-//     alpn?: string;
-//     fp?: string;
-//     pbk?: string;
-//     sid?: string;
-//     ais?: string;
-//     mux_enable?: boolean;
-//     random_user_agent?: boolean;
-// }
+@Injectable()
+export class SingBoxGeneratorService {
+    constructor(private readonly subscriptionTemplateService: SubscriptionTemplateService) {}
 
-export class SingBoxConfiguration {
-    private hosts: FormattedHosts[];
-    private proxy_remarks: string[] = [];
-    private config: Record<string, any>;
-    private settings: Record<string, any>;
-    private version: null | string;
-    constructor(
-        hosts: FormattedHosts[],
-        version: null | string,
-        private readonly configTemplatesService: ConfigTemplatesService,
-    ) {
-        this.hosts = hosts;
-        this.version = version;
+    public async generateConfig(hosts: IFormattedHost[], version: null | string): Promise<string> {
+        try {
+            const config = await this.createConfig(version);
+            const proxy_remarks: string[] = [];
 
-        this.proxy_remarks = [];
+            for (const host of hosts) {
+                if (!host) {
+                    continue;
+                }
 
-        if (this.version && semver.gte(this.version, '1.11.0')) {
-            const templateContent = this.configTemplatesService.getTemplate('SINGBOX_TEMPLATE');
-            this.config = JSON.parse(templateContent);
+                this.addHost(host, config, proxy_remarks);
+            }
+
+            return this.renderConfig(config);
+        } catch {
+            return '';
+        }
+    }
+
+    private async createConfig(version: null | string): Promise<Record<string, any>> {
+        let config: Record<string, any> = {};
+
+        if (version && semver.gte(version, '1.11.0')) {
+            const templateContent =
+                await this.subscriptionTemplateService.getJsonTemplateByType('SINGBOX');
+            config = templateContent;
         } else {
             const templateContent =
-                this.configTemplatesService.getTemplate('SINGBOX_LEGACY_TEMPLATE');
-            this.config = JSON.parse(templateContent);
+                await this.subscriptionTemplateService.getJsonTemplateByType('SINGBOX_LEGACY');
+            config = templateContent;
         }
-        if (this.version && semver.satisfies(this.version, '>=1.10.0')) {
+
+        if (version && semver.satisfies(version, '>=1.10.0')) {
             // version 1.10.x
             // Reference: https://sing-box.sagernet.org/migration/#tun-address-fields-are-merged
-            const tunInboundIndex = this.config.inbounds.findIndex(
+            const tunInboundIndex = config.inbounds.findIndex(
                 (inbound: any) => inbound.type === 'tun',
             );
 
             if (tunInboundIndex !== -1) {
-                const tunInbound = this.config.inbounds[tunInboundIndex];
+                const tunInbound = config.inbounds[tunInboundIndex];
 
                 if (tunInbound.inet4_address || tunInbound.inet6_address) {
                     tunInbound.address = [
@@ -132,51 +128,29 @@ export class SingBoxConfiguration {
                     delete tunInbound.inet6_route_exclude_address;
                 }
 
-                this.config.inbounds[tunInboundIndex] = tunInbound;
+                config.inbounds[tunInboundIndex] = tunInbound;
             }
         }
+
+        return config;
     }
 
-    private generate(): string {
-        for (const host of this.hosts) {
-            if (!host) {
-                continue;
-            }
-
-            this.add(host);
-        }
-
-        return this.render();
+    private addOutbound(config: Record<string, any>, outbound_data: OutboundConfig): void {
+        config.outbounds.push(outbound_data);
     }
 
-    public static generateConfig(
-        hosts: FormattedHosts[],
-        version: null | string,
-        configTemplatesService: ConfigTemplatesService,
-    ): string {
-        try {
-            return new SingBoxConfiguration(hosts, version, configTemplatesService).generate();
-        } catch {
-            return '';
-        }
-    }
-
-    public add_outbound(outbound_data: OutboundConfig): void {
-        this.config.outbounds.push(outbound_data);
-    }
-
-    public render(): string {
+    private renderConfig(config: Record<string, any>): string {
         const urltest_types = ['vless', 'trojan', 'shadowsocks'];
-        const urltest_tags = this.config.outbounds
+        const urltest_tags = config.outbounds
             .filter((outbound: OutboundConfig) => urltest_types.includes(outbound.type))
             .map((outbound: OutboundConfig) => outbound.tag);
 
         const selector_types = [...urltest_types, 'urltest'];
-        const selector_tags = this.config.outbounds
+        const selector_tags = config.outbounds
             .filter((outbound: OutboundConfig) => selector_types.includes(outbound.type))
             .map((outbound: OutboundConfig) => outbound.tag);
 
-        this.config.outbounds.forEach((outbound: OutboundConfig) => {
+        config.outbounds.forEach((outbound: OutboundConfig) => {
             if (outbound.type === 'urltest') {
                 outbound.outbounds = urltest_tags;
             }
@@ -185,10 +159,10 @@ export class SingBoxConfiguration {
             }
         });
 
-        return JSON.stringify(this.config, null, 4);
+        return JSON.stringify(config, null, 4);
     }
 
-    public tls_config(
+    private tlsConfig(
         sni?: string,
         fp?: string,
         tls?: string,
@@ -237,13 +211,14 @@ export class SingBoxConfiguration {
         return config;
     }
 
-    public ws_config(
+    private wsConfig(
+        settings: Record<string, any> | undefined,
         host: string = '',
         path: string = '',
         max_early_data?: number,
         early_data_header_name?: string,
     ): TransportConfig {
-        const config = structuredClone(this.settings?.wsSettings || { headers: {} });
+        const config = structuredClone(settings?.wsSettings || { headers: {} });
 
         if (!config.headers) {
             config.headers = {};
@@ -266,7 +241,8 @@ export class SingBoxConfiguration {
         return config;
     }
 
-    public transport_config(
+    private transportConfig(
+        settings: Record<string, any> | undefined,
         transport_type: string = '',
         host: string = '',
         path: string = '',
@@ -278,7 +254,8 @@ export class SingBoxConfiguration {
         if (transport_type) {
             switch (transport_type) {
                 case 'ws':
-                    transport_config = this.ws_config(
+                    transport_config = this.wsConfig(
+                        settings,
                         host,
                         path,
                         max_early_data,
@@ -292,7 +269,7 @@ export class SingBoxConfiguration {
         return transport_config;
     }
 
-    public make_outbound(params: FormattedHosts): OutboundConfig {
+    private makeOutbound(params: IFormattedHost, settings?: Record<string, any>): OutboundConfig {
         const config: OutboundConfig = {
             type: params.protocol,
             tag: params.remark,
@@ -324,7 +301,8 @@ export class SingBoxConfiguration {
                 early_data_header_name = 'Sec-WebSocket-Protocol';
             }
 
-            config.transport = this.transport_config(
+            config.transport = this.transportConfig(
+                settings,
                 params.network,
                 params.host[0],
                 params.path,
@@ -334,7 +312,7 @@ export class SingBoxConfiguration {
         }
 
         if (['reality', 'tls'].includes(params.tls)) {
-            config.tls = this.tls_config(
+            config.tls = this.tlsConfig(
                 params.sni,
                 params.fingerprint,
                 params.tls,
@@ -346,16 +324,20 @@ export class SingBoxConfiguration {
         return config;
     }
 
-    public add(host: FormattedHosts): void {
+    private addHost(
+        host: IFormattedHost,
+        config: Record<string, any>,
+        proxy_remarks: string[],
+    ): void {
         try {
             if (host.network === 'xhttp') {
                 return;
             }
 
             const remark = host.remark;
-            this.proxy_remarks.push(remark);
+            proxy_remarks.push(remark);
 
-            const outbound = this.make_outbound(host);
+            const outbound = this.makeOutbound(host);
 
             switch (host.protocol) {
                 case 'vless':
@@ -367,11 +349,10 @@ export class SingBoxConfiguration {
                 case 'shadowsocks':
                     outbound.password = host.password.ssPassword;
                     outbound.method = 'chacha20-ietf-poly1305';
-
                     break;
             }
 
-            this.add_outbound(outbound);
+            this.addOutbound(config, outbound);
         } catch {
             // silence error
         }

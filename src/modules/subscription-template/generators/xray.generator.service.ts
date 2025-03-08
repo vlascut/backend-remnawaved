@@ -1,11 +1,20 @@
+import { Injectable, Logger } from '@nestjs/common';
+
 import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
-import { XrayShadowsocksLink } from './interfaces/xray-shadowsocks-link.interface';
-import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
+import { IFormattedHost } from './interfaces/formatted-hosts.interface';
+
+interface XrayShadowsocksLink {
+    address: string;
+    method: string;
+    password: string;
+    port: number;
+    remark: string;
+}
 
 const NETWORK_CONFIGS: Record<
     StreamSettingsObject['network'],
-    (params: FormattedHosts) => Partial<Record<string, unknown>>
+    (params: IFormattedHost) => Partial<Record<string, unknown>>
 > = {
     ws: (params) => ({ path: params.path, host: params.host }),
     tcp: (params) => ({ path: params.path, host: params.host }),
@@ -13,64 +22,65 @@ const NETWORK_CONFIGS: Record<
     xhttp: (params) => ({ path: params.path, host: params.host }),
 };
 
-export class XrayLinksGenerator {
-    private links: string[] = [];
+@Injectable()
+export class XrayGeneratorService {
+    private readonly logger = new Logger(XrayGeneratorService.name);
 
-    private hosts: FormattedHosts[] = [];
+    constructor() {}
 
-    private isBase64: boolean;
+    public async generateConfig(hosts: IFormattedHost[], isBase64: boolean): Promise<string> {
+        try {
+            const links = this.generateLinks(hosts);
 
-    constructor(
-        hosts: FormattedHosts[],
-
-        isBase64: boolean,
-    ) {
-        this.hosts = hosts;
-        this.isBase64 = isBase64;
-        this.links = [];
+            const linksString = links.join('\n');
+            if (isBase64) {
+                return Buffer.from(linksString).toString('base64');
+            } else {
+                return linksString;
+            }
+        } catch (error) {
+            this.logger.error('Error generating xray config:', error);
+            return '';
+        }
     }
 
-    addLink(link: string): void {
-        this.links.push(link);
+    public generateLinks(hosts: IFormattedHost[]): string[] {
+        const links: string[] = [];
+
+        for (const host of hosts) {
+            if (!host) {
+                continue;
+            }
+
+            const link = this.generateLink(host);
+            if (link) {
+                links.push(link);
+            }
+        }
+
+        return links;
     }
 
-    public static generateConfig(host: FormattedHosts[], isBase64: boolean): string {
-        const generator = new XrayLinksGenerator(host, isBase64);
-        return generator.generate() as string;
-    }
-
-    public static generateLinks(host: FormattedHosts[]): string[] {
-        const generator = new XrayLinksGenerator(host, false);
-        return generator.generate() as string[];
-    }
-
-    add(host: FormattedHosts): void {
-        let link: string | undefined;
-
+    private generateLink(host: IFormattedHost): string | undefined {
         switch (host.protocol) {
             case 'trojan':
-                link = XrayLinksGenerator.trojan(host);
-                break;
+                return this.trojan(host);
             case 'vless':
-                link = XrayLinksGenerator.vless(host);
-                break;
+                return this.vless(host);
             case 'shadowsocks':
-                link = XrayLinksGenerator.shadowsocks({
+                return this.shadowsocks({
                     remark: host.remark,
                     address: host.address,
                     port: host.port,
                     method: 'chacha20-ietf-poly1305',
                     password: host.password.ssPassword,
                 });
-                break;
-        }
-
-        if (link) {
-            this.addLink(link);
+            default:
+                return undefined;
         }
     }
 
-    private static trojan(params: FormattedHosts): string {
+    private trojan(params: IFormattedHost): string {
         const payload: Record<string, unknown> = {
             security: params.tls,
             type: params.network,
@@ -96,7 +106,7 @@ export class XrayLinksGenerator {
         }
 
         if (params.network === 'xhttp') {
-            const extra: FormattedHosts['additionalParams'] = {
+            const extra: IFormattedHost['additionalParams'] = {
                 scMaxEachPostBytes: params.additionalParams?.scMaxEachPostBytes,
                 scMaxConcurrentPosts: params.additionalParams?.scMaxConcurrentPosts,
                 scMinPostsIntervalMs: params.additionalParams?.scMinPostsIntervalMs,
@@ -140,11 +150,11 @@ export class XrayLinksGenerator {
 
         Object.assign(payload, tlsParams);
 
-        const stringPayload = XrayLinksGenerator.convertPayloadToString(payload);
+        const stringPayload = this.convertPayloadToString(payload);
         return `trojan://${encodeURIComponent(params.password.trojanPassword)}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
     }
 
-    private static vless(params: FormattedHosts): string {
+    private vless(params: IFormattedHost): string {
         const payload: Record<string, unknown> = {
             security: params.tls,
             type: params.network,
@@ -170,7 +180,7 @@ export class XrayLinksGenerator {
         }
 
         if (params.network === 'xhttp') {
-            const extra: FormattedHosts['additionalParams'] = {
+            const extra: IFormattedHost['additionalParams'] = {
                 scMaxEachPostBytes: params.additionalParams?.scMaxEachPostBytes,
                 scMaxConcurrentPosts: params.additionalParams?.scMaxConcurrentPosts,
                 scMinPostsIntervalMs: params.additionalParams?.scMinPostsIntervalMs,
@@ -214,11 +224,11 @@ export class XrayLinksGenerator {
 
         Object.assign(payload, tlsParams);
 
-        const stringPayload = XrayLinksGenerator.convertPayloadToString(payload);
+        const stringPayload = this.convertPayloadToString(payload);
         return `vless://${params.password.vlessPassword}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
     }
 
-    private static shadowsocks(params: XrayShadowsocksLink): string {
+    private shadowsocks(params: XrayShadowsocksLink): string {
         const base64Credentials = Buffer.from(`${params.method}:${params.password}`).toString(
             'base64',
         );
@@ -228,30 +238,12 @@ export class XrayLinksGenerator {
         return `ss://${base64Credentials}@${params.address}:${params.port}#${encodedRemark}`;
     }
 
-    private static convertPayloadToString(
-        payload: Record<string, unknown>,
-    ): Record<string, string> {
+    private convertPayloadToString(payload: Record<string, unknown>): Record<string, string> {
         return Object.fromEntries(
             Object.entries(payload)
                 /* eslint-disable @typescript-eslint/no-unused-vars */
                 .filter(([_, v]) => v !== undefined)
                 .map(([k, v]) => [k, String(v)]),
         );
-    }
-
-    private generate(): string | string[] {
-        for (const host of this.hosts) {
-            if (!host) {
-                continue;
-            }
-            this.add(host);
-        }
-
-        const linksString = this.links.join('\n');
-        if (this.isBase64) {
-            return Buffer.from(linksString).toString('base64');
-        } else {
-            return this.links;
-        }
     }
 }
