@@ -4,5 +4,6 @@ export * from './hosts';
 export * from './metrics';
 export * from './nodes';
 export * from './roles';
+export * from './subscription-template';
 export * from './templates';
 export * from './users';

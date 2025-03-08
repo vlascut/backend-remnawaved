@@ -1,11 +1,9 @@
 proxy-groups:
-- name: → Remnawave
-  type: select
-  proxies:
-{{ proxy_remarks | yaml | indent(2) }}
+  - name: → Remnawave
+    type: select
+    proxies: # LEAVE THIS LINE!
 
-proxies:
-{{ proxies | yaml | indent(2) }}
+proxies: # LEAVE THIS LINE!
 
 rules:
   - SCRIPT,quic,REJECT

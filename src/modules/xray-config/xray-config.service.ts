@@ -178,11 +178,11 @@ export class XrayConfigService implements OnApplicationBootstrap {
         try {
             const config = await this.xrayConfigRepository.findFirst();
 
-            if (!config) {
+            if (!config || !config.config) {
                 throw new Error('Failed to get config');
             }
 
-            const parsedConf = new XRayConfig(config);
+            const parsedConf = new XRayConfig(config.config);
             const configInbounds = parsedConf.getAllInbounds();
 
             const existingInbounds = await this.getAllInbounds();

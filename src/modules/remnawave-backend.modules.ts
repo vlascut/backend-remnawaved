@@ -5,6 +5,7 @@ import { isRestApi } from '@common/utils/startup-app';
 
 import { NodesTrafficUsageHistoryModule } from './nodes-traffic-usage-history/nodes-traffic-usage-history.module';
 import { NodesUserUsageHistoryModule } from './nodes-user-usage-history/nodes-user-usage-history.module';
+import { SubscriptionTemplateModule } from './subscription-template/subscription-template.module';
 import { UserTrafficHistoryModule } from './user-traffic-history/user-traffic-history.module';
 import { NodesUsageHistoryModule } from './nodes-usage-history/nodes-usage-history.module';
 import { SubscriptionModule } from './subscription/subscription.module';
@@ -36,6 +37,7 @@ import { AuthModule } from './auth/auth.module';
         InboundsModule,
         XrayConfigModule,
         ConditionalModule.registerWhen(SystemModule, () => isRestApi()),
+        ConditionalModule.registerWhen(SubscriptionTemplateModule, () => isRestApi()),
     ],
 })
 export class RemnawaveModules {}

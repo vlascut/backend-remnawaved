@@ -249,3 +249,16 @@ model ActiveUserInbounds {
   @@unique([userUuid, inboundUuid])
   @@map("active_user_inbounds")
 }
+
+model SubscriptionTemplate {
+  uuid         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateType String  @map("template_type")
+  templateYaml String? @map("template_yaml")
+  templateJson Json?   @map("template_json")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@unique([templateType])
+  @@map("subscription_templates")
+}

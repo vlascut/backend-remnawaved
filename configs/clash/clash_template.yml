@@ -17,14 +17,14 @@ dns:
     - 1.1.1.1
     - 8.8.8.8
   fake-ip-filter:
-    - "*.lan"
+    - '*.lan'
     - stun.*.*.*
     - stun.*.*
     - time.windows.com
     - time.nist.gov
     - time.apple.com
     - time.asia.apple.com
-    - "*.openwrt.pool.ntp.org"
+    - '*.openwrt.pool.ntp.org'
     - pool.ntp.org
     - ntp.ubuntu.com
     - time1.apple.com
@@ -40,23 +40,21 @@ dns:
     - time4.google.com
     - api.joox.com
     - joox.com
-    - "*.xiami.com"
-    - "*.msftconnecttest.com"
-    - "*.msftncsi.com"
+    - '*.xiami.com'
+    - '*.msftconnecttest.com'
+    - '*.msftncsi.com'
     - '+.xboxlive.com'
-    - "*.*.stun.playstation.net"
+    - '*.*.stun.playstation.net'
     - xbox.*.*.microsoft.com
-    - "*.ipv6.microsoft.com"
+    - '*.ipv6.microsoft.com'
     - speedtest.cros.wr.pvp.net
 
-proxies:
-{{ proxies | yaml | indent(2) }}
+proxies: # LEAVE THIS LINE!
 
 proxy-groups:
-- name: '→ Remnawave'
-  type: 'select'
-  proxies:
-{{ proxy_remarks | yaml | indent(2) }}
+  - name: '→ Remnawave'
+    type: 'select'
+    proxies: # LEAVE THIS LINE!
 
 rules:
-- MATCH,→ Remnawave
+  - MATCH,→ Remnawave

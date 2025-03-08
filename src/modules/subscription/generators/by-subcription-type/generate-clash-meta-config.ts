@@ -1,18 +1,8 @@
-import { dump as yamlDump } from 'js-yaml';
-import nunjucks from 'nunjucks';
+import yaml from 'yaml';
 
 import { ConfigTemplatesService } from '@modules/subscription/config-templates.service';
 
 import { FormattedHosts } from '../interfaces/formatted-hosts.interface';
-
-const env = nunjucks.configure({ autoescape: false });
-env.addFilter('yaml', (obj: any) => yamlDump(obj));
-env.addFilter('indent', (str: string, width: number) => {
-    return str
-        .split('\n')
-        .map((line) => ' '.repeat(width) + line)
-        .join('\n');
-});
 
 export interface ClashData {
     proxies: ProxyNode[];
@@ -78,17 +68,43 @@ export class ClashMetaConfiguration {
     }
 
     public render(): string {
-        const context = {
-            proxies: this.data.proxies,
-            proxy_remarks: this.proxyRemarks,
-        };
-
-        return env.renderString(
-            this.configTemplatesService.getTemplate(
-                this.isStash ? 'STASH_TEMPLATE' : 'CLASH_TEMPLATE',
-            ),
-            context,
+        const yamlConfigRaw = this.configTemplatesService.getTemplate(
+            this.isStash ? 'STASH_TEMPLATE' : 'CLASH_TEMPLATE',
         );
+
+        try {
+            const yamlConfig = yaml.parse(yamlConfigRaw);
+
+            if (!Array.isArray(yamlConfig.proxies)) {
+                yamlConfig.proxies = [];
+            }
+
+            if (!Array.isArray(yamlConfig['proxy-groups'])) {
+                yamlConfig['proxy-groups'] = [];
+            }
+
+            for (const group of yamlConfig['proxy-groups']) {
+                if (!Array.isArray(group.proxies)) {
+                    group.proxies = [];
+                }
+            }
+
+            for (const proxy of this.data.proxies) {
+                yamlConfig.proxies.push(proxy);
+            }
+
+            for (const group of yamlConfig['proxy-groups']) {
+                if (Array.isArray(group.proxies)) {
+                    for (const proxyRemark of this.proxyRemarks) {
+                        group.proxies.push(proxyRemark);
+                    }
+                }
+            }
+
+            return yaml.stringify(yamlConfig);
+        } catch {
+            return '';
+        }
     }
 
     private generate(): string {
