@@ -1,9 +1,11 @@
-import { ConfigService } from '@nestjs/config';
+import semver from 'semver';
+
 import { Injectable } from '@nestjs/common';
 
 import { parseSingBoxVersion } from '@modules/subscription/utils/parse-sing-box-version';
 
 import { SUBSCRIPTION_CONFIG_TYPES, TSubscriptionConfigTypes } from './constants/config-types';
+import { XrayJsonGeneratorService } from './generators/xray-json.generator.service';
 import { OutlineGeneratorService } from './generators/outline.generator.service';
 import { SingBoxGeneratorService } from './generators/singbox.generator.service';
 import { MihomoGeneratorService } from './generators/mihomo.generator.service';
@@ -15,13 +17,13 @@ import { IGenerateSubscription } from './interfaces';
 @Injectable()
 export class RenderTemplatesService {
     constructor(
-        private readonly configService: ConfigService,
         private readonly formatHostsService: FormatHostsService,
         private readonly mihomoGeneratorService: MihomoGeneratorService,
         private readonly clashGeneratorService: ClashGeneratorService,
         private readonly outlineGeneratorService: OutlineGeneratorService,
         private readonly xrayGeneratorService: XrayGeneratorService,
         private readonly singBoxGeneratorService: SingBoxGeneratorService,
+        private readonly xrayJsonGeneratorService: XrayJsonGeneratorService,
     ) {}
 
     async generateSubscription(params: IGenerateSubscription): Promise<{
@@ -30,7 +32,11 @@ export class RenderTemplatesService {
     }> {
         const { userAgent, user, hosts, config, isOutlineConfig, encodedTag } = params;
 
-        const configType = this.parseUserAgentType(userAgent);
+        const configType =
+            params.needJsonSubscription && this.isJsonSubscriptionAllowed(userAgent)
+                ? 'XRAY_JSON'
+                : this.parseUserAgentType(userAgent);
+
         const configParams = SUBSCRIPTION_CONFIG_TYPES[configType];
         const formattedHosts = await this.formatHostsService.generateFormattedHosts(
             config,
@@ -88,6 +94,12 @@ export class RenderTemplatesService {
                     contentType: configParams.CONTENT_TYPE,
                 };
 
+            case 'XRAY_JSON':
+                return {
+                    sub: await this.xrayJsonGeneratorService.generateConfig(formattedHosts),
+                    contentType: configParams.CONTENT_TYPE,
+                };
+
             default:
                 return { sub: '', contentType: '' };
         }
@@ -104,5 +116,27 @@ export class RenderTemplatesService {
                 ]) => configName !== 'XRAY' && config.REGEX?.test(userAgent),
             )?.[0] as TSubscriptionConfigTypes) || 'XRAY'
         );
+    }
+
+    private isJsonSubscriptionAllowed(userAgent: string): boolean {
+        if (!userAgent) return false;
+
+        const xrayJsonClients = [/^[Ss]treisand/, /^Happ\//, /^ktor-client/, /^V2Box/];
+
+        if (xrayJsonClients.some((regex) => regex.test(userAgent))) {
+            return true;
+        }
+
+        const v2rayNGMatch = userAgent.match(/^v2rayNG\/(\d+\.\d+\.\d+)/);
+        if (v2rayNGMatch && semver.gte(v2rayNGMatch[1], '1.8.29')) {
+            return true;
+        }
+
+        const v2rayNMatch = userAgent.match(/^v2rayN\/(\d+\.\d+\.\d+)/);
+        if (v2rayNMatch && semver.gte(v2rayNMatch[1], '6.40')) {
+            return true;
+        }
+
+        return false;
     }
 }

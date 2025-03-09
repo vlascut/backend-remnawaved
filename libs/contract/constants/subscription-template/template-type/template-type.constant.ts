@@ -3,6 +3,7 @@ export const SUBSCRIPTION_TEMPLATE_TYPE = {
     SINGBOX: 'SINGBOX',
     SINGBOX_LEGACY: 'SINGBOX_LEGACY',
     MIHOMO: 'MIHOMO',
+    XRAY_JSON: 'XRAY_JSON',
 } as const;
 
 export type TSubscriptionTemplateType = [keyof typeof SUBSCRIPTION_TEMPLATE_TYPE][number];

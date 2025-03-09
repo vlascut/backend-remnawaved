@@ -71,6 +71,36 @@ export class SubscriptionController {
         description: 'Short UUID of the user',
         required: true,
     })
+    @Get(SUBSCRIPTION_ROUTES.GET + '/:shortUuid' + '/json')
+    async getJsonSubscription(
+        @Param() { shortUuid }: GetSubscriptionByShortUuidRequestDto,
+        @Req() request: Request,
+        @Res() response: Response,
+    ): Promise<Response> {
+        const result = await this.subscriptionService.getSubscriptionByShortUuid(
+            shortUuid,
+            (request.headers['user-agent'] as string) || '',
+            ((request.headers['accept'] as string) || '').includes('text/html'),
+            true,
+        );
+
+        if (result instanceof SubscriptionNotFoundResponse) {
+            return response.status(404).send(result);
+        }
+
+        if (result instanceof SubscriptionRawResponse) {
+            return response.status(200).send(result);
+        }
+
+        return response.set(result.headers).type(result.contentType).send(result.body);
+    }
+
+    @ApiParam({
+        name: 'shortUuid',
+        type: String,
+        description: 'Short UUID of the user',
+        required: true,
+    })
     @ApiParam({
         name: 'type',
         type: String,
@@ -104,6 +134,7 @@ export class SubscriptionController {
             shortUuid,
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
+            false,
             isOutlineConfig,
             encodedTag,
         );

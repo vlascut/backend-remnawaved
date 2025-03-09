@@ -61,7 +61,7 @@ async function bootstrap(): Promise<void> {
 
     const config = app.get(ConfigService);
 
-    getDocs(app, config);
+    await getDocs(app, config);
 
     app.use(
         helmet({

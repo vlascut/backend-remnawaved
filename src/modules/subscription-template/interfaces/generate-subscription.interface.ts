@@ -10,4 +10,5 @@ export interface IGenerateSubscription {
     config: XRayConfig;
     isOutlineConfig: boolean;
     encodedTag?: string;
+    needJsonSubscription?: boolean;
 }

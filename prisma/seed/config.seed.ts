@@ -426,6 +426,68 @@ export const SingboxDefaultConfig = {
     },
 };
 
+export const XrayJsonDefaultConfig = {
+    dns: {
+        servers: ['1.1.1.1', '1.0.0.1'],
+        queryStrategy: 'UseIP',
+    },
+    routing: {
+        rules: [
+            {
+                type: 'field',
+                protocol: ['bittorrent'],
+                outboundTag: 'direct',
+            },
+        ],
+        domainMatcher: 'hybrid',
+        domainStrategy: 'IPIfNonMatch',
+    },
+    inbounds: [
+        {
+            tag: 'socks',
+            port: 10808,
+            listen: '[::1]',
+            protocol: 'socks',
+            settings: {
+                udp: true,
+                auth: 'noauth',
+                allowTransparent: false,
+            },
+            sniffing: {
+                enabled: true,
+                routeOnly: false,
+                destOverride: ['http', 'tls', 'quic'],
+            },
+        },
+        {
+            tag: 'http',
+            port: 10809,
+            listen: '[::1]',
+            protocol: 'http',
+            settings: {
+                udp: true,
+                auth: 'noauth',
+                allowTransparent: false,
+            },
+            sniffing: {
+                enabled: true,
+                routeOnly: false,
+                destOverride: ['http', 'tls', 'quic'],
+            },
+        },
+    ],
+    outbounds: [
+        {
+            tag: 'direct',
+            protocol: 'freedom',
+        },
+        {
+            tag: 'block',
+            protocol: 'blackhole',
+        },
+    ],
+};
+
 const prisma = new PrismaClient({
     datasources: {
         db: {
@@ -484,6 +546,17 @@ async function seedSubscriptionTemplate() {
                 await prisma.subscriptionTemplate.create({
                     data: { templateType, templateJson: SingboxLegacyDefaultConfig },
                 });
+                break;
+            case SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON:
+                if (existingConfig) {
+                    console.log(`Default ${templateType} config already exists!`);
+                    continue;
+                }
+
+                await prisma.subscriptionTemplate.create({
+                    data: { templateType, templateJson: XrayJsonDefaultConfig },
+                });
+
                 break;
             default:
                 throw new Error(`Unknown template type: ${templateType}`);

@@ -35,6 +35,12 @@ export const SUBSCRIPTION_CONFIG_TYPES = {
         CONTENT_TYPE: 'text/plain',
         BASE64: true,
     },
+    XRAY_JSON: {
+        NAME: 'XRAY_JSON',
+        REGEX: null,
+        CONTENT_TYPE: 'application/json',
+        BASE64: false,
+    },
 } as const;
 
 export type TSubscriptionConfigTypes = [keyof typeof SUBSCRIPTION_CONFIG_TYPES][number];

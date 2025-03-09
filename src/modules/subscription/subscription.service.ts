@@ -45,6 +45,7 @@ export class SubscriptionService {
         shortUuid: string,
         userAgent: string,
         isHtml: boolean,
+        needJsonSubscription: boolean = false,
         isOutlineConfig: boolean = false,
         encodedTag?: string,
     ): Promise<
@@ -88,6 +89,7 @@ export class SubscriptionService {
                 hosts: hosts.response,
                 isOutlineConfig,
                 encodedTag,
+                needJsonSubscription,
             });
 
             return new SubscriptionWithConfigResponse({

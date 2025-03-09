@@ -38,6 +38,16 @@ services:
       remnawave-db:
         condition: service_healthy
 
+  remnawave-redis:
+    image: valkey/valkey:8.0.2-alpine
+    container_name: remnawave-redis
+    hostname: remnawave-redis
+    restart: always
+    networks:
+      - remnawave-network
+    volumes:
+      - remnawave-redis-data:/data
+
   remnawave-cloudflared:
     container_name: remnawave-cloudflared
     image: cloudflare/cloudflared:latest
@@ -62,3 +72,7 @@ volumes:
     driver: local
     external: false
     name: remnawave-db-data
+  remnawave-redis-data:
+    driver: local
+    external: false
+    name: remnawave-redis-data
