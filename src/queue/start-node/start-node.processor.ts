@@ -35,10 +35,6 @@ export class StartNodeQueueProcessor extends WorkerHost {
     }
 
     async process(job: Job<{ nodeUuid: string }>) {
-        this.logger.debug(
-            `✅ Handling "${StartNodeJobNames.startNode}" job with ID: ${job?.id || ''}}`,
-        );
-
         try {
             const { nodeUuid } = job.data;
 
@@ -79,16 +75,7 @@ export class StartNodeQueueProcessor extends WorkerHost {
             }
 
             const startTime = Date.now();
-            console.time('getConfigForNode');
             const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
-            console.timeEnd('getConfigForNode');
-
-            console.log(config.response?.inbounds[0].settings?.clients.length);
-            console.log(config.response?.inbounds[1]?.settings?.clients.length || 'null');
-            console.log(config.response?.inbounds[2]?.settings?.clients.length || 'null');
-            console.log(config.response?.inbounds[3]?.settings?.clients.length || 'null');
-            console.log(config.response?.inbounds[4]?.settings?.clients.length || 'null');
-            console.log(config.response?.inbounds[5]?.settings?.clients.length || 'null');
 
             this.logger.log(`Generated config for node in ${Date.now() - startTime}ms`);
 
@@ -146,7 +133,7 @@ export class StartNodeQueueProcessor extends WorkerHost {
 
             return;
         } catch (error) {
-            this.logger.error(`❌ Error handling "${StartNodeJobNames.startNode}" job: ${error}`);
+            this.logger.error(`Error handling "${StartNodeJobNames.startNode}" job: ${error}`);
         }
     }
 

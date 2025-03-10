@@ -70,6 +70,10 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
     ) {
         let usersOnline = 0;
 
+        // TODO: Debug for docker
+
+        this.logger.log(`Response: ${JSON.stringify(response.response)}`);
+
         let users = response.response.users.filter((user) => {
             if (user.username.startsWith('http')) {
                 this.logger.debug(`Skipping user with https:// or http:// in username`);
@@ -85,6 +89,8 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
         let allUsageRecords: NodesUserUsageHistoryEntity[] = [];
         let userUsageList: { userUuid: string; bytes: bigint }[] = [];
 
+        this.logger.log(`Users: ${JSON.stringify(users)}`);
+
         if (users.length > 0) {
             await pMap(
                 users,
@@ -96,6 +102,8 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
 
                     const { uuid: userUuid } = userResponse.response;
                     const totalBytes = xrayUser.downlink + xrayUser.uplink;
+
+                    this.logger.log(`User: ${JSON.stringify(xrayUser)}`);
 
                     allUsageRecords.push(
                         new NodesUserUsageHistoryEntity({

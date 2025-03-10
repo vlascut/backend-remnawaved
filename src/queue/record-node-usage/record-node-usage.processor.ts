@@ -3,7 +3,6 @@ import { Job } from 'bullmq';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { CommandBus } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
 
 import { GetAllOutboundsStatsCommand } from '@remnawave/node-contract';
 
@@ -25,7 +24,6 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
     private readonly logger = new Logger(RecordNodeUsageQueueProcessor.name);
 
     constructor(
-        private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
         private readonly axios: AxiosService,
     ) {
@@ -69,8 +67,9 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
             { totalDownlink: 0, totalUplink: 0 },
         ) || { totalDownlink: 0, totalUplink: 0 };
 
-        this.logger.debug(
-            `Node ${nodeUuid}: Processed traffic - Down: ${totalDownlink}, Up: ${totalUplink}`,
+        // TODO: Debug for docker
+        this.logger.log(
+            `Node ${nodeUuid}: Processed traffic - Down: ${totalDownlink}, Up: ${totalUplink}, ${JSON.stringify(response.response)}`,
         );
 
         if (totalDownlink === 0 && totalUplink === 0) {

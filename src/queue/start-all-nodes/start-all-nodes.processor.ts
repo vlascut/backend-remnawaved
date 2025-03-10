@@ -43,18 +43,14 @@ export class StartAllNodesQueueProcessor extends WorkerHost {
     async process(job: Job) {
         switch (job.name) {
             case StartAllNodesJobNames.startAllNodes:
-                return this.handleStartAllNodes(job);
+                return this.handleStartAllNodes();
             default:
-                this.logger.warn(`🚨 Job "${job.name}" is not handled.`);
+                this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
         }
     }
 
-    private async handleStartAllNodes(job: Job) {
-        this.logger.debug(
-            `✅ Handling "${StartAllNodesJobNames.startAllNodes}" job with ID: ${job?.id || ''}, data: ${JSON.stringify(job?.data || '')}`,
-        );
-
+    private async handleStartAllNodes() {
         const startTime = Date.now();
 
         await this.startNodeQueueService.queue.pause();
@@ -160,7 +156,7 @@ export class StartAllNodesQueueProcessor extends WorkerHost {
             this.logger.log(`Started all nodes in ${Date.now() - startTime}ms`);
         } catch (error) {
             this.logger.error(
-                `❌ Error handling "${StartAllNodesJobNames.startAllNodes}" job: ${error}`,
+                `Error handling "${StartAllNodesJobNames.startAllNodes}" job: ${error}`,
             );
         } finally {
             await this.startNodeQueueService.queue.resume();

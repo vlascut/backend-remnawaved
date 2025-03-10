@@ -55,7 +55,7 @@ export class ResetUserTrafficQueueProcessor extends WorkerHost {
             case ResetUserTrafficJobNames.resetWeeklyUserTraffic:
                 return this.handleResetUserTraffic(job, RESET_PERIODS.WEEK);
             default:
-                this.logger.warn(`🚨 Job "${job.name}" is not handled.`);
+                this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
         }
     }

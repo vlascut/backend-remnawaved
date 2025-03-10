@@ -29,7 +29,7 @@ export class NodeUsersQueueProcessor extends WorkerHost {
             case NodeUsersJobNames.removeUserFromNode:
                 return this.handleRemoveUserFromNode(job);
             default:
-                this.logger.warn(`🚨 Job "${job.name}" is not handled.`);
+                this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
         }
     }

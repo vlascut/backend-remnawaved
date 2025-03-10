@@ -19,12 +19,12 @@ export abstract class AbstractQueueService {
         const client = await this.queue.client;
 
         if (client.status !== 'ready') {
-            const errorMessage = `❌ Queue "${this.queue.name}" is not connected. Current status: [${client.status.toUpperCase()}]`;
+            const errorMessage = `Queue "${this.queue.name}" is not connected. Current status: [${client.status.toUpperCase()}]`;
             this.logger.error(errorMessage);
             throw new Error(errorMessage);
         }
 
-        this.logger.log(`📦 Queue "${this.queue.name}" is connected.`);
+        this.logger.log(`Queue "${this.queue.name}" is connected.`);
     }
 
     /**
@@ -97,7 +97,6 @@ export abstract class AbstractQueueService {
         data: Data,
         options?: JobsOptions,
     ): Promise<Job<Data, Result>> {
-        this.logger.debug(`📤 Adding job "${name}" to queue "${this.queue.name}".`);
         return this.queue.add(name, data, options);
     }
 
@@ -110,9 +109,6 @@ export abstract class AbstractQueueService {
     protected async addBulk<Data, Result>(
         jobs: Array<{ name: string; data: Data; options?: BulkJobOptions }>,
     ): Promise<Array<Job<Data, Result, string>>> {
-        this.logger.debug(
-            `📤 Adding bulk jobs to queue "${this.queue.name}". Total jobs: ${jobs.length}.`,
-        );
         return this.queue.addBulk(jobs);
     }
 }
