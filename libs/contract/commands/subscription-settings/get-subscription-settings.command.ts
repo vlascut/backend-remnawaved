@@ -5,6 +5,7 @@ import { REST_API } from '../../api';
 
 export namespace GetSubscriptionSettingsCommand {
     export const url = REST_API.SUBSCRIPTION_SETTINGS.GET_SETTINGS;
+    export const TSQ_url = url;
 
     export const ResponseSchema = z.object({
         response: SubscriptionSettingsSchema,
