@@ -5,4 +5,5 @@ export * from './hosts.schema';
 export * from './inbounds.schema';
 export * from './last-connected-node.schema';
 export * from './nodes.schema';
+export * from './subscription-settings.schema';
 export * from './users.schema';

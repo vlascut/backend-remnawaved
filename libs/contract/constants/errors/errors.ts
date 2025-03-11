@@ -343,4 +343,19 @@ export const ERRORS = {
         message: 'Get one host error',
         httpCode: 500,
     },
+    SUBSCRIPTION_SETTINGS_NOT_FOUND: {
+        code: 'A071',
+        message: 'Subscription settings not found',
+        httpCode: 404,
+    },
+    GET_SUBSCRIPTION_SETTINGS_ERROR: {
+        code: 'A072',
+        message: 'Get subscription settings error',
+        httpCode: 500,
+    },
+    UPDATE_SUBSCRIPTION_SETTINGS_ERROR: {
+        code: 'A073',
+        message: 'Update subscription settings error',
+        httpCode: 500,
+    },
 } as const;

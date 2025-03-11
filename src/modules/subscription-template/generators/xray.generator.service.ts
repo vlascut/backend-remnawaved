@@ -98,6 +98,7 @@ export class XrayGeneratorService {
         if (
             ['reality', 'tls'].includes(params.tls) &&
             ['raw', 'tcp'].includes(params.network) &&
+            params.protocol !== 'trojan' &&
             params.headerType !== 'http'
         ) {
             Object.assign(payload, {

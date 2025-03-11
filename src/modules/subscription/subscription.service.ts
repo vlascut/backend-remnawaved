@@ -9,6 +9,8 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { XRayConfig } from '@common/helpers/xray-config';
 import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
 
+import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
+import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
 import { XrayGeneratorService } from '@modules/subscription-template/generators/xray.generator.service';
 import { FormatHostsService } from '@modules/subscription-template/generators/format-hosts.service';
 import { RenderTemplatesService } from '@modules/subscription-template/render-templates.service';
@@ -93,7 +95,10 @@ export class SubscriptionService {
             });
 
             return new SubscriptionWithConfigResponse({
-                headers: await this.getUserProfileHeadersInfo(user.response),
+                headers: await this.getUserProfileHeadersInfo(
+                    user.response,
+                    /^Happ\//.test(userAgent),
+                ),
                 body: subscription.sub,
                 contentType: subscription.contentType,
             });
@@ -196,15 +201,32 @@ export class SubscriptionService {
 
     private async getUserProfileHeadersInfo(
         user: UserWithActiveInboundsEntity,
+        isHapp: boolean,
     ): Promise<ISubscriptionHeaders> {
+        const settingsResponse = await this.getSubscriptionSettings();
+        if (!settingsResponse.isOk || !settingsResponse.response) {
+            return {
+                'content-disposition': `attachment; filename="${user.username}"`,
+                'profile-web-page-url': '',
+                'support-url': '',
+                'profile-title': '',
+                'profile-update-interval': '24',
+                'subscription-userinfo': '',
+            };
+        }
+
+        const settings = settingsResponse.response;
+
         return {
+            announce: isHapp
+                ? `base64:${Buffer.from(settings.happAnnounce ?? '').toString('base64')}`
+                : undefined,
+            routing: isHapp ? (settings.happRouting ?? undefined) : undefined,
             'content-disposition': `attachment; filename="${user.username}"`,
-            'profile-web-page-url': this.configService.getOrThrow('SUB_WEBPAGE_URL'),
-            'support-url': this.configService.getOrThrow('SUB_SUPPORT_URL'),
-            'profile-title': `base64:${Buffer.from(
-                this.configService.getOrThrow('SUB_PROFILE_TITLE'),
-            ).toString('base64')}`,
-            'profile-update-interval': this.configService.getOrThrow('SUB_UPDATE_INTERVAL'),
+            'profile-web-page-url': settings.profileWebpageUrl,
+            'support-url': settings.supportLink,
+            'profile-title': `base64:${Buffer.from(settings.profileTitle).toString('base64')}`,
+            'profile-update-interval': settings.profileUpdateInterval.toString(),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
                 .map(([key, val]) => `${key}=${val}`)
                 .join('; '),
@@ -233,6 +255,13 @@ export class SubscriptionService {
         return this.queryBus.execute<GetValidatedConfigQuery, null | XRayConfig>(
             new GetValidatedConfigQuery(),
         );
+    }
+
+    private async getSubscriptionSettings(): Promise<ICommandResponse<SubscriptionSettingsEntity>> {
+        return this.queryBus.execute<
+            GetSubscriptionSettingsQuery,
+            ICommandResponse<SubscriptionSettingsEntity>
+        >(new GetSubscriptionSettingsQuery());
     }
 
     private async updateSubLastOpenedAndUserAgent(

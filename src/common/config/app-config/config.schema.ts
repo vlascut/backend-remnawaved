@@ -29,27 +29,6 @@ export const configSchema = z
         IS_DOCS_ENABLED: z.string().default('false'),
         SCALAR_PATH: z.string().default('/scalar'),
         SWAGGER_PATH: z.string().default('/docs'),
-        EXPIRED_USER_REMARKS: z.string().transform((str) => {
-            try {
-                return JSON.parse(str) as string[];
-            } catch {
-                throw new Error('EXPIRED_USER_REMARKS must be a valid JSON array of strings');
-            }
-        }),
-        DISABLED_USER_REMARKS: z.string().transform((str) => {
-            try {
-                return JSON.parse(str) as string[];
-            } catch {
-                throw new Error('DISABLED_USER_REMARKS must be a valid JSON array of strings');
-            }
-        }),
-        LIMITED_USER_REMARKS: z.string().transform((str) => {
-            try {
-                return JSON.parse(str) as string[];
-            } catch {
-                throw new Error('LIMITED_USER_REMARKS must be a valid JSON array of strings');
-            }
-        }),
         METRICS_USER: z.string(),
         METRICS_PASS: z.string(),
         SUB_PUBLIC_DOMAIN: z.string(),

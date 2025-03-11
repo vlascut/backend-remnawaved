@@ -564,6 +564,31 @@ async function seedSubscriptionTemplate() {
     }
 }
 
+async function seedSubscriptionSettings() {
+    const existingConfig = await prisma.subscriptionSettings.findFirst();
+
+    if (existingConfig) {
+        console.log('Default subscription settings already seeded!');
+        return;
+    }
+
+    const expiredUserRemarks = ['🚨 Subscription expired', 'Contact support'];
+    const disabledUserRemarks = ['❌ Subscription disabled', 'Contact support'];
+    const limitedUserRemarks = ['🔴 Subscription limited', 'Contact support'];
+
+    await prisma.subscriptionSettings.create({
+        data: {
+            profileTitle: 'UmVtbmF3YXZl',
+            supportLink: 'https://remna.st',
+            profileWebpageUrl: 'https://remna.st',
+            profileUpdateInterval: 12,
+            expiredUsersRemarks: expiredUserRemarks,
+            limitedUsersRemarks: limitedUserRemarks,
+            disabledUsersRemarks: disabledUserRemarks,
+        },
+    });
+}
+
 async function seedConfigVariables() {
     const existingConfig = await prisma.xrayConfig.findFirst();
 
@@ -588,6 +613,7 @@ async function seedConfigVariables() {
 async function seedAll() {
     await seedSubscriptionTemplate();
     await seedConfigVariables();
+    await seedSubscriptionSettings();
 }
 
 seedAll()

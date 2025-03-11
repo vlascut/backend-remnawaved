@@ -1,8 +1,18 @@
 import { SUBSCRIPTION_TEMPLATE_CONTROLLER, SUBSCRIPTION_TEMPLATE_ROUTES } from '@contract/api';
 import { ROLE, TSubscriptionTemplateType } from '@contract/constants';
 
-import { Body, Controller, Get, Param, Post, UseFilters, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    Post,
+    UseFilters,
+    UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -15,6 +25,7 @@ import { SubscriptionTemplateService } from './subscription-template.service';
 import { UpdateTemplateResponseDto } from './dtos/update-template.dto';
 import { UpdateTemplateRequestDto } from './dtos/update-template.dto';
 
+@ApiBearerAuth('Authorization')
 @ApiTags('Subscriptions Template Controller')
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
@@ -23,6 +34,12 @@ import { UpdateTemplateRequestDto } from './dtos/update-template.dto';
 export class SubscriptionTemplateController {
     constructor(private readonly subscriptionTemplateService: SubscriptionTemplateService) {}
 
+    @ApiOkResponse({
+        type: GetTemplateResponseDto,
+        description: 'Template retrieved successfully',
+    })
+    @ApiOperation({ summary: 'Get Template', description: 'Get Template' })
+    @HttpCode(HttpStatus.OK)
     @Get(SUBSCRIPTION_TEMPLATE_ROUTES.GET_TEMPLATE + '/' + ':templateType')
     async getConfig(@Param() paramData: GetTemplateRequestDto): Promise<GetTemplateResponseDto> {
         const result = await this.subscriptionTemplateService.getTemplate(
@@ -35,6 +52,13 @@ export class SubscriptionTemplateController {
         };
     }
 
+    @ApiBody({ type: UpdateTemplateRequestDto })
+    @ApiOkResponse({
+        type: UpdateTemplateResponseDto,
+        description: 'Template updated successfully',
+    })
+    @ApiOperation({ summary: 'Update Template', description: 'Update Template' })
+    @HttpCode(HttpStatus.OK)
     @Post(SUBSCRIPTION_TEMPLATE_ROUTES.UPDATE_TEMPLATE)
     async updateConfig(@Body() body: UpdateTemplateRequestDto): Promise<UpdateTemplateResponseDto> {
         const result = await this.subscriptionTemplateService.updateTemplate(

@@ -11,7 +11,13 @@ import {
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBadRequestResponse,
+    ApiBearerAuth,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
+} from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -24,6 +30,7 @@ import { GetConfigResponseModel } from './models/get-config.response.model';
 import { GetConfigResponseDto } from './dtos/get-config.dto';
 import { XrayConfigService } from './xray-config.service';
 
+@ApiBearerAuth('Authorization')
 @ApiTags('Xray Config Controller')
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)

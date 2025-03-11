@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import dayjs from 'dayjs';
 
-import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
 
 import {
     StreamSettingsObject,
@@ -14,9 +14,12 @@ import { RawObject } from '@common/helpers/xray-config/interfaces/transport.conf
 import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
 import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
+import { ICommandResponse } from '@common/types/command-response.type';
 import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
 import { USERS_STATUS } from '@libs/contracts/constants';
 
+import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
+import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
 import { HostWithInboundTagEntity } from '@modules/hosts/entities/host-with-inbound-tag.entity';
 
@@ -24,7 +27,7 @@ import { IFormattedHost } from './interfaces/formatted-hosts.interface';
 
 @Injectable()
 export class FormatHostsService {
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly queryBus: QueryBus) {}
 
     public async generateFormattedHosts(
         config: XRayConfig,
@@ -36,15 +39,20 @@ export class FormatHostsService {
         let specialRemarks: string[] = [];
 
         if (user.status !== USERS_STATUS.ACTIVE) {
+            const settings = await this.getSubscriptionSettings();
+            if (!settings) {
+                return formattedHosts;
+            }
+
             switch (user.status) {
                 case USERS_STATUS.EXPIRED:
-                    specialRemarks = this.configService.getOrThrow('EXPIRED_USER_REMARKS');
+                    specialRemarks = settings.expiredUsersRemarks;
                     break;
                 case USERS_STATUS.DISABLED:
-                    specialRemarks = this.configService.getOrThrow('DISABLED_USER_REMARKS');
+                    specialRemarks = settings.disabledUsersRemarks;
                     break;
                 case USERS_STATUS.LIMITED:
-                    specialRemarks = this.configService.getOrThrow('LIMITED_USER_REMARKS');
+                    specialRemarks = settings.limitedUsersRemarks;
                     break;
             }
 
@@ -268,5 +276,18 @@ export class FormatHostsService {
         }
 
         return formattedHosts;
+    }
+
+    private async getSubscriptionSettings(): Promise<SubscriptionSettingsEntity | null> {
+        const settingsResponse = await this.queryBus.execute<
+            GetSubscriptionSettingsQuery,
+            ICommandResponse<SubscriptionSettingsEntity>
+        >(new GetSubscriptionSettingsQuery());
+
+        if (!settingsResponse.isOk || !settingsResponse.response) {
+            return null;
+        }
+
+        return settingsResponse.response;
     }
 }

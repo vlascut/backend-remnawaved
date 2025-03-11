@@ -5,4 +5,6 @@ export interface ISubscriptionHeaders {
     'profile-web-page-url': string;
     'subscription-userinfo': string;
     'support-url': string;
+    announce?: string;
+    routing?: string;
 }
