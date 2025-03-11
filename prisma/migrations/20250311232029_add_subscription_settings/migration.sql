@@ -43,7 +43,6 @@ CREATE TABLE "subscription_settings" (
     "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
     "profile_title" TEXT NOT NULL,
     "support_link" TEXT NOT NULL,
-    "profile_webpage_url" TEXT NOT NULL,
     "profile_update_interval" INTEGER NOT NULL,
     "happ_announce" TEXT,
     "happ_routing" TEXT,

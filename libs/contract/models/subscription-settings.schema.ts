@@ -5,7 +5,6 @@ export const SubscriptionSettingsSchema = z.object({
 
     profileTitle: z.string(),
     supportLink: z.string(),
-    profileWebpageUrl: z.string(),
     profileUpdateInterval: z.number().int(),
 
     happAnnounce: z.string().nullable(),

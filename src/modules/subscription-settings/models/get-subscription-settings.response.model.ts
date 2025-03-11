@@ -4,7 +4,6 @@ export class SubscriptionSettingsResponseModel {
     public uuid: string;
     public profileTitle: string;
     public supportLink: string;
-    public profileWebpageUrl: string;
     public profileUpdateInterval: number;
     public happAnnounce: string | null;
     public happRouting: string | null;
@@ -19,7 +18,6 @@ export class SubscriptionSettingsResponseModel {
         this.uuid = entity.uuid;
         this.profileTitle = entity.profileTitle;
         this.supportLink = entity.supportLink;
-        this.profileWebpageUrl = entity.profileWebpageUrl;
         this.profileUpdateInterval = entity.profileUpdateInterval;
         this.happAnnounce = entity.happAnnounce;
         this.happRouting = entity.happRouting;

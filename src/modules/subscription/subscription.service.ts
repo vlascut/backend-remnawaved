@@ -223,7 +223,7 @@ export class SubscriptionService {
                 : undefined,
             routing: isHapp ? (settings.happRouting ?? undefined) : undefined,
             'content-disposition': `attachment; filename="${user.username}"`,
-            'profile-web-page-url': settings.profileWebpageUrl,
+            'profile-web-page-url': `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`,
             'support-url': settings.supportLink,
             'profile-title': `base64:${Buffer.from(settings.profileTitle).toString('base64')}`,
             'profile-update-interval': settings.profileUpdateInterval.toString(),

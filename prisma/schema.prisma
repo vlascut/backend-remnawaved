@@ -267,7 +267,6 @@ model SubscriptionSettings {
   uuid                  String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profileTitle          String  @map("profile_title")
   supportLink           String  @map("support_link")
-  profileWebpageUrl     String  @map("profile_webpage_url")
   profileUpdateInterval Int     @map("profile_update_interval")
   happAnnounce          String? @map("happ_announce")
   happRouting           String? @map("happ_routing")

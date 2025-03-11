@@ -580,7 +580,6 @@ async function seedSubscriptionSettings() {
         data: {
             profileTitle: 'UmVtbmF3YXZl',
             supportLink: 'https://remna.st',
-            profileWebpageUrl: 'https://remna.st',
             profileUpdateInterval: 12,
             expiredUsersRemarks: expiredUserRemarks,
             limitedUsersRemarks: limitedUserRemarks,
