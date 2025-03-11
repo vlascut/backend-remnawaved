@@ -628,7 +628,6 @@ export class UsersRepository implements ICrud<UserEntity> {
         let hasMoreData = true;
 
         while (hasMoreData) {
-            console.time('getUsersForConfigStream');
             const builder = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
 
             const query = Prisma.sql`
@@ -641,7 +640,6 @@ export class UsersRepository implements ICrud<UserEntity> {
             if (result.length < BATCH_SIZE) {
                 hasMoreData = false;
             }
-            console.timeEnd('getUsersForConfigStream');
 
             if (result.length > 0) {
                 yield result;

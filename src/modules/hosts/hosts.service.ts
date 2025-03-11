@@ -122,6 +122,27 @@ export class HostsService {
         }
     }
 
+    public async getOneHost(hostUuid: string): Promise<ICommandResponse<HostsEntity>> {
+        try {
+            const result = await this.hostsRepository.findByUUID(hostUuid);
+
+            if (!result) {
+                return {
+                    isOk: false,
+                    ...ERRORS.HOST_NOT_FOUND,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_ONE_HOST_ERROR };
+        }
+    }
+
     public async reorderHosts(dto: ReorderHostRequestDto): Promise<
         ICommandResponse<{
             isUpdated: boolean;

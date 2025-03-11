@@ -7,4 +7,5 @@ export const HOSTS_ROUTES = {
     UPDATE: 'update',
     UPDATE_MANY: 'many',
     REORDER: 'reorder',
+    GET_ONE: 'get-one',
 } as const;

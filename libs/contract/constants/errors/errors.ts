@@ -338,4 +338,9 @@ export const ERRORS = {
         message: 'Disable node error',
         httpCode: 500,
     },
+    GET_ONE_HOST_ERROR: {
+        code: 'A070',
+        message: 'Get one host error',
+        httpCode: 500,
+    },
 } as const;

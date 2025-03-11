@@ -32,11 +32,14 @@ import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-ho
 import { CreateHostRequestDto, CreateHostResponseDto } from './dtos/create-host.dto';
 import { DeleteHostRequestDto, DeleteHostResponseDto } from './dtos/delete-host.dto';
 import { GetAllHostsResponseModel } from './models/get-all-hosts.response.model';
+import { GetOneHostResponseModel } from './models/get-one-host.response.model';
 import { CreateHostResponseModel } from './models/create-host.response.model';
 import { UpdateHostResponseModel } from './models/update-host.response.model';
 import { GetAllHostsResponseDto } from './dtos/get-all-hosts.dto';
 import { UpdateHostResponseDto } from './dtos/update-host.dto';
 import { UpdateHostRequestDto } from './dtos/update-host.dto';
+import { GetOneHostResponseDto } from './dtos/get-one.dto';
+import { GetOneHostRequestDto } from './dtos/get-one.dto';
 import { HostsService } from './hosts.service';
 
 @ApiBearerAuth('Authorization')
@@ -95,6 +98,23 @@ export class HostsController {
         const data = errorHandler(result);
         return {
             response: data.map((host) => new GetAllHostsResponseModel(host)),
+        };
+    }
+
+    @ApiOkResponse({
+        type: GetOneHostResponseDto,
+        description: 'Host fetched successfully',
+    })
+    @ApiOperation({ summary: 'Get One Host', description: 'Get one host by uuid' })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the host', required: true })
+    @HttpCode(HttpStatus.OK)
+    @Get(HOSTS_ROUTES.GET_ONE + '/:uuid')
+    async getOneHost(@Param() paramData: GetOneHostRequestDto): Promise<GetOneHostResponseDto> {
+        const result = await this.hostsService.getOneHost(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: new GetOneHostResponseModel(data),
         };
     }
 
