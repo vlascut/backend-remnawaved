@@ -25,6 +25,8 @@ interface NetworkConfig {
     };
     'v2ray-http-upgrade'?: boolean;
     'v2ray-http-upgrade-fast-open'?: boolean;
+    'public-key'?: string;
+    'short-id'?: string;
 }
 
 interface ProxyNode {
@@ -133,13 +135,16 @@ export class MihomoGeneratorService {
             server: host.address,
             port: Number(host.port),
             network: host.network || 'tcp',
-            tls: host.tls === 'tls',
+            tls: ['reality', 'tls'].includes(host.tls),
             sni: host.sni || '',
             host: host.host[0],
             path: host.path || '',
             headers: '',
             udp: true,
             alpn: host.alpn,
+            publicKey: host.publicKey,
+            shortId: host.shortId,
+            clientFingerprint: host.fingerprint,
         });
 
         switch (host.protocol) {
@@ -184,8 +189,25 @@ export class MihomoGeneratorService {
         headers: string;
         udp: boolean;
         alpn?: string;
+        publicKey?: string;
+        shortId?: string;
+        clientFingerprint?: string;
     }): ProxyNode {
-        const { server, port, remark, tls, sni, alpn, udp, host, path, headers } = params;
+        const {
+            server,
+            port,
+            remark,
+            tls,
+            sni,
+            alpn,
+            udp,
+            host,
+            path,
+            headers,
+            publicKey,
+            shortId,
+            clientFingerprint,
+        } = params;
         let { type, network } = params;
 
         if (type === 'shadowsocks') {
@@ -254,6 +276,14 @@ export class MihomoGeneratorService {
 
         if (Object.keys(netOpts).length > 0) {
             node[`${network}-opts`] = netOpts;
+        }
+
+        if (publicKey) {
+            node['reality-opts'] = {
+                'public-key': publicKey,
+                'short-id': shortId,
+            };
+            node['client-fingerprint'] = clientFingerprint || 'chrome';
         }
 
         return node;
