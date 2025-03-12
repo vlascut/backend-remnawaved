@@ -14,7 +14,12 @@ export namespace UpdateSubscriptionSettingsCommand {
         supportLink: z.optional(z.string()),
         profileUpdateInterval: z.optional(z.number().int()),
 
-        happAnnounce: z.optional(z.string().nullable()),
+        happAnnounce: z.optional(
+            z
+                .string()
+                .max(200, { message: 'Announce must be less than 200 characters' })
+                .nullable(),
+        ),
         happRouting: z.optional(z.string().nullable()),
 
         expiredUsersRemarks: z.optional(z.array(z.string())),
