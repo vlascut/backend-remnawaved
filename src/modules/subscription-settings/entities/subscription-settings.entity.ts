@@ -5,7 +5,7 @@ export class SubscriptionSettingsEntity implements SubscriptionSettings {
     profileTitle: string;
     supportLink: string;
     profileUpdateInterval: number;
-
+    isProfileWebpageUrlEnabled: boolean;
     happAnnounce: string | null;
     happRouting: string | null;
 

@@ -264,15 +264,16 @@ model SubscriptionTemplate {
 }
 
 model SubscriptionSettings {
-  uuid                  String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  profileTitle          String  @map("profile_title")
-  supportLink           String  @map("support_link")
-  profileUpdateInterval Int     @map("profile_update_interval")
-  happAnnounce          String? @map("happ_announce")
-  happRouting           String? @map("happ_routing")
-  expiredUsersRemarks   Json    @map("expired_users_remarks")
-  limitedUsersRemarks   Json    @map("limited_users_remarks")
-  disabledUsersRemarks  Json    @map("disabled_users_remarks")
+  uuid                       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileTitle               String  @map("profile_title")
+  supportLink                String  @map("support_link")
+  profileUpdateInterval      Int     @map("profile_update_interval")
+  isProfileWebpageUrlEnabled Boolean @default(true) @map("is_profile_webpage_url_enabled")
+  happAnnounce               String? @map("happ_announce")
+  happRouting                String? @map("happ_routing")
+  expiredUsersRemarks        Json    @map("expired_users_remarks")
+  limitedUsersRemarks        Json    @map("limited_users_remarks")
+  disabledUsersRemarks       Json    @map("disabled_users_remarks")
 
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")

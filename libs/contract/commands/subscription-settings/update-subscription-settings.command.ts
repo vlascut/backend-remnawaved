@@ -13,6 +13,7 @@ export namespace UpdateSubscriptionSettingsCommand {
         profileTitle: z.optional(z.string()),
         supportLink: z.optional(z.string()),
         profileUpdateInterval: z.optional(z.number().int()),
+        isProfileWebpageUrlEnabled: z.optional(z.boolean()),
 
         happAnnounce: z.optional(
             z

@@ -16,6 +16,7 @@ const entityToModel = (entity: SubscriptionSettingsEntity): SubscriptionSettings
         profileTitle: entity.profileTitle,
         supportLink: entity.supportLink,
         profileUpdateInterval: entity.profileUpdateInterval,
+        isProfileWebpageUrlEnabled: entity.isProfileWebpageUrlEnabled,
 
         happAnnounce: entity.happAnnounce,
         happRouting: entity.happRouting,

@@ -217,13 +217,8 @@ export class SubscriptionService {
 
         const settings = settingsResponse.response;
 
-        return {
-            announce: isHapp
-                ? `base64:${Buffer.from(settings.happAnnounce ?? '').toString('base64')}`
-                : undefined,
-            routing: isHapp ? (settings.happRouting ?? undefined) : undefined,
+        const headers: ISubscriptionHeaders = {
             'content-disposition': `attachment; filename="${user.username}"`,
-            'profile-web-page-url': `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`,
             'support-url': settings.supportLink,
             'profile-title': `base64:${Buffer.from(settings.profileTitle).toString('base64')}`,
             'profile-update-interval': settings.profileUpdateInterval.toString(),
@@ -231,6 +226,21 @@ export class SubscriptionService {
                 .map(([key, val]) => `${key}=${val}`)
                 .join('; '),
         };
+
+        if (isHapp && settings.happAnnounce) {
+            headers.announce = `base64:${Buffer.from(settings.happAnnounce).toString('base64')}`;
+        }
+
+        if (isHapp && settings.happRouting) {
+            headers.routing = settings.happRouting;
+        }
+
+        if (settings.isProfileWebpageUrlEnabled) {
+            headers['profile-web-page-url'] =
+                `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`;
+        }
+
+        return headers;
     }
 
     private async getUserByShortUuid(

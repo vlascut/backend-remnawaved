@@ -581,6 +581,7 @@ async function seedSubscriptionSettings() {
             profileTitle: 'UmVtbmF3YXZl',
             supportLink: 'https://remna.st',
             profileUpdateInterval: 12,
+            isProfileWebpageUrlEnabled: true,
             expiredUsersRemarks: expiredUserRemarks,
             limitedUsersRemarks: limitedUserRemarks,
             disabledUsersRemarks: disabledUserRemarks,
