@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { RESET_PERIODS } from '../../constants';
 import { LastConnectedNodeSchema, UsersSchema } from '../../models';
+import { RESET_PERIODS } from '../../constants';
 import { REST_API } from '../../api';
 
 export namespace UpdateUserCommand {
@@ -39,17 +39,19 @@ export namespace UpdateUserCommand {
                 invalid_type_error: 'Enabled inbounds must be an array of UUIDs',
             })
             .optional(),
-        expireAt: z.coerce
-            .date({
-                required_error: 'Expiration date is required',
-                invalid_type_error: 'Invalid expiration date format',
-            })
+        expireAt: z
+            .string()
+            .datetime({ message: 'Invalid date format' })
+            .transform((str) => new Date(str))
             .refine((date) => date > new Date(), {
                 message: 'Expiration date cannot be in the past',
             })
             .describe('Expiration date: 2025-01-17T15:38:45.065Z')
             .optional(),
         description: z.string().optional(),
+
+        telegramId: z.number().optional(),
+        email: z.string().email('Invalid email format').optional(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

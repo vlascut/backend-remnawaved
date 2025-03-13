@@ -7,7 +7,7 @@ export function resolveCountryEmoji(countryCode: string): string {
 
     try {
         return countryCodeEmoji(countryCode);
-    } catch (error) {
+    } catch {
         return '🏴‍☠️';
     }
 }

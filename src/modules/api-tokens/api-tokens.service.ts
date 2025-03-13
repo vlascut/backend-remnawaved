@@ -1,8 +1,9 @@
+import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CommandBus } from '@nestjs/cqrs';
-import { Prisma } from '@prisma/client';
-import { randomUUID } from 'crypto';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';

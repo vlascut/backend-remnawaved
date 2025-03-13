@@ -4,4 +4,3 @@ export * from './protocol-settings.config';
 export * from './protocols.config';
 export * from './routing.config';
 export * from './transport.config';
-// export * from './xray-config.interface';

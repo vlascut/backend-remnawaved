@@ -5,8 +5,8 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
 import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
-import { UsersRepository } from '../../repositories/users.repository';
 import { GetExceededTrafficUsageUsersQuery } from './get-exceeded-traffic-usage-users.query';
+import { UsersRepository } from '../../repositories/users.repository';
 
 @QueryHandler(GetExceededTrafficUsageUsersQuery)
 export class GetExceededTrafficUsageUsersHandler

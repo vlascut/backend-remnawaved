@@ -1,3 +1,6 @@
+import { XRAY_CONTROLLER, XRAY_ROUTES } from '@contract/api';
+import { ERRORS, ROLE } from '@contract/constants';
+
 import {
     Body,
     Controller,
@@ -8,14 +11,18 @@ import {
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBadRequestResponse,
+    ApiBearerAuth,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
+} from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { XRAY_CONTROLLER, XRAY_ROUTES } from '@contract/api';
 import { Roles } from '@common/decorators/roles/roles';
-import { ERRORS, ROLE } from '@contract/constants';
 import { RolesGuard } from '@common/guards/roles';
 
 import { UpdateConfigRequestDto, UpdateConfigResponseDto } from './dtos/update-config.dto';
@@ -23,11 +30,12 @@ import { GetConfigResponseModel } from './models/get-config.response.model';
 import { GetConfigResponseDto } from './dtos/get-config.dto';
 import { XrayConfigService } from './xray-config.service';
 
+@ApiBearerAuth('Authorization')
 @ApiTags('Xray Config Controller')
-@Controller(XRAY_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(XRAY_CONTROLLER)
 export class XrayConfigController {
     constructor(private readonly xrayConfigService: XrayConfigService) {}
 
@@ -37,8 +45,8 @@ export class XrayConfigController {
         description: 'Configuration retrieved successfully',
     })
     @ApiOperation({ summary: 'Get Xray Config', description: 'Get Xray Config' })
-    @Get(XRAY_ROUTES.GET_CONFIG)
     @HttpCode(HttpStatus.OK)
+    @Get(XRAY_ROUTES.GET_CONFIG)
     async getConfig(): Promise<GetConfigResponseDto> {
         const result = await this.xrayConfigService.getConfig();
 
@@ -82,14 +90,5 @@ export class XrayConfigController {
     //     return {
     //         response: new KeygenResponseModel(data),
     //     };
-    // }
-
-    // @Put(':uuid')
-    // @ApiOperation({ summary: 'Update Xray Config', description: 'Update xray configuration' })
-    // @ApiOkResponse({ description: 'Configuration updated successfully' })
-    // @Roles(ROLE.ADMIN)
-    // async updateConfig(@Param('uuid') uuid: string, @Body() config: object) {
-    //     const result = await this.xrayConfigService.updateConfig(uuid, config);
-    //     return errorHandler(result);
     // }
 }

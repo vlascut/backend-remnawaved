@@ -53,6 +53,14 @@ export class NodesRepository implements ICrud<NodesEntity> {
         return nodesList.map((value) => new NodesEntity(value));
     }
 
+    public async findAllNodes(): Promise<NodesEntity[]> {
+        const nodesList = await this.prisma.tx.nodes.findMany({
+            include: ADD_EXCLUSIONS_SELECT,
+        });
+
+        return nodesList.map((value) => new NodesEntity(value));
+    }
+
     public async incrementUsedTraffic(nodeUuid: string, bytes: bigint): Promise<void> {
         await this.prisma.tx.nodes.update({
             where: { uuid: nodeUuid },

@@ -1,21 +1,40 @@
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { TransactionHost } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
 import { TResetPeriods, TUsersStatus, USERS_STATUS } from '@contract/constants';
-import { GetAllUsersV2Command } from '@libs/contracts/commands';
-import { ICrud } from '@common/types/crud-port';
 
-import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
-import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
-import { UserForConfigEntity } from '../entities/users-for-config';
-import { IUserOnlineStats, IUserStats } from '../interfaces';
-import { UserEntity } from '../entities/users.entity';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { Injectable } from '@nestjs/common';
+
+import { ICrud } from '@common/types/crud-port';
+import { GetAllUsersV2Command } from '@libs/contracts/commands';
+
+import { InboundsEntity } from '@modules/inbounds/entities';
+
+import {
+    BatchResetLimitedUsersUsageBuilder,
+    BatchResetUsersUsageBuilder,
+    BulkDeleteByStatusBuilder,
+    BulkUpdateUserUsedTrafficBuilder,
+    UsersWithInboundTagAndExcludedInboundsBuilder,
+} from '../builders';
+import {
+    UserEntity,
+    UserForConfigEntity,
+    UserWithActiveInboundsAndLastConnectedNodeEntity,
+    UserWithActiveInboundsEntity,
+    UserWithLifetimeTrafficEntity,
+} from '../entities';
+import {
+    IUserOnlineStats,
+    IUserStats,
+    USER_INCLUDE_INBOUNDS,
+    USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
+    USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
+} from '../interfaces';
 import { UserConverter } from '../users.converter';
-import { BatchResetUsersUsageBuilder } from '../builders/batch-reset-users-usage/batch-reset-users-usage.builder';
-import { BulkDeleteByStatusBuilder } from '../builders/bulk-delete-by-status/bulk-delete-by-status.builder';
 
 dayjs.extend(utc);
 
@@ -44,6 +63,20 @@ export class UsersRepository implements ICrud<UserEntity> {
                 lifetimeUsedTrafficBytes: { increment: bytes },
             },
         });
+    }
+
+    public async bulkIncrementUsedTraffic(
+        userUsageList: { userUuid: string; bytes: bigint }[],
+    ): Promise<number> {
+        const chunkSize = 5_000;
+        let affectedRows = 0;
+        for (let i = 0; i < userUsageList.length; i += chunkSize) {
+            const chunk = userUsageList.slice(i, i + chunkSize);
+            const { query } = new BulkUpdateUserUsedTrafficBuilder(chunk);
+            const result = await this.prisma.tx.$executeRaw<void>(query);
+            affectedRows += result;
+        }
+        return affectedRows;
     }
 
     public async changeUserStatus(userUuid: string, status: TUsersStatus): Promise<void> {
@@ -80,19 +113,20 @@ export class UsersRepository implements ICrud<UserEntity> {
     ): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { username },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsEntity(result);
+    }
+
+    public async findUserByUuid(uuid: string): Promise<null | UserWithActiveInboundsEntity> {
+        const result = await this.prisma.tx.users.findUnique({
+            where: { uuid },
+            include: USER_INCLUDE_INBOUNDS,
         });
 
         if (!result) {
@@ -107,19 +141,7 @@ export class UsersRepository implements ICrud<UserEntity> {
     ): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { uuid },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
 
         if (!result) {
@@ -134,19 +156,7 @@ export class UsersRepository implements ICrud<UserEntity> {
             where: {
                 status: USERS_STATUS.ACTIVE,
             },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
@@ -170,21 +180,39 @@ export class UsersRepository implements ICrud<UserEntity> {
                     },
                 ],
             },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
         return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
+    public async updateExceededTrafficUsers(): Promise<{ uuid: string }[]> {
+        const result = await this.prisma.tx.users.updateManyAndReturn({
+            select: {
+                uuid: true,
+            },
+            where: {
+                AND: [
+                    {
+                        status: USERS_STATUS.ACTIVE,
+                    },
+                    {
+                        trafficLimitBytes: {
+                            not: 0,
+                        },
+                    },
+                    {
+                        usedTrafficBytes: {
+                            gte: this.prisma.tx.users.fields.trafficLimitBytes,
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: USERS_STATUS.LIMITED,
+            },
+        });
+
+        return result;
     }
 
     public async findExpiredUsers(): Promise<UserWithActiveInboundsEntity[]> {
@@ -201,21 +229,36 @@ export class UsersRepository implements ICrud<UserEntity> {
                     },
                 ],
             },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
         return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
+    public async updateExpiredUsers(): Promise<{ uuid: string }[]> {
+        const result = await this.prisma.tx.users.updateManyAndReturn({
+            select: {
+                uuid: true,
+            },
+            where: {
+                AND: [
+                    {
+                        status: {
+                            in: [USERS_STATUS.ACTIVE, USERS_STATUS.LIMITED],
+                        },
+                    },
+                    {
+                        expireAt: {
+                            lt: new Date(),
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: USERS_STATUS.EXPIRED,
+            },
+        });
+
+        return result;
     }
 
     public async getAllUsersByTrafficStrategyAndStatus(
@@ -227,77 +270,22 @@ export class UsersRepository implements ICrud<UserEntity> {
                 trafficLimitStrategy: strategy,
                 status: status,
             },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
 
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
-    public async getUsersForConfig(): Promise<UserForConfigEntity[]> {
-        const result = await this.prisma.tx.users.findMany({
-            where: {
-                status: USERS_STATUS.ACTIVE,
-            },
-            select: {
-                subscriptionUuid: true,
-                username: true,
-                trojanPassword: true,
-                vlessUuid: true,
-                ssPassword: true,
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                tag: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
-
-        return result.flatMap((user) =>
-            user.activeUserInbounds.map(
-                (activeInbound) =>
-                    new UserForConfigEntity({
-                        subscriptionUuid: user.subscriptionUuid,
-                        username: user.username,
-                        trojanPassword: user.trojanPassword,
-                        vlessUuid: user.vlessUuid,
-                        ssPassword: user.ssPassword,
-                        tag: activeInbound.inbound.tag,
-                    }),
-            ),
-        );
+    public async getUsersForConfig(
+        excludedInbounds: InboundsEntity[],
+    ): Promise<UserForConfigEntity[]> {
+        const { query } = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
+        return await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
     }
 
     public async getAllUsersWithActiveInbounds(): Promise<UserWithActiveInboundsEntity[]> {
         const result = await this.prisma.tx.users.findMany({
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
 
         return result.map((value) => new UserWithActiveInboundsEntity(value));
@@ -326,6 +314,25 @@ export class UsersRepository implements ICrud<UserEntity> {
                         equals: new Date(filter.value as string),
                     },
                 };
+            }
+
+            if (filter.id === 'telegramId') {
+                try {
+                    const numValue = BigInt(filter.value as string);
+                    return {
+                        ...acc,
+                        [filter.id]: {
+                            equals: numValue,
+                        },
+                    };
+                } catch {
+                    return {
+                        ...acc,
+                        [filter.id]: {
+                            equals: null,
+                        },
+                    };
+                }
             }
 
             return {
@@ -357,33 +364,7 @@ export class UsersRepository implements ICrud<UserEntity> {
                 take: size,
                 where,
                 orderBy,
-                include: {
-                    activeUserInbounds: {
-                        select: {
-                            inbound: {
-                                select: {
-                                    uuid: true,
-                                    tag: true,
-                                    type: true,
-                                },
-                            },
-                        },
-                    },
-                    nodesUserUsageHistory: {
-                        orderBy: {
-                            updatedAt: 'desc',
-                        },
-                        select: {
-                            node: {
-                                select: {
-                                    name: true,
-                                },
-                            },
-                            updatedAt: true,
-                        },
-                        take: 1,
-                    },
-                },
+                include: USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
             }),
             this.prisma.tx.users.count({ where }),
         ]);
@@ -408,6 +389,8 @@ export class UsersRepository implements ICrud<UserEntity> {
                                 uuid: true,
                                 tag: true,
                                 type: true,
+                                network: true,
+                                security: true,
                             },
                         },
                     },
@@ -425,19 +408,7 @@ export class UsersRepository implements ICrud<UserEntity> {
     public async getUserByUUID(uuid: string): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { uuid },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
 
         if (!result) {
@@ -452,19 +423,7 @@ export class UsersRepository implements ICrud<UserEntity> {
     ): Promise<null | UserWithActiveInboundsEntity> {
         const result = await this.prisma.tx.users.findUnique({
             where: { subscriptionUuid },
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
 
         if (!result) {
@@ -505,19 +464,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         const result = await this.prisma.tx.users.update({
             where: { uuid },
             data: updateData,
-            include: {
-                activeUserInbounds: {
-                    select: {
-                        inbound: {
-                            select: {
-                                uuid: true,
-                                tag: true,
-                                type: true,
-                            },
-                        },
-                    },
-                },
-            },
+            include: USER_INCLUDE_INBOUNDS,
         });
 
         return new UserWithActiveInboundsEntity(result);
@@ -528,6 +475,31 @@ export class UsersRepository implements ICrud<UserEntity> {
             where: dto,
         });
         return this.userConverter.fromPrismaModelsToEntities(bannerList);
+    }
+
+    public async findUniqueByCriteria(
+        dto: Partial<Pick<UserEntity, 'uuid' | 'subscriptionUuid' | 'shortUuid' | 'username'>>,
+    ): Promise<UserWithActiveInboundsAndLastConnectedNodeEntity | null> {
+        const user = await this.prisma.tx.users.findFirst({
+            where: dto,
+            include: USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
+        });
+
+        if (!user) {
+            return null;
+        }
+
+        return new UserWithActiveInboundsAndLastConnectedNodeEntity(user);
+    }
+
+    public async findByCriteriaWithInboundsAndLastConnectedNode(
+        dto: Partial<UserEntity>,
+    ): Promise<UserWithActiveInboundsAndLastConnectedNodeEntity[]> {
+        const bannerList = await this.prisma.tx.users.findMany({
+            where: dto,
+            include: USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
+        });
+        return bannerList.map((user) => new UserWithActiveInboundsAndLastConnectedNodeEntity(user));
     }
 
     public async findFirstByCriteria(dto: Partial<UserEntity>): Promise<null | UserEntity> {
@@ -618,11 +590,65 @@ export class UsersRepository implements ICrud<UserEntity> {
         return;
     }
 
+    public async resetLimitedUsersTraffic(strategy: TResetPeriods): Promise<{ uuid: string }[]> {
+        const { query } = new BatchResetLimitedUsersUsageBuilder(strategy);
+        const result = await this.prisma.tx.$queryRaw<{ uuid: string }[]>(query);
+
+        return result;
+    }
+
     public async deleteManyByStatus(status: TUsersStatus): Promise<number> {
         const { query } = new BulkDeleteByStatusBuilder(status);
 
         const result = await this.prisma.tx.$executeRaw<unknown>(query);
 
         return result || 0;
+    }
+
+    public async *getUsersForConfigStream(
+        excludedInbounds: InboundsEntity[],
+    ): AsyncGenerator<UserForConfigEntity[]> {
+        const BATCH_SIZE = 10_000;
+        let offset = 0;
+        let hasMoreData = true;
+
+        while (hasMoreData) {
+            const builder = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
+
+            const query = Prisma.sql`
+                ${builder.query}
+                LIMIT ${BATCH_SIZE} OFFSET ${offset}
+            `;
+
+            const result = await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
+
+            if (result.length < BATCH_SIZE) {
+                hasMoreData = false;
+            }
+
+            if (result.length > 0) {
+                yield result;
+                offset += result.length;
+            } else {
+                break;
+            }
+        }
+    }
+
+    public async getUsersForConfigBatch(
+        excludedInbounds: InboundsEntity[],
+        limit: number,
+        offset: number,
+    ): Promise<UserForConfigEntity[]> {
+        const builder = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
+
+        const query = Prisma.sql`
+            ${builder.query}
+            LIMIT ${limit} OFFSET ${offset}
+        `;
+
+        const result = await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
+
+        return result;
     }
 }

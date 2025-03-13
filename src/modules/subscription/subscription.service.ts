@@ -1,12 +1,20 @@
+import dayjs from 'dayjs';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
-import dayjs from 'dayjs';
 
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
 import { XRayConfig } from '@common/helpers/xray-config';
+import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
+
+import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
+import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
+import { XrayGeneratorService } from '@modules/subscription-template/generators/xray.generator.service';
+import { FormatHostsService } from '@modules/subscription-template/generators/format-hosts.service';
+import { RenderTemplatesService } from '@modules/subscription-template/render-templates.service';
+import { IFormattedHost } from '@modules/subscription-template/generators/interfaces';
 
 import {
     SubscriptionNotFoundResponse,
@@ -18,14 +26,9 @@ import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active
 import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
 import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
 import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
-import { FormattedHosts } from './generators/interfaces/formatted-hosts.interface';
 import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
-import { generateSubscription } from './generators/generate-subscription';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
-import { XrayLinksGenerator } from './generators/by-subcription-type';
-import { FormatHosts } from './utils/format-hosts';
-import { ConfigTemplatesService } from './config-templates.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -35,13 +38,16 @@ export class SubscriptionService {
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
-        private readonly configTemplatesService: ConfigTemplatesService,
+        private readonly renderTemplatesService: RenderTemplatesService,
+        private readonly formatHostsService: FormatHostsService,
+        private readonly xrayGeneratorService: XrayGeneratorService,
     ) {}
 
     public async getSubscriptionByShortUuid(
         shortUuid: string,
         userAgent: string,
         isHtml: boolean,
+        needJsonSubscription: boolean = false,
         isOutlineConfig: boolean = false,
         encodedTag?: string,
     ): Promise<
@@ -78,19 +84,21 @@ export class SubscriptionService {
                 subLastUserAgent: userAgent,
             });
 
-            const subscription = generateSubscription({
+            const subscription = await this.renderTemplatesService.generateSubscription({
                 userAgent: userAgent,
                 user: user.response,
                 config,
                 hosts: hosts.response,
-                configService: this.configService,
                 isOutlineConfig,
                 encodedTag,
-                configTemplatesService: this.configTemplatesService,
+                needJsonSubscription,
             });
 
             return new SubscriptionWithConfigResponse({
-                headers: await this.getUserProfileHeadersInfo(user.response),
+                headers: await this.getUserProfileHeadersInfo(
+                    user.response,
+                    /^Happ\//.test(userAgent),
+                ),
                 body: subscription.sub,
                 contentType: subscription.contentType,
             });
@@ -121,14 +129,14 @@ export class SubscriptionService {
 
             const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
 
-            const formattedHosts = FormatHosts.format(
+            const formattedHosts = await this.formatHostsService.generateFormattedHosts(
                 config,
                 hosts.response || [],
                 user.response,
-                this.configService,
             );
 
-            const xrayLinks = XrayLinksGenerator.generateLinks(formattedHosts);
+            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+
             const ssConfLinks = await this.generateSsConfLinks(
                 user.response.shortUuid,
                 formattedHosts,
@@ -172,7 +180,7 @@ export class SubscriptionService {
 
     private async generateSsConfLinks(
         subscriptionShortUuid: string,
-        formattedHosts: FormattedHosts[],
+        formattedHosts: IFormattedHost[],
     ): Promise<Record<string, string>> {
         const publicDomain = this.configService.getOrThrow('SUB_PUBLIC_DOMAIN');
         const links: Record<string, string> = {};
@@ -193,19 +201,46 @@ export class SubscriptionService {
 
     private async getUserProfileHeadersInfo(
         user: UserWithActiveInboundsEntity,
+        isHapp: boolean,
     ): Promise<ISubscriptionHeaders> {
-        return {
+        const settingsResponse = await this.getSubscriptionSettings();
+        if (!settingsResponse.isOk || !settingsResponse.response) {
+            return {
+                'content-disposition': `attachment; filename="${user.username}"`,
+                'profile-web-page-url': '',
+                'support-url': '',
+                'profile-title': '',
+                'profile-update-interval': '24',
+                'subscription-userinfo': '',
+            };
+        }
+
+        const settings = settingsResponse.response;
+
+        const headers: ISubscriptionHeaders = {
             'content-disposition': `attachment; filename="${user.username}"`,
-            'profile-web-page-url': this.configService.getOrThrow('SUB_WEBPAGE_URL'),
-            'support-url': this.configService.getOrThrow('SUB_SUPPORT_URL'),
-            'profile-title': `base64:${Buffer.from(
-                this.configService.getOrThrow('SUB_PROFILE_TITLE'),
-            ).toString('base64')}`,
-            'profile-update-interval': this.configService.getOrThrow('SUB_UPDATE_INTERVAL'),
+            'support-url': settings.supportLink,
+            'profile-title': `base64:${Buffer.from(settings.profileTitle).toString('base64')}`,
+            'profile-update-interval': settings.profileUpdateInterval.toString(),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
                 .map(([key, val]) => `${key}=${val}`)
                 .join('; '),
         };
+
+        if (isHapp && settings.happAnnounce) {
+            headers.announce = `base64:${Buffer.from(settings.happAnnounce).toString('base64')}`;
+        }
+
+        if (isHapp && settings.happRouting) {
+            headers.routing = settings.happRouting;
+        }
+
+        if (settings.isProfileWebpageUrlEnabled) {
+            headers['profile-web-page-url'] =
+                `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`;
+        }
+
+        return headers;
     }
 
     private async getUserByShortUuid(
@@ -230,6 +265,13 @@ export class SubscriptionService {
         return this.queryBus.execute<GetValidatedConfigQuery, null | XRayConfig>(
             new GetValidatedConfigQuery(),
         );
+    }
+
+    private async getSubscriptionSettings(): Promise<ICommandResponse<SubscriptionSettingsEntity>> {
+        return this.queryBus.execute<
+            GetSubscriptionSettingsQuery,
+            ICommandResponse<SubscriptionSettingsEntity>
+        >(new GetSubscriptionSettingsQuery());
     }
 
     private async updateSubLastOpenedAndUserAgent(

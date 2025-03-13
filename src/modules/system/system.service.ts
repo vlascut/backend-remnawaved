@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
 import * as si from 'systeminformation';
+
+import { ERRORS } from '@contract/constants';
+
+import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
 import {
@@ -9,12 +12,12 @@ import {
     getLast30DaysRanges,
     getLastTwoWeeksRanges,
 } from '@common/utils/get-date-ranges.uti';
-import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
-import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
-import { ERRORS } from '@contract/constants';
+
+import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
+import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 
 import {
     GetBandwidthStatsResponseModel,

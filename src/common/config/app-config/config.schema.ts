@@ -12,18 +12,6 @@ export const configSchema = z
             .string()
             .default('3001')
             .transform((port) => parseInt(port, 10)),
-        SUPERADMIN_USERNAME: z
-            .string()
-            .refine(
-                (val) => val !== 'change_me',
-                'SUPERADMIN_USERNAME cannot be set to "change_me"',
-            ),
-        SUPERADMIN_PASSWORD: z
-            .string()
-            .refine(
-                (val) => val !== 'change_me',
-                'SUPERADMIN_PASSWORD cannot be set to "change_me"',
-            ),
         JWT_AUTH_SECRET: z
             .string()
             .refine((val) => val !== 'change_me', 'JWT_AUTH_SECRET cannot be set to "change_me"'),
@@ -41,33 +29,23 @@ export const configSchema = z
         IS_DOCS_ENABLED: z.string().default('false'),
         SCALAR_PATH: z.string().default('/scalar'),
         SWAGGER_PATH: z.string().default('/docs'),
-        EXPIRED_USER_REMARKS: z.string().transform((str) => {
-            try {
-                return JSON.parse(str) as string[];
-            } catch {
-                throw new Error('EXPIRED_USER_REMARKS must be a valid JSON array of strings');
-            }
-        }),
-        DISABLED_USER_REMARKS: z.string().transform((str) => {
-            try {
-                return JSON.parse(str) as string[];
-            } catch {
-                throw new Error('DISABLED_USER_REMARKS must be a valid JSON array of strings');
-            }
-        }),
-        LIMITED_USER_REMARKS: z.string().transform((str) => {
-            try {
-                return JSON.parse(str) as string[];
-            } catch {
-                throw new Error('LIMITED_USER_REMARKS must be a valid JSON array of strings');
-            }
-        }),
         METRICS_USER: z.string(),
         METRICS_PASS: z.string(),
         SUB_PUBLIC_DOMAIN: z.string(),
         WEBHOOK_ENABLED: z.string().default('false'),
         WEBHOOK_URL: z.string().optional(),
         WEBHOOK_SECRET_HEADER: z.string().optional(),
+        REDIS_HOST: z.string(),
+        REDIS_PORT: z
+            .string()
+            .transform((port) => parseInt(port, 10))
+            .refine((port) => port > 0 && port <= 65535, 'Port must be between 1 and 65535'),
+        REDIS_PASSWORD: z.optional(z.string()),
+        REDIS_DB: z
+            .string()
+            .transform((db) => parseInt(db, 10))
+            .refine((db) => db >= 0 && db <= 15, 'Redis DB index must be between 0 and 15')
+            .default('1'),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {

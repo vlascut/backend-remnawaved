@@ -4,10 +4,10 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { KEYGEN_CONTROLLER } from '@libs/contracts/api';
 import { Roles } from '@common/decorators/roles/roles';
-import { KEYGEN_ROUTES } from '@libs/contracts/api';
 import { RolesGuard } from '@common/guards/roles';
+import { KEYGEN_CONTROLLER } from '@libs/contracts/api';
+import { KEYGEN_ROUTES } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import { KeygenService } from './keygen.service';
@@ -15,10 +15,10 @@ import { GetPubKeyResponseDto } from './dtos';
 import { KeygenResponseModel } from './model';
 
 @ApiTags('Keygen Controller')
-@Controller(KEYGEN_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(KEYGEN_CONTROLLER)
 export class KeygenController {
     constructor(private readonly keygenService: KeygenService) {}
 
@@ -27,8 +27,8 @@ export class KeygenController {
         description: 'Access token for further requests',
     })
     @ApiOperation({ summary: 'Get Public Key', description: 'Get public key' })
-    @Get(KEYGEN_ROUTES.GET)
     @HttpCode(HttpStatus.OK)
+    @Get(KEYGEN_ROUTES.GET)
     async generateKey(): Promise<GetPubKeyResponseDto> {
         const result = await this.keygenService.generateKey();
 

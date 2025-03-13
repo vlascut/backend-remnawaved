@@ -3,10 +3,10 @@ import { Controller, Get, Query, UseFilters, UseGuards } from '@nestjs/common';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { SYSTEM_CONTROLLER, SYSTEM_ROUTES } from '@libs/contracts/api';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { SYSTEM_CONTROLLER, SYSTEM_ROUTES } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -19,10 +19,10 @@ import { SystemService } from './system.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('System Controller')
-@Controller(SYSTEM_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(SYSTEM_CONTROLLER)
 export class SystemController {
     constructor(private readonly systemService: SystemService) {}
 

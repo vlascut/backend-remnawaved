@@ -20,31 +20,34 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 
-import { HOSTS_CONTROLLER, HOSTS_ROUTES } from '@libs/contracts/api/controllers';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { RolesGuard } from '@common/guards/roles/roles.guard';
 import { Roles } from '@common/decorators/roles/roles';
+import { HOSTS_CONTROLLER, HOSTS_ROUTES } from '@libs/contracts/api/controllers';
 import { ROLE } from '@libs/contracts/constants';
 
-import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-hots.dto';
+import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-hosts.dto';
 import { CreateHostRequestDto, CreateHostResponseDto } from './dtos/create-host.dto';
 import { DeleteHostRequestDto, DeleteHostResponseDto } from './dtos/delete-host.dto';
 import { GetAllHostsResponseModel } from './models/get-all-hosts.response.model';
+import { GetOneHostResponseModel } from './models/get-one-host.response.model';
 import { CreateHostResponseModel } from './models/create-host.response.model';
 import { UpdateHostResponseModel } from './models/update-host.response.model';
 import { GetAllHostsResponseDto } from './dtos/get-all-hosts.dto';
 import { UpdateHostResponseDto } from './dtos/update-host.dto';
 import { UpdateHostRequestDto } from './dtos/update-host.dto';
+import { GetOneHostResponseDto } from './dtos/get-one.dto';
+import { GetOneHostRequestDto } from './dtos/get-one.dto';
 import { HostsService } from './hosts.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Hosts Controller')
-@Controller(HOSTS_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(HOSTS_CONTROLLER)
 export class HostsController {
     constructor(private readonly hostsService: HostsService) {}
 
@@ -87,14 +90,31 @@ export class HostsController {
         description: 'Hosts fetched successfully',
     })
     @ApiOperation({ summary: 'Get All Hosts', description: 'Get all hosts' })
-    @Get(HOSTS_ROUTES.GET_ALL)
     @HttpCode(HttpStatus.OK)
+    @Get(HOSTS_ROUTES.GET_ALL)
     async getAllHosts(): Promise<GetAllHostsResponseDto> {
         const result = await this.hostsService.getAllHosts();
 
         const data = errorHandler(result);
         return {
             response: data.map((host) => new GetAllHostsResponseModel(host)),
+        };
+    }
+
+    @ApiOkResponse({
+        type: GetOneHostResponseDto,
+        description: 'Host fetched successfully',
+    })
+    @ApiOperation({ summary: 'Get One Host', description: 'Get one host by uuid' })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the host', required: true })
+    @HttpCode(HttpStatus.OK)
+    @Get(HOSTS_ROUTES.GET_ONE + '/:uuid')
+    async getOneHost(@Param() paramData: GetOneHostRequestDto): Promise<GetOneHostResponseDto> {
+        const result = await this.hostsService.getOneHost(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: new GetOneHostResponseModel(data),
         };
     }
 
@@ -129,8 +149,8 @@ export class HostsController {
         description: 'Delete host',
     })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the host', required: true })
-    @Delete(HOSTS_ROUTES.DELETE + '/:uuid')
     @HttpCode(HttpStatus.OK)
+    @Delete(HOSTS_ROUTES.DELETE + '/:uuid')
     async deleteHost(@Param() paramData: DeleteHostRequestDto): Promise<DeleteHostResponseDto> {
         const result = await this.hostsService.deleteHost(paramData.uuid);
 

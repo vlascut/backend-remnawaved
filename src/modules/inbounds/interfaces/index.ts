@@ -1,1 +1,1 @@
-export * from './inboubds-with-tags-and-type.interface';
+export * from './inbounds-with-tags-and-type.interface';

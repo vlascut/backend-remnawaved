@@ -1,7 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { ReorderHostRequestDto } from 'src/modules/hosts/dtos/reorder-hots.dto';
+import { ReorderHostRequestDto } from '@modules/hosts/dtos/reorder-hosts.dto';
+
+import { Injectable, Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
@@ -117,6 +119,27 @@ export class HostsService {
         } catch (error) {
             this.logger.error(JSON.stringify(error));
             return { isOk: false, ...ERRORS.GET_ALL_HOSTS_ERROR };
+        }
+    }
+
+    public async getOneHost(hostUuid: string): Promise<ICommandResponse<HostsEntity>> {
+        try {
+            const result = await this.hostsRepository.findByUUID(hostUuid);
+
+            if (!result) {
+                return {
+                    isOk: false,
+                    ...ERRORS.HOST_NOT_FOUND,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_ONE_HOST_ERROR };
         }
     }
 

@@ -1,7 +1,8 @@
+import { NextFunction, Request, Response } from 'express';
+import * as bcrypt from 'bcrypt';
+
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
-import { NextFunction, Request, Response } from 'express';
 
 @Injectable()
 export class BasicAuthMiddleware implements NestMiddleware {
@@ -10,8 +11,8 @@ export class BasicAuthMiddleware implements NestMiddleware {
     private readonly passwordHash: string;
 
     constructor(private readonly configService: ConfigService) {
-        this.username = this.configService.get<string>('BULLUI_USERNAME') || '';
-        this.password = this.configService.get<string>('BULLUI_PASSWORD') || '';
+        this.username = this.configService.get<string>('METRICS_USER') || '';
+        this.password = this.configService.get<string>('METRICS_PASS') || '';
         this.passwordHash = bcrypt.hashSync(this.password, 10);
     }
 

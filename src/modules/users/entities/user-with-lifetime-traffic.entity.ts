@@ -1,9 +1,10 @@
-import { InboundsEntity } from 'src/modules/inbounds/entities/inbounds.entity';
 import { TResetPeriods } from '@libs/contracts/constants';
 import { TUsersStatus } from '@libs/contracts/constants';
 
-import { IUserWithLifetimeTraffic } from '../interfaces';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
+import { InboundsEntity } from '@modules/inbounds/entities';
+
+import { IUserWithLifetimeTraffic } from '../interfaces';
 
 export class UserWithLifetimeTrafficEntity {
     public uuid: string;
@@ -29,6 +30,9 @@ export class UserWithLifetimeTrafficEntity {
 
     public description: null | string;
 
+    public telegramId: bigint | null;
+    public email: string | null;
+
     public createdAt: Date;
     public updatedAt: Date;
 
@@ -44,6 +48,8 @@ export class UserWithLifetimeTrafficEntity {
                 uuid: item.inbound.uuid,
                 tag: item.inbound.tag,
                 type: item.inbound.type,
+                network: item.inbound.network,
+                security: item.inbound.security,
             }));
         }
 

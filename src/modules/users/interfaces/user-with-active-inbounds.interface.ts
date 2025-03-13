@@ -9,9 +9,27 @@ export type IUserWithActiveInbounds = Prisma.UsersGetPayload<{
                         tag: true;
                         type: true;
                         uuid: true;
+                        network: true;
+                        security: true;
                     };
                 };
             };
         };
     };
 }>;
+
+export const USER_INCLUDE_INBOUNDS = {
+    activeUserInbounds: {
+        select: {
+            inbound: {
+                select: {
+                    uuid: true,
+                    tag: true,
+                    type: true,
+                    network: true,
+                    security: true,
+                },
+            },
+        },
+    },
+} as const;

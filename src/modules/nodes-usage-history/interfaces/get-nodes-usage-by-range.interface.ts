@@ -4,4 +4,5 @@ export interface IGetNodesUsageByRange {
     total: bigint;
     totalDownload: bigint;
     totalUpload: bigint;
+    date: string;
 }

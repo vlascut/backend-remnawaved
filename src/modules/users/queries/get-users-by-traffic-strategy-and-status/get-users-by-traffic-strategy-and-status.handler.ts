@@ -4,9 +4,9 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
+import { GetUsersByTrafficStrategyAndStatusQuery } from './get-users-by-traffic-strategy-and-status.query';
 import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
 import { UsersRepository } from '../../repositories/users.repository';
-import { GetUsersByTrafficStrategyAndStatusQuery } from './get-users-by-traffic-strategy-and-status.query';
 
 @QueryHandler(GetUsersByTrafficStrategyAndStatusQuery)
 export class GetUsersByTrafficStrategyAndStatusHandler

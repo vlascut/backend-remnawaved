@@ -1,40 +1,51 @@
-import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
-import { Transactional } from '@nestjs-cls/transactional';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
-import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
-import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
-import { InboundsEntity } from '@modules/inbounds/entities/inbounds.entity';
-import { ERRORS, EVENTS, USERS_STATUS } from '@libs/contracts/constants';
-import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
+import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
+import { Transactional } from '@nestjs-cls/transactional';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
+
 import { ICommandResponse } from '@common/types/command-response.type';
+import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
 import { GetAllUsersV2Command } from '@libs/contracts/commands';
 
-import { DeleteManyActiveInboubdsByUserUuidCommand } from '../inbounds/commands/delete-many-active-inboubds-by-user-uuid';
-import { CreateManyUserActiveInboundsCommand } from '../inbounds/commands/create-many-user-active-inbounds';
-import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
-import { ReaddUserToNodeEvent } from '../nodes/events/readd-user-to-node';
-import { AddUserToNodeEvent } from '../nodes/events/add-user-to-node';
-import { UserWithLifetimeTrafficEntity, UserWithActiveInboundsEntity } from './entities';
-import { RemoveUserFromNodeEvent } from '../nodes/events/remove-user-from-node';
-import { BulkDeleteByStatusResponseModel, DeleteUserResponseModel } from './models';
+import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
+
+import { DeleteManyActiveInboundsByUserUuidCommand } from '@modules/inbounds/commands/delete-many-active-inbounds-by-user-uuid';
+import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
+import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
+import { CreateManyUserActiveInboundsCommand } from '@modules/inbounds/commands/create-many-user-active-inbounds';
+import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
+import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
+import { ReaddUserToNodeEvent } from '@modules/nodes/events/readd-user-to-node';
+import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
+import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
+import { InboundsEntity } from '@modules/inbounds/entities';
+
 import {
-    BulkDeleteUsersByStatusRequestDto,
+    UserWithActiveInboundsEntity,
+    UserEntity,
+    UserWithLifetimeTrafficEntity,
+    UserWithActiveInboundsAndLastConnectedNodeEntity,
+} from './entities';
+import {
+    IGetUserWithLastConnectedNode,
+    IGetUserByUnique,
+    IGetUsersByTelegramIdOrEmail,
+} from './interfaces';
+import {
     CreateUserRequestDto,
     UpdateUserRequestDto,
+    BulkDeleteUsersByStatusRequestDto,
 } from './dtos';
+import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
+import { DeleteUserResponseModel, BulkDeleteByStatusResponseModel } from './models';
 import { UsersRepository } from './repositories/users.repository';
-import { UserEntity } from './entities/users.entity';
-import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
-import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
-import { IGetUserWithLastConnectedNode } from './interfaces/get-user-with-last-connected-node.interface';
 
 dayjs.extend(utc);
 
@@ -123,6 +134,8 @@ export class UsersService {
                 status,
                 activeUserInbounds,
                 description,
+                telegramId,
+                email,
             } = dto;
 
             const user = await this.userRepository.getUserByUUID(uuid);
@@ -138,10 +151,15 @@ export class UsersService {
             let isNeedToBeAddedToNode =
                 user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
 
-            if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes) {
-                if (BigInt(trafficLimitBytes) > user.trafficLimitBytes) {
-                    newStatus = USERS_STATUS.ACTIVE;
-                    isNeedToBeAddedToNode = true;
+            if (trafficLimitBytes !== undefined) {
+                if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes >= 0) {
+                    if (
+                        BigInt(trafficLimitBytes) > user.trafficLimitBytes ||
+                        trafficLimitBytes === 0
+                    ) {
+                        newStatus = USERS_STATUS.ACTIVE;
+                        isNeedToBeAddedToNode = true;
+                    }
                 }
             }
 
@@ -166,6 +184,8 @@ export class UsersService {
                 trafficLimitStrategy: trafficLimitStrategy || undefined,
                 status: newStatus || undefined,
                 description: description || undefined,
+                telegramId: telegramId ? BigInt(telegramId) : undefined,
+                email: email || undefined,
             });
 
             let inboundsChanged = false;
@@ -268,6 +288,8 @@ export class UsersService {
                 lastTrafficResetAt,
                 description,
                 activateAllInbounds,
+                telegramId,
+                email,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -281,6 +303,8 @@ export class UsersService {
                 trafficLimitBytes:
                     trafficLimitBytes !== undefined ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy,
+                email: email || null,
+                telegramId: telegramId ? BigInt(telegramId) : null,
                 expireAt: new Date(expireAt),
                 createdAt: createdAt ? new Date(createdAt) : undefined,
                 lastTrafficResetAt: lastTrafficResetAt ? new Date(lastTrafficResetAt) : undefined,
@@ -394,27 +418,27 @@ export class UsersService {
         }
     }
 
-    public async getUserByShortUuid(
-        shortUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    public async getUserByUniqueFields(
+        dto: IGetUserByUnique,
+    ): Promise<ICommandResponse<UserWithActiveInboundsAndLastConnectedNodeEntity>> {
         try {
-            const result = await this.userRepository.getUserByShortUuid(shortUuid);
+            const result = await this.userRepository.findUniqueByCriteria({
+                username: dto.username || undefined,
+                subscriptionUuid: dto.subscriptionUuid || undefined,
+                shortUuid: dto.shortUuid || undefined,
+                uuid: dto.uuid || undefined,
+            });
 
             if (!result) {
                 return {
                     isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
+                    ...ERRORS.GET_USER_BY_UNIQUE_FIELDS_NOT_FOUND,
                 };
             }
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
             return {
                 isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: result,
             };
         } catch (error) {
             this.logger.error(error);
@@ -425,89 +449,27 @@ export class UsersService {
         }
     }
 
-    public async getUserByUsername(
-        username: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    public async getUsersByTelegramIdOrEmail(
+        dto: IGetUsersByTelegramIdOrEmail,
+    ): Promise<ICommandResponse<UserWithActiveInboundsAndLastConnectedNodeEntity[]>> {
         try {
-            const result = await this.userRepository.findUserByUsername(username);
+            const result = await this.userRepository.findByCriteriaWithInboundsAndLastConnectedNode(
+                {
+                    email: dto.email || undefined,
+                    telegramId: dto.telegramId ? BigInt(dto.telegramId) : undefined,
+                },
+            );
 
-            if (!result) {
+            if (!result || result.length === 0) {
                 return {
                     isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
+                    ...ERRORS.USERS_NOT_FOUND,
                 };
             }
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
             return {
                 isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
-            };
-        } catch (error) {
-            this.logger.error(error);
-            return {
-                isOk: false,
-                ...ERRORS.GET_USER_BY_ERROR,
-            };
-        }
-    }
-
-    public async getUserByUuid(
-        uuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
-        try {
-            const result = await this.userRepository.getUserByUUID(uuid);
-
-            if (!result) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
-            }
-
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
-            return {
-                isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
-            };
-        } catch (error) {
-            this.logger.error(error);
-            return {
-                isOk: false,
-                ...ERRORS.GET_USER_BY_ERROR,
-            };
-        }
-    }
-
-    public async getUserBySubscriptionUuid(
-        subscriptionUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
-        try {
-            const result = await this.userRepository.getUserBySubscriptionUuid(subscriptionUuid);
-
-            if (!result) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
-            }
-
-            const lastConnectedNode = await this.getUserLastConnectedNode(result.uuid);
-
-            return {
-                isOk: true,
-                response: {
-                    user: result,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: result,
             };
         } catch (error) {
             this.logger.error(error);
@@ -804,12 +766,12 @@ export class UsersService {
     }
 
     private async deleteManyActiveInboubdsByUserUuid(
-        dto: DeleteManyActiveInboubdsByUserUuidCommand,
+        dto: DeleteManyActiveInboundsByUserUuidCommand,
     ): Promise<ICommandResponse<number>> {
         return this.commandBus.execute<
-            DeleteManyActiveInboubdsByUserUuidCommand,
+            DeleteManyActiveInboundsByUserUuidCommand,
             ICommandResponse<number>
-        >(new DeleteManyActiveInboubdsByUserUuidCommand(dto.userUuid));
+        >(new DeleteManyActiveInboundsByUserUuidCommand(dto.userUuid));
     }
 
     private async updateUserStatusAndTrafficAndResetAt(

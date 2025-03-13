@@ -1,3 +1,5 @@
+import { InboundsEntity } from '@modules/inbounds/entities';
+
 export class GetUsersForConfigQuery {
-    constructor() {}
+    constructor(public readonly excludedInbounds: InboundsEntity[]) {}
 }

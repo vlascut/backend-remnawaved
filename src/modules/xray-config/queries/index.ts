@@ -1,4 +1,4 @@
-import { GetPreparedConfigWithUsersHandler } from './get-prepared-config-with-users';
 import { GetValidatedConfigHandler } from './get-validated-config';
+import { GetXrayConfigHandler } from './get-xray-config';
 
-export const QUERIES = [GetPreparedConfigWithUsersHandler, GetValidatedConfigHandler];
+export const QUERIES = [GetValidatedConfigHandler, GetXrayConfigHandler];

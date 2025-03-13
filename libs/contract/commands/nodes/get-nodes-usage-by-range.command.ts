@@ -7,8 +7,8 @@ export namespace GetNodesUsageByRangeCommand {
     export const TSQ_url = url;
 
     export const RequestQuerySchema = z.object({
-        start: z.string().transform((str) => new Date(str)),
-        end: z.string().transform((str) => new Date(str)),
+        start: z.string(),
+        end: z.string(),
     });
 
     export type RequestQuery = z.infer<typeof RequestQuerySchema>;
@@ -24,6 +24,7 @@ export namespace GetNodesUsageByRangeCommand {
                 humanReadableTotal: z.string(),
                 humanReadableTotalDownload: z.string(),
                 humanReadableTotalUpload: z.string(),
+                date: z.string().transform((str) => new Date(str)),
             }),
         ),
     });

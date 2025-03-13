@@ -1,3 +1,6 @@
+import { NODES_CONTROLLER, NODES_ROUTES } from '@contract/api';
+import { ROLE } from '@contract/constants';
+
 import {
     Body,
     Controller,
@@ -23,10 +26,8 @@ import {
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { NODES_CONTROLLER, NODES_ROUTES } from '@contract/api';
 import { RolesGuard } from '@common/guards/roles/roles.guard';
 import { Roles } from '@common/decorators/roles/roles';
-import { ROLE } from '@contract/constants';
 
 import {
     CreateNodeRequestDto,
@@ -42,6 +43,7 @@ import {
     ReorderNodeRequestDto,
     ReorderNodeResponseDto,
     RestartAllNodesResponseDto,
+    RestartNodeRequestDto,
     RestartNodeResponseDto,
     UpdateNodeRequestDto,
     UpdateNodeResponseDto,
@@ -56,10 +58,10 @@ import { NodesService } from './nodes.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Nodes Controller')
-@Controller(NODES_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(NODES_CONTROLLER)
 export class NodesController {
     constructor(private readonly nodesService: NodesService) {}
 
@@ -85,8 +87,8 @@ export class NodesController {
         description: 'Nodes fetched',
     })
     @ApiOperation({ summary: 'Get All Nodes', description: 'Get all nodes' })
-    @Get(NODES_ROUTES.GET_ALL)
     @HttpCode(HttpStatus.OK)
+    @Get(NODES_ROUTES.GET_ALL)
     async getAllNodes(): Promise<GetAllNodesResponseDto> {
         const res = await this.nodesService.getAllNodes();
         const data = errorHandler(res);
@@ -101,8 +103,8 @@ export class NodesController {
     })
     @ApiOperation({ summary: 'Get One Node', description: 'Get one node' })
     @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
-    @Get(NODES_ROUTES.GET_ONE + '/:uuid')
     @HttpCode(HttpStatus.OK)
+    @Get(NODES_ROUTES.GET_ONE + '/:uuid')
     async getOneNode(@Param() uuid: GetOneNodeRequestParamDto): Promise<GetOneNodeResponseDto> {
         const res = await this.nodesService.getOneNode(uuid.uuid);
         const data = errorHandler(res);
@@ -149,8 +151,8 @@ export class NodesController {
     })
     @ApiOperation({ summary: 'Delete Node', description: 'Delete node' })
     @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
-    @Delete(NODES_ROUTES.DELETE + '/:uuid')
     @HttpCode(HttpStatus.OK)
+    @Delete(NODES_ROUTES.DELETE + '/:uuid')
     async deleteNode(@Param() uuid: DeleteNodeRequestParamDto): Promise<DeleteNodeResponseDto> {
         const res = await this.nodesService.deleteNode(uuid.uuid);
         const data = errorHandler(res);
@@ -180,9 +182,9 @@ export class NodesController {
     })
     @ApiOperation({ summary: 'Restart Node', description: 'Restart node' })
     @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
-    @Get(NODES_ROUTES.RESTART + '/:uuid')
     @HttpCode(HttpStatus.OK)
-    async restartNode(@Param() uuid: EnableNodeRequestParamDto): Promise<RestartNodeResponseDto> {
+    @Get(NODES_ROUTES.RESTART + '/:uuid')
+    async restartNode(@Param() uuid: RestartNodeRequestDto): Promise<RestartNodeResponseDto> {
         const res = await this.nodesService.restartNode(uuid.uuid);
         const data = errorHandler(res);
         return {

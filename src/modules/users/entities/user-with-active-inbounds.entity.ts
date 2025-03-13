@@ -1,4 +1,5 @@
-import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+import { InboundsEntity } from '@modules/inbounds/entities';
+
 import { IUserWithActiveInbounds } from '../interfaces';
 import { UserEntity } from './users.entity';
 
@@ -12,6 +13,8 @@ export class UserWithActiveInboundsEntity extends UserEntity {
                 uuid: item.inbound.uuid,
                 tag: item.inbound.tag,
                 type: item.inbound.type,
+                network: item.inbound.network,
+                security: item.inbound.security,
             }));
         }
         return this;

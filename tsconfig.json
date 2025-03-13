@@ -16,8 +16,8 @@
       "@common/*": [
         "./src/common/*"
       ],
-      "@intergration-modules/*": [
-        "./src/intergration-modules/*"
+      "@integration-modules/*": [
+        "./src/integration-modules/*"
       ],
       "@modules/*": [
         "./src/modules/*"
@@ -27,6 +27,12 @@
       ],
       "@contract/*": [
         "./libs/contract/*"
+      ],
+      "@queue/*": [
+        "./src/queue/*"
+      ],
+      "@scheduler/*": [
+        "./src/scheduler/*"
       ]
     },
     "incremental": true,
@@ -39,5 +45,5 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "useDefineForClassFields": true
-  },
+  }
 }

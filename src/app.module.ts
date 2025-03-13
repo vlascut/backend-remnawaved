@@ -1,19 +1,24 @@
+import { ClsModule } from 'nestjs-cls';
+import { join } from 'node:path';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { Module } from '@nestjs/common';
-import { ClsModule } from 'nestjs-cls';
-import { join } from 'node:path';
 
-import { IntegrationModules } from '@intergration-modules/integration-modules';
 import { validateEnvConfig } from '@common/utils/validate-env-config';
-import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 import { PrismaService } from '@common/database/prisma.service';
 import { configSchema, Env } from '@common/config/app-config';
 import { AxiosModule } from '@common/axios/axios.module';
 import { PrismaModule } from '@common/database';
+
+import { IntegrationModules } from '@integration-modules/integration-modules';
+
+import { RemnawaveModules } from '@modules/remnawave-backend.modules';
+
+import { QueueModule } from '@queue/queue.module';
 
 @Module({
     imports: [
@@ -40,6 +45,7 @@ import { PrismaModule } from '@common/database';
             wildcard: true,
             delimiter: '.',
         }),
+
         IntegrationModules,
         RemnawaveModules,
         ServeStaticModule.forRootAsync({
@@ -57,6 +63,8 @@ import { PrismaModule } from '@common/database';
                 },
             ],
         }),
+
+        QueueModule,
     ],
 })
 export class AppModule {}

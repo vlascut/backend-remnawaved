@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
 
-import { InboundsWithTagsAndType } from '../interfaces/inboubds-with-tags-and-type.interface';
+import { InboundsWithTagsAndType } from '../interfaces/inbounds-with-tags-and-type.interface';
 import { InboundsConverter } from '../converters/inbounds.converter';
 import { InboundsEntity } from '../entities/inbounds.entity';
 

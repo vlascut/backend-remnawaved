@@ -1,7 +1,8 @@
+import { fromNanoToNumber } from '@common/utils/nano';
+
 import { InboundsEntity } from '@modules/inbounds/entities';
 
 import { NodesEntity } from '../entities/nodes.entity';
-import { fromNano, fromNanoToNumber } from '@common/utils/nano';
 
 export class CreateNodeResponseModel {
     public uuid: string;
@@ -16,6 +17,7 @@ export class CreateNodeResponseModel {
     public lastStatusChange: Date | null;
     public lastStatusMessage: null | string;
     public xrayVersion: null | string;
+    public xrayUptime: string;
     public isTrafficTrackingActive: boolean;
     public trafficResetDay: null | number;
     public usersOnline: null | number;
@@ -48,6 +50,7 @@ export class CreateNodeResponseModel {
         this.lastStatusChange = data.lastStatusChange;
         this.lastStatusMessage = data.lastStatusMessage;
         this.xrayVersion = data.xrayVersion;
+        this.xrayUptime = data.xrayUptime;
         this.isTrafficTrackingActive = data.isTrafficTrackingActive;
         this.trafficResetDay = data.trafficResetDay;
         this.trafficLimitBytes = Number(data.trafficLimitBytes);

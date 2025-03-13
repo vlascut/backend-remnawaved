@@ -1,21 +1,26 @@
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus, EventBus } from '@nestjs/cqrs';
 import { Prisma } from '@prisma/client';
 
-import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
-import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
-import { ICommandResponse } from '@common/types/command-response.type';
+import { StartAllNodesQueueService } from 'src/queue/start-all-nodes/start-all-nodes.service';
 import { ERRORS, EVENTS } from '@contract/constants';
+
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
+
+import { ICommandResponse } from '@common/types/command-response.type';
+import { toNano } from '@common/utils/nano';
+
+import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
+
+import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
+
+import { StartNodeQueueService } from '@queue/start-node/start-node.service';
+import { StopNodeQueueService } from '@queue/stop-node/stop-node.service';
 
 import { CreateNodeRequestDto, ReorderNodeRequestDto, UpdateNodeRequestDto } from './dtos';
 import { DeleteNodeResponseModel, RestartNodeResponseModel } from './models';
 import { NodesRepository } from './repositories/nodes.repository';
-import { StartAllNodesEvent } from './events/start-all-nodes';
-import { StartNodeEvent } from './events/start-node';
-import { StopNodeEvent } from './events/stop-node';
 import { NodesEntity } from './entities';
-import { toNano } from '@common/utils/nano';
 
 @Injectable()
 export class NodesService {
@@ -23,9 +28,11 @@ export class NodesService {
 
     constructor(
         private readonly nodesRepository: NodesRepository,
-        private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
         private readonly commandBus: CommandBus,
+        private readonly startAllNodesQueue: StartAllNodesQueueService,
+        private readonly startNodeQueue: StartNodeQueueService,
+        private readonly stopNodeQueue: StopNodeQueueService,
     ) {}
 
     public async createNode(body: CreateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
@@ -61,7 +68,10 @@ export class NodesService {
                 throw new Error('Node not found');
             }
 
-            this.eventBus.publish(new StartNodeEvent(node));
+            await this.startNodeQueue.startNode({
+                nodeUuid: node.uuid,
+            });
+
             this.eventEmitter.emit(EVENTS.NODE.CREATED, new NodeEvent(node, EVENTS.NODE.CREATED));
 
             return {
@@ -114,7 +124,9 @@ export class NodesService {
                 };
             }
 
-            this.eventBus.publish(new StartNodeEvent(node));
+            await this.startNodeQueue.startNode({
+                nodeUuid: node.uuid,
+            });
 
             return {
                 isOk: true,
@@ -141,11 +153,9 @@ export class NodesService {
                 };
             }
 
-            // nodes.forEach((node) => {
-            //     this.eventBus.publish(new StartNodeEvent(node));
-            // });
-
-            this.eventBus.publish(new StartAllNodesEvent());
+            await this.startAllNodesQueue.startAllNodes({
+                emitter: NodesService.name,
+            });
 
             return {
                 isOk: true,
@@ -193,18 +203,19 @@ export class NodesService {
                 };
             }
 
-            const result = await this.nodesRepository.deleteByUUID(node.uuid);
-
-            this.eventBus.publish(new StopNodeEvent(node));
+            await this.stopNodeQueue.stopNode({
+                nodeUuid: node.uuid,
+                isNeedToBeDeleted: true,
+            });
 
             return {
                 isOk: true,
                 response: new DeleteNodeResponseModel({
-                    isDeleted: result,
+                    isDeleted: true,
                 }),
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return {
                 isOk: false,
                 ...ERRORS.DELETE_NODE_ERROR,
@@ -249,7 +260,9 @@ export class NodesService {
             }
 
             if (!node.isDisabled) {
-                this.eventBus.publish(new StartNodeEvent(result));
+                await this.startNodeQueue.startNode({
+                    nodeUuid: result.uuid,
+                });
             }
 
             this.eventEmitter.emit(
@@ -292,7 +305,10 @@ export class NodesService {
                 };
             }
 
-            this.eventBus.publish(new StartNodeEvent(result));
+            await this.startNodeQueue.startNode({
+                nodeUuid: result.uuid,
+            });
+
             this.eventEmitter.emit(EVENTS.NODE.ENABLED, new NodeEvent(result, EVENTS.NODE.ENABLED));
 
             return {
@@ -330,11 +346,15 @@ export class NodesService {
             if (!result) {
                 return {
                     isOk: false,
-                    ...ERRORS.ENABLE_NODE_ERROR,
+                    ...ERRORS.DISABLE_NODE_ERROR,
                 };
             }
 
-            this.eventBus.publish(new StopNodeEvent(result));
+            await this.stopNodeQueue.stopNode({
+                nodeUuid: result.uuid,
+                isNeedToBeDeleted: false,
+            });
+
             this.eventEmitter.emit(
                 EVENTS.NODE.DISABLED,
                 new NodeEvent(result, EVENTS.NODE.DISABLED),

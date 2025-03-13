@@ -1,8 +1,10 @@
 import { GetInboundsResponseModel } from 'src/modules/inbounds/models/get-inbounds.response.model';
+
 import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
-import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
+
+import { UserWithLifetimeTrafficEntity } from '../entities/user-with-lifetime-traffic.entity';
 
 export class UserWithLifetimeTrafficResponseModel {
     public uuid: string;
@@ -35,6 +37,9 @@ export class UserWithLifetimeTrafficResponseModel {
     public lastConnectedNode: null | ILastConnectedNode;
     public description: null | string;
 
+    public telegramId: number | null;
+    public email: string | null;
+
     constructor(data: UserWithLifetimeTrafficEntity, subPublicDomain: string) {
         this.uuid = data.uuid;
         this.createdAt = data.createdAt;
@@ -62,6 +67,9 @@ export class UserWithLifetimeTrafficResponseModel {
         this.lastConnectedNode = data.lastConnectedNode;
 
         this.description = data.description;
+
+        this.telegramId = data.telegramId ? Number(data.telegramId) : null;
+        this.email = data.email;
 
         this.subscriptionUrl = `https://${subPublicDomain}/${this.shortUuid}`;
 

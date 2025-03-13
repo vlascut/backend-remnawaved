@@ -1,10 +1,11 @@
-import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
-import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
+import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
 
 import { GetSubscriptionInfoRequestDto, GetSubscriptionInfoResponseDto } from './dto';
 import { GetSubscriptionByShortUuidRequestDto } from './dto/get-subscription.dto';
@@ -12,8 +13,8 @@ import { SubscriptionNotFoundResponse, SubscriptionRawResponse } from './models'
 import { SubscriptionService } from './subscription.service';
 
 @ApiTags('Subscription Controller')
-@Controller(SUBSCRIPTION_CONTROLLER)
 @UseFilters(HttpExceptionFilter)
+@Controller(SUBSCRIPTION_CONTROLLER)
 export class SubscriptionController {
     constructor(private readonly subscriptionService: SubscriptionService) {}
 
@@ -70,6 +71,36 @@ export class SubscriptionController {
         description: 'Short UUID of the user',
         required: true,
     })
+    @Get(SUBSCRIPTION_ROUTES.GET + '/:shortUuid' + '/json')
+    async getJsonSubscription(
+        @Param() { shortUuid }: GetSubscriptionByShortUuidRequestDto,
+        @Req() request: Request,
+        @Res() response: Response,
+    ): Promise<Response> {
+        const result = await this.subscriptionService.getSubscriptionByShortUuid(
+            shortUuid,
+            (request.headers['user-agent'] as string) || '',
+            ((request.headers['accept'] as string) || '').includes('text/html'),
+            true,
+        );
+
+        if (result instanceof SubscriptionNotFoundResponse) {
+            return response.status(404).send(result);
+        }
+
+        if (result instanceof SubscriptionRawResponse) {
+            return response.status(200).send(result);
+        }
+
+        return response.set(result.headers).type(result.contentType).send(result.body);
+    }
+
+    @ApiParam({
+        name: 'shortUuid',
+        type: String,
+        description: 'Short UUID of the user',
+        required: true,
+    })
     @ApiParam({
         name: 'type',
         type: String,
@@ -103,6 +134,7 @@ export class SubscriptionController {
             shortUuid,
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
+            false,
             isOutlineConfig,
             encodedTag,
         );

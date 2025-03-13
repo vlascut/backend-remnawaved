@@ -1,11 +1,14 @@
 import { readFileSync } from 'fs';
 
-import { InboundsWithTagsAndType } from '@modules/inbounds/interfaces/inboubds-with-tags-and-type.interface';
+import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
+
+import { InboundsWithTagsAndType } from '@modules/inbounds/interfaces/inbounds-with-tags-and-type.interface';
 import { UserForConfigEntity } from '@modules/users/entities/users-for-config';
 
 import {
     CertificateObject as Certificate,
     InboundObject as Inbound,
+    InboundSettings,
     IXrayConfig,
     ShadowsocksSettings,
     TCtrXRayConfig,
@@ -64,22 +67,28 @@ export class XRayConfig {
             throw new Error("Config doesn't have inbounds.");
         }
 
-        if (!this.config.outbounds || this.config.outbounds.length === 0) {
-            throw new Error("Config doesn't have outbounds.");
-        }
-
         for (const inbound of this.config.inbounds) {
+            const network = inbound.streamSettings?.network;
+
+            if (network && !['raw', 'tcp', 'ws', 'xhttp'].includes(network)) {
+                throw new Error(
+                    `Invalid network type "${network}" in inbound "${inbound.tag}". Allowed values are: raw, xhttp, ws, tcp`,
+                );
+            }
+
+            if (!['shadowsocks', 'trojan', 'vless'].includes(inbound.protocol)) {
+                throw new Error(
+                    `Invalid protocol in inbound "${inbound.tag}". Allowed values are: shadowsocks, trojan, vless`,
+                );
+            }
+
+            // console.log(`Inbound ${inbound.tag} network: ${network || 'not set'}`);
+
             if (!inbound.tag) {
                 throw new Error('All inbounds must have a unique tag.');
             }
             if (inbound.tag.includes(',')) {
                 throw new Error("Character ',' is not allowed in inbound tag.");
-            }
-        }
-
-        for (const outbound of this.config.outbounds) {
-            if (!outbound.tag) {
-                throw new Error('All outbounds must have a unique tag.');
             }
         }
     }
@@ -109,15 +118,17 @@ export class XRayConfig {
         return this.config.inbounds.find((inbound) => inbound.tag === tag);
     }
 
+    public excludeInbounds(tags: string[]): void {
+        this.config.inbounds = this.config.inbounds.filter(
+            (inbound) => !tags.includes(inbound.tag),
+        );
+    }
+
     private getInbounds(): Inbound[] {
         return this.inbounds;
     }
 
-    private getOutbound(tag: string): any {
-        return this.config.outbounds.find((outbound) => outbound.tag === tag);
-    }
-
-    private getConfig(): IXrayConfig {
+    public getConfig(): IXrayConfig {
         return this.config;
     }
 
@@ -147,10 +158,10 @@ export class XRayConfig {
         return sortedObj as T;
     }
 
-    private processCertificates(config: IXrayConfig): IXrayConfig {
-        const newConfig = config;
+    public processCertificates(): IXrayConfig {
+        const config = this.config;
 
-        for (const inbound of newConfig.inbounds) {
+        for (const inbound of config.inbounds) {
             const tlsSettings = inbound?.streamSettings?.tlsSettings;
             if (!tlsSettings?.certificates) continue;
 
@@ -187,67 +198,82 @@ export class XRayConfig {
             });
         }
 
-        return newConfig;
+        return config;
     }
 
     public getAllInbounds(): InboundsWithTagsAndType[] {
         return this.inbounds.map((inbound) => ({
             tag: inbound.tag,
             type: inbound.protocol,
+            network: inbound.streamSettings?.network ?? null,
+            security: inbound.streamSettings?.security ?? null,
         }));
     }
 
-    public includeUsers(users: UserForConfigEntity[]): IXrayConfig {
-        const config = structuredClone(this.config);
+    public getSortedConfig(): IXrayConfig {
+        return this.sortObjectByKeys<IXrayConfig>(this.config);
+    }
 
-        const inboundMap = new Map(config.inbounds.map((inbound) => [inbound.tag, inbound]));
-
-        for (const user of users) {
-            const inbound = inboundMap.get(user.tag);
-            if (!inbound) {
-                continue;
-            }
-
-            inbound.settings ??= {};
-            // inbound.settings.clients ??= [];
-
-            switch (inbound.protocol) {
-                case 'trojan':
-                    (inbound.settings as TrojanSettings).clients ??= [];
+    private addUsersToInbound(inbound: Inbound, users: UserForConfigEntity[]): void {
+        switch (inbound.protocol) {
+            case 'trojan':
+                (inbound.settings as TrojanSettings).clients ??= [];
+                for (const user of users) {
                     (inbound.settings as TrojanSettings).clients.push({
                         password: user.trojanPassword,
                         email: `${user.username}`,
                     });
-                    break;
-                case 'vless':
-                    (inbound.settings as VLessSettings).clients ??= [];
+                }
+                break;
+            case 'vless':
+                (inbound.settings as VLessSettings).clients ??= [];
+                for (const user of users) {
                     (inbound.settings as VLessSettings).clients.push({
                         id: user.vlessUuid,
                         email: `${user.username}`,
-                        flow: 'xtls-rprx-vision',
+                        flow: getVlessFlow(inbound),
                     });
-                    break;
-                case 'shadowsocks':
+                }
+                break;
+            case 'shadowsocks':
+                (inbound.settings as ShadowsocksSettings).clients ??= [];
+                for (const user of users) {
                     (inbound.settings as ShadowsocksSettings).clients.push({
                         password: user.ssPassword,
                         method: 'chacha20-ietf-poly1305',
                         email: user.username,
                     });
-                    break;
-                default:
-                    throw new Error(`Protocol ${inbound.protocol} is not supported.`);
+                }
+                break;
+            default:
+                throw new Error(`Protocol ${inbound.protocol} is not supported.`);
+        }
+    }
+
+    public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
+        const usersByTag = new Map<string, UserForConfigEntity[]>();
+        for (const user of users) {
+            for (const tag of user.tags) {
+                if (!usersByTag.has(tag)) {
+                    usersByTag.set(tag, []);
+                }
+                usersByTag.get(tag)!.push(user);
             }
         }
 
-        return config;
-    }
+        const inboundMap = new Map(this.config.inbounds.map((inbound) => [inbound.tag, inbound]));
 
-    public prepareConfigForNode(users: UserForConfigEntity[]): IXrayConfig {
-        const configWithUsers = this.includeUsers(users);
-        return this.processCertificates(configWithUsers);
-    }
+        for (const [tag, tagUsers] of usersByTag) {
+            const inbound = inboundMap.get(tag);
+            if (!inbound) continue;
 
-    public getSortedConfig(): IXrayConfig {
-        return this.sortObjectByKeys<IXrayConfig>(this.config);
+            inbound.settings ??= {} as InboundSettings;
+
+            this.addUsersToInbound(inbound, tagUsers);
+        }
+
+        usersByTag.clear();
+
+        return this.config;
     }
 }

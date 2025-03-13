@@ -8,12 +8,11 @@ import { NodesService } from './nodes.service';
 import { COMMANDS } from './commands';
 import { QUERIES } from './queries';
 import { EVENTS } from './events';
-import { TEST_QUEUE_NAME } from 'src/microservices/processors/test.processor';
-import { BullModule } from '@nestjs/bullmq';
 
 @Module({
     imports: [CqrsModule],
     controllers: [NodesController],
     providers: [NodesRepository, NodesConverter, NodesService, ...EVENTS, ...QUERIES, ...COMMANDS],
+    exports: [NodesRepository],
 })
 export class NodesModule {}

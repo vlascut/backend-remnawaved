@@ -1,7 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
+
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
+
 import { isDevelopment } from '@common/utils/startup-app/is-development';
 
 @Injectable()

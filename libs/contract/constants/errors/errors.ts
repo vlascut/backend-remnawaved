@@ -291,4 +291,71 @@ export const ERRORS = {
         message: 'Bulk delete users by status error',
         httpCode: 500,
     },
+    UPDATE_INBOUND_ERROR: {
+        code: 'A060',
+        message: 'Update inbound error',
+        httpCode: 500,
+    },
+    CONFIG_VALIDATION_ERROR: {
+        code: 'A061',
+        message: 'Config validation error',
+        httpCode: 500,
+        withMessage: (message: string) => ({
+            code: 'A061',
+            message,
+            httpCode: 500,
+        }),
+    },
+    USERS_NOT_FOUND: {
+        code: 'A062',
+        message: 'Users not found',
+        httpCode: 404,
+    },
+    GET_USER_BY_UNIQUE_FIELDS_NOT_FOUND: {
+        code: 'A063',
+        message: 'User with specified params not found',
+        httpCode: 404,
+    },
+    UPDATE_EXCEEDED_TRAFFIC_USERS_ERROR: {
+        code: 'A064',
+        message: 'Update exceeded traffic users error',
+        httpCode: 500,
+    },
+    ADMIN_NOT_FOUND: {
+        code: 'A065',
+        message: 'Admin not found',
+        httpCode: 404,
+    },
+    CREATE_ADMIN_ERROR: {
+        code: 'A066',
+        message: 'Create admin error',
+        httpCode: 500,
+    },
+    GET_AUTH_STATUS_ERROR: { code: 'A067', message: 'Get auth status error', httpCode: 500 },
+    FORBIDDEN: { code: 'A068', message: 'Forbidden', httpCode: 403 },
+    DISABLE_NODE_ERROR: {
+        code: 'A069',
+        message: 'Disable node error',
+        httpCode: 500,
+    },
+    GET_ONE_HOST_ERROR: {
+        code: 'A070',
+        message: 'Get one host error',
+        httpCode: 500,
+    },
+    SUBSCRIPTION_SETTINGS_NOT_FOUND: {
+        code: 'A071',
+        message: 'Subscription settings not found',
+        httpCode: 404,
+    },
+    GET_SUBSCRIPTION_SETTINGS_ERROR: {
+        code: 'A072',
+        message: 'Get subscription settings error',
+        httpCode: 500,
+    },
+    UPDATE_SUBSCRIPTION_SETTINGS_ERROR: {
+        code: 'A073',
+        message: 'Update subscription settings error',
+        httpCode: 500,
+    },
 } as const;

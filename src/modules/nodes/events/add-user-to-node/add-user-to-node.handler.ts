@@ -1,30 +1,27 @@
+import { IEventHandler } from '@nestjs/cqrs';
+import { EventsHandler } from '@nestjs/cqrs';
+import { Logger } from '@nestjs/common';
+
 import {
     AddUserCommand as AddUserToNodeCommandSdk,
     CipherType,
 } from '@remnawave/node-contract/build/commands';
-import { IEventHandler } from '@nestjs/cqrs';
-import { EventsHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
-import pMap from '@cjs-exporter/p-map';
 
-import { AxiosService } from '@common/axios';
+import { getVlessFlowFromDbInbound } from '@common/utils/flow/get-vless-flow';
+
+import { NodeUsersQueueService } from '@queue/node-users/node-users.service';
 
 import { NodesRepository } from '../../repositories/nodes.repository';
 import { AddUserToNodeEvent } from './add-user-to-node.event';
-import { NodesEntity } from '../../entities/nodes.entity';
 
 @EventsHandler(AddUserToNodeEvent)
 export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
     public readonly logger = new Logger(AddUserToNodeHandler.name);
 
-    private readonly CONCURRENCY: number;
-
     constructor(
-        private readonly axios: AxiosService,
         private readonly nodesRepository: NodesRepository,
-    ) {
-        this.CONCURRENCY = 10;
-    }
+        private readonly nodeUsersQueue: NodeUsersQueueService,
+    ) {}
     async handle(event: AddUserToNodeEvent) {
         try {
             const userEntity = event.user;
@@ -57,7 +54,7 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
                                 type: inboundType,
                                 username: userEntity.username,
                                 uuid: userEntity.vlessUuid,
-                                flow: 'xtls-rprx-vision',
+                                flow: getVlessFlowFromDbInbound(inbound),
                                 level: 0,
                                 tag: inbound.tag,
                             };
@@ -77,7 +74,7 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
                 }),
             };
 
-            const mapper = async (node: NodesEntity) => {
+            for (const node of nodes) {
                 const excludedTags = new Set(node.excludedInbounds.map((inbound) => inbound.tag));
 
                 const filteredData = {
@@ -86,32 +83,16 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
                 };
 
                 if (filteredData.data.length === 0) {
-                    return {
-                        nodeName: node.name,
-                        response: {
-                            isOk: true,
-                            message: 'All inbounds are excluded',
-                        },
-                    };
+                    continue;
                 }
 
-                const response = await this.axios.addUser(filteredData, node.address, node.port);
-                return {
-                    nodeName: node.name,
-                    response,
-                };
-            };
-
-            const result = await pMap(nodes, mapper, { concurrency: this.CONCURRENCY });
-
-            const failedResults = result.filter((r) => !r.response.isOk);
-
-            if (failedResults.length > 0) {
-                this.logger.warn(
-                    `Add user to Node, failed nodes: ${failedResults
-                        .map((r) => `[Node: ${r.nodeName}] ${JSON.stringify(r.response)}`)
-                        .join(', ')}`,
-                );
+                await this.nodeUsersQueue.addUsersToNode({
+                    data: filteredData,
+                    node: {
+                        address: node.address,
+                        port: node.port,
+                    },
+                });
             }
 
             return;

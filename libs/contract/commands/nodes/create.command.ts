@@ -8,8 +8,8 @@ export namespace CreateNodeCommand {
     export const TSQ_url = url;
 
     export const RequestSchema = z.object({
-        name: z.string().min(5, 'Name is required'),
-        address: z.string().min(2, 'Address is required'),
+        name: z.string().min(5, 'Minimum 5 characters!'),
+        address: z.string().min(2, 'Minimum 2 characters!'),
         port: z.number().int().min(1, 'Port is required').optional(),
         isTrafficTrackingActive: z.boolean().optional().default(false),
         trafficLimitBytes: z.optional(

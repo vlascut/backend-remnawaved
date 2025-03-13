@@ -11,10 +11,10 @@ import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { NODES_CONTROLLER, NODES_ROUTES } from '@libs/contracts/api';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { NODES_CONTROLLER, NODES_ROUTES } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import { GetNodesUsageByRangeRequestQueryDto, GetNodesUsageByRangeResponseDto } from './dtos';
@@ -22,10 +22,10 @@ import { NodesUsageHistoryService } from './nodes-usage-history.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Bandwidth stats')
-@Controller(NODES_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(NODES_CONTROLLER)
 export class NodesUsageHistoryController {
     constructor(private readonly nodesUsageHistoryService: NodesUsageHistoryService) {}
 
@@ -46,13 +46,16 @@ export class NodesUsageHistoryController {
         description: 'Start date',
         required: true,
     })
-    @Get(NODES_ROUTES.STATS.USAGE_BY_RANGE)
     @HttpCode(HttpStatus.OK)
+    @Get(NODES_ROUTES.STATS.USAGE_BY_RANGE)
     async getNodesUsageByRange(
         @Query() query: GetNodesUsageByRangeRequestQueryDto,
     ): Promise<GetNodesUsageByRangeResponseDto> {
         const { start, end } = query;
-        const result = await this.nodesUsageHistoryService.getNodesUsageByRange(start, end);
+        const result = await this.nodesUsageHistoryService.getNodesUsageByRange(
+            new Date(start),
+            new Date(end),
+        );
 
         const data = errorHandler(result);
         return {

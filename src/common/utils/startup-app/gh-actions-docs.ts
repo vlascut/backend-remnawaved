@@ -1,8 +1,9 @@
+import { readPackageJSON } from 'pkg-types';
+import fs from 'node:fs';
+
 import { DocumentBuilder } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
-import { readPackageJSON } from 'pkg-types';
-import fs from 'node:fs';
 
 const description = `
 Remnawave is a powerful proxy managment tool, built on top of Xray-core, with a focus on simplicity and ease of use.

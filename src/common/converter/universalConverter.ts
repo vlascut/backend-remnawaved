@@ -1,7 +1,6 @@
 import { IConverter } from '../types/converter.interface';
 
 export class UniversalConverter<T, U> implements IConverter<T, U> {
-    // Зависимости для функций преобразования
     private readonly entityFactory: (model: U) => T;
     private readonly modelFactory: (entity: T) => U;
 

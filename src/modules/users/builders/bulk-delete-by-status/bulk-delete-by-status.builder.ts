@@ -1,5 +1,6 @@
-import { TUsersStatus } from '@libs/contracts/constants';
 import { Prisma } from '@prisma/client';
+
+import { TUsersStatus } from '@libs/contracts/constants';
 
 export class BulkDeleteByStatusBuilder {
     public query: Prisma.Sql;

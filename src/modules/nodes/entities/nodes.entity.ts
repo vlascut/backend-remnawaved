@@ -16,7 +16,10 @@ export class NodesEntity implements Nodes {
     public isXrayRunning: boolean;
     public lastStatusChange: Date | null;
     public lastStatusMessage: null | string;
+
     public xrayVersion: null | string;
+    public xrayUptime: string;
+
     public usersOnline: null | number;
 
     public isTrafficTrackingActive: boolean;
@@ -46,6 +49,8 @@ export class NodesEntity implements Nodes {
                 uuid: item.inbound.uuid,
                 tag: item.inbound.tag,
                 type: item.inbound.type,
+                network: item.inbound.network,
+                security: item.inbound.security,
             }));
         }
 

@@ -53,3 +53,6 @@ frontend
 .vscode/settings.json
 
 openapi.json
+.clinic
+
+.wip

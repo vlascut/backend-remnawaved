@@ -1,4 +1,15 @@
 import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiCreatedResponse,
+    ApiNotFoundResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiParam,
+    ApiQuery,
+    ApiTags,
+} from '@nestjs/swagger';
+import {
     Body,
     Controller,
     Delete,
@@ -12,24 +23,14 @@ import {
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import {
-    ApiBearerAuth,
-    ApiBody,
-    ApiCreatedResponse,
-    ApiNotFoundResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiParam,
-    ApiQuery,
-    ApiTags,
-} from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { USERS_CONTROLLER, USERS_ROUTES } from '@libs/contracts/api';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { USERS_CONTROLLER, USERS_ROUTES } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -63,18 +64,24 @@ import {
 import {
     CreateUserResponseModel,
     GetAllUsersResponseModel,
+    GetFullUserResponseModel,
     GetUserResponseModel,
     UserWithLifetimeTrafficResponseModel,
 } from './models';
+import {
+    GetUserByTelegramIdRequestDto,
+    GetUserByTelegramIdResponseDto,
+} from './dtos/get-user-by-telegram-id.dto';
+import { GetUserByEmailResponseDto } from './dtos/get-user-by-email.dto';
+import { GetUserByEmailRequestDto } from './dtos/get-user-by-email.dto';
 import { UsersService } from './users.service';
-import { ConfigService } from '@nestjs/config';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Users Controller')
-@Controller(USERS_CONTROLLER)
 @Roles(ROLE.ADMIN, ROLE.API)
-@UseFilters(HttpExceptionFilter)
 @UseGuards(JwtDefaultGuard, RolesGuard)
+@UseFilters(HttpExceptionFilter)
+@Controller(USERS_CONTROLLER)
 export class UsersController {
     public readonly subPublicDomain: string;
     constructor(
@@ -139,8 +146,8 @@ export class UsersController {
         required: false,
         description: 'Page size for pagination',
     })
-    @Get(USERS_ROUTES.GET_ALL_V2)
     @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_ALL_V2)
     async getAllUsersV2(@Query() query: GetAllUsersV2QueryDto): Promise<GetAllUsersV2ResponseDto> {
         const { start, size, filters, filterModes, globalFilterMode, sorting } = query;
         const result = await this.usersService.getAllUsersV2({
@@ -160,133 +167,6 @@ export class UsersController {
                     (item) => new UserWithLifetimeTrafficResponseModel(item, this.subPublicDomain),
                 ),
             }),
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
-        type: GetUserByShortUuidResponseDto,
-        description: 'User fetched successfully',
-    })
-    @ApiOperation({ summary: 'Get User By Short UUID', description: 'Get user by short UUID' })
-    @ApiParam({
-        name: 'shortUuid',
-        type: String,
-        description: 'Short UUID of the user',
-        required: true,
-    })
-    @Get(USERS_ROUTES.GET_BY_SHORT_UUID + '/:shortUuid')
-    @HttpCode(HttpStatus.OK)
-    async getUserByShortUuid(
-        @Param() paramData: GetUserByShortUuidRequestDto,
-    ): Promise<GetUserByShortUuidResponseDto> {
-        const result = await this.usersService.getUserByShortUuid(paramData.shortUuid);
-
-        const data = errorHandler(result);
-        return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
-        type: GetUserByShortUuidResponseDto,
-        description: 'User fetched successfully',
-    })
-    @ApiOperation({ summary: 'Get User By Username', description: 'Get user by username' })
-    @ApiParam({
-        name: 'username',
-        type: String,
-        description: 'Username of the user',
-        required: true,
-    })
-    @Get(USERS_ROUTES.GET_BY_USERNAME + '/:username')
-    @HttpCode(HttpStatus.OK)
-    async getUserByUsername(
-        @Param() paramData: GetUserByUsernameRequestDto,
-    ): Promise<GetUserByUsernameResponseDto> {
-        const result = await this.usersService.getUserByUsername(paramData.username);
-
-        const data = errorHandler(result);
-        return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
-        type: GetUserBySubscriptionUuidResponseDto,
-        description: 'User fetched successfully',
-    })
-    @ApiOperation({
-        summary: 'Get User By Subscription UUID',
-        description: 'Get user by subscription UUID',
-    })
-    @ApiParam({
-        name: 'subscriptionUuid',
-        type: String,
-        description: 'UUID of the subscription',
-        required: true,
-    })
-    @Get(USERS_ROUTES.GET_BY_SUBSCRIPTION_UUID + '/:subscriptionUuid')
-    @HttpCode(HttpStatus.OK)
-    async getUserBySubscriptionUuid(
-        @Param() paramData: GetUserBySubscriptionUuidRequestDto,
-    ): Promise<GetUserBySubscriptionUuidResponseDto> {
-        const result = await this.usersService.getUserBySubscriptionUuid(
-            paramData.subscriptionUuid,
-        );
-
-        const data = errorHandler(result);
-        return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
-        type: GetUserByUuidResponseDto,
-        description: 'User fetched successfully',
-    })
-    @ApiOperation({
-        summary: 'Get User By UUID',
-        description: 'Get user by UUID',
-    })
-    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @Get(USERS_ROUTES.GET_BY_UUID + '/:uuid')
-    @HttpCode(HttpStatus.OK)
-    async getUserByUuid(
-        @Param() paramData: GetUserByUuidRequestDto,
-    ): Promise<GetUserByUuidResponseDto> {
-        const result = await this.usersService.getUserByUuid(paramData.uuid);
-
-        const data = errorHandler(result);
-        return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
         };
     }
 
@@ -358,8 +238,8 @@ export class UsersController {
         description: 'Delete user',
     })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @Delete(USERS_ROUTES.DELETE_USER + '/:uuid')
     @HttpCode(HttpStatus.OK)
+    @Delete(USERS_ROUTES.DELETE_USER + '/:uuid')
     async deleteUser(@Param() paramData: DeleteUserRequestDto): Promise<DeleteUserResponseDto> {
         const result = await this.usersService.deleteUser(paramData.uuid);
 
@@ -444,6 +324,186 @@ export class UsersController {
         const data = errorHandler(result);
         return {
             response: data,
+        };
+    }
+
+    /* get by methods
+
+
+
+
+    */
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: GetUserByShortUuidResponseDto,
+        description: 'User fetched successfully',
+    })
+    @ApiOperation({ summary: 'Get User By Short UUID', description: 'Get user by short UUID' })
+    @ApiParam({
+        name: 'shortUuid',
+        type: String,
+        description: 'Short UUID of the user',
+        required: true,
+    })
+    @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_SHORT_UUID + '/:shortUuid')
+    async getUserByShortUuid(
+        @Param() paramData: GetUserByShortUuidRequestDto,
+    ): Promise<GetUserByShortUuidResponseDto> {
+        const result = await this.usersService.getUserByUniqueFields({
+            shortUuid: paramData.shortUuid,
+        });
+
+        const data = errorHandler(result);
+        return {
+            response: new GetFullUserResponseModel(data, this.subPublicDomain),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: GetUserBySubscriptionUuidResponseDto,
+        description: 'User fetched successfully',
+    })
+    @ApiOperation({
+        summary: 'Get User By Subscription UUID',
+        description: 'Get user by subscription UUID',
+    })
+    @ApiParam({
+        name: 'subscriptionUuid',
+        type: String,
+        description: 'UUID of the subscription',
+        required: true,
+    })
+    @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_SUBSCRIPTION_UUID + '/:subscriptionUuid')
+    async getUserBySubscriptionUuid(
+        @Param() paramData: GetUserBySubscriptionUuidRequestDto,
+    ): Promise<GetUserBySubscriptionUuidResponseDto> {
+        const result = await this.usersService.getUserByUniqueFields({
+            subscriptionUuid: paramData.subscriptionUuid,
+        });
+
+        const data = errorHandler(result);
+        return {
+            response: new GetFullUserResponseModel(data, this.subPublicDomain),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: GetUserByUuidResponseDto,
+        description: 'User fetched successfully',
+    })
+    @ApiOperation({
+        summary: 'Get User By UUID',
+        description: 'Get user by UUID',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_UUID + '/:uuid')
+    async getUserByUuid(
+        @Param() paramData: GetUserByUuidRequestDto,
+    ): Promise<GetUserByUuidResponseDto> {
+        const result = await this.usersService.getUserByUniqueFields({ uuid: paramData.uuid });
+
+        const data = errorHandler(result);
+        return {
+            response: new GetFullUserResponseModel(data, this.subPublicDomain),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: GetUserByUsernameResponseDto,
+        description: 'User fetched successfully',
+    })
+    @ApiOperation({ summary: 'Get User By Username', description: 'Get user by username' })
+    @ApiParam({
+        name: 'username',
+        type: String,
+        description: 'Username of the user',
+        required: true,
+    })
+    @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_USERNAME + '/:username')
+    async getUserByUsername(
+        @Param() paramData: GetUserByUsernameRequestDto,
+    ): Promise<GetUserByUsernameResponseDto> {
+        const result = await this.usersService.getUserByUniqueFields({
+            username: paramData.username,
+        });
+
+        const data = errorHandler(result);
+        return {
+            response: new GetFullUserResponseModel(data, this.subPublicDomain),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'Users not found',
+    })
+    @ApiOkResponse({
+        type: GetUserByTelegramIdResponseDto,
+        description: 'Users fetched successfully',
+    })
+    @ApiOperation({ summary: 'Get Users By Telegram ID', description: 'Get users by telegram ID' })
+    @ApiParam({
+        name: 'telegramId',
+        type: String,
+        description: 'Telegram ID of the user',
+        required: true,
+    })
+    @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_TELEGRAM_ID + '/:telegramId')
+    async getUserByTelegramId(
+        @Param() paramData: GetUserByTelegramIdRequestDto,
+    ): Promise<GetUserByTelegramIdResponseDto> {
+        const result = await this.usersService.getUsersByTelegramIdOrEmail({
+            telegramId: paramData.telegramId,
+        });
+
+        const data = errorHandler(result);
+        return {
+            response: data.map((item) => new GetFullUserResponseModel(item, this.subPublicDomain)),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'Users not found',
+    })
+    @ApiOkResponse({
+        type: GetUserByEmailResponseDto,
+        description: 'Users fetched successfully',
+    })
+    @ApiOperation({ summary: 'Get Users By Email', description: 'Get users by email' })
+    @ApiParam({
+        name: 'email',
+        type: String,
+        description: 'Email of the user',
+        required: true,
+    })
+    @HttpCode(HttpStatus.OK)
+    @Get(USERS_ROUTES.GET_BY_EMAIL + '/:email')
+    async getUsersByEmail(
+        @Param() paramData: GetUserByEmailRequestDto,
+    ): Promise<GetUserByEmailResponseDto> {
+        const result = await this.usersService.getUsersByTelegramIdOrEmail({
+            email: paramData.email,
+        });
+
+        const data = errorHandler(result);
+        return {
+            response: data.map((item) => new GetFullUserResponseModel(item, this.subPublicDomain)),
         };
     }
 }

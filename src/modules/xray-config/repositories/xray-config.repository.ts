@@ -1,7 +1,8 @@
+import { Prisma } from '@prisma/client';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 
 import { ICrud } from '@common/types/crud-port';
 

@@ -1,4 +1,5 @@
 import { NodesTrafficUsageHistory } from '@prisma/client';
+
 import { Injectable } from '@nestjs/common';
 
 import { UniversalConverter } from '@common/converter/universalConverter';

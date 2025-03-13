@@ -1,7 +1,5 @@
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
 import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
@@ -9,13 +7,17 @@ import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { getDocs, isDevelopment } from '@common/utils/startup-app';
+import { ROOT } from '@contract/api';
+
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+
+import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
+import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 import { getRealIp } from '@common/middlewares/get-real-ip';
-import { METRICS_ROOT, ROOT } from '@contract/api';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
-import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 
 patchNestJsSwagger();
 
@@ -59,7 +61,7 @@ async function bootstrap(): Promise<void> {
 
     const config = app.get(ConfigService);
 
-    getDocs(app, config);
+    await getDocs(app, config);
 
     app.use(
         helmet({
@@ -79,17 +81,19 @@ async function bootstrap(): Promise<void> {
 
     app.use(getRealIp);
 
-    app.use(
-        morgan(
-            ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-            {
-                skip: (req) => req.url === ROOT + METRICS_ROOT,
-                stream: {
-                    write: (message) => logger.http(message.trim()),
-                },
-            },
-        ),
-    );
+    if (isProduction()) {
+        app.use(
+            morgan(
+                ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+                // {
+                //     skip: (req) => req.url === ROOT + METRICS_ROOT,
+                //     stream: {
+                //         write: (message) => logger.http(message.trim()),
+                //     },
+                // },
+            ),
+        );
+    }
 
     app.setGlobalPrefix(ROOT);
 
@@ -101,7 +105,7 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalPipes(new ZodValidationPipe());
 
-    app.useGlobalGuards(new ProxyCheckGuard({ exclude: [ROOT + METRICS_ROOT] }));
+    app.useGlobalGuards(new ProxyCheckGuard({ exclude: [] }));
 
     app.enableShutdownHooks();
 
@@ -109,5 +113,13 @@ async function bootstrap(): Promise<void> {
 
     const axiosService = app.get(AxiosService);
     await axiosService.setJwt();
+
+    // process.on('SIGINT', async () => {
+    //     console.log('SIGINT, waiting for profiling...');
+
+    //     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    //     await app.close();
+    // });
 }
 void bootstrap();

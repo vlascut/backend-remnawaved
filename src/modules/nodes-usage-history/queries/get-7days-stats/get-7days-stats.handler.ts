@@ -1,9 +1,10 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
-import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
+
+import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 
 import { NodesUsageHistoryRepository } from '../../repositories/nodes-usage-history.repository';
 import { Get7DaysStatsQuery } from './get-7days-stats.query';

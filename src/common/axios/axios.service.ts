@@ -1,3 +1,10 @@
+import axios, { AxiosError, AxiosInstance } from 'axios';
+
+import { ERRORS } from '@contract/constants';
+
+import { Injectable, Logger } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
+
 import {
     AddUserCommand,
     GetAllInboundsStatsCommand,
@@ -5,8 +12,8 @@ import {
     GetInboundStatsCommand,
     GetInboundUsersCommand,
     GetInboundUsersCountCommand,
+    GetNodeHealthCheckCommand,
     GetOutboundStatsCommand,
-    GetStatusAndVersionCommand,
     GetSystemStatsCommand,
     GetUserOnlineStatusCommand,
     GetUsersStatsCommand,
@@ -14,12 +21,8 @@ import {
     StartXrayCommand,
     StopXrayCommand,
 } from '@remnawave/node-contract';
-import axios, { AxiosError, AxiosInstance } from 'axios';
-import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
 
 import { GetNodeJwtCommand } from '@modules/keygen/commands/get-node-jwt';
-import { ERRORS } from '@contract/constants';
 
 import { ICommandResponse } from '../types/command-response.type';
 
@@ -43,7 +46,9 @@ export class AxiosService {
             const jwt = response.response;
 
             if (!jwt) {
-                throw new Error('JWT is not defined');
+                throw new Error(
+                    'There are a problem with the JWT token. Please restart Remnawave.',
+                );
             }
 
             this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
@@ -51,6 +56,7 @@ export class AxiosService {
             this.logger.log('Axios interceptor registered');
         } catch (error) {
             this.logger.error(`Error in onApplicationBootstrap: ${error}`);
+            throw error;
         }
     }
 
@@ -81,6 +87,9 @@ export class AxiosService {
             const response = await this.axiosInstance.post<StartXrayCommand.Response>(
                 nodeUrl,
                 data,
+                {
+                    timeout: 60_000,
+                },
             );
 
             return {
@@ -147,37 +156,23 @@ export class AxiosService {
         }
     }
 
-    public async getXrayStatus(
+    public async getNodeHealth(
         url: string,
         port: null | number,
-    ): Promise<ICommandResponse<GetStatusAndVersionCommand.Response>> {
+    ): Promise<ICommandResponse<GetNodeHealthCheckCommand.Response['response']>> {
         try {
-            const nodeUrl = this.getNodeUrl(url, GetStatusAndVersionCommand.url, port);
-            const response =
-                await this.axiosInstance.get<GetStatusAndVersionCommand.Response>(nodeUrl);
+            const nodeUrl = this.getNodeUrl(url, GetNodeHealthCheckCommand.url, port);
+            const { data } =
+                await this.axiosInstance.get<GetNodeHealthCheckCommand.Response>(nodeUrl);
 
             return {
                 isOk: true,
-                response: response.data,
+                response: data.response,
             };
-        } catch (error) {
-            if (error instanceof AxiosError) {
-                this.logger.error(`Error in axios request: ${error.message}`);
-
-                return {
-                    isOk: false,
-                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
-                };
-            } else {
-                this.logger.error('Error in getXrayStatus:', error);
-
-                return {
-                    isOk: false,
-                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(
-                        JSON.stringify(error) ?? 'Unknown error',
-                    ),
-                };
-            }
+        } catch {
+            return {
+                isOk: false,
+            };
         }
     }
 
@@ -242,7 +237,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getUsersStats:', error);
 
                 return {
                     isOk: false,
@@ -285,7 +280,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getSystemStats:', error);
 
                 return {
                     isOk: false,
@@ -363,7 +358,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getAllInboundStats:', error);
 
                 return {
                     isOk: false,
@@ -410,7 +405,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in getAllOutboundStats:', error);
 
                 return {
                     isOk: false,
@@ -480,7 +475,7 @@ export class AxiosService {
                     ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
                 };
             } else {
-                this.logger.error('Error in getXrayStatus:', error);
+                this.logger.error('Error in addUser:', error);
 
                 return {
                     isOk: false,

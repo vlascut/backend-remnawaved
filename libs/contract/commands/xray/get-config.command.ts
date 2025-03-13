@@ -7,7 +7,7 @@ export namespace GetXrayConfigCommand {
 
     export const ResponseSchema = z.object({
         response: z.object({
-            config: z.record(z.any()),
+            config: z.unknown(),
         }),
     });
 

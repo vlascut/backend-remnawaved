@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { Users } from '@prisma/client';
+
+import { Injectable } from '@nestjs/common';
 
 import { UniversalConverter } from '@common/converter/universalConverter';
 
@@ -33,6 +34,9 @@ const entityToModel = (entity: UserEntity): UserEntity => {
         ssPassword: entity.ssPassword,
 
         description: entity.description,
+
+        telegramId: entity.telegramId,
+        email: entity.email,
 
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,

@@ -4,9 +4,10 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
+import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
+
 import { NodesUserUsageHistoryRepository } from '../../repositories/nodes-user-usage-history.repository';
 import { GetUserLastConnectedNodeQuery } from './get-user-last-connected-node.query';
-import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 
 @QueryHandler(GetUserLastConnectedNodeQuery)
 export class GetUserLastConnectedNodeHandler
