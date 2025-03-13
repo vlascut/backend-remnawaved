@@ -12,6 +12,8 @@ process.env.METRICS_PASS = 'mock';
 process.env.SUB_PUBLIC_DOMAIN = 'mock';
 process.env.IS_DOCS_ENABLED = 'true';
 process.env.NODE_ENV = 'development';
+process.env.REDIS_HOST = 'localhost';
+process.env.REDIS_PORT = '6379';
 
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
