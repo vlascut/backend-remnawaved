@@ -37,6 +37,8 @@ services:
     depends_on:
       remnawave-db:
         condition: service_healthy
+      remnawave-redis:
+        condition: service_healthy
 
   remnawave-redis:
     image: valkey/valkey:8.0.2-alpine
@@ -47,6 +49,11 @@ services:
       - remnawave-network
     volumes:
       - remnawave-redis-data:/data
+    healthcheck:
+      test: [ "CMD", "valkey-cli", "ping" ]
+      interval: 3s
+      timeout: 10s
+      retries: 3
 
   remnawave-cloudflared:
     container_name: remnawave-cloudflared
