@@ -1,7 +1,7 @@
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
 
-import { PrometheusReporterModule } from '@intergration-modules/prometheus-reporter/prometheus-reporter.module';
+import { PrometheusReporterModule } from '@integration-modules/prometheus-reporter/prometheus-reporter.module';
 
 import { METRIC_PROVIDERS } from './metrics-providers';
 import { ENQUEUE_SERVICES } from './enqueue';

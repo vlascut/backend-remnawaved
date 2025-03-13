@@ -59,7 +59,7 @@ export const UsersSchema = z.object({
     description: z.nullable(z.string()),
 
     telegramId: z.nullable(z.number()),
-    email: z.nullable(z.string()),
+    email: z.nullable(z.string().email()),
 
     createdAt: z
         .string()

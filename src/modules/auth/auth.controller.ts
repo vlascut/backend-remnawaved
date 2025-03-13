@@ -68,7 +68,7 @@ export class AuthController {
     })
     @ApiOperation({ summary: 'Register', description: 'Register to the system' })
     @ApiResponse({ type: RegisterResponseDto, description: 'Access token for further requests' })
-    @HttpCode(HttpStatus.OK)
+    @HttpCode(HttpStatus.CREATED)
     @Post(AUTH_ROUTES.REGISTER)
     async register(@Body() body: RegisterRequestDto): Promise<RegisterResponseDto> {
         const result = await this.authService.register(body);

@@ -7,19 +7,19 @@ import { Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 
-import { DeleteManyActiveInboubdsByUserUuidCommand } from './delete-many-active-inboubds-by-user-uuid.command';
+import { DeleteManyActiveInboundsByUserUuidCommand } from './delete-many-active-inbounds-by-user-uuid.command';
 
-@CommandHandler(DeleteManyActiveInboubdsByUserUuidCommand)
-export class DeleteManyActiveInboubdsByUserUuidHandler
-    implements ICommandHandler<DeleteManyActiveInboubdsByUserUuidCommand, ICommandResponse<number>>
+@CommandHandler(DeleteManyActiveInboundsByUserUuidCommand)
+export class DeleteManyActiveInboundsByUserUuidHandler
+    implements ICommandHandler<DeleteManyActiveInboundsByUserUuidCommand, ICommandResponse<number>>
 {
-    public readonly logger = new Logger(DeleteManyActiveInboubdsByUserUuidHandler.name);
+    public readonly logger = new Logger(DeleteManyActiveInboundsByUserUuidHandler.name);
 
     constructor(private readonly activeUserInboundsRepository: ActiveUserInboundsRepository) {}
 
     @Transactional()
     async execute(
-        command: DeleteManyActiveInboubdsByUserUuidCommand,
+        command: DeleteManyActiveInboundsByUserUuidCommand,
     ): Promise<ICommandResponse<number>> {
         try {
             const count = await this.activeUserInboundsRepository.deleteManyActiveByUserUuid(

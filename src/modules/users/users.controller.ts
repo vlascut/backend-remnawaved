@@ -424,7 +424,7 @@ export class UsersController {
         description: 'User not found',
     })
     @ApiOkResponse({
-        type: GetUserByShortUuidResponseDto,
+        type: GetUserByUsernameResponseDto,
         description: 'User fetched successfully',
     })
     @ApiOperation({ summary: 'Get User By Username', description: 'Get user by username' })
@@ -479,7 +479,7 @@ export class UsersController {
     }
 
     @ApiNotFoundResponse({
-        description: 'User not found',
+        description: 'Users not found',
     })
     @ApiOkResponse({
         type: GetUserByEmailResponseDto,

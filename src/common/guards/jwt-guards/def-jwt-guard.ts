@@ -53,11 +53,11 @@ export class JwtDefaultGuard extends AuthGuard('registeredUserJWT') {
                 if (adminEntity.response.uuid !== user.uuid) {
                     return false;
                 }
-                break;
+                return true;
             }
+            default:
+                return false;
         }
-
-        return true;
     }
 
     private async getAdminByUsername(

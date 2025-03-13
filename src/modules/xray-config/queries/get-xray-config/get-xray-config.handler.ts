@@ -17,7 +17,7 @@ export class GetXrayConfigHandler implements IQueryHandler<GetXrayConfigQuery, X
             const config = await this.xrayConfigRepository.findFirst();
 
             if (!config || !config.config) {
-                throw new Error('No XTLS config found in DB!');
+                throw new Error('No XRay config found in DB!');
             }
 
             return config;

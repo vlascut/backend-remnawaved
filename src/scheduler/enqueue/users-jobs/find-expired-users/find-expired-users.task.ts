@@ -20,7 +20,7 @@ export class FindExpiredUsersTask {
         try {
             await this.userJobsQueueService.findExpiredUsers();
         } catch (error) {
-            this.logger.error(`Error in FindExpiredUsersService: ${error}`);
+            this.logger.error(`Error in FindExpiredUsersTask: ${error}`);
         }
     }
 }

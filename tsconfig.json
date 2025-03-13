@@ -16,8 +16,8 @@
       "@common/*": [
         "./src/common/*"
       ],
-      "@intergration-modules/*": [
-        "./src/intergration-modules/*"
+      "@integration-modules/*": [
+        "./src/integration-modules/*"
       ],
       "@modules/*": [
         "./src/modules/*"
@@ -29,7 +29,7 @@
         "./libs/contract/*"
       ],
       "@queue/*": [
-        "src/queue/*"
+        "./src/queue/*"
       ],
       "@scheduler/*": [
         "./src/scheduler/*"

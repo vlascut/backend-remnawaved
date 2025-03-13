@@ -48,7 +48,7 @@ export function useQueueProcessor(): boolean {
 
 /**
  * Determines if Bull Board dashboard should be enabled
- * @returns {boolean} True if instance is Scheduler
+ * @returns {boolean} True if instance is REST API
  */
 export function useBullBoard(): boolean {
     return isRestApi();

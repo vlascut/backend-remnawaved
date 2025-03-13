@@ -45,7 +45,7 @@ export class SubscriptionSettingsController {
     })
     @HttpCode(HttpStatus.OK)
     @Get(SUBSCRIPTION_SETTINGS_ROUTES.GET_SETTINGS)
-    async getConfig(): Promise<GetSubscriptionSettingsResponseDto> {
+    async getSettings(): Promise<GetSubscriptionSettingsResponseDto> {
         const result = await this.subscriptionSettingsService.getSubscriptionSettings();
 
         const data = errorHandler(result);
@@ -65,7 +65,7 @@ export class SubscriptionSettingsController {
     })
     @HttpCode(HttpStatus.OK)
     @Post(SUBSCRIPTION_SETTINGS_ROUTES.UPDATE_SETTINGS)
-    async updateConfig(
+    async updateSettings(
         @Body() body: UpdateSubscriptionSettingsRequestDto,
     ): Promise<UpdateSubscriptionSettingsResponseDto> {
         const result = await this.subscriptionSettingsService.updateSettings(body);

@@ -43,4 +43,13 @@ export class NodeUsersQueueService extends AbstractQueueService implements OnApp
     public async removeUserFromNode(payload: IRemoveUserFromNodePayload) {
         return this.addJob(NodeUsersJobNames.removeUserFromNode, payload);
     }
+
+    public async removeUserFromNodeBulk(payload: IRemoveUserFromNodePayload[]) {
+        return this.addBulk(
+            payload.map((p) => ({
+                name: NodeUsersJobNames.removeUserFromNode,
+                data: p,
+            })),
+        );
+    }
 }

@@ -34,15 +34,15 @@ export class ResetUserTrafficQueueService
         await this.checkConnection();
     }
 
-    public async resetDailyUserTraffic(payload: void) {
-        return this.addJob(ResetUserTrafficJobNames.resetDailyUserTraffic, payload);
+    public async resetDailyUserTraffic() {
+        return this.addJob(ResetUserTrafficJobNames.resetDailyUserTraffic, {});
     }
 
-    public async resetMonthlyUserTraffic(payload: void) {
-        return this.addJob(ResetUserTrafficJobNames.resetMonthlyUserTraffic, payload);
+    public async resetMonthlyUserTraffic() {
+        return this.addJob(ResetUserTrafficJobNames.resetMonthlyUserTraffic, {});
     }
 
-    public async resetWeeklyUserTraffic(payload: void) {
-        return this.addJob(ResetUserTrafficJobNames.resetWeeklyUserTraffic, payload);
+    public async resetWeeklyUserTraffic() {
+        return this.addJob(ResetUserTrafficJobNames.resetWeeklyUserTraffic, {});
     }
 }

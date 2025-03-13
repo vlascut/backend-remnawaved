@@ -128,7 +128,11 @@ export class RenderTemplatesService {
         }
 
         const v2rayNGMatch = userAgent.match(/^v2rayNG\/(\d+\.\d+\.\d+)/);
-        if (v2rayNGMatch && semver.gte(v2rayNGMatch[1], '1.8.29')) {
+        if (
+            v2rayNGMatch &&
+            semver.valid(v2rayNGMatch[1]) &&
+            semver.gte(v2rayNGMatch[1], '1.8.29')
+        ) {
             return true;
         }
 

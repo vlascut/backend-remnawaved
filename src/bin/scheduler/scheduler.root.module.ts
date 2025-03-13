@@ -18,7 +18,7 @@ import { configSchema, Env } from '@common/config/app-config';
 import { PrismaModule } from '@common/database';
 import { AxiosModule } from '@common/axios';
 
-import { PrometheusReporterModule } from '@intergration-modules/prometheus-reporter/prometheus-reporter.module';
+import { PrometheusReporterModule } from '@integration-modules/prometheus-reporter/prometheus-reporter.module';
 
 import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 

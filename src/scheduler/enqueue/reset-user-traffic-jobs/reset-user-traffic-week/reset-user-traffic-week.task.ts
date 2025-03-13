@@ -20,7 +20,7 @@ export class ResetUserTrafficCalendarWeekTask {
         try {
             await this.resetUserTrafficQueueService.resetWeeklyUserTraffic();
         } catch (error) {
-            this.logger.error(`Error in ResetUserWeeklyTrafficService: ${error}`);
+            this.logger.error(`Error in ResetUserTrafficCalendarWeekTask: ${error}`);
         }
     }
 }

@@ -52,6 +52,8 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
             this.logger.error(
                 `Error handling "${RecordNodeUsageJobNames.recordNodeUsage}" job: ${error}`,
             );
+
+            return { isOk: false };
         }
     }
 

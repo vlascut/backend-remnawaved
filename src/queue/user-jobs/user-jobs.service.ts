@@ -27,19 +27,27 @@ export class UserJobsQueueService extends AbstractQueueService implements OnAppl
         await this.checkConnection();
     }
 
-    public async findExceededUsers(payload: void) {
-        return this.addJob(UserJobsJobNames.findExceededUsers, payload, {
-            jobId: `${UserJobsJobNames.findExceededUsers}`,
-            removeOnComplete: true,
-            removeOnFail: true,
-        });
+    public async findExceededUsers() {
+        return this.addJob(
+            UserJobsJobNames.findExceededUsers,
+            {},
+            {
+                jobId: `${UserJobsJobNames.findExceededUsers}`,
+                removeOnComplete: true,
+                removeOnFail: true,
+            },
+        );
     }
 
-    public async findExpiredUsers(payload: void) {
-        return this.addJob(UserJobsJobNames.findExpiredUsers, payload, {
-            jobId: `${UserJobsJobNames.findExpiredUsers}`,
-            removeOnComplete: true,
-            removeOnFail: true,
-        });
+    public async findExpiredUsers() {
+        return this.addJob(
+            UserJobsJobNames.findExpiredUsers,
+            {},
+            {
+                jobId: `${UserJobsJobNames.findExpiredUsers}`,
+                removeOnComplete: true,
+                removeOnFail: true,
+            },
+        );
     }
 }

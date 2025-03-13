@@ -43,6 +43,7 @@ import {
     ReorderNodeRequestDto,
     ReorderNodeResponseDto,
     RestartAllNodesResponseDto,
+    RestartNodeRequestDto,
     RestartNodeResponseDto,
     UpdateNodeRequestDto,
     UpdateNodeResponseDto,
@@ -183,7 +184,7 @@ export class NodesController {
     @ApiParam({ name: 'uuid', type: String, description: 'Node UUID' })
     @HttpCode(HttpStatus.OK)
     @Get(NODES_ROUTES.RESTART + '/:uuid')
-    async restartNode(@Param() uuid: EnableNodeRequestParamDto): Promise<RestartNodeResponseDto> {
+    async restartNode(@Param() uuid: RestartNodeRequestDto): Promise<RestartNodeResponseDto> {
         const res = await this.nodesService.restartNode(uuid.uuid);
         const data = errorHandler(res);
         return {

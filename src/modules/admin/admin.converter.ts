@@ -21,6 +21,7 @@ const entityToModel = (entity: AdminEntity): Admin => {
         updatedAt: entity.updatedAt,
     };
 };
+
 @Injectable()
 export class AdminConverter extends UniversalConverter<AdminEntity, Admin> {
     constructor() {

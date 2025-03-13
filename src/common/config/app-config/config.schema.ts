@@ -36,11 +36,15 @@ export const configSchema = z
         WEBHOOK_URL: z.string().optional(),
         WEBHOOK_SECRET_HEADER: z.string().optional(),
         REDIS_HOST: z.string(),
-        REDIS_PORT: z.string().transform((port) => parseInt(port, 10)),
+        REDIS_PORT: z
+            .string()
+            .transform((port) => parseInt(port, 10))
+            .refine((port) => port > 0 && port <= 65535, 'Port must be between 1 and 65535'),
         REDIS_PASSWORD: z.optional(z.string()),
         REDIS_DB: z
             .string()
             .transform((db) => parseInt(db, 10))
+            .refine((db) => db >= 0 && db <= 15, 'Redis DB index must be between 0 and 15')
             .default('1'),
     })
     .superRefine((data, ctx) => {

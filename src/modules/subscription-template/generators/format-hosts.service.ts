@@ -176,6 +176,8 @@ export class FormatHostsService {
                     sniFromConfig = realitySettings?.serverNames?.[0];
                     fingerprintFromConfig = realitySettings?.fingerprint;
 
+                    // TODO: Implement public key generation
+
                     // try {
                     //     const configPrivateKey = realitySettings!.privateKey;
 

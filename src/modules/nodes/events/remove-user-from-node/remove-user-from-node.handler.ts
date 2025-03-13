@@ -36,15 +36,15 @@ export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNo
                 tags: userEntity.activeUserInbounds.map((inbound) => inbound.tag),
             };
 
-            for (const node of nodes) {
-                await this.nodeUsersQueue.removeUserFromNode({
+            await this.nodeUsersQueue.removeUserFromNodeBulk(
+                nodes.map((node) => ({
                     data: userData,
                     node: {
                         address: node.address,
                         port: node.port,
                     },
-                });
-            }
+                })),
+            );
 
             return;
         } catch (error) {

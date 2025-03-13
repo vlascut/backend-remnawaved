@@ -200,7 +200,7 @@ export class SingBoxGeneratorService {
         if (!fp && tls === 'reality') {
             config.utls = {
                 enabled: true,
-                fingerprint: fp || 'chrome',
+                fingerprint: 'chrome',
             };
         }
 

@@ -5,7 +5,10 @@ export const SubscriptionSettingsSchema = z.object({
 
     profileTitle: z.string(),
     supportLink: z.string(),
-    profileUpdateInterval: z.number().int(),
+    profileUpdateInterval: z
+        .number()
+        .int()
+        .min(1, 'Profile update interval must be greater than 0'),
     isProfileWebpageUrlEnabled: z.boolean(),
 
     happAnnounce: z.string().nullable(),

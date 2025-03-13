@@ -298,7 +298,7 @@ export const ERRORS = {
     },
     CONFIG_VALIDATION_ERROR: {
         code: 'A061',
-        message: '',
+        message: 'Config validation error',
         httpCode: 500,
         withMessage: (message: string) => ({
             code: 'A061',

@@ -22,7 +22,7 @@ import { ProcessorsRootModule } from './processors.root.module';
 //     silly: 6,
 // };
 
-const instanedId = process.env.INSTANCE_ID || '0';
+const instanceId = process.env.INSTANCE_ID || '0';
 
 const logger = createLogger({
     transports: [new winston.transports.Console()],
@@ -32,7 +32,7 @@ const logger = createLogger({
         }),
         winston.format.ms(),
         winston.format.align(),
-        nestWinstonModuleUtilities.format.nestLike(`Processors: #${instanedId}`, {
+        nestWinstonModuleUtilities.format.nestLike(`Processors: #${instanceId}`, {
             colors: true,
             prettyPrint: true,
             processId: false,

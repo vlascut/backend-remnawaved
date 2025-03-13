@@ -41,7 +41,7 @@ export class SubscriptionTemplateController {
     @ApiOperation({ summary: 'Get Template', description: 'Get Template' })
     @HttpCode(HttpStatus.OK)
     @Get(SUBSCRIPTION_TEMPLATE_ROUTES.GET_TEMPLATE + '/' + ':templateType')
-    async getConfig(@Param() paramData: GetTemplateRequestDto): Promise<GetTemplateResponseDto> {
+    async getTemplate(@Param() paramData: GetTemplateRequestDto): Promise<GetTemplateResponseDto> {
         const result = await this.subscriptionTemplateService.getTemplate(
             paramData.templateType as TSubscriptionTemplateType,
         );
@@ -60,7 +60,9 @@ export class SubscriptionTemplateController {
     @ApiOperation({ summary: 'Update Template', description: 'Update Template' })
     @HttpCode(HttpStatus.OK)
     @Post(SUBSCRIPTION_TEMPLATE_ROUTES.UPDATE_TEMPLATE)
-    async updateConfig(@Body() body: UpdateTemplateRequestDto): Promise<UpdateTemplateResponseDto> {
+    async updateTemplate(
+        @Body() body: UpdateTemplateRequestDto,
+    ): Promise<UpdateTemplateResponseDto> {
         const result = await this.subscriptionTemplateService.updateTemplate(
             body.templateType as TSubscriptionTemplateType,
             body.templateJson ?? undefined,

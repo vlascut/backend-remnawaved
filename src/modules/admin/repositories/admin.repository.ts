@@ -45,13 +45,13 @@ export class AdminRepository implements ICrud<AdminEntity> {
     }
 
     public async findByCriteria(dto: Partial<AdminEntity>): Promise<AdminEntity[]> {
-        const bannerList = await this.prisma.tx.admin.findMany({
+        const adminList = await this.prisma.tx.admin.findMany({
             where: dto,
             orderBy: {
                 createdAt: 'asc',
             },
         });
-        return this.adminConverter.fromPrismaModelsToEntities(bannerList);
+        return this.adminConverter.fromPrismaModelsToEntities(adminList);
     }
 
     public async findFirstByCriteria(dto: Partial<AdminEntity>): Promise<AdminEntity | null> {
@@ -67,7 +67,7 @@ export class AdminRepository implements ICrud<AdminEntity> {
     }
 
     public async deleteByUUID(uuid: string): Promise<boolean> {
-        const result = await this.prisma.tx.apiTokens.delete({ where: { uuid } });
+        const result = await this.prisma.tx.admin.delete({ where: { uuid } });
         return !!result;
     }
 

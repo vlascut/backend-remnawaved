@@ -124,7 +124,7 @@ export class AuthService {
             if (!statusResponse.response.isRegisterAllowed) {
                 return {
                     isOk: false,
-                    ...ERRORS.GET_AUTH_STATUS_ERROR,
+                    ...ERRORS.FORBIDDEN,
                 };
             }
 

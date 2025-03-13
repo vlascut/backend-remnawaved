@@ -82,7 +82,7 @@ export class SubscriptionTemplateService {
                 await this.subscriptionTemplateRepository.findFirstByTemplateType(templateType);
 
             if (!template || !template.templateJson) {
-                throw new Error('Template not found');
+                throw new Error('Templates not found');
             }
 
             return template.templateJson;

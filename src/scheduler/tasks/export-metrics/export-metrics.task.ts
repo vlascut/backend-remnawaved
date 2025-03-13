@@ -89,7 +89,7 @@ export class ExportMetricsTask {
                 );
             }
         } catch (error) {
-            this.logger.error(`Error in ShortUsersStatsService: ${error}`);
+            this.logger.error(`Error in reportShortUserStats: ${error}`);
         }
     }
 
@@ -122,7 +122,7 @@ export class ExportMetricsTask {
                 );
             });
         } catch (error) {
-            this.logger.error(`Error in ReportNodesStats: ${error}`);
+            this.logger.error(`Error in reportNodesStats: ${error}`);
         }
     }
 

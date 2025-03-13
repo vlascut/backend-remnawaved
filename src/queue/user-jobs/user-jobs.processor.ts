@@ -9,7 +9,7 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS } from '@libs/contracts/constants/events/events';
 
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces/user.event.interface';
+import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces/user.event.interface';
 
 import { UpdateExceededTrafficUsersCommand } from '@modules/users/commands/update-exceeded-users';
 import { UpdateExpiredUsersCommand } from '@modules/users/commands/update-expired-users';
@@ -63,9 +63,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
                 return;
             }
 
-            const users = usersResponse.response;
-
-            if (users.length >= 10_000) {
+            if (usersResponse.response.length >= 10_000) {
                 this.logger.log(
                     'More than 10,000 expired users found, skipping webhook/telegram events.',
                 );
@@ -77,9 +75,11 @@ export class UserJobsQueueProcessor extends WorkerHost {
                 return;
             }
 
-            this.logger.log(`Job ${job.name} Found ${users.length} expired users.`);
+            this.logger.log(
+                `Job ${job.name} Found ${usersResponse.response.length} expired users.`,
+            );
 
-            await pMap(users, async (userUuid) => {
+            await pMap(usersResponse.response, async (userUuid) => {
                 try {
                     const userResponse = await this.getUserByUuid(userUuid.uuid);
                     if (!userResponse.isOk || !userResponse.response) {
@@ -123,9 +123,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
                 return;
             }
 
-            const users = usersResponse.response;
-
-            if (users.length >= 10_000) {
+            if (usersResponse.response.length >= 10_000) {
                 this.logger.log(
                     'More than 10,000 exceeded traffic usage users found, skipping webhook/telegram events.',
                 );
@@ -138,10 +136,10 @@ export class UserJobsQueueProcessor extends WorkerHost {
             }
 
             this.logger.log(
-                `Job ${job.name} has found ${users.length} exceeded traffic usage users.`,
+                `Job ${job.name} has found ${usersResponse.response.length} exceeded traffic usage users.`,
             );
 
-            await pMap(users, async (userUuid) => {
+            await pMap(usersResponse.response, async (userUuid) => {
                 try {
                     const userResponse = await this.getUserByUuid(userUuid.uuid);
                     if (!userResponse.isOk || !userResponse.response) {
@@ -159,12 +157,14 @@ export class UserJobsQueueProcessor extends WorkerHost {
                     await this.eventBus.publish(new RemoveUserFromNodeEvent(user));
                 } catch (error) {
                     this.logger.error(
-                        `Error handling "${UserJobsJobNames.findExpiredUsers}" job: ${error}`,
+                        `Error handling "${UserJobsJobNames.findExceededUsers}" job: ${error}`,
                     );
                 }
             });
         } catch (error) {
-            this.logger.error(`Error handling "${job.name}" job: ${error}`);
+            this.logger.error(
+                `Error handling "${UserJobsJobNames.findExceededUsers}" job: ${error}`,
+            );
         }
     }
 

@@ -14,7 +14,7 @@ import { configSchema, Env } from '@common/config/app-config';
 import { AxiosModule } from '@common/axios/axios.module';
 import { PrismaModule } from '@common/database';
 
-import { IntegrationModules } from '@intergration-modules/integration-modules';
+import { IntegrationModules } from '@integration-modules/integration-modules';
 
 import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 

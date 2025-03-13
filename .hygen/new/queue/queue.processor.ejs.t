@@ -33,19 +33,19 @@ export class <%= QueueProcessorName %> extends WorkerHost {
             case <%= QueueJobNamesEnumName %>.exampleJob:
                 return this.handleExampleJob(job);
             default:
-                this.logger.warn(`🚨 Job "${job.name}" is not handled.`);
+                this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
         }
     }
 
     private async handleExampleJob(job: Job) {
         this.logger.debug(
-            `✅ Handling "${<%= QueueJobNamesEnumName %>.exampleJob}" job with ID: ${job?.id || ''}, data: ${JSON.stringify(job?.data || '')}`,
+            `Handling "${<%= QueueJobNamesEnumName %>.exampleJob}" job with ID: ${job?.id || ''}, data: ${JSON.stringify(job?.data || '')}`,
         );
 
         try {
         } catch (error) {
-            this.logger.error(`❌ Error handling "${<%= QueueJobNamesEnumName %>.exampleJob}" job: ${error}`);
+            this.logger.error(`Error handling "${<%= QueueJobNamesEnumName %>.exampleJob}" job: ${error}`);
         }
     }
 }

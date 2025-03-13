@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
+import { HostsSchema } from '../../models';
 import { REST_API } from '../../api';
-import { HostsSchema } from '../..';
 
 export namespace GetOneHostCommand {
     export const url = REST_API.HOSTS.GET_ONE;

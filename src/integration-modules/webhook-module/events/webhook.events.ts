@@ -11,8 +11,8 @@ import { HttpService } from '@nestjs/axios';
 
 import { EVENTS } from '@libs/contracts/constants';
 
-import { UserEvent } from '@intergration-modules/telegram-bot/events/users/interfaces';
-import { NodeEvent } from '@intergration-modules/telegram-bot/events/nodes/interfaces';
+import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
+import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
 
 @Injectable()
 export class WebhookEvents {

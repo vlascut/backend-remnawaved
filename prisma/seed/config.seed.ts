@@ -610,10 +610,36 @@ async function seedConfigVariables() {
     console.log('Default XTLS config seeded!');
 }
 
+async function checkDatabaseConnection() {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        console.log('Database connected!');
+        return true;
+    } catch (error) {
+        console.error('Database connection error:', error);
+        return false;
+    }
+}
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function seedAll() {
-    await seedSubscriptionTemplate();
-    await seedConfigVariables();
-    await seedSubscriptionSettings();
+    let isConnected = false;
+
+    while (!isConnected) {
+        isConnected = await checkDatabaseConnection();
+
+        if (isConnected) {
+            console.log('Database connected. Starting seeding...');
+            await seedSubscriptionTemplate();
+            await seedConfigVariables();
+            await seedSubscriptionSettings();
+            break;
+        } else {
+            console.log('Failed to connect to database. Retrying in 5 seconds...');
+            await delay(5_000);
+        }
+    }
 }
 
 seedAll()

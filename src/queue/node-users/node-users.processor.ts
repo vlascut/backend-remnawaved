@@ -48,6 +48,7 @@ export class NodeUsersQueueProcessor extends WorkerHost {
             return result;
         } catch (error) {
             this.logger.error(`Error handling "${NodeUsersJobNames.addUserToNode}" job: ${error}`);
+            return { isOk: false };
         }
     }
 

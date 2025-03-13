@@ -28,7 +28,7 @@ import { Roles } from '@common/decorators/roles/roles';
 import { HOSTS_CONTROLLER, HOSTS_ROUTES } from '@libs/contracts/api/controllers';
 import { ROLE } from '@libs/contracts/constants';
 
-import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-hots.dto';
+import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-hosts.dto';
 import { CreateHostRequestDto, CreateHostResponseDto } from './dtos/create-host.dto';
 import { DeleteHostRequestDto, DeleteHostResponseDto } from './dtos/delete-host.dto';
 import { GetAllHostsResponseModel } from './models/get-all-hosts.response.model';

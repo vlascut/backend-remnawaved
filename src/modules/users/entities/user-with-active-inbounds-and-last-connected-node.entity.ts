@@ -18,6 +18,8 @@ export class UserWithActiveInboundsAndLastConnectedNodeEntity extends UserEntity
                 network: item.inbound.network,
                 security: item.inbound.security,
             }));
+        } else {
+            this.activeUserInbounds = [];
         }
 
         if (user.nodesUserUsageHistory && user.nodesUserUsageHistory.length > 0) {

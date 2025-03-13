@@ -9,7 +9,7 @@ export namespace GetUserByEmailCommand {
     export const TSQ_url = url(':email');
 
     export const RequestSchema = z.object({
-        email: z.string(),
+        email: z.string().email(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

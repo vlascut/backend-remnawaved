@@ -21,7 +21,7 @@ export class StopNodeQueueProcessor extends WorkerHost {
         super();
     }
 
-    async process(job: Job<{ nodeUuid: string; isNeedToBeDeleted: boolean }>) {
+    async process(job: Job<{ nodeUuid: string; isNeedToBeDeleted: boolean }>): Promise<boolean> {
         try {
             const { nodeUuid, isNeedToBeDeleted } = job.data;
 
@@ -29,12 +29,12 @@ export class StopNodeQueueProcessor extends WorkerHost {
 
             if (!nodeEntity) {
                 this.logger.error(`Node ${nodeUuid} not found`);
-                return;
+                return false;
             }
 
             if (isNeedToBeDeleted) {
                 await this.nodesRepository.deleteByUUID(nodeUuid);
-                return;
+                return true;
             }
 
             await this.axios.stopXray(nodeEntity.address, nodeEntity.port);
@@ -52,9 +52,10 @@ export class StopNodeQueueProcessor extends WorkerHost {
                 });
             }
 
-            return;
+            return true;
         } catch (error) {
             this.logger.error(`Error handling "${StopNodeJobNames.stopNode}" job: ${error}`);
+            return false;
         }
     }
 }

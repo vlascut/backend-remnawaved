@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-import { ReorderHostRequestDto } from 'src/modules/hosts/dtos/reorder-hots.dto';
+import { ReorderHostRequestDto } from '@modules/hosts/dtos/reorder-hosts.dto';
 
 import { Injectable, Logger } from '@nestjs/common';
 

@@ -20,7 +20,7 @@ export class ResetUserTrafficCalendarMonthTask {
         try {
             await this.resetUserTrafficQueueService.resetMonthlyUserTraffic();
         } catch (error) {
-            this.logger.error(`Error in ResetUserMonthlyTrafficService: ${error}`);
+            this.logger.error(`Error in ResetUserTrafficCalendarMonthTask: ${error}`);
         }
     }
 }

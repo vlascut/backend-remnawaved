@@ -31,7 +31,7 @@ export default [
             },
 
             parser: tsParser,
-            ecmaVersion: 5,
+            ecmaVersion: 'latest',
             sourceType: 'commonjs',
 
             parserOptions: {
@@ -66,7 +66,7 @@ export default [
                         'aliasCommon',
                         { newlinesBetween: 'never' },
                         'aliasLibs',
-                        'aliasIntergrationModules',
+                        'aliasIntegrationModules',
                         'aliasModules',
                         'aliasScheduler',
                         'aliasQueue',
@@ -81,7 +81,7 @@ export default [
                             aliasModules: '@modules/*.',
                             aliasCommon: '@common/*.',
                             aliasLibs: '@libs/*.',
-                            aliasIntergrationModules: '@intergration-modules/*.',
+                            aliasIntegrationModules: '@integration-modules/*.',
                             aliasScheduler: '@scheduler/*.',
                             aliasQueue: '@queue/*.',
                             remnawave: '@remnawave/*.',

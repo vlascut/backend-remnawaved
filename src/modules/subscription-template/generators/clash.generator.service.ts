@@ -208,7 +208,8 @@ export class ClashGeneratorService {
         if (path.includes('?ed=')) {
             const [pathPart, edPart] = path.split('?ed=');
             pathValue = pathPart;
-            maxEarlyData = parseInt(edPart.split('/')[0]);
+            const parsedEd = parseInt(edPart.split('/')[0]);
+            maxEarlyData = isNaN(parsedEd) ? undefined : parsedEd;
             earlyDataHeaderName = 'Sec-WebSocket-Protocol';
         }
 
