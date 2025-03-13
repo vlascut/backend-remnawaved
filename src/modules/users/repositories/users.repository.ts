@@ -316,6 +316,25 @@ export class UsersRepository implements ICrud<UserEntity> {
                 };
             }
 
+            if (filter.id === 'telegramId') {
+                try {
+                    const numValue = BigInt(filter.value as string);
+                    return {
+                        ...acc,
+                        [filter.id]: {
+                            equals: numValue,
+                        },
+                    };
+                } catch {
+                    return {
+                        ...acc,
+                        [filter.id]: {
+                            equals: null,
+                        },
+                    };
+                }
+            }
+
             return {
                 ...acc,
                 [filter.id]: {
@@ -585,40 +604,6 @@ export class UsersRepository implements ICrud<UserEntity> {
 
         return result || 0;
     }
-
-    // public async *getUsersForConfigStream(
-    //     excludedInbounds: InboundsEntity[],
-    //     batchSize = 5000,
-    // ): AsyncGenerator<UserForConfigEntity[]> {
-    //     const excludedUuidsCondition =
-    //         excludedInbounds.length > 0
-    //             ? Prisma.sql`AND i.uuid NOT IN (${Prisma.join(excludedInbounds.map((i) => Prisma.sql`${i.uuid}::uuid`))})`
-    //             : Prisma.sql``;
-
-    //     const totalCount = await this.prisma.tx.$queryRaw<[{ count: number }]>`
-    //         SELECT COUNT(*) as count
-    //         FROM users u
-    //         INNER JOIN active_user_inbounds aui ON aui.user_uuid = u.uuid
-    //         INNER JOIN inbounds i ON i.uuid = aui.inbound_uuid
-    //         WHERE u.status = ${USERS_STATUS.ACTIVE}
-    //         ${excludedUuidsCondition}
-    //     `;
-
-    //     const count = Number(totalCount[0].count);
-    //     const batches = Math.ceil(count / batchSize);
-
-    //     for (let i = 0; i < batches; i++) {
-    //         const builder = new UsersWithInboundTagAndExcludedInboundsBuilder(excludedInbounds);
-
-    //         const query = Prisma.sql`
-    //             ${builder.query}
-    //             LIMIT ${batchSize} OFFSET ${i * batchSize}
-    //         `;
-
-    //         const result = await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
-    //         yield result;
-    //     }
-    // }
 
     public async *getUsersForConfigStream(
         excludedInbounds: InboundsEntity[],
