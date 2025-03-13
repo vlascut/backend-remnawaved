@@ -52,7 +52,10 @@ export class NodesUsageHistoryController {
         @Query() query: GetNodesUsageByRangeRequestQueryDto,
     ): Promise<GetNodesUsageByRangeResponseDto> {
         const { start, end } = query;
-        const result = await this.nodesUsageHistoryService.getNodesUsageByRange(start, end);
+        const result = await this.nodesUsageHistoryService.getNodesUsageByRange(
+            new Date(start),
+            new Date(end),
+        );
 
         const data = errorHandler(result);
         return {

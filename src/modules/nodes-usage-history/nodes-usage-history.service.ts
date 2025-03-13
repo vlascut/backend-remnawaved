@@ -30,6 +30,7 @@ export class NodesUsageHistoryService {
                 startDate,
                 endDate,
             );
+
             return {
                 isOk: true,
                 response: nodesUsage.map(
