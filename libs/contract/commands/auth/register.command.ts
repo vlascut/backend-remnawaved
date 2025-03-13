@@ -11,7 +11,7 @@ export namespace RegisterCommand {
             .string()
             .min(24, 'Password must contain at least 24 characters')
             .regex(
-                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]/,
+                /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{24,}$/,
                 'Password must contain uppercase and lowercase letters and numbers',
             ),
     });
