@@ -50,7 +50,7 @@ services:
     volumes:
       - remnawave-redis-data:/data
     healthcheck:
-      test: [ "CMD", "valkey-cli", "--raw", "incr", "ping" ]
+      test: [ "CMD", "valkey-cli", "ping" ]
       interval: 3s
       timeout: 10s
       retries: 3
