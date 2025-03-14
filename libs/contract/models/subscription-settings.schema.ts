@@ -9,7 +9,10 @@ export const SubscriptionSettingsSchema = z.object({
         .number()
         .int()
         .min(1, 'Profile update interval must be greater than 0'),
+
     isProfileWebpageUrlEnabled: z.boolean(),
+    serveJsonAtBaseSubscription: z.boolean(),
+    addUsernameToBaseSubscription: z.boolean(),
 
     happAnnounce: z.string().nullable(),
     happRouting: z.string().nullable(),

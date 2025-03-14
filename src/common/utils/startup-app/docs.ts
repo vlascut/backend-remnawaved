@@ -96,9 +96,7 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
                     clientKey: 'axios',
                 },
 
-                spec: {
-                    content: documentFactory,
-                },
+                content: documentFactory,
             }),
         );
     }

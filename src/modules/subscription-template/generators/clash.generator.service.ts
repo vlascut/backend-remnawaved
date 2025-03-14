@@ -81,7 +81,7 @@ export class ClashGeneratorService {
         isStash: boolean,
     ): Promise<string> {
         const yamlConfigRaw = await this.subscriptionTemplateService.getYamlTemplateByType(
-            isStash ? 'STASH' : 'MIHOMO',
+            isStash ? 'STASH' : 'CLASH',
         );
 
         try {

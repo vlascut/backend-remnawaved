@@ -5,6 +5,9 @@ export class SubscriptionSettingsResponseModel {
     public profileTitle: string;
     public supportLink: string;
     public profileUpdateInterval: number;
+    public serveJsonAtBaseSubscription: boolean;
+    public addUsernameToBaseSubscription: boolean;
+    public isProfileWebpageUrlEnabled: boolean;
     public happAnnounce: string | null;
     public happRouting: string | null;
     public expiredUsersRemarks: string[];
@@ -19,6 +22,9 @@ export class SubscriptionSettingsResponseModel {
         this.profileTitle = entity.profileTitle;
         this.supportLink = entity.supportLink;
         this.profileUpdateInterval = entity.profileUpdateInterval;
+        this.isProfileWebpageUrlEnabled = entity.isProfileWebpageUrlEnabled;
+        this.serveJsonAtBaseSubscription = entity.serveJsonAtBaseSubscription;
+        this.addUsernameToBaseSubscription = entity.addUsernameToBaseSubscription;
         this.happAnnounce = entity.happAnnounce;
         this.happRouting = entity.happRouting;
         this.expiredUsersRemarks = entity.expiredUsersRemarks;

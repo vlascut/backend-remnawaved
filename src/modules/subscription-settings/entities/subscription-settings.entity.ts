@@ -6,6 +6,9 @@ export class SubscriptionSettingsEntity implements SubscriptionSettings {
     supportLink: string;
     profileUpdateInterval: number;
     isProfileWebpageUrlEnabled: boolean;
+    serveJsonAtBaseSubscription: boolean;
+    addUsernameToBaseSubscription: boolean;
+
     happAnnounce: string | null;
     happRouting: string | null;
 

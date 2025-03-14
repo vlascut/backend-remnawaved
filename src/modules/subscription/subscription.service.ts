@@ -7,7 +7,14 @@ import { ConfigService } from '@nestjs/config';
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { XRayConfig } from '@common/helpers/xray-config';
-import { ERRORS, USERS_STATUS } from '@libs/contracts/constants';
+import {
+    ERRORS,
+    REQUEST_TEMPLATE_TYPE,
+    SUBSCRIPTION_TEMPLATE_TYPE,
+    TRequestTemplateTypeKeys,
+    TSubscriptionTemplateType,
+    USERS_STATUS,
+} from '@libs/contracts/constants';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
@@ -47,7 +54,126 @@ export class SubscriptionService {
         shortUuid: string,
         userAgent: string,
         isHtml: boolean,
-        needJsonSubscription: boolean = false,
+        clientType: TRequestTemplateTypeKeys | undefined,
+    ): Promise<
+        SubscriptionNotFoundResponse | SubscriptionRawResponse | SubscriptionWithConfigResponse
+    > {
+        try {
+            const user = await this.getUserByShortUuid({ shortUuid });
+            if (!user.isOk || !user.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            const settings = await this.getSubscriptionSettings();
+
+            if (!settings.isOk || !settings.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            const settingEntity = settings.response;
+
+            let clientOverride: TSubscriptionTemplateType | undefined;
+
+            switch (clientType) {
+                case REQUEST_TEMPLATE_TYPE.STASH:
+                    clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.STASH;
+                    break;
+                case REQUEST_TEMPLATE_TYPE.SINGBOX:
+                    clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.SINGBOX;
+                    break;
+                case REQUEST_TEMPLATE_TYPE.SINGBOX_LEGACY:
+                    clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.SINGBOX_LEGACY;
+                    break;
+                case REQUEST_TEMPLATE_TYPE.MIHOMO:
+                    clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.MIHOMO;
+                    break;
+                case REQUEST_TEMPLATE_TYPE.XRAY_JSON:
+                    clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON;
+                    break;
+                case REQUEST_TEMPLATE_TYPE.CLASH:
+                    clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.CLASH;
+                    break;
+                default:
+                    clientOverride = undefined;
+                    break;
+            }
+
+            if (isHtml) {
+                const result = await this.getSubscriptionInfoByShortUuid(
+                    user.response.shortUuid,
+                    settingEntity,
+                );
+                if (!result.isOk || !result.response) {
+                    return new SubscriptionNotFoundResponse();
+                }
+                return result.response;
+            }
+
+            const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
+
+            if (!hosts.isOk || !hosts.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            const config = await this.getValidatedConfig();
+            if (!config) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            await this.updateSubLastOpenedAndUserAgent({
+                userUuid: user.response.uuid,
+                subLastOpenedAt: new Date(),
+                subLastUserAgent: userAgent,
+            });
+
+            let subscription: { contentType: string; sub: string };
+
+            if (
+                clientOverride !== undefined &&
+                clientOverride !== SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON
+            ) {
+                subscription = await this.renderTemplatesService.generateSubscriptionByClientType({
+                    userAgent,
+                    user: user.response,
+                    hosts: hosts.response,
+                    config,
+                    clientType: clientOverride,
+                });
+            } else {
+                let isServeJson = clientOverride === SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON;
+
+                if (!isServeJson && settingEntity.serveJsonAtBaseSubscription) {
+                    isServeJson = true;
+                }
+
+                subscription = await this.renderTemplatesService.generateSubscription({
+                    userAgent: userAgent,
+                    user: user.response,
+                    config,
+                    hosts: hosts.response,
+                    isOutlineConfig: false,
+                    needJsonSubscription: isServeJson,
+                });
+            }
+
+            return new SubscriptionWithConfigResponse({
+                headers: await this.getUserProfileHeadersInfo(
+                    user.response,
+                    /^Happ\//.test(userAgent),
+                    settingEntity,
+                ),
+                body: subscription.sub,
+                contentType: subscription.contentType,
+            });
+        } catch {
+            return new SubscriptionNotFoundResponse();
+        }
+    }
+
+    public async getOutlineSubscriptionByShortUuid(
+        shortUuid: string,
+        userAgent: string,
+        isHtml: boolean,
         isOutlineConfig: boolean = false,
         encodedTag?: string,
     ): Promise<
@@ -58,6 +184,14 @@ export class SubscriptionService {
             if (!user.isOk || !user.response) {
                 return new SubscriptionNotFoundResponse();
             }
+
+            const settings = await this.getSubscriptionSettings();
+
+            if (!settings.isOk || !settings.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            const settingEntity = settings.response;
 
             if (isHtml) {
                 const result = await this.getSubscriptionInfoByShortUuid(user.response.shortUuid);
@@ -91,13 +225,13 @@ export class SubscriptionService {
                 hosts: hosts.response,
                 isOutlineConfig,
                 encodedTag,
-                needJsonSubscription,
             });
 
             return new SubscriptionWithConfigResponse({
                 headers: await this.getUserProfileHeadersInfo(
                     user.response,
                     /^Happ\//.test(userAgent),
+                    settingEntity,
                 ),
                 body: subscription.sub,
                 contentType: subscription.contentType,
@@ -109,6 +243,7 @@ export class SubscriptionService {
 
     public async getSubscriptionInfoByShortUuid(
         shortUuid: string,
+        settingEntity?: SubscriptionSettingsEntity,
     ): Promise<ICommandResponse<SubscriptionRawResponse>> {
         try {
             const user = await this.getUserByShortUuid({ shortUuid });
@@ -141,9 +276,26 @@ export class SubscriptionService {
                 user.response.shortUuid,
                 formattedHosts,
             );
+
+            let settings: SubscriptionSettingsEntity;
+            if (!settingEntity) {
+                const settingsResponse = await this.getSubscriptionSettings();
+
+                if (!settingsResponse.isOk || !settingsResponse.response) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.INTERNAL_SERVER_ERROR,
+                    };
+                }
+
+                settings = settingsResponse.response;
+            } else {
+                settings = settingEntity;
+            }
+
             return {
                 isOk: true,
-                response: await this.getUserInfo(user.response, xrayLinks, ssConfLinks),
+                response: await this.getUserInfo(user.response, xrayLinks, ssConfLinks, settings),
             };
         } catch (error) {
             this.logger.error(`Error getting subscription info by short uuid: ${error}`);
@@ -158,7 +310,12 @@ export class SubscriptionService {
         user: UserWithActiveInboundsEntity,
         links: string[],
         ssConfLinks: Record<string, string>,
+        settingEntity: SubscriptionSettingsEntity,
     ): Promise<SubscriptionRawResponse> {
+        const subscriptionUrl = settingEntity.addUsernameToBaseSubscription
+            ? `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}#${user.username}`
+            : `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`;
+
         return new SubscriptionRawResponse({
             isFound: true,
             user: {
@@ -174,7 +331,7 @@ export class SubscriptionService {
             },
             links,
             ssConfLinks,
-            subscriptionUrl: `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}#${user.username}`,
+            subscriptionUrl,
         });
     }
 
@@ -202,21 +359,8 @@ export class SubscriptionService {
     private async getUserProfileHeadersInfo(
         user: UserWithActiveInboundsEntity,
         isHapp: boolean,
+        settings: SubscriptionSettingsEntity,
     ): Promise<ISubscriptionHeaders> {
-        const settingsResponse = await this.getSubscriptionSettings();
-        if (!settingsResponse.isOk || !settingsResponse.response) {
-            return {
-                'content-disposition': `attachment; filename="${user.username}"`,
-                'profile-web-page-url': '',
-                'support-url': '',
-                'profile-title': '',
-                'profile-update-interval': '24',
-                'subscription-userinfo': '',
-            };
-        }
-
-        const settings = settingsResponse.response;
-
         const headers: ISubscriptionHeaders = {
             'content-disposition': `attachment; filename="${user.username}"`,
             'support-url': settings.supportLink,
