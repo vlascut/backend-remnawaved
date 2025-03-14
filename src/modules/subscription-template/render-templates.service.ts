@@ -136,6 +136,7 @@ export class RenderTemplatesService {
                 };
 
             case 'SINGBOX_LEGACY':
+            case 'SINGBOX':
                 return {
                     sub: await this.singBoxGeneratorService.generateConfig(
                         formattedHosts,
