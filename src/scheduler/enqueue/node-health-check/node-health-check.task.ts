@@ -37,7 +37,7 @@ export class NodeHealthCheckTask {
         try {
             if (!this.isNodesRestarted) {
                 this.isNodesRestarted = true;
-                this.logger.log('🔄 Restarting all nodes on application start.');
+                this.logger.log('Restarting all nodes on application start.');
 
                 await this.startAllNodesQueueService.startAllNodes({
                     emitter: this.cronName,
@@ -48,7 +48,6 @@ export class NodeHealthCheckTask {
 
             const nodesResponse = await this.getEnabledNodes();
             if (!nodesResponse.isOk || !nodesResponse.response) {
-                this.logger.error('No enabled nodes found');
                 return;
             }
 

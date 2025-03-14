@@ -69,11 +69,6 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
             { totalDownlink: 0, totalUplink: 0 },
         ) || { totalDownlink: 0, totalUplink: 0 };
 
-        // TODO: Debug for docker
-        this.logger.log(
-            `Node ${nodeUuid}: Processed traffic - Down: ${totalDownlink}, Up: ${totalUplink}, ${JSON.stringify(response.response)}`,
-        );
-
         if (totalDownlink === 0 && totalUplink === 0) {
             this.logger.debug(`Node ${nodeUuid}: No traffic to record, skipping`);
             return;
