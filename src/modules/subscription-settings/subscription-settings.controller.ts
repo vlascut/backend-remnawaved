@@ -24,6 +24,7 @@ import {
     UpdateSubscriptionSettingsRequestDto,
     UpdateSubscriptionSettingsResponseDto,
 } from './dtos';
+import { SubscriptionSettingsResponseModel } from './models/get-subscription-settings.response.model';
 import { SubscriptionSettingsService } from './subscription-settings.service';
 
 @ApiBearerAuth('Authorization')
@@ -50,7 +51,7 @@ export class SubscriptionSettingsController {
 
         const data = errorHandler(result);
         return {
-            response: data,
+            response: new SubscriptionSettingsResponseModel(data),
         };
     }
 
@@ -72,7 +73,7 @@ export class SubscriptionSettingsController {
 
         const data = errorHandler(result);
         return {
-            response: data,
+            response: new SubscriptionSettingsResponseModel(data),
         };
     }
 }

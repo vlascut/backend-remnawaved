@@ -1,7 +1,7 @@
 export const SUBSCRIPTION_CONFIG_TYPES = {
-    CLASH_META: {
-        NAME: 'CLASH_META',
-        REGEX: /^(FlClash|[Cc]lash-[Vv]erge|[Cc]lash-?[Mm]eta|[Mm]urge|[Cc]lashX [Mm]eta)/,
+    MIHOMO: {
+        NAME: 'MIHOMO',
+        REGEX: /^(FlClash|[Cc]lash-[Vv]erge|[Cc]lash-?[Mm]eta|[Mm]urge|[Cc]lashX [Mm]eta|[Mm]ihomo)/,
         CONTENT_TYPE: 'text/yaml',
         BASE64: false,
     },

@@ -6,8 +6,14 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
+import { REQUEST_TEMPLATE_TYPE } from '@libs/contracts/constants';
 
-import { GetSubscriptionInfoRequestDto, GetSubscriptionInfoResponseDto } from './dto';
+import {
+    GetOutlineSubscriptionRequestDto,
+    GetSubscriptionByShortUuidByClientTypeRequestDto,
+    GetSubscriptionInfoRequestDto,
+    GetSubscriptionInfoResponseDto,
+} from './dto';
 import { GetSubscriptionByShortUuidRequestDto } from './dto/get-subscription.dto';
 import { SubscriptionNotFoundResponse, SubscriptionRawResponse } from './models';
 import { SubscriptionService } from './subscription.service';
@@ -52,6 +58,7 @@ export class SubscriptionController {
             shortUuid,
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
+            undefined,
         );
 
         if (result instanceof SubscriptionNotFoundResponse) {
@@ -71,9 +78,16 @@ export class SubscriptionController {
         description: 'Short UUID of the user',
         required: true,
     })
-    @Get(SUBSCRIPTION_ROUTES.GET + '/:shortUuid' + '/json')
-    async getJsonSubscription(
-        @Param() { shortUuid }: GetSubscriptionByShortUuidRequestDto,
+    @ApiParam({
+        name: 'clientType',
+        type: String,
+        description: 'Client type',
+        required: true,
+        enum: REQUEST_TEMPLATE_TYPE,
+    })
+    @Get([SUBSCRIPTION_ROUTES.GET + '/:shortUuid' + '/:clientType'])
+    async getSubscriptionByClientType(
+        @Param() { shortUuid, clientType }: GetSubscriptionByShortUuidByClientTypeRequestDto,
         @Req() request: Request,
         @Res() response: Response,
     ): Promise<Response> {
@@ -81,7 +95,7 @@ export class SubscriptionController {
             shortUuid,
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
-            true,
+            clientType,
         );
 
         if (result instanceof SubscriptionNotFoundResponse) {
@@ -117,9 +131,9 @@ export class SubscriptionController {
         required: true,
         example: 'VGVzdGVy',
     })
-    @Get([SUBSCRIPTION_ROUTES.GET + '/:shortUuid/:type/:encodedTag'])
+    @Get([SUBSCRIPTION_ROUTES.GET_OUTLINE + '/:shortUuid/:type/:encodedTag'])
     async getSubscriptionWithType(
-        @Param() { shortUuid }: GetSubscriptionByShortUuidRequestDto,
+        @Param() { shortUuid }: GetOutlineSubscriptionRequestDto,
         @Req() request: Request,
         @Res() response: Response,
         @Param('type') type?: string,
@@ -130,11 +144,10 @@ export class SubscriptionController {
             isOutlineConfig = true;
         }
 
-        const result = await this.subscriptionService.getSubscriptionByShortUuid(
+        const result = await this.subscriptionService.getOutlineSubscriptionByShortUuid(
             shortUuid,
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
-            false,
             isOutlineConfig,
             encodedTag,
         );

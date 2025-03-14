@@ -14,6 +14,8 @@ export namespace UpdateSubscriptionSettingsCommand {
         supportLink: z.optional(z.string()),
         profileUpdateInterval: z.optional(z.number().int()),
         isProfileWebpageUrlEnabled: z.optional(z.boolean()),
+        serveJsonAtBaseSubscription: z.optional(z.boolean()),
+        addUsernameToBaseSubscription: z.optional(z.boolean()),
 
         happAnnounce: z.optional(
             z
