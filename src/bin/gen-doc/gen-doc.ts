@@ -14,6 +14,7 @@ process.env.IS_DOCS_ENABLED = 'true';
 process.env.NODE_ENV = 'development';
 process.env.REDIS_HOST = 'localhost';
 process.env.REDIS_PORT = '6379';
+process.env.INSTANCE_TYPE = 'api';
 
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
