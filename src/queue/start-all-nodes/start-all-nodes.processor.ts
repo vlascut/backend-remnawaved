@@ -60,6 +60,10 @@ export class StartAllNodesQueueProcessor extends WorkerHost {
                 isDisabled: false,
             });
 
+            if (!nodes) {
+                return;
+            }
+
             // const { response: nodes } = await this.queryBus.execute<
             //     GetNodesByCriteriaQuery,
             //     ICommandResponse<NodesEntity[]>
@@ -100,14 +104,15 @@ export class StartAllNodesQueueProcessor extends WorkerHost {
                     (inbound) => inbound.tag,
                 );
 
-                const nodeConfig = config.response;
-
-                nodeConfig.inbounds = nodeConfig.inbounds.filter(
+                const filteredInbounds = config.response.inbounds.filter(
                     (inbound) => !excludedNodeInboundsTags.includes(inbound.tag),
                 );
 
                 const response = await this.axios.startXray(
-                    nodeConfig as unknown as Record<string, unknown>,
+                    { ...config.response, inbounds: filteredInbounds } as unknown as Record<
+                        string,
+                        unknown
+                    >,
                     node.address,
                     node.port,
                 );
