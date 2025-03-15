@@ -1,4 +1,8 @@
-export class HostsEntity {
+import { Hosts } from '@prisma/client';
+
+import { TSecurityLayers } from '@contract/constants';
+
+export class HostsEntity implements Hosts {
     uuid: string;
     inboundUuid: string;
     viewPosition: number;
@@ -10,10 +14,11 @@ export class HostsEntity {
     host: null | string;
     alpn: null | string;
     fingerprint: null | string;
+    securityLayer: TSecurityLayers;
     allowInsecure: boolean;
     isDisabled: boolean;
 
-    constructor(data: Partial<HostsEntity>) {
+    constructor(data: Partial<Hosts>) {
         Object.assign(this, data);
     }
 }

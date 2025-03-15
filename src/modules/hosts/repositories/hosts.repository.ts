@@ -5,6 +5,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
+import { TSecurityLayers } from '@libs/contracts/constants';
 
 import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
 import { HostsEntity } from '../entities/hosts.entity';
@@ -92,6 +93,7 @@ export class HostsRepository implements ICrud<HostsEntity> {
             (host) =>
                 new HostWithInboundTagEntity({
                     ...host,
+                    securityLayer: host.securityLayer as TSecurityLayers,
                 }),
         );
     }

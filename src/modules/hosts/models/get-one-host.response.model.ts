@@ -1,3 +1,5 @@
+import { TSecurityLayers } from '@libs/contracts/constants';
+
 import { HostsEntity } from '../entities/hosts.entity';
 
 export class GetOneHostResponseModel {
@@ -14,6 +16,7 @@ export class GetOneHostResponseModel {
     public fingerprint: null | string;
     public allowInsecure: boolean;
     public isDisabled: boolean;
+    public securityLayer: TSecurityLayers;
 
     constructor(data: HostsEntity) {
         this.uuid = data.uuid;
@@ -29,5 +32,6 @@ export class GetOneHostResponseModel {
         this.fingerprint = data.fingerprint;
         this.allowInsecure = data.allowInsecure;
         this.isDisabled = data.isDisabled;
+        this.securityLayer = data.securityLayer;
     }
 }

@@ -23,6 +23,7 @@ const entityToModel = (entity: HostsEntity): Hosts => {
         host: entity.host,
         alpn: entity.alpn,
         fingerprint: entity.fingerprint,
+        securityLayer: entity.securityLayer,
         allowInsecure: entity.allowInsecure,
         isDisabled: entity.isDisabled,
     };

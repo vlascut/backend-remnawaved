@@ -16,7 +16,7 @@ import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
-import { USERS_STATUS } from '@libs/contracts/constants';
+import { SECURITY_LAYERS, USERS_STATUS } from '@libs/contracts/constants';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
@@ -217,6 +217,20 @@ export class FormatHostsService {
                     break;
             }
 
+            // Security Layer Override
+            if (inputHost.securityLayer !== SECURITY_LAYERS.DEFAULT) {
+                switch (inputHost.securityLayer) {
+                    case SECURITY_LAYERS.TLS:
+                        tlsFromConfig = 'tls';
+                        break;
+                    case SECURITY_LAYERS.NONE:
+                        tlsFromConfig = 'none';
+                        break;
+                    default:
+                        break;
+                }
+            }
+
             const protocol = inbound.protocol;
             const path = inputHost.path || pathFromConfig || '';
 
@@ -240,8 +254,10 @@ export class FormatHostsService {
                 sni = inputHost.address;
             }
 
+            // Fingerprint
             const fp = inputHost.fingerprint || fingerprintFromConfig || '';
 
+            // ALPN
             const alpn = inputHost.alpn || alpnFromConfig || '';
 
             // Public key

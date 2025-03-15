@@ -230,6 +230,7 @@ model Hosts {
   host          String? @map("host")
   alpn          String? @map("alpn") // ENUM: h2, http/1.1, h2,http/1.1 
   fingerprint   String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
+  securityLayer String  @default("DEFAULT") @map("security_layer") // ENUM: DEFAULT, TLS, NONE
   allowInsecure Boolean @default(false) @map("allowinsecure")
   isDisabled    Boolean @default(false) @map("is_disabled")
 
