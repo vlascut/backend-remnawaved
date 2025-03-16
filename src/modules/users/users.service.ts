@@ -8,6 +8,7 @@ import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Transactional } from '@nestjs-cls/transactional';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
@@ -52,6 +53,7 @@ dayjs.extend(utc);
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);
+    private readonly shortUuidLength: number;
 
     constructor(
         private readonly userRepository: UsersRepository,
@@ -59,7 +61,10 @@ export class UsersService {
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
         private readonly queryBus: QueryBus,
-    ) {}
+        private readonly configService: ConfigService,
+    ) {
+        this.shortUuidLength = this.configService.getOrThrow<number>('SHORT_UUID_LENGTH');
+    }
 
     public async createUser(
         dto: CreateUserRequestDto,
@@ -737,7 +742,7 @@ export class UsersService {
 
     private createNanoId(): string {
         const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghjkmnopqrstuvwxyz-';
-        const nanoid = customAlphabet(alphabet, 16);
+        const nanoid = customAlphabet(alphabet, this.shortUuidLength);
 
         return nanoid();
     }
