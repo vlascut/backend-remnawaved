@@ -1,11 +1,11 @@
 import { Prisma } from '@prisma/client';
 
-import { ReorderHostRequestDto } from '@modules/hosts/dtos/reorder-hosts.dto';
-
 import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
+
+import { ReorderHostRequestDto } from '@modules/hosts/dtos/reorder-hosts.dto';
 
 import { DeleteHostResponseModel } from './models/delete-host.response.model';
 import { HostsRepository } from './repositories/hosts.repository';
@@ -160,6 +160,92 @@ export class HostsService {
         } catch (error) {
             this.logger.error(JSON.stringify(error));
             return { isOk: false, ...ERRORS.REORDER_HOSTS_ERROR };
+        }
+    }
+
+    public async deleteHosts(uuids: string[]): Promise<ICommandResponse<HostsEntity[]>> {
+        try {
+            await this.hostsRepository.deleteMany(uuids);
+
+            const result = await this.getAllHosts();
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.DELETE_HOSTS_ERROR };
+        }
+    }
+
+    public async bulkEnableHosts(uuids: string[]): Promise<ICommandResponse<HostsEntity[]>> {
+        try {
+            await this.hostsRepository.enableMany(uuids);
+
+            const result = await this.getAllHosts();
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.BULK_ENABLE_HOSTS_ERROR };
+        }
+    }
+
+    public async bulkDisableHosts(uuids: string[]): Promise<ICommandResponse<HostsEntity[]>> {
+        try {
+            await this.hostsRepository.disableMany(uuids);
+
+            const result = await this.getAllHosts();
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.BULK_DISABLE_HOSTS_ERROR };
+        }
+    }
+
+    public async setInboundToHosts(
+        uuids: string[],
+        inboundUuid: string,
+    ): Promise<ICommandResponse<HostsEntity[]>> {
+        try {
+            await this.hostsRepository.setInboundToManyHosts(uuids, inboundUuid);
+
+            const result = await this.getAllHosts();
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.SET_INBOUND_TO_HOSTS_ERROR };
+        }
+    }
+
+    public async setPortToHosts(
+        uuids: string[],
+        port: number,
+    ): Promise<ICommandResponse<HostsEntity[]>> {
+        try {
+            await this.hostsRepository.setPortToManyHosts(uuids, port);
+
+            const result = await this.getAllHosts();
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.SET_PORT_TO_HOSTS_ERROR };
         }
     }
 }

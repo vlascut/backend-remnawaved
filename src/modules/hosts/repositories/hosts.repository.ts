@@ -69,6 +69,42 @@ export class HostsRepository implements ICrud<HostsEntity> {
         return !!result;
     }
 
+    public async deleteMany(uuids: string[]): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.deleteMany({ where: { uuid: { in: uuids } } });
+        return !!result;
+    }
+
+    public async enableMany(uuids: string[]): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { isDisabled: false },
+        });
+        return !!result;
+    }
+
+    public async disableMany(uuids: string[]): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { isDisabled: true },
+        });
+        return !!result;
+    }
+
+    public async setInboundToManyHosts(uuids: string[], inboundUuid: string): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { inboundUuid },
+        });
+        return !!result;
+    }
+
+    public async setPortToManyHosts(uuids: string[], port: number): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { port },
+        });
+        return !!result;
+    }
     public async findActiveHostsByUserUuid(userUuid: string): Promise<HostWithInboundTagEntity[]> {
         const list = await this.prisma.tx.hosts.findMany({
             where: {

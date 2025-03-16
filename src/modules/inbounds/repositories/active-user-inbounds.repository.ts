@@ -5,7 +5,9 @@ import { Injectable } from '@nestjs/common';
 import { ICrud } from '@common/types/crud-port';
 
 import { ActiveUserInboundsConverter } from '../converters/active-user-inbounds.converter';
+import { RemoveInboundFromUsersBuilder } from '../builders/remove-inbound-from-users';
 import { ActiveUserInboundEntity } from '../entities/active-user-inbound.entity';
+import { AddInboundToUsersBuilder } from '../builders/add-inbound-to-users';
 
 @Injectable()
 export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEntity> {
@@ -120,5 +122,19 @@ export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEnti
     public async deleteByUUID(uuid: string): Promise<boolean> {
         const result = await this.prisma.tx.activeUserInbounds.delete({ where: { uuid } });
         return !!result;
+    }
+
+    public async addInboundToUsers(uuid: string): Promise<number> {
+        const { query } = new AddInboundToUsersBuilder(uuid);
+        const result = await this.prisma.tx.$executeRaw<number>(query);
+
+        return result;
+    }
+
+    public async removeInboundFromUsers(uuid: string): Promise<number> {
+        const { query } = new RemoveInboundFromUsersBuilder(uuid);
+        const result = await this.prisma.tx.$executeRaw<number>(query);
+
+        return result;
     }
 }

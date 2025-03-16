@@ -358,4 +358,54 @@ export const ERRORS = {
         message: 'Update subscription settings error',
         httpCode: 500,
     },
+    ADD_INBOUND_TO_USERS_ERROR: {
+        code: 'A074',
+        message: 'Add inbound to users error',
+        httpCode: 500,
+    },
+    REMOVE_INBOUND_FROM_USERS_ERROR: {
+        code: 'A075',
+        message: 'Remove inbound from users error',
+        httpCode: 500,
+    },
+    INBOUND_NOT_FOUND: {
+        code: 'A076',
+        message: 'Inbound not found',
+        httpCode: 404,
+    },
+    ADD_INBOUND_TO_NODES_ERROR: {
+        code: 'A077',
+        message: 'Add inbound to nodes error',
+        httpCode: 500,
+    },
+    REMOVE_INBOUND_FROM_NODES_ERROR: {
+        code: 'A078',
+        message: 'Remove inbound from nodes error',
+        httpCode: 500,
+    },
+    DELETE_HOSTS_ERROR: {
+        code: 'A079',
+        message: 'Delete hosts error',
+        httpCode: 500,
+    },
+    BULK_ENABLE_HOSTS_ERROR: {
+        code: 'A080',
+        message: 'Bulk enable hosts error',
+        httpCode: 500,
+    },
+    BULK_DISABLE_HOSTS_ERROR: {
+        code: 'A081',
+        message: 'Bulk disable hosts error',
+        httpCode: 500,
+    },
+    SET_INBOUND_TO_HOSTS_ERROR: {
+        code: 'A082',
+        message: 'Set inbound to hosts error',
+        httpCode: 500,
+    },
+    SET_PORT_TO_HOSTS_ERROR: {
+        code: 'A083',
+        message: 'Set port to hosts error',
+        httpCode: 500,
+    },
 } as const;

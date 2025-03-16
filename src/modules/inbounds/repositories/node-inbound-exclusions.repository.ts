@@ -4,6 +4,8 @@ import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
 
+import { RemoveInboundFromNodesBuilder } from '../builders/remove-inbound-from-nodes';
+import { AddInboundToNodesBuilder } from '../builders/add-inbound-to-nodes';
 import { NodeInboundExclusionEntity } from '../entities';
 
 @Injectable()
@@ -32,5 +34,19 @@ export class NodeInboundExclusionsRepository
             return result.count;
         }
         return 0;
+    }
+
+    public async addInboundToNodes(uuid: string): Promise<number> {
+        const { query } = new AddInboundToNodesBuilder(uuid);
+        const result = await this.prisma.tx.$executeRaw<number>(query);
+
+        return result;
+    }
+
+    public async removeInboundFromNodes(uuid: string): Promise<number> {
+        const { query } = new RemoveInboundFromNodesBuilder(uuid);
+        const result = await this.prisma.tx.$executeRaw<number>(query);
+
+        return result;
     }
 }
