@@ -15,6 +15,15 @@ export const USERS_ROUTES = {
     RESET_USER_TRAFFIC: 'reset-traffic',
     BULK: {
         DELETE_BY_STATUS: 'bulk/delete-by-status',
+        UPDATE: 'bulk/update',
+        RESET_TRAFFIC: 'bulk/reset-traffic',
+        REVOKE_SUBSCRIPTION: 'bulk/revoke-subscription',
+        DELETE: 'bulk/delete',
+        UPDATE_INBOUNDS: 'bulk/update-inbounds',
+        ALL: {
+            UPDATE: 'bulk/all/update',
+            RESET_TRAFFIC: 'bulk/all/reset-traffic',
+        },
     },
     GET_BY_TELEGRAM_ID: 'tg',
     GET_BY_EMAIL: 'email',

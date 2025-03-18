@@ -18,8 +18,10 @@ import { UserEvent } from '@integration-modules/telegram-bot/events/users/interf
 
 import { DeleteManyActiveInboundsByUserUuidCommand } from '@modules/inbounds/commands/delete-many-active-inbounds-by-user-uuid';
 import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
+import { RemoveInboundsFromUsersByUuidsCommand } from '@modules/inbounds/commands/remove-inbounds-from-users-by-uuids';
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
 import { CreateManyUserActiveInboundsCommand } from '@modules/inbounds/commands/create-many-user-active-inbounds';
+import { AddInboundsToUsersByUuidsCommand } from '@modules/inbounds/commands/add-inbounds-to-users-by-uuids';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
@@ -28,6 +30,17 @@ import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
 import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
 import { InboundsEntity } from '@modules/inbounds/entities';
 
+import { BulkUserOperationsQueueService } from '@queue/bulk-user-operations/bulk-user-operations.service';
+import { ResetUserTrafficQueueService } from '@queue/reset-user-traffic/reset-user-traffic.service';
+import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-nodes.service';
+
+import {
+    CreateUserRequestDto,
+    UpdateUserRequestDto,
+    BulkDeleteUsersByStatusRequestDto,
+    BulkUpdateUsersRequestDto,
+    BulkAllUpdateUsersRequestDto,
+} from './dtos';
 import {
     UserWithActiveInboundsEntity,
     UserEntity,
@@ -35,17 +48,17 @@ import {
     UserWithActiveInboundsAndLastConnectedNodeEntity,
 } from './entities';
 import {
+    DeleteUserResponseModel,
+    BulkDeleteByStatusResponseModel,
+    BulkOperationResponseModel,
+    BulkAllResponseModel,
+} from './models';
+import {
     IGetUserWithLastConnectedNode,
     IGetUserByUnique,
     IGetUsersByTelegramIdOrEmail,
 } from './interfaces';
-import {
-    CreateUserRequestDto,
-    UpdateUserRequestDto,
-    BulkDeleteUsersByStatusRequestDto,
-} from './dtos';
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
-import { DeleteUserResponseModel, BulkDeleteByStatusResponseModel } from './models';
 import { UsersRepository } from './repositories/users.repository';
 
 dayjs.extend(utc);
@@ -62,6 +75,9 @@ export class UsersService {
         private readonly eventEmitter: EventEmitter2,
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
+        private readonly bulkUserOperationsQueueService: BulkUserOperationsQueueService,
+        private readonly startAllNodesQueue: StartAllNodesQueueService,
+        private readonly resetUserTrafficQueueService: ResetUserTrafficQueueService,
     ) {
         this.shortUuidLength = this.configService.getOrThrow<number>('SHORT_UUID_LENGTH');
     }
@@ -188,9 +204,14 @@ export class UsersService {
                     trafficLimitBytes !== undefined ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy: trafficLimitStrategy || undefined,
                 status: newStatus || undefined,
-                description: description || undefined,
-                telegramId: telegramId ? BigInt(telegramId) : undefined,
-                email: email || undefined,
+                description: description,
+                telegramId:
+                    telegramId !== undefined
+                        ? telegramId === null
+                            ? null
+                            : BigInt(telegramId)
+                        : undefined,
+                email: email,
             });
 
             let inboundsChanged = false;
@@ -260,10 +281,10 @@ export class UsersService {
                 if (fields.includes('username')) {
                     return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
                 }
-                if (fields.includes('shortUuid')) {
+                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
                 }
-                if (fields.includes('subscriptionUuid')) {
+                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
                 }
             }
@@ -386,15 +407,15 @@ export class UsersService {
                 if (fields.includes('username')) {
                     return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
                 }
-                if (fields.includes('shortUuid')) {
+                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
                 }
-                if (fields.includes('subscriptionUuid')) {
+                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
                 }
             }
 
-            return { isOk: false, ...ERRORS.CREATE_NODE_ERROR };
+            return { isOk: false, ...ERRORS.CREATE_USER_ERROR };
         }
     }
 
@@ -736,6 +757,212 @@ export class UsersService {
         }
     }
 
+    public async bulkDeleteUsersByUuid(
+        uuids: string[],
+    ): Promise<ICommandResponse<BulkDeleteByStatusResponseModel>> {
+        try {
+            if (uuids.length === 0) {
+                return {
+                    isOk: true,
+                    response: new BulkOperationResponseModel(0),
+                };
+            }
+
+            const result = await this.userRepository.deleteManyByUuid(uuids);
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkDeleteUsersByUuid',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(result),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_DELETE_USERS_BY_UUID_ERROR,
+            };
+        }
+    }
+
+    public async bulkRevokeUsersSubscription(
+        uuids: string[],
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            // handled one by one
+            await this.bulkUserOperationsQueueService.revokeUsersSubscriptionBulk(uuids);
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(uuids.length),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_REVOKE_USERS_SUBSCRIPTION_ERROR,
+            };
+        }
+    }
+
+    public async bulkResetUserTraffic(
+        uuids: string[],
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            // handled one by one
+            await this.bulkUserOperationsQueueService.resetUserTrafficBulk(uuids);
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(uuids.length),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_RESET_USER_TRAFFIC_ERROR,
+            };
+        }
+    }
+
+    public async bulkUpdateUsers(
+        dto: BulkUpdateUsersRequestDto,
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            if (
+                dto.fields.status === USERS_STATUS.EXPIRED ||
+                dto.fields.status === USERS_STATUS.LIMITED
+            ) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INVALID_USER_STATUS_ERROR,
+                };
+            }
+
+            // handled one by one
+            await this.bulkUserOperationsQueueService.updateUsersBulk({
+                uuids: dto.uuids,
+                fields: dto.fields,
+            });
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(dto.uuids.length),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_UPDATE_USERS_ERROR,
+            };
+        }
+    }
+
+    public async bulkAddInboundsToUsers(
+        usersUuids: string[],
+        inboundUuids: string[],
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            const usersLenght = usersUuids.length;
+            const batchLength = 3_000;
+
+            for (let i = 0; i < usersLenght; i += batchLength) {
+                const batchUsersUuids = usersUuids.slice(i, i + batchLength);
+                await this.removeInboundsFromUsers(batchUsersUuids);
+                await this.addInboundsToUsers(batchUsersUuids, inboundUuids);
+            }
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkAddInboundsToUsers',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(usersLenght),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_ADD_INBOUNDS_TO_USERS_ERROR,
+            };
+        }
+    }
+
+    public async bulkUpdateAllUsers(
+        dto: BulkAllUpdateUsersRequestDto,
+    ): Promise<ICommandResponse<BulkAllResponseModel>> {
+        try {
+            if (dto.status === USERS_STATUS.EXPIRED || dto.status === USERS_STATUS.LIMITED) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INVALID_USER_STATUS_ERROR,
+                };
+            }
+
+            await this.userRepository.bulkUpdateAllUsers({
+                ...dto,
+                trafficLimitBytes:
+                    dto.trafficLimitBytes !== undefined ? BigInt(dto.trafficLimitBytes) : undefined,
+                telegramId:
+                    dto.telegramId !== undefined
+                        ? dto.telegramId === null
+                            ? null
+                            : BigInt(dto.telegramId)
+                        : undefined,
+            });
+
+            if (dto.trafficLimitBytes !== undefined) {
+                await this.userRepository.bulkSyncLimitedUsers();
+            }
+
+            if (dto.expireAt !== undefined) {
+                await this.userRepository.bulkSyncExpiredUsers();
+            }
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkUpdateAllUsers',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkAllResponseModel(true),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_UPDATE_ALL_USERS_ERROR,
+            };
+        }
+    }
+
+    public async bulkAllResetUserTraffic(): Promise<ICommandResponse<BulkAllResponseModel>> {
+        try {
+            await this.resetUserTrafficQueueService.resetDailyUserTraffic();
+            await this.resetUserTrafficQueueService.resetMonthlyUserTraffic();
+            await this.resetUserTrafficQueueService.resetWeeklyUserTraffic();
+            await this.resetUserTrafficQueueService.resetNoResetUserTraffic();
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkUpdateAllUsers',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkAllResponseModel(true),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_RESET_USER_TRAFFIC_ERROR,
+            };
+        }
+    }
+
     private createUuid(): string {
         return randomUUID();
     }
@@ -809,5 +1036,21 @@ export class UsersService {
             GetUserLastConnectedNodeQuery,
             ICommandResponse<ILastConnectedNode | null>
         >(new GetUserLastConnectedNodeQuery(userUuid));
+    }
+
+    private async removeInboundsFromUsers(userUuids: string[]): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<
+            RemoveInboundsFromUsersByUuidsCommand,
+            ICommandResponse<void>
+        >(new RemoveInboundsFromUsersByUuidsCommand(userUuids));
+    }
+
+    private async addInboundsToUsers(
+        userUuids: string[],
+        inboundUuids: string[],
+    ): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<AddInboundsToUsersByUuidsCommand, ICommandResponse<void>>(
+            new AddInboundsToUsersByUuidsCommand(userUuids, inboundUuids),
+        );
     }
 }

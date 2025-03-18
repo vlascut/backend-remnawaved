@@ -1,4 +1,5 @@
 export enum QueueNames {
+    bulkUserOperations = 'BULK_USER_OPERATIONS_QUEUE',
     nodeHealthCheck = 'NODE_HEALTH_CHECK_QUEUE',
     nodeUsers = 'NODE_USERS_QUEUE',
     recordNodeUsage = 'RECORD_NODE_USAGE_QUEUE',

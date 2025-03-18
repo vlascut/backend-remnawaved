@@ -42,7 +42,8 @@ COPY docker-entrypoint.sh ./
 RUN npm ci --omit=dev --legacy-peer-deps \
     && npm run migrate:generate \
     && npm cache clean --force \
-    && npm install pm2 -g
+    && npm install pm2 -g \
+    && npm link
 
 # CMD [ "npm", "run", "migrate:deploy", "&&", "pm2-runtime", "start", "ecosystem.config.js", "--env", "production" ]
 

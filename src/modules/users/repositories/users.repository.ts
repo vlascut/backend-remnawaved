@@ -651,4 +651,72 @@ export class UsersRepository implements ICrud<UserEntity> {
 
         return result;
     }
+
+    public async deleteManyByUuid(uuids: string[]): Promise<number> {
+        const result = await this.prisma.tx.users.deleteMany({ where: { uuid: { in: uuids } } });
+
+        return result.count;
+    }
+
+    public async bulkUpdateAllUsers(fields: Partial<UserEntity>): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            data: fields,
+        });
+
+        return result.count;
+    }
+
+    public async bulkSyncLimitedUsers(): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            where: {
+                status: 'LIMITED',
+                OR: [
+                    {
+                        usedTrafficBytes: {
+                            lt: this.prisma.tx.users.fields.trafficLimitBytes,
+                        },
+                    },
+                    {
+                        usedTrafficBytes: {
+                            equals: 0n,
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: 'ACTIVE',
+            },
+        });
+
+        return result.count;
+    }
+
+    public async bulkSyncExpiredUsers(): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            where: {
+                status: 'EXPIRED',
+                OR: [
+                    {
+                        expireAt: {
+                            gt: new Date(),
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: 'ACTIVE',
+            },
+        });
+
+        return result.count;
+    }
+
+    public async bulkUpdateUsers(uuids: string[], fields: Partial<UserEntity>): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            where: { uuid: { in: uuids } },
+            data: fields,
+        });
+
+        return result.count;
+    }
 }

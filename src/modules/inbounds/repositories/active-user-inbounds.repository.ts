@@ -4,6 +4,8 @@ import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
 
+import { RemoveInboundsFromUsersByUuidsBuilder } from '../builders/remove-inbounds-from-users-by-uuids';
+import { AddInboundsToUsersByUuidsBuilder } from '../builders/add-inbounds-to-users-by-uuids';
 import { ActiveUserInboundsConverter } from '../converters/active-user-inbounds.converter';
 import { RemoveInboundFromUsersBuilder } from '../builders/remove-inbound-from-users';
 import { ActiveUserInboundEntity } from '../entities/active-user-inbound.entity';
@@ -133,6 +135,23 @@ export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEnti
 
     public async removeInboundFromUsers(uuid: string): Promise<number> {
         const { query } = new RemoveInboundFromUsersBuilder(uuid);
+        const result = await this.prisma.tx.$executeRaw<number>(query);
+
+        return result;
+    }
+
+    public async removeInboundsFromUsersByUuids(userUuids: string[]): Promise<number> {
+        const { query } = new RemoveInboundsFromUsersByUuidsBuilder(userUuids);
+        const result = await this.prisma.tx.$executeRaw<number>(query);
+
+        return result;
+    }
+
+    public async addInboundsToUsersByUuids(
+        userUuids: string[],
+        inboundUuids: string[],
+    ): Promise<number> {
+        const { query } = new AddInboundsToUsersByUuidsBuilder(userUuids, inboundUuids);
         const result = await this.prisma.tx.$executeRaw<number>(query);
 
         return result;

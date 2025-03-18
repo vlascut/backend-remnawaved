@@ -408,4 +408,39 @@ export const ERRORS = {
         message: 'Set port to hosts error',
         httpCode: 500,
     },
+    BULK_DELETE_USERS_BY_UUID_ERROR: {
+        code: 'A084',
+        message: 'Bulk delete users by UUID error',
+        httpCode: 500,
+    },
+    BULK_REVOKE_USERS_SUBSCRIPTION_ERROR: {
+        code: 'A085',
+        message: 'Bulk revoke users subscription error',
+        httpCode: 500,
+    },
+    BULK_RESET_USER_TRAFFIC_ERROR: {
+        code: 'A086',
+        message: 'Bulk reset user traffic error',
+        httpCode: 500,
+    },
+    BULK_UPDATE_USERS_ERROR: {
+        code: 'A087',
+        message: 'Bulk update users error',
+        httpCode: 500,
+    },
+    BULK_ADD_INBOUNDS_TO_USERS_ERROR: {
+        code: 'A088',
+        message: 'Bulk add inbounds to users error',
+        httpCode: 500,
+    },
+    BULK_UPDATE_ALL_USERS_ERROR: {
+        code: 'A087',
+        message: 'Bulk update all users error',
+        httpCode: 500,
+    },
+    INVALID_USER_STATUS_ERROR: {
+        code: 'A089',
+        message: 'LIMITED and EXPIRED statuses are not allowed to be set manually.',
+        httpCode: 400,
+    },
 } as const;

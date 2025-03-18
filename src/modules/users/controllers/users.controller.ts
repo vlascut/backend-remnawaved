@@ -34,8 +34,6 @@ import { USERS_CONTROLLER, USERS_ROUTES } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
-    BulkDeleteUsersByStatusRequestDto,
-    BulkDeleteUsersByStatusResponseDto,
     CreateUserRequestDto,
     CreateUserResponseDto,
     DeleteUserRequestDto,
@@ -60,21 +58,21 @@ import {
     RevokeUserSubscriptionResponseDto,
     UpdateUserRequestDto,
     UpdateUserResponseDto,
-} from './dtos';
+} from '../dtos';
 import {
     CreateUserResponseModel,
     GetAllUsersResponseModel,
     GetFullUserResponseModel,
     GetUserResponseModel,
     UserWithLifetimeTrafficResponseModel,
-} from './models';
+} from '../models';
 import {
     GetUserByTelegramIdRequestDto,
     GetUserByTelegramIdResponseDto,
-} from './dtos/get-user-by-telegram-id.dto';
-import { GetUserByEmailResponseDto } from './dtos/get-user-by-email.dto';
-import { GetUserByEmailRequestDto } from './dtos/get-user-by-email.dto';
-import { UsersService } from './users.service';
+} from '../dtos/get-user-by-telegram-id.dto';
+import { GetUserByEmailResponseDto } from '../dtos/get-user-by-email.dto';
+import { GetUserByEmailRequestDto } from '../dtos/get-user-by-email.dto';
+import { UsersService } from '../users.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Users Controller')
@@ -302,28 +300,6 @@ export class UsersController {
                 data.lastConnectedNode,
                 this.subPublicDomain,
             ),
-        };
-    }
-
-    @ApiBody({ type: BulkDeleteUsersByStatusRequestDto })
-    @ApiOkResponse({
-        type: BulkDeleteUsersByStatusResponseDto,
-        description: 'Users deleted successfully',
-    })
-    @ApiOperation({
-        summary: 'Bulk Delete Users By Status',
-        description: 'Bulk delete users by status',
-    })
-    @HttpCode(HttpStatus.OK)
-    @Post(USERS_ROUTES.BULK.DELETE_BY_STATUS)
-    async bulkDeleteUsersByStatus(
-        @Body() body: BulkDeleteUsersByStatusRequestDto,
-    ): Promise<BulkDeleteUsersByStatusResponseDto> {
-        const result = await this.usersService.bulkDeleteUsersByStatus(body);
-
-        const data = errorHandler(result);
-        return {
-            response: data,
         };
     }
 

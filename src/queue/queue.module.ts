@@ -10,6 +10,7 @@ import { BasicAuthMiddleware } from '@common/middlewares';
 import { useBullBoard } from '@common/utils/startup-app';
 import { BULLBOARD_ROOT } from '@libs/contracts/api';
 
+import { BulkUserOperationsQueueModule } from './bulk-user-operations/bulk-user-operations.module';
 import { ResetUserTrafficQueueModule } from './reset-user-traffic/reset-user-traffic.module';
 import { NodeHealthCheckQueueModule } from './node-health-check/node-health-check.module';
 import { RecordNodeUsageQueueModule } from './record-node-usage/record-node-usage.module';
@@ -30,6 +31,7 @@ const queueModules = [
     RecordUserUsageQueueModule,
     ResetUserTrafficQueueModule,
     UserJobsQueueModule,
+    BulkUserOperationsQueueModule,
 ];
 
 const bullBoard = [
