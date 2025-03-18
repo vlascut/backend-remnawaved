@@ -12,6 +12,7 @@ const prisma = new PrismaClient({
 });
 
 const enum CLI_ACTIONS {
+    EXIT = 'exit',
     RESET_SUPERADMIN = 'reset-superadmin',
 }
 
@@ -77,6 +78,10 @@ async function main() {
                 label: 'Reset superadmin',
                 hint: 'Fully reset superadmin',
             },
+            {
+                value: CLI_ACTIONS.EXIT,
+                label: 'Exit',
+            },
         ],
         initial: CLI_ACTIONS.RESET_SUPERADMIN,
     });
@@ -85,6 +90,9 @@ async function main() {
         case CLI_ACTIONS.RESET_SUPERADMIN:
             await resetSuperadmin();
             break;
+        case CLI_ACTIONS.EXIT:
+            consola.info('👋 Exiting...');
+            process.exit(0);
     }
 }
 main()

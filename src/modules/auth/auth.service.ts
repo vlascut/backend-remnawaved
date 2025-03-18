@@ -1,5 +1,5 @@
-import { createHmac } from 'node:crypto';
-import * as bcrypt from 'bcrypt';
+import { createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
 
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -18,11 +18,12 @@ import { AdminEntity } from '@modules/admin/entities/admin.entity';
 import { GetStatusResponseModel } from './model/get-status.response.model';
 import { ILogin, IRegister } from './interfaces';
 
+const scryptAsync = promisify(scrypt);
+
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
     private readonly jwtSecret: string;
-    private readonly saltRounds: number;
 
     constructor(
         private readonly jwtService: JwtService,
@@ -31,7 +32,6 @@ export class AuthService {
         private readonly commandBus: CommandBus,
     ) {
         this.jwtSecret = this.configService.getOrThrow<string>('JWT_AUTH_SECRET');
-        this.saltRounds = 10;
     }
 
     public async login(dto: ILogin): Promise<
@@ -244,13 +244,23 @@ export class AuthService {
     private async hashPassword(plainPassword: string): Promise<string> {
         const hmacResult = this.applySecretHmac(plainPassword, this.jwtSecret);
 
-        return bcrypt.hash(hmacResult.toString('hex'), this.saltRounds);
+        const salt = randomBytes(16).toString('hex');
+
+        const derivedKey = (await scryptAsync(hmacResult.toString('hex'), salt, 64)) as Buffer;
+        const hash = derivedKey.toString('hex');
+
+        return `${salt}:${hash}`;
     }
 
     private async verifyPassword(plainPassword: string, storedHash: string): Promise<boolean> {
         const hmacResult = this.applySecretHmac(plainPassword, this.jwtSecret);
 
-        return bcrypt.compare(hmacResult.toString('hex'), storedHash);
+        const [salt, hash] = storedHash.split(':');
+
+        const derivedKey = (await scryptAsync(hmacResult.toString('hex'), salt, 64)) as Buffer;
+        const calculatedHash = derivedKey.toString('hex');
+
+        return timingSafeEqual(Buffer.from(calculatedHash), Buffer.from(hash));
     }
 
     private async createAdmin(dto: CreateAdminCommand): Promise<ICommandResponse<AdminEntity>> {
