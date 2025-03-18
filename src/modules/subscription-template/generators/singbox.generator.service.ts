@@ -304,7 +304,7 @@ export class SingBoxGeneratorService {
             config.transport = this.transportConfig(
                 settings,
                 params.network,
-                params.host[0],
+                Array.isArray(params.host) ? params.host[0] : params.host,
                 params.path,
                 max_early_data,
                 early_data_header_name,

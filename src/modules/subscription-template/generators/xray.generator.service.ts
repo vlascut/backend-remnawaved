@@ -16,10 +16,22 @@ const NETWORK_CONFIGS: Record<
     StreamSettingsObject['network'],
     (params: IFormattedHost) => Partial<Record<string, unknown>>
 > = {
-    ws: (params) => ({ path: params.path, host: params.host }),
-    tcp: (params) => ({ path: params.path, host: params.host }),
-    raw: (params) => ({ path: params.path, host: params.host }),
-    xhttp: (params) => ({ path: params.path, host: params.host }),
+    ws: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
+    tcp: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
+    raw: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
+    xhttp: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
 };
 
 @Injectable()

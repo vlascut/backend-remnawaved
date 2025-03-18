@@ -4,7 +4,7 @@ export interface IFormattedHost {
     address: string;
     alpn: string;
     fingerprint: string;
-    host: string | string[];
+    host: string;
     network: StreamSettingsObject['network'];
     password: {
         ssPassword: string;

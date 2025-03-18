@@ -12,7 +12,7 @@ import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-node
 import { NodeInboundExclusionsRepository } from './repositories/node-inbound-exclusions.repository';
 import { ActiveUserInboundsRepository } from './repositories/active-user-inbounds.repository';
 import { InboundsRepository } from './repositories/inbounds.repository';
-import { InboundsEntity } from './entities/inbounds.entity';
+import { BaseInboundEntity } from './entities/base-inbound.entity';
 import { GetFullInboundsResponseModel } from './models';
 
 @Injectable()
@@ -27,9 +27,30 @@ export class InboundsService {
         private readonly queryBus: QueryBus,
     ) {}
 
-    public async getInbounds(): Promise<ICommandResponse<InboundsEntity[]>> {
+    public async getInbounds(): Promise<ICommandResponse<BaseInboundEntity[]>> {
         try {
-            const result = await this.inboundsRepository.findAll();
+            const inbounds = await this.inboundsRepository.findAll();
+
+            const validatedConfig = await this.getValidatedConfig();
+
+            if (!validatedConfig) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_CONFIG_ERROR,
+                };
+            }
+
+            const result: BaseInboundEntity[] = [];
+
+            for (const inbound of inbounds) {
+                const rawFromConfig = validatedConfig
+                    .getConfig()
+                    .inbounds.find((i) => i.tag === inbound.tag);
+
+                const port = Number(rawFromConfig!.port! || 0);
+
+                result.push(new BaseInboundEntity(inbound, port));
+            }
 
             return {
                 isOk: true,

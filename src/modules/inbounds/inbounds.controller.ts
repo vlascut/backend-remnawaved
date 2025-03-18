@@ -30,7 +30,7 @@ import {
     RemoveInboundFromUsersRequestDto,
     RemoveInboundFromUsersResponseDto,
 } from './dtos';
-import { BulkOperationResponseModel, GetInboundsResponseModel } from './models';
+import { BulkOperationResponseModel, GetBaseInboundsResponseModel } from './models';
 import { InboundsService } from './inbounds.service';
 
 @ApiBearerAuth('Authorization')
@@ -54,7 +54,7 @@ export class InboundsController {
 
         const data = errorHandler(result);
         return {
-            response: data.map((value) => new GetInboundsResponseModel(value)),
+            response: data.map((value) => new GetBaseInboundsResponseModel(value)),
         };
     }
 

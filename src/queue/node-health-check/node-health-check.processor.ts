@@ -37,10 +37,6 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
         super();
     }
     async process(job: Job<NodeHealthCheckPayload>) {
-        this.logger.debug(
-            `Handling "${NodeHealthCheckJobNames.checkNodeHealth}" job with ID: ${job?.id || ''}`,
-        );
-
         try {
             const { nodeAddress, nodePort, nodeUuid, isConnected } = job.data;
             const response = await this.axios.getSystemStats(nodeAddress, nodePort);

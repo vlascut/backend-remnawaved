@@ -216,11 +216,7 @@ export class XrayJsonGeneratorService {
             headers: {},
         };
 
-        if (Array.isArray(host.host)) {
-            settings.headers.Host = host.host[0];
-        } else {
-            settings.headers.Host = host.host;
-        }
+        settings.headers.Host = host.host;
 
         if (host.additionalParams?.heartbeatPeriod) {
             settings.heartbeatPeriod = host.additionalParams.heartbeatPeriod;
@@ -248,11 +244,7 @@ export class XrayJsonGeneratorService {
                 settings.header.request.path = [host.path];
             }
 
-            if (Array.isArray(host.host)) {
-                settings.header.request.headers.Host = [host.host[0]];
-            } else {
-                settings.header.request.headers.Host = [host.host];
-            }
+            settings.header.request.headers.Host = [host.host];
         }
 
         return settings;
@@ -267,11 +259,7 @@ export class XrayJsonGeneratorService {
             },
         };
 
-        if (Array.isArray(host.host)) {
-            settings.host = host.host[0];
-        } else {
-            settings.host = host.host;
-        }
+        settings.host = host.host;
 
         if (host.path !== '') {
             settings.path = host.path;

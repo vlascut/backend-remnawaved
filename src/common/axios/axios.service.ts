@@ -169,10 +169,22 @@ export class AxiosService {
                 isOk: true,
                 response: data.response,
             };
-        } catch {
-            return {
-                isOk: false,
-            };
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(JSON.stringify(error.message)),
+                };
+            } else {
+                this.logger.error('Error in Axios getNodeHealth:', error);
+
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_ERROR_WITH_MSG.withMessage(
+                        JSON.stringify(error) ?? 'Unknown error',
+                    ),
+                };
+            }
         }
     }
 
