@@ -42,9 +42,6 @@ export class GetNodeJwtHandler
             expiresIn: '9999d',
         });
 
-        // TODO: remove this after testing
-        this.logger.log(`Node JWT: ${token}, signed with private key: \n ${privKey}`);
-
         try {
             return {
                 isOk: true,
