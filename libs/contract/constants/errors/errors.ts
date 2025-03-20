@@ -443,4 +443,9 @@ export const ERRORS = {
         message: 'LIMITED and EXPIRED statuses are not allowed to be set manually.',
         httpCode: 400,
     },
+    KEYPAIR_CREATION_ERROR: {
+        code: 'A090',
+        message: 'Keypair creation error',
+        httpCode: 500,
+    },
 } as const;
