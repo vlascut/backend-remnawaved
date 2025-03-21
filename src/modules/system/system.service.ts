@@ -35,7 +35,7 @@ export class SystemService {
     private readonly logger = new Logger(SystemService.name);
     constructor(private readonly queryBus: QueryBus) {}
 
-    async getStats(): Promise<ICommandResponse<any>> {
+    public async getStats(): Promise<ICommandResponse<any>> {
         try {
             const userStats = await this.getShortUserStats();
 
@@ -77,7 +77,7 @@ export class SystemService {
         }
     }
 
-    async getBandwidthStats(
+    public async getBandwidthStats(
         query: GetStatsRequestQueryDto,
     ): Promise<ICommandResponse<GetBandwidthStatsResponseModel>> {
         try {
@@ -110,7 +110,7 @@ export class SystemService {
         }
     }
 
-    async getNodesStatistics(): Promise<ICommandResponse<GetNodesStatisticsResponseModel>> {
+    public async getNodesStatistics(): Promise<ICommandResponse<GetNodesStatisticsResponseModel>> {
         try {
             const lastSevenDaysStats = await this.getLastSevenDaysNodesUsage();
 
