@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 import { IReorderHost } from 'src/modules/hosts/interfaces/reorder-host.interface';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -21,7 +23,10 @@ export class HostsRepository implements ICrud<HostsEntity> {
     public async create(entity: HostsEntity): Promise<HostsEntity> {
         const model = this.hostsConverter.fromEntityToPrismaModel(entity);
         const result = await this.prisma.tx.hosts.create({
-            data: model,
+            data: {
+                ...model,
+                xHttpExtraParams: model.xHttpExtraParams as Prisma.InputJsonValue,
+            },
         });
 
         return this.hostsConverter.fromPrismaModelToEntity(result);
@@ -42,13 +47,18 @@ export class HostsRepository implements ICrud<HostsEntity> {
             where: {
                 uuid,
             },
-            data,
+            data: {
+                ...data,
+                xHttpExtraParams: data.xHttpExtraParams as Prisma.InputJsonValue,
+            },
         });
 
         return this.hostsConverter.fromPrismaModelToEntity(result);
     }
 
-    public async findByCriteria(dto: Partial<HostsEntity>): Promise<HostsEntity[]> {
+    public async findByCriteria(
+        dto: Omit<Partial<HostsEntity>, 'xHttpExtraParams'>,
+    ): Promise<HostsEntity[]> {
         const list = await this.prisma.tx.hosts.findMany({
             where: dto,
         });
@@ -130,6 +140,7 @@ export class HostsRepository implements ICrud<HostsEntity> {
                 new HostWithInboundTagEntity({
                     ...host,
                     securityLayer: host.securityLayer as TSecurityLayers,
+                    xHttpExtraParams: host.xHttpExtraParams as object,
                 }),
         );
     }

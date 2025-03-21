@@ -22,6 +22,7 @@ export class HostsService {
         try {
             const hostEntity = new HostsEntity({
                 ...dto,
+                xHttpExtraParams: JSON.parse(JSON.stringify(dto.xHttpExtraParams)),
             });
 
             const result = await this.hostsRepository.create(hostEntity);

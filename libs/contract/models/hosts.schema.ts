@@ -17,4 +17,5 @@ export const HostsSchema = z.object({
     allowInsecure: z.boolean().default(false),
     isDisabled: z.boolean().default(false),
     securityLayer: z.nativeEnum(SECURITY_LAYERS).default(SECURITY_LAYERS.DEFAULT),
+    xHttpExtraParams: z.nullable(z.unknown()),
 });

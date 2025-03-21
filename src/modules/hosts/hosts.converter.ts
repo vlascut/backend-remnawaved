@@ -26,6 +26,7 @@ const entityToModel = (entity: HostsEntity): Hosts => {
         securityLayer: entity.securityLayer,
         allowInsecure: entity.allowInsecure,
         isDisabled: entity.isDisabled,
+        xHttpExtraParams: entity.xHttpExtraParams,
     };
 };
 

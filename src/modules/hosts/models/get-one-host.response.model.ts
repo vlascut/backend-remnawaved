@@ -17,6 +17,7 @@ export class GetOneHostResponseModel {
     public allowInsecure: boolean;
     public isDisabled: boolean;
     public securityLayer: TSecurityLayers;
+    public xHttpExtraParams: null | object;
 
     constructor(data: HostsEntity) {
         this.uuid = data.uuid;
@@ -33,5 +34,6 @@ export class GetOneHostResponseModel {
         this.allowInsecure = data.allowInsecure;
         this.isDisabled = data.isDisabled;
         this.securityLayer = data.securityLayer;
+        this.xHttpExtraParams = data.xHttpExtraParams;
     }
 }

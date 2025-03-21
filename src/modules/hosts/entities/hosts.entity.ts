@@ -16,6 +16,7 @@ export class HostsEntity implements Hosts {
     fingerprint: null | string;
     securityLayer: TSecurityLayers;
     allowInsecure: boolean;
+    xHttpExtraParams: null | object;
     isDisabled: boolean;
 
     constructor(data: Partial<Hosts>) {

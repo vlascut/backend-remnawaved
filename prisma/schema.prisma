@@ -219,20 +219,21 @@ model Inbounds {
 }
 
 model Hosts {
-  uuid          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  inboundUuid   String  @map("inbound_uuid") @db.Uuid
-  viewPosition  Int     @default(autoincrement()) @map("view_position")
-  remark        String  @unique @map("remark")
-  address       String  @map("address")
-  port          Int     @map("port")
-  path          String? @map("path")
-  sni           String? @map("sni")
-  host          String? @map("host")
-  alpn          String? @map("alpn") // ENUM: h2, http/1.1, h2,http/1.1 
-  fingerprint   String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
-  securityLayer String  @default("DEFAULT") @map("security_layer") // ENUM: DEFAULT, TLS, NONE
-  allowInsecure Boolean @default(false) @map("allowinsecure")
-  isDisabled    Boolean @default(false) @map("is_disabled")
+  uuid             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  inboundUuid      String  @map("inbound_uuid") @db.Uuid
+  viewPosition     Int     @default(autoincrement()) @map("view_position")
+  remark           String  @unique @map("remark")
+  address          String  @map("address")
+  port             Int     @map("port")
+  path             String? @map("path")
+  sni              String? @map("sni")
+  host             String? @map("host")
+  alpn             String? @map("alpn") // ENUM: h2, http/1.1, h2,http/1.1 
+  fingerprint      String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
+  securityLayer    String  @default("DEFAULT") @map("security_layer") // ENUM: DEFAULT, TLS, NONE
+  allowInsecure    Boolean @default(false) @map("allowinsecure")
+  xHttpExtraParams Json?   @map("xhttp_extra_params")
+  isDisabled       Boolean @default(false) @map("is_disabled")
 
   inboundTag Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 
