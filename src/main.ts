@@ -62,8 +62,6 @@ async function bootstrap(): Promise<void> {
 
     const config = app.get(ConfigService);
 
-    await getDocs(app, config);
-
     app.use(
         helmet({
             contentSecurityPolicy: {
@@ -97,6 +95,8 @@ async function bootstrap(): Promise<void> {
     }
 
     app.setGlobalPrefix(ROOT);
+
+    await getDocs(app, config);
 
     app.enableCors({
         origin: isDevelopment() ? '*' : config.getOrThrow<string>('FRONT_END_DOMAIN'),
