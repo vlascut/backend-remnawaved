@@ -123,7 +123,8 @@ export class FormatHostsService {
                         heartbeatPeriod: settings?.extra?.heartbeatPeriod || undefined,
                         mode: settings?.mode || 'auto',
                     };
-                    xHttpExtraParams = settings?.extra;
+
+                    xHttpExtraParams = inputHost.xHttpExtraParams;
 
                     break;
                 }
