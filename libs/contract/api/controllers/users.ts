@@ -27,4 +27,7 @@ export const USERS_ROUTES = {
     },
     GET_BY_TELEGRAM_ID: 'tg',
     GET_BY_EMAIL: 'email',
+    STATS: {
+        GET_USAGE_BY_RANGE: 'stats/usage/range',
+    },
 } as const;

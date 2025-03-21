@@ -93,6 +93,10 @@ export const REST_API = {
             `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY_TELEGRAM_ID}/${telegramId}`,
         GET_BY_EMAIL: (email: string) =>
             `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY_EMAIL}/${email}`,
+        STATS: {
+            GET_USAGE_BY_RANGE: (uuid: string) =>
+                `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.STATS.GET_USAGE_BY_RANGE}/${uuid}`,
+        },
     },
     SUBSCRIPTION: {
         GET: (shortUuid: string) =>

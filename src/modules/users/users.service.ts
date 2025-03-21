@@ -1,3 +1,4 @@
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
@@ -22,6 +23,7 @@ import { RemoveInboundsFromUsersByUuidsCommand } from '@modules/inbounds/command
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
 import { CreateManyUserActiveInboundsCommand } from '@modules/inbounds/commands/create-many-user-active-inbounds';
 import { AddInboundsToUsersByUuidsCommand } from '@modules/inbounds/commands/add-inbounds-to-users-by-uuids';
+import { GetUserUsageByRangeQuery } from '@modules/nodes-user-usage-history/queries/get-user-usage-by-range';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
@@ -57,11 +59,13 @@ import {
     IGetUserWithLastConnectedNode,
     IGetUserByUnique,
     IGetUsersByTelegramIdOrEmail,
+    IGetUserUsageByRange,
 } from './interfaces';
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
 import { UsersRepository } from './repositories/users.repository';
 
 dayjs.extend(utc);
+dayjs.extend(relativeTime);
 
 @Injectable()
 export class UsersService {
@@ -963,6 +967,33 @@ export class UsersService {
         }
     }
 
+    public async getUserUsageByRange(
+        userUuid: string,
+        start: Date,
+        end: Date,
+    ): Promise<ICommandResponse<IGetUserUsageByRange[]>> {
+        try {
+            const startDate = dayjs(start).utc().toDate();
+            const endDate = dayjs(end).utc().toDate();
+
+            const result = await this.getUserUsageByRangeQuery(userUuid, startDate, endDate);
+
+            if (!result.isOk) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_USER_USAGE_BY_RANGE_ERROR,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_USER_USAGE_BY_RANGE_ERROR };
+        }
+    }
     private createUuid(): string {
         return randomUUID();
     }
@@ -1052,5 +1083,16 @@ export class UsersService {
         return this.commandBus.execute<AddInboundsToUsersByUuidsCommand, ICommandResponse<void>>(
             new AddInboundsToUsersByUuidsCommand(userUuids, inboundUuids),
         );
+    }
+
+    private async getUserUsageByRangeQuery(
+        userUuid: string,
+        start: Date,
+        end: Date,
+    ): Promise<ICommandResponse<IGetUserUsageByRange[]>> {
+        return this.queryBus.execute<
+            GetUserUsageByRangeQuery,
+            ICommandResponse<IGetUserUsageByRange[]>
+        >(new GetUserUsageByRangeQuery(userUuid, start, end));
     }
 }

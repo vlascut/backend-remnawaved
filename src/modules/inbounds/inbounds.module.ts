@@ -5,16 +5,16 @@ import { NodeInboundExclusionsRepository } from './repositories/node-inbound-exc
 import { NodeInboundExclusionsConverter } from './converters/node-inbound-exclusions.converter';
 import { ActiveUserInboundsRepository } from './repositories/active-user-inbounds.repository';
 import { ActiveUserInboundsConverter } from './converters/active-user-inbounds.converter';
+import { InboundsController, InboundsBulkActionsController } from './controllers';
 import { InboundsRepository } from './repositories/inbounds.repository';
 import { InboundsConverter } from './converters/inbounds.converter';
-import { InboundsController } from './inbounds.controller';
 import { InboundsService } from './inbounds.service';
 import { COMMANDS } from './commands';
 import { QUERIES } from './queries';
 
 @Module({
     imports: [CqrsModule],
-    controllers: [InboundsController],
+    controllers: [InboundsController, InboundsBulkActionsController],
     providers: [
         ...COMMANDS,
         ...QUERIES,

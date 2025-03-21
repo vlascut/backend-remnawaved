@@ -39,7 +39,7 @@ import {
 import { UsersService } from '../users.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Users Controller')
+@ApiTags('Users Bulk Actions Controller')
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

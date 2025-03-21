@@ -4,7 +4,10 @@ import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
 
+import { IGetUserUsageByRange } from '@modules/users/interfaces';
+
 import { BulkUpsertHistoryEntryBuilder } from '../builders/bulk-upsert-history-entry/bulk-upsert-history-entry.builder';
+import { GetUserUsageByRangeBuilder } from '../builders/get-user-usage-by-range/get-user-usage-by-range.builder';
 import { NodesUserUsageHistoryEntity } from '../entities/nodes-user-usage-history.entity';
 import { NodesUserUsageHistoryConverter } from '../nodes-user-usage-history.converter';
 import { ILastConnectedNode } from '../interfaces';
@@ -121,5 +124,15 @@ export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHist
             const { query } = new BulkUpsertHistoryEntryBuilder(chunk);
             await this.prisma.tx.$executeRaw<void>(query);
         }
+    }
+
+    public async getUserUsageByRange(
+        userUuid: string,
+        start: Date,
+        end: Date,
+    ): Promise<IGetUserUsageByRange[]> {
+        const { query } = new GetUserUsageByRangeBuilder(userUuid, start, end);
+        const result = await this.prisma.tx.$queryRaw<IGetUserUsageByRange[]>(query);
+        return result;
     }
 }

@@ -2,7 +2,6 @@ import {
     Post,
     Body,
     Controller,
-    Get,
     HttpCode,
     HttpStatus,
     UseFilters,
@@ -23,56 +22,22 @@ import {
     AddInboundToNodesResponseDto,
     AddInboundToUsersRequestDto,
     AddInboundToUsersResponseDto,
-    GetFullInboundsResponseDto,
-    GetInboundsResponseDto,
     RemoveInboundFromNodesRequestDto,
     RemoveInboundFromNodesResponseDto,
     RemoveInboundFromUsersRequestDto,
     RemoveInboundFromUsersResponseDto,
-} from './dtos';
-import { BulkOperationResponseModel, GetBaseInboundsResponseModel } from './models';
-import { InboundsService } from './inbounds.service';
+} from '../dtos';
+import { BulkOperationResponseModel } from '../models';
+import { InboundsService } from '../inbounds.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Inbounds Controller')
+@ApiTags('Inbounds Bulk Actions Controller')
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)
 @Controller(INBOUNDS_CONTROLLER)
-export class InboundsController {
+export class InboundsBulkActionsController {
     constructor(private readonly inboundsService: InboundsService) {}
-
-    @ApiOkResponse({
-        type: [GetInboundsResponseDto],
-        description: 'Get inbounds',
-    })
-    @ApiOperation({ summary: 'Get Inbounds', description: 'Get inbounds' })
-    @HttpCode(HttpStatus.OK)
-    @Get(INBOUNDS_ROUTES.GET_INBOUNDS)
-    async getInbounds(): Promise<GetInboundsResponseDto> {
-        const result = await this.inboundsService.getInbounds();
-
-        const data = errorHandler(result);
-        return {
-            response: data.map((value) => new GetBaseInboundsResponseModel(value)),
-        };
-    }
-
-    @ApiOkResponse({
-        type: [GetFullInboundsResponseDto],
-        description: 'Get full inbounds',
-    })
-    @ApiOperation({ summary: 'Get Full Inbounds', description: 'Get full inbounds' })
-    @HttpCode(HttpStatus.OK)
-    @Get(INBOUNDS_ROUTES.GET_FULL_INBOUNDS)
-    async getFullInbounds(): Promise<GetFullInboundsResponseDto> {
-        const result = await this.inboundsService.getFullInbounds();
-
-        const data = errorHandler(result);
-        return {
-            response: data,
-        };
-    }
 
     @ApiOkResponse({
         type: [AddInboundToUsersResponseDto],

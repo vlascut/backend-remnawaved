@@ -448,4 +448,9 @@ export const ERRORS = {
         message: 'Keypair creation error',
         httpCode: 500,
     },
+    GET_USER_USAGE_BY_RANGE_ERROR: {
+        code: 'A091',
+        message: 'Get user usage by range error',
+        httpCode: 500,
+    },
 } as const;

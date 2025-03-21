@@ -28,31 +28,19 @@ import { Roles } from '@common/decorators/roles/roles';
 import { HOSTS_CONTROLLER, HOSTS_ROUTES } from '@libs/contracts/api/controllers';
 import { ROLE } from '@libs/contracts/constants';
 
-import {
-    BulkDeleteHostsRequestDto,
-    BulkDeleteHostsResponseDto,
-    BulkDisableHostsRequestDto,
-    BulkDisableHostsResponseDto,
-    BulkEnableHostsRequestDto,
-    BulkEnableHostsResponseDto,
-    SetInboundToManyHostsRequestDto,
-    SetInboundToManyHostsResponseDto,
-    SetPortToManyHostsRequestDto,
-    SetPortToManyHostsResponseDto,
-} from './dtos/bulk-operations.dto';
-import { ReorderHostRequestDto, ReorderHostResponseDto } from './dtos/reorder-hosts.dto';
-import { CreateHostRequestDto, CreateHostResponseDto } from './dtos/create-host.dto';
-import { DeleteHostRequestDto, DeleteHostResponseDto } from './dtos/delete-host.dto';
-import { GetAllHostsResponseModel } from './models/get-all-hosts.response.model';
-import { GetOneHostResponseModel } from './models/get-one-host.response.model';
-import { CreateHostResponseModel } from './models/create-host.response.model';
-import { UpdateHostResponseModel } from './models/update-host.response.model';
-import { GetAllHostsResponseDto } from './dtos/get-all-hosts.dto';
-import { UpdateHostResponseDto } from './dtos/update-host.dto';
-import { UpdateHostRequestDto } from './dtos/update-host.dto';
-import { GetOneHostResponseDto } from './dtos/get-one.dto';
-import { GetOneHostRequestDto } from './dtos/get-one.dto';
-import { HostsService } from './hosts.service';
+import { ReorderHostRequestDto, ReorderHostResponseDto } from '../dtos/reorder-hosts.dto';
+import { CreateHostRequestDto, CreateHostResponseDto } from '../dtos/create-host.dto';
+import { DeleteHostRequestDto, DeleteHostResponseDto } from '../dtos/delete-host.dto';
+import { GetAllHostsResponseModel } from '../models/get-all-hosts.response.model';
+import { GetOneHostResponseModel } from '../models/get-one-host.response.model';
+import { CreateHostResponseModel } from '../models/create-host.response.model';
+import { UpdateHostResponseModel } from '../models/update-host.response.model';
+import { GetAllHostsResponseDto } from '../dtos/get-all-hosts.dto';
+import { UpdateHostResponseDto } from '../dtos/update-host.dto';
+import { UpdateHostRequestDto } from '../dtos/update-host.dto';
+import { GetOneHostResponseDto } from '../dtos/get-one.dto';
+import { GetOneHostRequestDto } from '../dtos/get-one.dto';
+import { HostsService } from '../hosts.service';
 
 @ApiBearerAuth('Authorization')
 @ApiTags('Hosts Controller')
@@ -168,111 +156,6 @@ export class HostsController {
         const data = errorHandler(result);
         return {
             response: data,
-        };
-    }
-
-    @ApiOkResponse({
-        type: BulkDeleteHostsResponseDto,
-        description: 'Hosts deleted successfully',
-    })
-    @ApiOperation({
-        summary: 'Delete many hosts',
-        description: 'Delete many hosts',
-    })
-    @HttpCode(HttpStatus.OK)
-    @Post(HOSTS_ROUTES.BULK.DELETE_HOSTS)
-    async deleteHosts(
-        @Body() body: BulkDeleteHostsRequestDto,
-    ): Promise<BulkDeleteHostsResponseDto> {
-        const result = await this.hostsService.deleteHosts(body.uuids);
-
-        const data = errorHandler(result);
-        return {
-            response: data.map((host) => new GetAllHostsResponseModel(host)),
-        };
-    }
-
-    @ApiOkResponse({
-        type: BulkDisableHostsResponseDto,
-        description: 'Hosts disabled successfully',
-    })
-    @ApiOperation({
-        summary: 'Disable many hosts',
-        description: 'Disable many hosts',
-    })
-    @HttpCode(HttpStatus.OK)
-    @Post(HOSTS_ROUTES.BULK.DISABLE_HOSTS)
-    async disableHosts(
-        @Body() body: BulkDisableHostsRequestDto,
-    ): Promise<BulkDisableHostsResponseDto> {
-        const result = await this.hostsService.bulkDisableHosts(body.uuids);
-
-        const data = errorHandler(result);
-        return {
-            response: data.map((host) => new GetAllHostsResponseModel(host)),
-        };
-    }
-
-    @ApiOkResponse({
-        type: BulkEnableHostsResponseDto,
-        description: 'Hosts enabled successfully',
-    })
-    @ApiOperation({
-        summary: 'Enable many hosts',
-        description: 'Enable many hosts',
-    })
-    @HttpCode(HttpStatus.OK)
-    @Post(HOSTS_ROUTES.BULK.ENABLE_HOSTS)
-    async enableHosts(
-        @Body() body: BulkEnableHostsRequestDto,
-    ): Promise<BulkEnableHostsResponseDto> {
-        const result = await this.hostsService.bulkEnableHosts(body.uuids);
-
-        const data = errorHandler(result);
-        return {
-            response: data.map((host) => new GetAllHostsResponseModel(host)),
-        };
-    }
-
-    @ApiOkResponse({
-        type: SetInboundToManyHostsResponseDto,
-        description: 'Hosts inbound set successfully',
-    })
-    @ApiOperation({
-        summary: 'Set inbound to many hosts',
-        description: 'Set inbound to many hosts',
-    })
-    @HttpCode(HttpStatus.OK)
-    @Post(HOSTS_ROUTES.BULK.SET_INBOUND)
-    async setInboundToHosts(
-        @Body() body: SetInboundToManyHostsRequestDto,
-    ): Promise<SetInboundToManyHostsResponseDto> {
-        const result = await this.hostsService.setInboundToHosts(body.uuids, body.inboundUuid);
-
-        const data = errorHandler(result);
-        return {
-            response: data.map((host) => new GetAllHostsResponseModel(host)),
-        };
-    }
-
-    @ApiOkResponse({
-        type: SetPortToManyHostsResponseDto,
-        description: 'Hosts port set successfully',
-    })
-    @ApiOperation({
-        summary: 'Set port to many hosts',
-        description: 'Set port to many hosts',
-    })
-    @HttpCode(HttpStatus.OK)
-    @Post(HOSTS_ROUTES.BULK.SET_PORT)
-    async setPortToHosts(
-        @Body() body: SetPortToManyHostsRequestDto,
-    ): Promise<SetPortToManyHostsResponseDto> {
-        const result = await this.hostsService.setPortToHosts(body.uuids, body.port);
-
-        const data = errorHandler(result);
-        return {
-            response: data.map((host) => new GetAllHostsResponseModel(host)),
         };
     }
 }
