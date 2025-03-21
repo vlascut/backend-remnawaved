@@ -265,17 +265,8 @@ export class XrayJsonGeneratorService {
             settings.path = host.path;
         }
 
-        if (host.additionalParams) {
-            settings.extra.scMaxEachPostBytes = host.additionalParams.scMaxEachPostBytes || 1000000;
-            settings.extra.scMinPostsIntervalMs = host.additionalParams.scMinPostsIntervalMs || 30;
-            settings.extra.xPaddingBytes = host.additionalParams.xPaddingBytes || '100-1000';
-            settings.extra.noGRPCHeader = Boolean(host.additionalParams.noGRPCHeader);
-            settings.extra.noSSEHeader = false;
-
-            settings.extra.xmux.cMaxReuseTimes = '0';
-            settings.extra.xmux.hMaxRequestTimes = '0';
-            settings.extra.xmux.hMaxReusableSecs = '0';
-            settings.extra.xmux.maxConcurrency = '0';
+        if (host.xHttpExtraParams !== null && host.xHttpExtraParams !== undefined) {
+            settings.extra = host.xHttpExtraParams;
         }
 
         return settings;

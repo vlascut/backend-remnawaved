@@ -37,7 +37,7 @@ export namespace CreateHostCommand {
         allowInsecure: z.optional(z.boolean().default(false)),
         isDisabled: z.optional(z.boolean().default(false)),
         securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS).default(SECURITY_LAYERS.DEFAULT)),
-        xHttpExtraParams: z.optional(z.record(z.string(), z.unknown())),
+        xHttpExtraParams: z.optional(z.nullable(z.unknown())),
     });
     export type Request = z.infer<typeof RequestSchema>;
 

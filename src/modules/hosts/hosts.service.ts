@@ -20,9 +20,18 @@ export class HostsService {
 
     public async createHost(dto: CreateHostRequestDto): Promise<ICommandResponse<HostsEntity>> {
         try {
+            let xHttpExtraParams: null | object | undefined;
+            if (dto.xHttpExtraParams !== undefined && dto.xHttpExtraParams !== null) {
+                xHttpExtraParams = dto.xHttpExtraParams;
+            } else if (dto.xHttpExtraParams === null) {
+                xHttpExtraParams = null;
+            } else {
+                xHttpExtraParams = undefined;
+            }
+
             const hostEntity = new HostsEntity({
                 ...dto,
-                xHttpExtraParams: JSON.parse(JSON.stringify(dto.xHttpExtraParams)),
+                xHttpExtraParams,
             });
 
             const result = await this.hostsRepository.create(hostEntity);
@@ -59,8 +68,18 @@ export class HostsService {
                 };
             }
 
+            let xHttpExtraParams: null | object | undefined;
+            if (dto.xHttpExtraParams !== undefined && dto.xHttpExtraParams !== null) {
+                xHttpExtraParams = dto.xHttpExtraParams;
+            } else if (dto.xHttpExtraParams === null) {
+                xHttpExtraParams = null;
+            } else {
+                xHttpExtraParams = undefined;
+            }
+
             const result = await this.hostsRepository.update({
                 ...dto,
+                xHttpExtraParams,
             });
 
             return {

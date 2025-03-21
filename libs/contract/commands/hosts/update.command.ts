@@ -44,7 +44,7 @@ export namespace UpdateHostCommand {
         allowInsecure: z.optional(z.boolean()),
         isDisabled: z.optional(z.boolean()),
         securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS)),
-        xHttpExtraParams: z.optional(z.record(z.string(), z.unknown())),
+        xHttpExtraParams: z.optional(z.nullable(z.unknown())),
     });
     export type Request = z.infer<typeof RequestSchema>;
 

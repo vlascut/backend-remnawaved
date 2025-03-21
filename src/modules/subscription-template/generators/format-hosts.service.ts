@@ -111,6 +111,7 @@ export class FormatHostsService {
             let hostFromConfig: string | undefined;
             let additionalParams: IFormattedHost['additionalParams'] | undefined;
             let headerType: string | undefined;
+            let xHttpExtraParams: null | object | undefined;
 
             switch (network) {
                 case 'xhttp': {
@@ -119,15 +120,10 @@ export class FormatHostsService {
                     pathFromConfig = settings?.path;
                     hostFromConfig = settings?.host;
                     additionalParams = {
-                        scMaxEachPostBytes: settings?.extra?.scMaxEachPostBytes || 1000000,
-                        scMaxBufferedPosts: settings?.extra?.scMaxBufferedPosts || 1000000,
-                        scMaxConcurrentPosts: settings?.extra?.scMaxConcurrentPosts || 100,
-                        scMinPostsIntervalMs: settings?.extra?.scMinPostsIntervalMs || 30,
-                        xPaddingBytes: settings?.extra?.xPaddingBytes || '100-1000',
-                        noGRPCHeader: settings?.extra?.noGRPCHeader || false,
                         heartbeatPeriod: settings?.extra?.heartbeatPeriod || undefined,
                         mode: settings?.mode || 'auto',
                     };
+                    xHttpExtraParams = settings?.extra;
 
                     break;
                 }
@@ -290,6 +286,7 @@ export class FormatHostsService {
                     ssPassword: user.ssPassword,
                 },
                 additionalParams,
+                xHttpExtraParams,
             });
         }
 
