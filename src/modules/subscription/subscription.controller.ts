@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { errorHandler } from '@common/helpers/error-handler.helper';
@@ -29,6 +29,11 @@ export class SubscriptionController {
         type: String,
         description: 'Short UUID of the user',
         required: true,
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Subscription info fetched successfully',
+        type: GetSubscriptionInfoResponseDto,
     })
     @Get('/:shortUuid' + SUBSCRIPTION_ROUTES.GET_INFO)
     async getSubscriptionInfoByShortUuid(
