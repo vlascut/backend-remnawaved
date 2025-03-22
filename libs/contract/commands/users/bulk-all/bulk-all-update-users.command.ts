@@ -37,7 +37,7 @@ export namespace BulkAllUpdateUsersCommand {
                 .describe('Expiration date: 2025-01-17T15:38:45.065Z'),
         ),
         description: z.optional(z.string().nullable()),
-        telegramId: z.optional(z.number().nullable()),
+        telegramId: z.optional(z.number().int().nullable()),
         email: z.optional(z.string().email('Invalid email format').nullable()),
     });
 
