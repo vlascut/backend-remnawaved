@@ -23,7 +23,7 @@ export class KeygenController {
     constructor(private readonly keygenService: KeygenService) {}
 
     @ApiOkResponse({
-        type: [GetPubKeyResponseDto],
+        type: GetPubKeyResponseDto,
         description: 'Access token for further requests',
     })
     @ApiOperation({ summary: 'Get Public Key', description: 'Get public key' })

@@ -1,4 +1,4 @@
-import pMap from '@cjs-exporter/p-map';
+import pMap from 'p-map';
 import { Job } from 'bullmq';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
