@@ -20,6 +20,7 @@ import { StartNodeQueueModule } from './start-node/start-node.module';
 import { NodeUsersQueueModule } from './node-users/node-users.module';
 import { StopNodeQueueModule } from './stop-node/stop-node.module';
 import { UserJobsQueueModule } from './user-jobs/user-jobs.module';
+import { LOGGER_MODULES } from './loggers/logger-modules';
 
 const queueModules = [
     StartAllNodesQueueModule,
@@ -32,6 +33,8 @@ const queueModules = [
     ResetUserTrafficQueueModule,
     UserJobsQueueModule,
     BulkUserOperationsQueueModule,
+
+    ...LOGGER_MODULES,
 ];
 
 const bullBoard = [

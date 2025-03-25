@@ -1,6 +1,6 @@
 import { InjectBot } from '@kastov/grammy-nestjs';
-import { parseMode } from '@grammyjs/parse-mode';
-import { Bot, Context } from 'grammy';
+import { Context } from 'grammy';
+import { Bot } from 'grammy';
 import dayjs from 'dayjs';
 
 import { OnEvent } from '@nestjs/event-emitter';
@@ -9,7 +9,10 @@ import { ConfigService } from '@nestjs/config';
 import { prettyBytesUtil } from '@common/utils/bytes';
 import { EVENTS } from '@libs/contracts/constants';
 
-import { BOT_NAME } from '../../constants';
+import { BOT_NAME } from '@integration-modules/webhook-module/constants/bot-name.constant';
+
+import { TelegramBotLoggerQueueService } from '@queue/loggers/telegram-bot-logger';
+
 import { NodeEvent } from './interfaces';
 
 export class NodesEvents {
@@ -17,12 +20,13 @@ export class NodesEvents {
     private readonly notifyChatId: string;
     constructor(
         @InjectBot(BOT_NAME)
-        private readonly bot: Bot<Context>,
+        private readonly _: Bot<Context>,
+
+        private readonly telegramBotLoggerQueueService: TelegramBotLoggerQueueService,
         private readonly configService: ConfigService,
     ) {
         this.adminId = this.configService.getOrThrow<string>('TELEGRAM_ADMIN_ID');
         this.notifyChatId = this.configService.getOrThrow<string>('NODES_NOTIFY_CHAT_ID');
-        this.bot.api.config.use(parseMode('html'));
     }
 
     @OnEvent(EVENTS.NODE.CREATED)
@@ -34,7 +38,10 @@ export class NodesEvents {
 <b>Address:</b> <code>${event.node.address}</code>
 <b>Port:</b> <code>${event.node.port}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.NODE.MODIFIED)
@@ -46,7 +53,10 @@ export class NodesEvents {
 <b>Address:</b> <code>${event.node.address}</code>
 <b>Port:</b> <code>${event.node.port}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.NODE.DISABLED)
@@ -58,19 +68,25 @@ export class NodesEvents {
 <b>Address:</b> <code>${event.node.address}</code>
 <b>Port:</b> <code>${event.node.port}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.NODE.ENABLED)
     async onNodeEnabled(event: NodeEvent): Promise<void> {
         const msg = `
-🟢 <b>#nodeEnabled</b>
+🟩 <b>#nodeEnabled</b>
 ➖➖➖➖➖➖➖➖➖
 <b>Name:</b> <code>${event.node.name}</code>
 <b>Address:</b> <code>${event.node.address}</code>
 <b>Port:</b> <code>${event.node.port}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.NODE.CONNECTION_LOST)
@@ -84,7 +100,10 @@ export class NodesEvents {
 <b>Last status change:</b> <code>${dayjs(event.node.lastStatusChange).format('DD.MM.YYYY HH:mm')}</code>
 <b>Address:</b> <code>${event.node.address}:${event.node.port}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.NODE.CONNECTION_RESTORED)
@@ -98,7 +117,10 @@ export class NodesEvents {
 <b>Last status change:</b> <code>${dayjs(event.node.lastStatusChange).format('DD.MM.YYYY HH:mm')}</code>
 <b>Address:</b> <code>${event.node.address}:${event.node.port}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.NODE.TRAFFIC_NOTIFY)
@@ -116,6 +138,9 @@ export class NodesEvents {
 <b>Traffic reset day:</b> <code>${event.node.trafficResetDay}</code>
 <b>Percent:</b> <code>${event.node.notifyPercent} %</code>
         `;
-        await this.bot.api.sendMessage(this.notifyChatId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.notifyChatId,
+        });
     }
 }

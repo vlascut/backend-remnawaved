@@ -1,5 +1,6 @@
 import { ERRORS } from '@contract/constants';
 
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
@@ -18,7 +19,10 @@ export class UpdateExceededTrafficUsersHandler
 
     constructor(private readonly usersRepository: UsersRepository) {}
 
-    @Transactional()
+    @Transactional<TransactionalAdapterPrisma>({
+        maxWait: 20_000,
+        timeout: 120_000,
+    })
     async execute(): Promise<ICommandResponse<{ uuid: string }[]>> {
         try {
             const result = await this.usersRepository.updateExceededTrafficUsers();

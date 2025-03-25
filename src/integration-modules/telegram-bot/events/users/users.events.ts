@@ -1,6 +1,6 @@
 import { InjectBot } from '@kastov/grammy-nestjs';
-import { parseMode } from '@grammyjs/parse-mode';
-import { Bot, Context } from 'grammy';
+import { Context } from 'grammy';
+import { Bot } from 'grammy';
 import dayjs from 'dayjs';
 
 import { OnEvent } from '@nestjs/event-emitter';
@@ -9,7 +9,10 @@ import { ConfigService } from '@nestjs/config';
 import { prettyBytesUtil } from '@common/utils/bytes';
 import { EVENTS } from '@libs/contracts/constants';
 
-import { BOT_NAME } from '../../constants';
+import { BOT_NAME } from '@integration-modules/telegram-bot/constants';
+
+import { TelegramBotLoggerQueueService } from '@queue/loggers/telegram-bot-logger';
+
 import { UserEvent } from './interfaces';
 
 export class UsersEvents {
@@ -17,11 +20,12 @@ export class UsersEvents {
 
     constructor(
         @InjectBot(BOT_NAME)
-        private readonly bot: Bot<Context>,
+        private readonly _: Bot<Context>,
+
+        private readonly telegramBotLoggerQueueService: TelegramBotLoggerQueueService,
         private readonly configService: ConfigService,
     ) {
         this.adminId = this.configService.getOrThrow<string>('TELEGRAM_ADMIN_ID');
-        this.bot.api.config.use(parseMode('html'));
     }
 
     @OnEvent(EVENTS.USER.CREATED)
@@ -31,11 +35,14 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
-<b>Expired at:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
+<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
 <b>Inbounds:</b> <code>${event.user.activeUserInbounds.map((inbound) => inbound.tag).join(', ')}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.USER.MODIFIED)
@@ -45,11 +52,14 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
-<b>Expired at:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
+<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
 <b>Inbounds:</b> <code>${event.user.activeUserInbounds.map((inbound) => inbound.tag).join(', ')}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.USER.REVOKED)
@@ -59,21 +69,27 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
-<b>Expired at:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
+<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
 <b>Inbounds:</b> <code>${event.user.activeUserInbounds.map((inbound) => inbound.tag).join(', ')}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.USER.DELETED)
     async onUserDeleted(event: UserEvent): Promise<void> {
         const msg = `
-🔴 <b>#deleted</b>
+🗑️ <b>#deleted</b>
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.USER.DISABLED)
@@ -83,7 +99,10 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.USER.ENABLED)
@@ -93,7 +112,10 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.USER.LIMITED)
@@ -103,7 +125,10 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 
     @OnEvent(EVENTS.USER.EXPIRED)
@@ -113,6 +138,9 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
         `;
-        await this.bot.api.sendMessage(this.adminId, msg);
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
     }
 }
