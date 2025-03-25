@@ -38,7 +38,13 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
     }
     async process(job: Job<NodeHealthCheckPayload>) {
         try {
-            const { nodeAddress, nodePort, nodeUuid, isConnected } = job.data;
+            const { nodeAddress, nodePort, nodeUuid, isConnected, isConnecting } = job.data;
+
+            if (isConnecting) {
+                this.logger.warn(`Node ${nodeUuid} is connecting, skipping health check`);
+                return;
+            }
+
             const response = await this.axios.getSystemStats(nodeAddress, nodePort);
             switch (response.isOk) {
                 case true:

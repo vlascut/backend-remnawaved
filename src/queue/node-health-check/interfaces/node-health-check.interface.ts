@@ -3,4 +3,5 @@ export interface NodeHealthCheckPayload {
     nodeAddress: string;
     nodePort: number | null;
     isConnected: boolean;
+    isConnecting: boolean;
 }
