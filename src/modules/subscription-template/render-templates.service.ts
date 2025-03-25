@@ -135,12 +135,19 @@ export class RenderTemplatesService {
                     contentType: SUBSCRIPTION_CONFIG_TYPES.SING_BOX.CONTENT_TYPE,
                 };
 
-            case 'SINGBOX_LEGACY':
             case 'SINGBOX':
                 return {
                     sub: await this.singBoxGeneratorService.generateConfig(
                         formattedHosts,
-                        parseSingBoxVersion(userAgent),
+                        '1.11.1',
+                    ),
+                    contentType: SUBSCRIPTION_CONFIG_TYPES.SING_BOX.CONTENT_TYPE,
+                };
+            case 'SINGBOX_LEGACY':
+                return {
+                    sub: await this.singBoxGeneratorService.generateConfig(
+                        formattedHosts,
+                        '1.10.0',
                     ),
                     contentType: SUBSCRIPTION_CONFIG_TYPES.SING_BOX.CONTENT_TYPE,
                 };
