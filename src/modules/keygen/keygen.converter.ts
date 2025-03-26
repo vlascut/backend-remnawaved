@@ -15,6 +15,10 @@ const entityToModel = (entity: KeygenEntity): KeygenEntity => {
         uuid: entity.uuid,
         privKey: entity.privKey,
         pubKey: entity.pubKey,
+        caCert: entity.caCert,
+        caKey: entity.caKey,
+        clientCert: entity.clientCert,
+        clientKey: entity.clientKey,
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };

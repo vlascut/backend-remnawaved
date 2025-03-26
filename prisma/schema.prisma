@@ -75,9 +75,13 @@ model Admin {
 }
 
 model Keygen {
-  uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  privKey String @map("priv_key")
-  pubKey  String @map("pub_key")
+  uuid       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  privKey    String  @map("priv_key")
+  pubKey     String  @map("pub_key")
+  caCert     String? @map("ca_cert")
+  caKey      String? @map("ca_key")
+  clientCert String? @map("client_cert")
+  clientKey  String? @map("client_key")
 
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")

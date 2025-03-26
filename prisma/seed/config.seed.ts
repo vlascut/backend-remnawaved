@@ -1,7 +1,9 @@
+import { generateJwtKeypair, generateMasterCerts } from '@common/utils/certs/generate-certs.util';
 import {
     SUBSCRIPTION_TEMPLATE_TYPE,
     SUBSCRIPTION_TEMPLATE_TYPE_VALUES,
 } from '@libs/contracts/constants';
+import { KeygenEntity } from '@modules/keygen/entities/keygen.entity';
 import { PrismaClient } from '@prisma/client';
 
 export const XTLSDefaultConfig = {
@@ -684,6 +686,56 @@ async function seedConfigVariables() {
     console.log('Default XTLS config seeded!');
 }
 
+async function seedKeygen() {
+    const existingConfig = await prisma.keygen.findFirst();
+
+    if (!existingConfig) {
+        const { publicKey, privateKey } = await generateJwtKeypair();
+        const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } = await generateMasterCerts();
+
+        const keygenEntity = new KeygenEntity({
+            caCert: caCertPem,
+            caKey: caKeyPem,
+            clientCert: clientCertPem,
+            clientKey: clientKeyPem,
+            pubKey: publicKey,
+            privKey: privateKey,
+        });
+
+        await prisma.keygen.create({
+            data: keygenEntity,
+        });
+
+        console.log('🔐 Keygen seeded!');
+
+        return;
+    }
+
+    if (
+        existingConfig.pubKey &&
+        existingConfig.privKey &&
+        (!existingConfig.caCert ||
+            !existingConfig.caKey ||
+            !existingConfig.clientCert ||
+            !existingConfig.clientKey)
+    ) {
+        const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } = await generateMasterCerts();
+
+        await prisma.keygen.update({
+            where: { uuid: existingConfig.uuid },
+            data: {
+                caCert: caCertPem,
+                caKey: caKeyPem,
+                clientCert: clientCertPem,
+                clientKey: clientKeyPem,
+            },
+        });
+
+        console.log('🔐 Keygen updated!');
+        return;
+    }
+}
+
 async function checkDatabaseConnection() {
     try {
         await prisma.$queryRaw`SELECT 1`;
@@ -708,6 +760,7 @@ async function seedAll() {
             await seedSubscriptionTemplate();
             await seedConfigVariables();
             await seedSubscriptionSettings();
+            await seedKeygen();
             break;
         } else {
             console.log('Failed to connect to database. Retrying in 5 seconds...');

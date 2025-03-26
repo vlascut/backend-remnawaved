@@ -11,15 +11,22 @@ import { ERRORS, ROLE } from '@libs/contracts/constants';
 import { GetNodeJwtCommand } from './get-node-jwt.command';
 import { KeygenService } from '../../keygen.service';
 
+export interface IGetNodeJwtResponse {
+    jwtToken: string;
+    clientCert: string;
+    clientKey: string;
+    caCert: string;
+}
+
 @CommandHandler(GetNodeJwtCommand)
 export class GetNodeJwtHandler
-    implements ICommandHandler<GetNodeJwtCommand, ICommandResponse<string>>
+    implements ICommandHandler<GetNodeJwtCommand, ICommandResponse<IGetNodeJwtResponse>>
 {
     private readonly logger = new Logger(GetNodeJwtHandler.name);
 
     constructor(private readonly keygenService: KeygenService) {}
 
-    async execute(): Promise<ICommandResponse<string>> {
+    async execute(): Promise<ICommandResponse<IGetNodeJwtResponse>> {
         const response = await this.keygenService.generateKey();
 
         if (!response.isOk || !response.response) {
@@ -29,7 +36,7 @@ export class GetNodeJwtHandler
             };
         }
 
-        const { privKey } = response.response;
+        const { privKey, clientCert, clientKey, caCert } = response.response;
 
         const payload: IJWTAuthPayload = {
             uuid: null,
@@ -45,7 +52,12 @@ export class GetNodeJwtHandler
         try {
             return {
                 isOk: true,
-                response: token,
+                response: {
+                    jwtToken: token,
+                    clientCert: clientCert!,
+                    clientKey: clientKey!,
+                    caCert: caCert!,
+                },
             };
         } catch (error) {
             this.logger.error(`Error getting node jwt: ${error}`);

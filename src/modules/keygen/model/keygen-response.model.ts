@@ -1,9 +1,8 @@
-import { KeygenEntity } from '../entities/keygen.entity';
-
 export class KeygenResponseModel {
     public pubKey: string;
+    public payload: string;
 
-    constructor(keygenEntity: KeygenEntity) {
-        this.pubKey = keygenEntity.pubKey;
+    constructor(payload: string) {
+        this.pubKey = payload;
     }
 }

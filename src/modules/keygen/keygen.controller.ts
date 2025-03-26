@@ -1,5 +1,5 @@
 import { Controller, Get, HttpCode, HttpStatus, UseFilters, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -14,6 +14,7 @@ import { KeygenService } from './keygen.service';
 import { GetPubKeyResponseDto } from './dtos';
 import { KeygenResponseModel } from './model';
 
+@ApiBearerAuth('Authorization')
 @ApiTags('Keygen Controller')
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
@@ -24,9 +25,9 @@ export class KeygenController {
 
     @ApiOkResponse({
         type: GetPubKeyResponseDto,
-        description: 'Access token for further requests',
+        description: 'Get SSL_CERT for Remnawave Node',
     })
-    @ApiOperation({ summary: 'Get Public Key', description: 'Get public key' })
+    @ApiOperation({ summary: 'Get SSL_CERT', description: 'Get SSL_CERT for Remnawave Node' })
     @HttpCode(HttpStatus.OK)
     @Get(KEYGEN_ROUTES.GET)
     async generateKey(): Promise<GetPubKeyResponseDto> {
@@ -34,15 +35,7 @@ export class KeygenController {
 
         const data = errorHandler(result);
         return {
-            response: new KeygenResponseModel(data),
+            response: new KeygenResponseModel(data.payload),
         };
     }
-
-    // @Get('test')
-    // async test(): Promise<any> {
-    //     const result = await this.commandBus.execute(new GetNodeJwtCommand());
-
-    //     const data = errorHandler(result);
-    //     return data;
-    // }
 }

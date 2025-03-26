@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import https from 'node:https';
 
 import { ERRORS } from '@contract/constants';
 
@@ -22,7 +23,7 @@ import {
     StopXrayCommand,
 } from '@remnawave/node-contract';
 
-import { GetNodeJwtCommand } from '@modules/keygen/commands/get-node-jwt';
+import { GetNodeJwtCommand, IGetNodeJwtResponse } from '@modules/keygen/commands/get-node-jwt';
 
 import { ICommandResponse } from '../types/command-response.type';
 
@@ -51,7 +52,17 @@ export class AxiosService {
                 );
             }
 
-            this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+            this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${jwt.jwtToken}`;
+
+            const httpsAgent = new https.Agent({
+                cert: jwt.clientCert,
+                key: jwt.clientKey,
+                ca: jwt.caCert,
+                checkServerIdentity: () => undefined,
+                rejectUnauthorized: true,
+            });
+
+            this.axiosInstance.defaults.httpsAgent = httpsAgent;
 
             this.logger.log('Axios interceptor registered');
         } catch (error) {
@@ -60,14 +71,14 @@ export class AxiosService {
         }
     }
 
-    private async getNodeJwtCommand(): Promise<ICommandResponse<string>> {
-        return this.commandBus.execute<GetNodeJwtCommand, ICommandResponse<string>>(
+    private async getNodeJwtCommand(): Promise<ICommandResponse<IGetNodeJwtResponse>> {
+        return this.commandBus.execute<GetNodeJwtCommand, ICommandResponse<IGetNodeJwtResponse>>(
             new GetNodeJwtCommand(),
         );
     }
 
     private getNodeUrl(url: string, path: string, port: null | number): string {
-        const protocol = port ? 'http' : 'https';
+        const protocol = 'https';
         const portSuffix = port ? `:${port}` : '';
 
         return `${protocol}://${url}${portSuffix}${path}`;
