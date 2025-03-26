@@ -694,77 +694,104 @@ async function seedConfigVariables() {
 async function seedKeygen() {
     consola.start('🔐 Seeding keygen...');
 
-    const existingConfig = await prisma.keygen.findFirst();
+    try {
+        await prisma.$transaction(
+            async (tx) => {
+                const count = await tx.keygen.count();
+                consola.info(`Keygen count: ${count}`);
 
-    if (!existingConfig) {
-        try {
-            const { publicKey, privateKey } = await generateJwtKeypair();
-            const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
-                await generateMasterCerts();
+                let IsNeedCreateNewKeygen = false;
 
-            const keygenEntity = new KeygenEntity({
-                caCert: caCertPem,
-                caKey: caKeyPem,
-                clientCert: clientCertPem,
-                clientKey: clientKeyPem,
-                pubKey: publicKey,
-                privKey: privateKey,
-            });
+                if (count > 1) {
+                    IsNeedCreateNewKeygen = true;
 
-            await prisma.keygen.create({
-                data: keygenEntity,
-            });
+                    consola.info('Deleting old keygen...');
 
-            consola.success('🔐 Keygen seeded!');
+                    await tx.keygen.deleteMany();
+                }
 
-            return;
-        } catch (error) {
-            consola.error('🔐 Failed to seed keygen:', error);
-            process.exit(1);
-        }
+                const existingConfig = await tx.keygen.findFirst({
+                    orderBy: { createdAt: 'asc' },
+                });
+
+                if (!existingConfig) {
+                    IsNeedCreateNewKeygen = true;
+                }
+
+                if (IsNeedCreateNewKeygen) {
+                    const { publicKey, privateKey } = await generateJwtKeypair();
+                    const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
+                        await generateMasterCerts();
+
+                    const keygenEntity = new KeygenEntity({
+                        caCert: caCertPem,
+                        caKey: caKeyPem,
+                        clientCert: clientCertPem,
+                        clientKey: clientKeyPem,
+                        pubKey: publicKey,
+                        privKey: privateKey,
+                    });
+
+                    return await tx.keygen.create({
+                        data: keygenEntity,
+                    });
+                }
+
+                if (
+                    existingConfig &&
+                    existingConfig.pubKey &&
+                    existingConfig.privKey &&
+                    (!existingConfig.caCert ||
+                        !existingConfig.caKey ||
+                        !existingConfig.clientCert ||
+                        !existingConfig.clientKey)
+                ) {
+                    try {
+                        const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
+                            await generateMasterCerts();
+
+                        await tx.keygen.update({
+                            where: { uuid: existingConfig.uuid },
+                            data: {
+                                caCert: caCertPem,
+                                caKey: caKeyPem,
+                                clientCert: clientCertPem,
+                                clientKey: clientKeyPem,
+                            },
+                        });
+
+                        consola.success('🔐 Keygen updated!');
+                        return;
+                    } catch (error) {
+                        consola.error('🔐 Failed to update keygen:', error);
+                        process.exit(1);
+                    }
+                }
+
+                return;
+            },
+            {
+                timeout: 30000,
+                isolationLevel: 'Serializable',
+            },
+        );
+
+        consola.success('🔐 Keygen seeded!');
+        return;
+    } catch (error) {
+        consola.error('🔐 Failed to seed keygen:', error);
+        process.exit(1);
     }
-
-    if (
-        existingConfig.pubKey &&
-        existingConfig.privKey &&
-        (!existingConfig.caCert ||
-            !existingConfig.caKey ||
-            !existingConfig.clientCert ||
-            !existingConfig.clientKey)
-    ) {
-        try {
-            const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
-                await generateMasterCerts();
-
-            await prisma.keygen.update({
-                where: { uuid: existingConfig.uuid },
-                data: {
-                    caCert: caCertPem,
-                    caKey: caKeyPem,
-                    clientCert: clientCertPem,
-                    clientKey: clientKeyPem,
-                },
-            });
-
-            consola.success('🔐 Keygen updated!');
-            return;
-        } catch (error) {
-            consola.error('🔐 Failed to update keygen:', error);
-            process.exit(1);
-        }
-    }
-
-    consola.success('🔐 Keygen already seeded!');
 }
 
 async function checkDatabaseConnection() {
     try {
         await prisma.$queryRaw`SELECT 1`;
-        console.log('Database connected!');
+        consola.success('Database connected!');
         return true;
     } catch (error) {
-        console.error('Database connection error:', error);
-        return false;
+        consola.error('Database connection error:', error);
+        process.exit(1);
     }
 }
 
@@ -777,14 +804,14 @@ async function seedAll() {
         isConnected = await checkDatabaseConnection();
 
         if (isConnected) {
-            console.log('Database connected. Starting seeding...');
+            consola.start('Database connected. Starting seeding...');
             await seedSubscriptionTemplate();
             await seedConfigVariables();
             await seedSubscriptionSettings();
             await seedKeygen();
             break;
         } else {
-            console.log('Failed to connect to database. Retrying in 5 seconds...');
+            consola.info('Failed to connect to database. Retrying in 5 seconds...');
             await delay(5_000);
         }
     }
@@ -795,7 +822,7 @@ seedAll()
         await prisma.$disconnect();
     })
     .catch(async (e) => {
-        console.error(e);
+        consola.error(e);
         await prisma.$disconnect();
         process.exit(1);
     });
