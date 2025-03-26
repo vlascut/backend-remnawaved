@@ -644,7 +644,7 @@ async function seedSubscriptionSettings() {
     const existingConfig = await prisma.subscriptionSettings.findFirst();
 
     if (existingConfig) {
-        console.log('Default subscription settings already seeded!');
+        consola.info('Default subscription settings already seeded!');
         return;
     }
 
