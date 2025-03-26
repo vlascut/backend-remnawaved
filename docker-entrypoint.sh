@@ -6,7 +6,10 @@ echo "Migrating database..."
 npm run migrate:deploy
 
 echo "Seeding database..."
-npm run migrate:seed
+if ! npm run migrate:seed; then
+    echo "Database seeding failed! Exiting container..."
+    exit 1
+fi
 
 echo "Starting pm2..."
 pm2-runtime start ecosystem.config.js --env production
