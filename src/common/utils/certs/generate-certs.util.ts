@@ -21,10 +21,9 @@ export async function generateMasterCerts() {
 
     // === CA (Certificate Authority) ===
     const caAlgorithm = {
-        name: 'RSASSA-PKCS1-v1_5',
+        name: 'ECDSA',
+        namedCurve: 'P-256',
         hash: { name: 'SHA-256' },
-        publicExponent: new Uint8Array([1, 0, 1]),
-        modulusLength: 2048,
     };
 
     const caKeys = await crypto.subtle.generateKey(caAlgorithm, true, ['sign', 'verify']);
@@ -54,10 +53,9 @@ export async function generateMasterCerts() {
 
     // === Client (Master) ===
     const clientAlgorithm = {
-        name: 'RSASSA-PKCS1-v1_5',
+        name: 'ECDSA',
+        namedCurve: 'P-256',
         hash: { name: 'SHA-256' },
-        publicExponent: new Uint8Array([1, 0, 1]),
-        modulusLength: 2048,
     };
 
     const clientKeys = await crypto.subtle.generateKey(clientAlgorithm, true, ['sign', 'verify']);
@@ -66,7 +64,7 @@ export async function generateMasterCerts() {
         serialNumber: '02',
         subject: `CN=${genRandomString()}`,
         notBefore: new Date(),
-        notAfter: new Date(new Date().setFullYear(new Date().getFullYear() + 3)),
+        notAfter: new Date(new Date().setFullYear(new Date().getFullYear() + 10)),
         issuer: caCert.subjectName,
         publicKey: clientKeys.publicKey,
         signingKey: caKeys.privateKey,
@@ -110,7 +108,8 @@ export async function generateNodeCert(
         'pkcs8',
         pemToArrayBuffer(caKeyPem),
         {
-            name: 'RSASSA-PKCS1-v1_5',
+            name: 'ECDSA',
+            namedCurve: 'P-256',
             hash: { name: 'SHA-256' },
         },
         false,
@@ -119,9 +118,8 @@ export async function generateNodeCert(
 
     const nodeKeys = await crypto.subtle.generateKey(
         {
-            name: 'RSASSA-PKCS1-v1_5',
-            modulusLength: 2048,
-            publicExponent: new Uint8Array([1, 0, 1]),
+            name: 'ECDSA',
+            namedCurve: 'P-256',
             hash: { name: 'SHA-256' },
         },
         true,

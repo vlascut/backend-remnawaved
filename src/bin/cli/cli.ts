@@ -13,6 +13,7 @@ const prisma = new PrismaClient({
 
 const enum CLI_ACTIONS {
     EXIT = 'exit',
+    RESET_CERTS = 'reset-certs',
     RESET_SUPERADMIN = 'reset-superadmin',
 }
 
@@ -58,6 +59,46 @@ async function resetSuperadmin() {
         process.exit(1);
     }
 }
+
+async function resetCerts() {
+    const answer = await consola.prompt(
+        'Are you sure you want to delete the certs? You will need to add new certs to all nodes again.',
+        {
+            type: 'confirm',
+            required: true,
+        },
+    );
+
+    if (!answer) {
+        consola.error('❌ Aborted.');
+        process.exit(1);
+    }
+
+    consola.start('🔄 Deleting certs...');
+
+    const keygen = await prisma.keygen.findFirst();
+
+    if (!keygen) {
+        consola.error('❌ Certs not found.');
+        process.exit(1);
+    }
+
+    try {
+        await prisma.keygen.delete({
+            where: {
+                uuid: keygen.uuid,
+            },
+        });
+        consola.success(`✅ Certs deleted successfully.`);
+        consola.warn(
+            `Restart Remnawave to apply changes by running "docker compose down && docker compose up -d".`,
+        );
+    } catch (error) {
+        consola.error('❌ Failed to reset certs:', error);
+        process.exit(1);
+    }
+}
+
 async function main() {
     consola.box('Remnawave Rescue CLI v0.1');
 
@@ -79,6 +120,11 @@ async function main() {
                 hint: 'Fully reset superadmin',
             },
             {
+                value: CLI_ACTIONS.RESET_CERTS,
+                label: 'Reset certs',
+                hint: 'Fully reset certs',
+            },
+            {
                 value: CLI_ACTIONS.EXIT,
                 label: 'Exit',
             },
@@ -89,6 +135,9 @@ async function main() {
     switch (action) {
         case CLI_ACTIONS.RESET_SUPERADMIN:
             await resetSuperadmin();
+            break;
+        case CLI_ACTIONS.RESET_CERTS:
+            await resetCerts();
             break;
         case CLI_ACTIONS.EXIT:
             consola.info('👋 Exiting...');
