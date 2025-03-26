@@ -5,6 +5,7 @@ import {
 } from '@libs/contracts/constants';
 import { KeygenEntity } from '@modules/keygen/entities/keygen.entity';
 import { PrismaClient } from '@prisma/client';
+import consola from 'consola';
 
 export const XTLSDefaultConfig = {
     log: {
@@ -560,7 +561,7 @@ const prisma = new PrismaClient({
 });
 
 async function seedSubscriptionTemplate() {
-    console.log('Seeding subscription templates...');
+    consola.start('Seeding subscription templates...');
     for (const templateType of SUBSCRIPTION_TEMPLATE_TYPE_VALUES) {
         const existingConfig = await prisma.subscriptionTemplate.findUnique({
             where: {
@@ -571,7 +572,7 @@ async function seedSubscriptionTemplate() {
         switch (templateType) {
             case SUBSCRIPTION_TEMPLATE_TYPE.STASH:
                 if (existingConfig) {
-                    console.log(`Default ${templateType} config already exists!`);
+                    consola.info(`Default ${templateType} config already exists!`);
                     continue;
                 }
 
@@ -582,7 +583,7 @@ async function seedSubscriptionTemplate() {
                 break;
             case SUBSCRIPTION_TEMPLATE_TYPE.MIHOMO:
                 if (existingConfig) {
-                    console.log(`Default ${templateType} config already exists!`);
+                    consola.info(`Default ${templateType} config already exists!`);
                     continue;
                 }
 
@@ -592,7 +593,7 @@ async function seedSubscriptionTemplate() {
                 break;
             case SUBSCRIPTION_TEMPLATE_TYPE.SINGBOX:
                 if (existingConfig) {
-                    console.log(`Default ${templateType} config already exists!`);
+                    consola.info(`Default ${templateType} config already exists!`);
                     continue;
                 }
 
@@ -602,7 +603,7 @@ async function seedSubscriptionTemplate() {
                 break;
             case SUBSCRIPTION_TEMPLATE_TYPE.SINGBOX_LEGACY:
                 if (existingConfig) {
-                    console.log(`Default ${templateType} config already exists!`);
+                    consola.info(`Default ${templateType} config already exists!`);
                     continue;
                 }
 
@@ -612,7 +613,7 @@ async function seedSubscriptionTemplate() {
                 break;
             case SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON:
                 if (existingConfig) {
-                    console.log(`Default ${templateType} config already exists!`);
+                    consola.info(`Default ${templateType} config already exists!`);
                     continue;
                 }
 
@@ -623,7 +624,7 @@ async function seedSubscriptionTemplate() {
                 break;
             case SUBSCRIPTION_TEMPLATE_TYPE.CLASH:
                 if (existingConfig) {
-                    console.log(`Default ${templateType} config already exists!`);
+                    consola.info(`Default ${templateType} config already exists!`);
                     continue;
                 }
 
@@ -633,7 +634,8 @@ async function seedSubscriptionTemplate() {
 
                 break;
             default:
-                throw new Error(`Unknown template type: ${templateType}`);
+                consola.error(`Unknown template type: ${templateType}`);
+                process.exit(1);
         }
     }
 }
@@ -668,8 +670,10 @@ async function seedSubscriptionSettings() {
 async function seedConfigVariables() {
     const existingConfig = await prisma.xrayConfig.findFirst();
 
+    consola.start('🔐 Seeding XTLS config...');
+
     if (existingConfig) {
-        console.log('Default XTLS config already seeded!');
+        consola.success('🔐 Default XTLS config already seeded!');
         return;
     }
 
@@ -680,60 +684,80 @@ async function seedConfigVariables() {
     });
 
     if (!config) {
-        throw new Error('Failed to create default config!');
+        consola.error('🔐 Failed to create default config!');
+        process.exit(1);
     }
 
-    console.log('Default XTLS config seeded!');
+    consola.success('🔐 Default XTLS config seeded!');
 }
 
 async function seedKeygen() {
-    const existingConfig = await prisma.keygen.findFirst();
+    consola.start('🔐 Seeding keygen...');
 
-    if (!existingConfig) {
-        const { publicKey, privateKey } = await generateJwtKeypair();
-        const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } = await generateMasterCerts();
+    // TODO: Remove after testing
+    process.exit(1);
 
-        const keygenEntity = new KeygenEntity({
-            caCert: caCertPem,
-            caKey: caKeyPem,
-            clientCert: clientCertPem,
-            clientKey: clientKeyPem,
-            pubKey: publicKey,
-            privKey: privateKey,
-        });
+    // const existingConfig = await prisma.keygen.findFirst();
 
-        await prisma.keygen.create({
-            data: keygenEntity,
-        });
+    // if (!existingConfig) {
+    //     try {
+    //         const { publicKey, privateKey } = await generateJwtKeypair();
+    //         const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
+    //             await generateMasterCerts();
 
-        console.log('🔐 Keygen seeded!');
+    //         const keygenEntity = new KeygenEntity({
+    //             caCert: caCertPem,
+    //             caKey: caKeyPem,
+    //             clientCert: clientCertPem,
+    //             clientKey: clientKeyPem,
+    //             pubKey: publicKey,
+    //             privKey: privateKey,
+    //         });
 
-        return;
-    }
+    //         await prisma.keygen.create({
+    //             data: keygenEntity,
+    //         });
 
-    if (
-        existingConfig.pubKey &&
-        existingConfig.privKey &&
-        (!existingConfig.caCert ||
-            !existingConfig.caKey ||
-            !existingConfig.clientCert ||
-            !existingConfig.clientKey)
-    ) {
-        const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } = await generateMasterCerts();
+    //         consola.success('🔐 Keygen seeded!');
 
-        await prisma.keygen.update({
-            where: { uuid: existingConfig.uuid },
-            data: {
-                caCert: caCertPem,
-                caKey: caKeyPem,
-                clientCert: clientCertPem,
-                clientKey: clientKeyPem,
-            },
-        });
+    //         return;
+    //     } catch (error) {
+    //         consola.error('🔐 Failed to seed keygen:', error);
+    //         process.exit(1);
+    //     }
+    // }
 
-        console.log('🔐 Keygen updated!');
-        return;
-    }
+    // if (
+    //     existingConfig.pubKey &&
+    //     existingConfig.privKey &&
+    //     (!existingConfig.caCert ||
+    //         !existingConfig.caKey ||
+    //         !existingConfig.clientCert ||
+    //         !existingConfig.clientKey)
+    // ) {
+    //     try {
+    //         const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
+    //             await generateMasterCerts();
+
+    //         await prisma.keygen.update({
+    //             where: { uuid: existingConfig.uuid },
+    //             data: {
+    //                 caCert: caCertPem,
+    //                 caKey: caKeyPem,
+    //                 clientCert: clientCertPem,
+    //                 clientKey: clientKeyPem,
+    //             },
+    //         });
+
+    //         consola.success('🔐 Keygen updated!');
+    //         return;
+    //     } catch (error) {
+    //         consola.error('🔐 Failed to update keygen:', error);
+    //         process.exit(1);
+    //     }
+    // }
+
+    // consola.success('🔐 Keygen already seeded!');
 }
 
 async function checkDatabaseConnection() {

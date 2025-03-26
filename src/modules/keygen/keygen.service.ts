@@ -25,16 +25,20 @@ export class KeygenService {
                 };
             }
 
-            const { nodeCertPem, nodeKeyPem } = await generateNodeCert(
-                pubKey.caCert!,
-                pubKey.caKey!,
-            );
+            if (!pubKey.caCert || !pubKey.caKey || !pubKey.clientCert || !pubKey.clientKey) {
+                return {
+                    isOk: false,
+                    ...ERRORS.KEYPAIR_NOT_FOUND,
+                };
+            }
+
+            const { nodeCertPem, nodeKeyPem } = await generateNodeCert(pubKey.caCert, pubKey.caKey);
 
             const nodePayload = encodeCertPayload({
                 nodeCertPem,
                 nodeKeyPem,
-                caCertPem: pubKey.caCert!,
-                jwtPublicKey: pubKey.pubKey!,
+                caCertPem: pubKey.caCert,
+                jwtPublicKey: pubKey.pubKey,
             });
 
             return {

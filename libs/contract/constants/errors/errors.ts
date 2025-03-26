@@ -453,4 +453,9 @@ export const ERRORS = {
         message: 'Get user usage by range error',
         httpCode: 500,
     },
+    KEYPAIR_NOT_FOUND: {
+        code: 'A092',
+        message: 'Keypair not found. Restart app.',
+        httpCode: 500,
+    },
 } as const;

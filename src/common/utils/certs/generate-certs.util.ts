@@ -9,14 +9,14 @@ import {
 } from '@peculiar/x509';
 import { generateKeyPair } from 'node:crypto';
 import { Crypto } from '@peculiar/webcrypto';
+import { customAlphabet } from 'nanoid';
 import { promisify } from 'node:util';
-import { nanoid } from 'nanoid';
 
 const generateKeyPairAsync = promisify(generateKeyPair);
 
 export async function generateMasterCerts() {
     const crypto = new Crypto();
-    const cn = nanoid(48);
+    const cn = genRandomString();
     cryptoProvider.set(crypto);
 
     // === CA (Certificate Authority) ===
@@ -64,7 +64,7 @@ export async function generateMasterCerts() {
 
     const clientCert = await X509CertificateGenerator.create({
         serialNumber: '02',
-        subject: `CN=${nanoid(48)}`,
+        subject: `CN=${genRandomString()}`,
         notBefore: new Date(),
         notAfter: new Date(new Date().setFullYear(new Date().getFullYear() + 3)),
         issuer: caCert.subjectName,
@@ -104,7 +104,6 @@ export async function generateNodeCert(
     const crypto = new Crypto();
     cryptoProvider.set(crypto);
 
-    const cn = nanoid(48);
     const caCert = new X509Certificate(caCertPem);
 
     const caPrivateKey = await crypto.subtle.importKey(
@@ -131,7 +130,7 @@ export async function generateNodeCert(
 
     const nodeCert = await X509CertificateGenerator.create({
         serialNumber: Date.now().toString(),
-        subject: `CN=${cn}`,
+        subject: `CN=${genRandomString()}`,
         issuer: caCert.subjectName,
         notBefore: new Date(),
         notAfter: new Date(new Date().setFullYear(new Date().getFullYear() + 3)),
@@ -194,4 +193,12 @@ function pemToArrayBuffer(pem: string): Uint8Array {
         .replace(/-----END .* KEY-----/, '')
         .replace(/\s+/g, '');
     return new Uint8Array(Buffer.from(b64, 'base64'));
+}
+
+function genRandomString(): string {
+    const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghjkmnopqrstuvwxyz-';
+    const length = Math.floor(Math.random() * 27) + 20;
+    const nanoid = customAlphabet(alphabet, length);
+
+    return nanoid();
 }
