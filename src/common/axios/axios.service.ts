@@ -242,7 +242,9 @@ export class AxiosService {
             };
         } catch (error) {
             if (error instanceof AxiosError) {
-                this.logger.error(`Error in Axios getUsersStats: ${error.message}`);
+                this.logger.error(
+                    `Error in Axios getUsersStats: ${error.message}, ${error.response?.data}`,
+                );
 
                 return {
                     isOk: false,

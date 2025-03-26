@@ -679,6 +679,7 @@ export class UsersService {
         }
     }
 
+    @Transactional()
     public async resetUserTraffic(
         userUuid: string,
     ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
