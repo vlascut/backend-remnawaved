@@ -694,70 +694,67 @@ async function seedConfigVariables() {
 async function seedKeygen() {
     consola.start('🔐 Seeding keygen...');
 
-    // TODO: Remove after testing
-    process.exit(1);
+    const existingConfig = await prisma.keygen.findFirst();
 
-    // const existingConfig = await prisma.keygen.findFirst();
+    if (!existingConfig) {
+        try {
+            const { publicKey, privateKey } = await generateJwtKeypair();
+            const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
+                await generateMasterCerts();
 
-    // if (!existingConfig) {
-    //     try {
-    //         const { publicKey, privateKey } = await generateJwtKeypair();
-    //         const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
-    //             await generateMasterCerts();
+            const keygenEntity = new KeygenEntity({
+                caCert: caCertPem,
+                caKey: caKeyPem,
+                clientCert: clientCertPem,
+                clientKey: clientKeyPem,
+                pubKey: publicKey,
+                privKey: privateKey,
+            });
 
-    //         const keygenEntity = new KeygenEntity({
-    //             caCert: caCertPem,
-    //             caKey: caKeyPem,
-    //             clientCert: clientCertPem,
-    //             clientKey: clientKeyPem,
-    //             pubKey: publicKey,
-    //             privKey: privateKey,
-    //         });
+            await prisma.keygen.create({
+                data: keygenEntity,
+            });
 
-    //         await prisma.keygen.create({
-    //             data: keygenEntity,
-    //         });
+            consola.success('🔐 Keygen seeded!');
 
-    //         consola.success('🔐 Keygen seeded!');
+            return;
+        } catch (error) {
+            consola.error('🔐 Failed to seed keygen:', error);
+            process.exit(1);
+        }
+    }
 
-    //         return;
-    //     } catch (error) {
-    //         consola.error('🔐 Failed to seed keygen:', error);
-    //         process.exit(1);
-    //     }
-    // }
+    if (
+        existingConfig.pubKey &&
+        existingConfig.privKey &&
+        (!existingConfig.caCert ||
+            !existingConfig.caKey ||
+            !existingConfig.clientCert ||
+            !existingConfig.clientKey)
+    ) {
+        try {
+            const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
+                await generateMasterCerts();
 
-    // if (
-    //     existingConfig.pubKey &&
-    //     existingConfig.privKey &&
-    //     (!existingConfig.caCert ||
-    //         !existingConfig.caKey ||
-    //         !existingConfig.clientCert ||
-    //         !existingConfig.clientKey)
-    // ) {
-    //     try {
-    //         const { caCertPem, caKeyPem, clientCertPem, clientKeyPem } =
-    //             await generateMasterCerts();
+            await prisma.keygen.update({
+                where: { uuid: existingConfig.uuid },
+                data: {
+                    caCert: caCertPem,
+                    caKey: caKeyPem,
+                    clientCert: clientCertPem,
+                    clientKey: clientKeyPem,
+                },
+            });
 
-    //         await prisma.keygen.update({
-    //             where: { uuid: existingConfig.uuid },
-    //             data: {
-    //                 caCert: caCertPem,
-    //                 caKey: caKeyPem,
-    //                 clientCert: clientCertPem,
-    //                 clientKey: clientKeyPem,
-    //             },
-    //         });
+            consola.success('🔐 Keygen updated!');
+            return;
+        } catch (error) {
+            consola.error('🔐 Failed to update keygen:', error);
+            process.exit(1);
+        }
+    }
 
-    //         consola.success('🔐 Keygen updated!');
-    //         return;
-    //     } catch (error) {
-    //         consola.error('🔐 Failed to update keygen:', error);
-    //         process.exit(1);
-    //     }
-    // }
-
-    // consola.success('🔐 Keygen already seeded!');
+    consola.success('🔐 Keygen already seeded!');
 }
 
 async function checkDatabaseConnection() {
