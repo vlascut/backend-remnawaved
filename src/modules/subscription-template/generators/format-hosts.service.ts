@@ -83,6 +83,74 @@ export class FormatHostsService {
             return formattedHosts;
         }
 
+        if (hosts.length === 0 && user.activeUserInbounds.length > 0) {
+            const emptyHostRemarks = [
+                '→ Remnawave',
+                '→ Did you forget to add hosts?',
+                '→ No hosts found',
+            ];
+
+            emptyHostRemarks.forEach((remark) => {
+                formattedHosts.push({
+                    remark,
+                    address: '0.0.0.0',
+                    port: 0,
+                    protocol: 'trojan',
+                    path: '',
+                    host: '',
+                    tls: 'tls',
+                    sni: '',
+                    alpn: '',
+                    publicKey: '',
+                    fingerprint: '',
+                    shortId: '',
+                    spiderX: '',
+                    network: 'tcp',
+                    password: {
+                        trojanPassword: '00000',
+                        vlessPassword: randomUUID(),
+                        ssPassword: '00000',
+                    },
+                });
+            });
+
+            return formattedHosts;
+        }
+
+        if (user.activeUserInbounds.length === 0) {
+            const emptyHostRemarks = [
+                '→ Remnawave',
+                '→ User has no active inbounds',
+                '→ No active inbounds found',
+            ];
+
+            emptyHostRemarks.forEach((remark) => {
+                formattedHosts.push({
+                    remark,
+                    address: '0.0.0.0',
+                    port: 0,
+                    protocol: 'trojan',
+                    path: '',
+                    host: '',
+                    tls: 'tls',
+                    sni: '',
+                    alpn: '',
+                    publicKey: '',
+                    fingerprint: '',
+                    shortId: '',
+                    spiderX: '',
+                    network: 'tcp',
+                    password: {
+                        trojanPassword: '00000',
+                        vlessPassword: randomUUID(),
+                        ssPassword: '00000',
+                    },
+                });
+            });
+
+            return formattedHosts;
+        }
+
         for (const inputHost of hosts) {
             const inbound = config.getInbound(inputHost.inboundTag.tag);
 
