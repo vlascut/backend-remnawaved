@@ -196,7 +196,7 @@ export class FormatHostsService {
                     //     console.log(error);
                     // }
 
-                    publicKeyFromConfig = realitySettings?.publicKey;
+                    publicKeyFromConfig = realitySettings?.publicKey || realitySettings?.password;
 
                     spiderXFromConfig = realitySettings?.spiderX;
                     const shortIds = inbound.streamSettings?.realitySettings?.shortIds || [];
