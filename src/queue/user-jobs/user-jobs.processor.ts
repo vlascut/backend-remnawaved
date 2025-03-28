@@ -1,5 +1,5 @@
-import pMap from 'p-map';
 import { Job } from 'bullmq';
+import pMap from 'p-map';
 
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Processor, WorkerHost } from '@nestjs/bullmq';

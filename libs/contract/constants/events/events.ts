@@ -10,6 +10,12 @@ export const EVENTS = {
         EXPIRED: 'user.expired',
         TRAFFIC_RESET: 'user.traffic_reset',
         TRAFFIC_REACHED: 'user.traffic_reached',
+        EXPIRE_NOTIFY: {
+            EXPIRES_IN_72_HOURS: 'user.expires_in_72_hours',
+            EXPIRES_IN_48_HOURS: 'user.expires_in_48_hours',
+            EXPIRES_IN_24_HOURS: 'user.expires_in_24_hours',
+            EXPIRED_24_HOURS_AGO: 'user.expired_24_hours_ago',
+        },
     },
     NODE: {
         CREATED: 'node.created',

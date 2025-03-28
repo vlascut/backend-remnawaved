@@ -143,4 +143,56 @@ export class UsersEvents {
             chatId: this.adminId,
         });
     }
+
+    @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRES_IN_72_HOURS)
+    async onUserExpiresIn72Hours(event: UserEvent): Promise<void> {
+        const msg = `
+⏱️ <b>#expires_in_72_hours</b>
+➖➖➖➖➖➖➖➖➖
+<b>Username:</b> <code>${event.user.username}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
+    }
+
+    @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRES_IN_48_HOURS)
+    async onUserExpiresIn48Hours(event: UserEvent): Promise<void> {
+        const msg = `
+⏱️ <b>#expires_in_48_hours</b>
+➖➖➖➖➖➖➖➖➖
+<b>Username:</b> <code>${event.user.username}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
+    }
+
+    @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRES_IN_24_HOURS)
+    async onUserExpiresIn24Hours(event: UserEvent): Promise<void> {
+        const msg = `
+⏱️ <b>#expires_in_24_hours</b>
+➖➖➖➖➖➖➖➖➖
+<b>Username:</b> <code>${event.user.username}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
+    }
+
+    @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRED_24_HOURS_AGO)
+    async onUserExpired24HoursAgo(event: UserEvent): Promise<void> {
+        const msg = `
+⏱️ <b>#expired_24_hours_ago</b>
+➖➖➖➖➖➖➖➖➖
+<b>Username:</b> <code>${event.user.username}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
+    }
 }

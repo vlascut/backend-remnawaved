@@ -3,6 +3,7 @@ import { GetExceededTrafficUsageUsersHandler } from './get-exceeded-traffic-usag
 import { GetPreparedConfigWithUsersHandler } from './get-prepared-config-with-users';
 import { GetUsersForConfigBatchHandler } from './get-users-for-config-batch';
 import { GetUserByShortUuidHandler } from './get-user-by-short-uuid';
+import { GetUsersByExpireAtHandler } from './get-users-by-expire-at';
 import { GetUsersForConfigHandler } from './get-users-for-config';
 import { GetUserByUsernameHandler } from './get-user-by-username';
 import { GetShortUserStatsHandler } from './get-short-user-stats';
@@ -24,4 +25,5 @@ export const QUERIES = [
     GetUserByUuidHandler,
     GetUsersForConfigBatchHandler,
     GetPreparedConfigWithUsersHandler,
+    GetUsersByExpireAtHandler,
 ];
