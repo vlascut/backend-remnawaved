@@ -20,6 +20,7 @@ export class BulkUpdateUserUsedTrafficBuilder {
                 VALUES ${userUsageList.map((usageHistory) => `(${usageHistory.bytes}, '${usageHistory.userUuid}'::uuid)`).join(',')}
                 ) AS data("inc_used", "uuid")
             WHERE data."uuid" = u."uuid"
+            ORDER BY u."uuid"
     `;
         return Prisma.raw(query);
     }

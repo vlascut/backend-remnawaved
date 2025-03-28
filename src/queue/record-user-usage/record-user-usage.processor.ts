@@ -98,6 +98,11 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
                     const { uuid: userUuid } = userResponse.response;
                     const totalBytes = xrayUser.downlink + xrayUser.uplink;
 
+                    // await this.incrementUsedTraffic({
+                    //     userUuid,
+                    //     bytes: this.multiplyConsumption(consumptionMultiplier, totalBytes),
+                    // });
+
                     allUsageRecords.push(
                         new NodesUserUsageHistoryEntity({
                             nodeUuid,
@@ -121,7 +126,7 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
             });
 
             await this.bulkIncrementUsedTraffic({
-                userUsageList,
+                userUsageList: userUsageList.sort((a, b) => a.userUuid.localeCompare(b.userUuid)),
             });
         }
 
@@ -163,6 +168,14 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
             new BulkIncrementUsedTrafficCommand(dto.userUsageList),
         );
     }
+
+    // private async incrementUsedTraffic(
+    //     dto: IncrementUsedTrafficCommand,
+    // ): Promise<ICommandResponse<void>> {
+    //     return this.commandBus.execute<IncrementUsedTrafficCommand, ICommandResponse<void>>(
+    //         new IncrementUsedTrafficCommand(dto.userUuid, dto.bytes),
+    //     );
+    // }
 
     private async updateNode(dto: UpdateNodeCommand): Promise<ICommandResponse<NodesEntity>> {
         return this.commandBus.execute<UpdateNodeCommand, ICommandResponse<NodesEntity>>(

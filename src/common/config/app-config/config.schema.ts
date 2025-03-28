@@ -51,6 +51,7 @@ export const configSchema = z
             .default('16')
             .transform((val) => parseInt(val, 10))
             .refine((val) => val >= 16 && val <= 64, 'SHORT_UUID_LENGTH must be between 16 and 64'),
+        IS_HTTP_LOGGING_ENABLED: z.string().default('false'),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {

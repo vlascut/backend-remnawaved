@@ -80,18 +80,20 @@ async function bootstrap(): Promise<void> {
 
     app.use(getRealIp);
 
-    if (isProduction()) {
-        app.use(
-            morgan(
-                ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-                // {
-                //     skip: (req) => req.url === ROOT + METRICS_ROOT,
-                //     stream: {
-                //         write: (message) => logger.http(message.trim()),
-                //     },
-                // },
-            ),
-        );
+    if (config.getOrThrow<string>('IS_HTTP_LOGGING_ENABLED') === 'true') {
+        if (isProduction()) {
+            app.use(
+                morgan(
+                    ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+                    // {
+                    //     skip: (req) => req.url === ROOT + METRICS_ROOT,
+                    //     stream: {
+                    //         write: (message) => logger.http(message.trim()),
+                    //     },
+                    // },
+                ),
+            );
+        }
     }
 
     app.setGlobalPrefix(ROOT);
