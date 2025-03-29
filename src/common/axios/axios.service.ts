@@ -33,7 +33,7 @@ export class AxiosService {
     private readonly logger = new Logger(AxiosService.name);
     constructor(private readonly commandBus: CommandBus) {
         this.axiosInstance = axios.create({
-            timeout: 30_000,
+            timeout: 45_000,
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
