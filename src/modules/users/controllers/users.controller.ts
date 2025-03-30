@@ -305,6 +305,35 @@ export class UsersController {
         };
     }
 
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: ActivateAllInboundsResponseDto,
+        description: 'All inbounds activated successfully',
+    })
+    @ApiOperation({
+        summary: 'Activate All Inbounds',
+        description: 'Activate all inbounds',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @HttpCode(HttpStatus.OK)
+    @Patch(USERS_ROUTES.ACTIVATE_ALL_INBOUNDS + '/:uuid')
+    async activateAllInbounds(
+        @Param() paramData: ActivateAllInboundsRequestDto,
+    ): Promise<ActivateAllInboundsResponseDto> {
+        const result = await this.usersService.activateAllInbounds(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: new GetUserResponseModel(
+                data.user,
+                data.lastConnectedNode,
+                this.subPublicDomain,
+            ),
+        };
+    }
+
     /* get by methods
 
 
@@ -482,35 +511,6 @@ export class UsersController {
         const data = errorHandler(result);
         return {
             response: data.map((item) => new GetFullUserResponseModel(item, this.subPublicDomain)),
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
-        type: ActivateAllInboundsResponseDto,
-        description: 'All inbounds activated successfully',
-    })
-    @ApiOperation({
-        summary: 'Activate All Inbounds',
-        description: 'Activate all inbounds',
-    })
-    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @HttpCode(HttpStatus.OK)
-    @Patch(USERS_ROUTES.ACTIVATE_ALL_INBOUNDS + '/:uuid')
-    async activateAllInbounds(
-        @Param() paramData: ActivateAllInboundsRequestDto,
-    ): Promise<ActivateAllInboundsResponseDto> {
-        const result = await this.usersService.activateAllInbounds(paramData.uuid);
-
-        const data = errorHandler(result);
-        return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
         };
     }
 }
