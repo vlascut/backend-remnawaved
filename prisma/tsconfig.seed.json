@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../dist/prisma",
-    "module": "commonjs"
+    "module": "NodeNext"
   },
   "include": [
     "seed/**/*"

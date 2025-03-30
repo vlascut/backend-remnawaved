@@ -60,8 +60,8 @@ jobs:
         with:
           context: .
           file: DockerfileDev
-          # platforms: linux/amd64,linux/arm64
-          platforms: linux/amd64 # ARM64 is not supported.
+          platforms: linux/amd64,linux/arm64
+          # platforms: linux/amd64 # ARM64 is not supported.
           push: true
           tags: |
             remnawave/backend:dev
