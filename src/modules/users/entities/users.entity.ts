@@ -17,7 +17,7 @@ export class UserEntity implements Users {
     public subLastOpenedAt: Date;
 
     public expireAt: Date;
-    public onlineAt: Date;
+    public onlineAt: Date | null;
     public subRevokedAt: Date | null;
     public lastTrafficResetAt: Date | null;
 

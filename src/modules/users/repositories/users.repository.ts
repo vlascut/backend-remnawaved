@@ -362,10 +362,9 @@ export class UsersRepository implements ICrud<UserEntity> {
 
         let orderBy = sorting?.reduce((acc, sort) => {
             const dateFields = [
-                'expireAt',
-                'createdAt',
                 'lastTrafficResetAt',
                 'subLastOpenedAt',
+                'subRevokedAt',
                 'onlineAt',
             ];
 
