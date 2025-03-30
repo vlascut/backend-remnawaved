@@ -360,16 +360,30 @@ export class UsersRepository implements ICrud<UserEntity> {
             };
         }, {});
 
-        let orderBy = sorting?.reduce(
-            (acc, sort) => ({
+        let orderBy = sorting?.reduce((acc, sort) => {
+            const dateFields = [
+                'expireAt',
+                'createdAt',
+                'lastTrafficResetAt',
+                'subLastOpenedAt',
+                'onlineAt',
+            ];
+
+            if (dateFields.includes(sort.id)) {
+                return {
+                    ...acc,
+                    [sort.id]: {
+                        sort: sort.desc ? 'desc' : 'asc',
+                        nulls: 'last',
+                    },
+                };
+            }
+
+            return {
                 ...acc,
-                [sort.id]: {
-                    sort: sort.desc ? 'desc' : 'asc',
-                    nulls: 'last',
-                },
-            }),
-            {},
-        );
+                [sort.id]: sort.desc ? 'desc' : 'asc',
+            };
+        }, {});
 
         if (orderBy === undefined || Object.keys(orderBy).length === 0) {
             orderBy = {
