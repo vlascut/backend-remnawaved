@@ -1,7 +1,6 @@
 import { ERRORS } from '@contract/constants';
 
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
@@ -17,7 +16,6 @@ export class CreateManyUserActiveInboundsHandler
 
     constructor(private readonly activeUserInboundsRepository: ActiveUserInboundsRepository) {}
 
-    @Transactional()
     async execute(command: CreateManyUserActiveInboundsCommand): Promise<ICommandResponse<number>> {
         try {
             const response = await this.activeUserInboundsRepository.createMany(

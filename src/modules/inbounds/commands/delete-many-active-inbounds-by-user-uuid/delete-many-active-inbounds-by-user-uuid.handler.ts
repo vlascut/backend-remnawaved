@@ -1,9 +1,7 @@
 import { ActiveUserInboundsRepository } from 'src/modules/inbounds/repositories/active-user-inbounds.repository';
 import { ERRORS } from '@contract/constants';
 
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Transactional } from '@nestjs-cls/transactional';
 import { Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
@@ -18,10 +16,6 @@ export class DeleteManyActiveInboundsByUserUuidHandler
 
     constructor(private readonly activeUserInboundsRepository: ActiveUserInboundsRepository) {}
 
-    @Transactional<TransactionalAdapterPrisma>({
-        maxWait: 20_000,
-        timeout: 120_000,
-    })
     async execute(
         command: DeleteManyActiveInboundsByUserUuidCommand,
     ): Promise<ICommandResponse<number>> {

@@ -1,3 +1,4 @@
+export * from './activate-all-inbounds.command';
 export * from './bulk';
 export * from './bulk-all';
 export * from './create-user.command';

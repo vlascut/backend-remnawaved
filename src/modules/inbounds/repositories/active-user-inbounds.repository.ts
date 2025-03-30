@@ -46,6 +46,7 @@ export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEnti
     public async createMany(userUuid: string, inboundUuids: string[]): Promise<number> {
         const result = await this.prisma.tx.activeUserInbounds.createMany({
             data: inboundUuids.map((inboundUuid) => ({ userUuid, inboundUuid })),
+            skipDuplicates: true,
         });
         return result.count;
     }

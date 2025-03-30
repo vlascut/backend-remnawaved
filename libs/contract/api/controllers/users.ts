@@ -13,6 +13,7 @@ export const USERS_ROUTES = {
     DELETE_USER: 'delete',
     UPDATE: 'update',
     RESET_USER_TRAFFIC: 'reset-traffic',
+    ACTIVATE_ALL_INBOUNDS: 'activate-all-inbounds',
     BULK: {
         DELETE_BY_STATUS: 'bulk/delete-by-status',
         UPDATE: 'bulk/update',

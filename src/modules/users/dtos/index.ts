@@ -1,3 +1,4 @@
+export * from './activate-all-inbounds.dto';
 export * from './bulk';
 export * from './create-user.dto';
 export * from './delete-user.dto';

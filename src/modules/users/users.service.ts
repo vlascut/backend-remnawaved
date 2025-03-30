@@ -114,7 +114,12 @@ export class UsersService {
             };
         }
 
-        this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
+        if (
+            user.response.user.status === USERS_STATUS.ACTIVE &&
+            user.response.isNeedToBeAddedToNode
+        ) {
+            this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
+        }
 
         this.eventEmitter.emit(
             EVENTS.USER.MODIFIED,
@@ -226,6 +231,8 @@ export class UsersService {
                         userUuid: result.uuid,
                         inboundUuids: newInboundUuids,
                     });
+
+                    isNeedToBeAddedToNode = true;
 
                     if (!inboundResult.isOk) {
                         return {
@@ -535,6 +542,77 @@ export class UsersService {
             return {
                 isOk: false,
                 ...ERRORS.REVOKE_USER_SUBSCRIPTION_ERROR,
+            };
+        }
+    }
+
+    public async activateAllInbounds(
+        userUuid: string,
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+        try {
+            const user = await this.userRepository.getUserByUUID(userUuid);
+            if (!user) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            const allInbounds = await this.getAllInbounds();
+
+            if (!allInbounds.isOk || !allInbounds.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_ALL_INBOUNDS_ERROR,
+                };
+            }
+
+            const inboundUuids = allInbounds.response.map((inbound) => inbound.uuid);
+
+            const inboundResult = await this.createManyUserActiveInbounds({
+                userUuid: user.uuid,
+                inboundUuids: inboundUuids,
+            });
+
+            if (!inboundResult.isOk) {
+                return {
+                    isOk: false,
+                    ...ERRORS.ACTIVATE_ALL_INBOUNDS_ERROR,
+                };
+            }
+
+            const updatedUser = await this.userRepository.getUserByUUID(user.uuid);
+
+            if (!updatedUser) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            if (updatedUser.status === USERS_STATUS.ACTIVE) {
+                await this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
+            }
+
+            this.eventEmitter.emit(
+                EVENTS.USER.MODIFIED,
+                new UserEvent(updatedUser, EVENTS.USER.MODIFIED),
+            );
+
+            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
+
+            return {
+                isOk: true,
+                response: {
+                    user: updatedUser,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.ACTIVATE_ALL_INBOUNDS_ERROR,
             };
         }
     }

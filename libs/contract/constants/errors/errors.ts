@@ -458,4 +458,9 @@ export const ERRORS = {
         message: 'Keypair not found. Restart app.',
         httpCode: 500,
     },
+    ACTIVATE_ALL_INBOUNDS_ERROR: {
+        code: 'A093',
+        message: 'Activate all inbounds error',
+        httpCode: 500,
+    },
 } as const;
