@@ -9,6 +9,7 @@ FROM node:22-alpine AS backend-build
 WORKDIR /opt/app
 
 COPY package*.json ./
+COPY prisma ./prisma
 
 RUN npm ci
 
