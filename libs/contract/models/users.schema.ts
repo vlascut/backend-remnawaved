@@ -13,6 +13,7 @@ export const UsersSchema = z.object({
 
     usedTrafficBytes: z.number(),
     lifetimeUsedTrafficBytes: z.number(),
+
     trafficLimitBytes: z.number().int().default(0),
     trafficLimitStrategy: z
         .nativeEnum(RESET_PERIODS, {
@@ -27,12 +28,11 @@ export const UsersSchema = z.object({
             .transform((str) => new Date(str)),
     ),
 
-    expireAt: z.nullable(
-        z
-            .string()
-            .datetime()
-            .transform((str) => new Date(str)),
-    ),
+    expireAt: z
+        .string()
+        .datetime()
+        .transform((str) => new Date(str)),
+
     onlineAt: z.nullable(
         z
             .string()
