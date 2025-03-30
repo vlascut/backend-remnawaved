@@ -27,7 +27,6 @@ import { GetUserUsageByRangeQuery } from '@modules/nodes-user-usage-history/quer
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
-import { ReaddUserToNodeEvent } from '@modules/nodes/events/readd-user-to-node';
 import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
 import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
 import { InboundsEntity } from '@modules/inbounds/entities';
@@ -115,15 +114,7 @@ export class UsersService {
             };
         }
 
-        if (user.response.inboubdsChanged) {
-            this.eventBus.publish(
-                new ReaddUserToNodeEvent(user.response.user, user.response.oldInboundTags),
-            );
-        }
-
-        if (user.response.isNeedToBeAddedToNode) {
-            this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
-        }
+        this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
 
         this.eventEmitter.emit(
             EVENTS.USER.MODIFIED,
@@ -144,9 +135,7 @@ export class UsersService {
     @Transactional()
     public async updateUserTransactional(dto: UpdateUserRequestDto): Promise<
         ICommandResponse<{
-            inboubdsChanged: boolean;
             isNeedToBeAddedToNode: boolean;
-            oldInboundTags: string[];
             user: UserWithActiveInboundsEntity;
         }>
     > {
@@ -218,23 +207,17 @@ export class UsersService {
                 email: email,
             });
 
-            let inboundsChanged = false;
-            let oldInboundTags: string[] = [];
-
             if (activeUserInbounds) {
                 const newInboundUuids = activeUserInbounds;
 
                 const currentInboundUuids =
                     user.activeUserInbounds?.map((inbound) => inbound.uuid) || [];
 
-                oldInboundTags = user.activeUserInbounds?.map((inbound) => inbound.tag) || [];
-
                 const hasChanges =
                     newInboundUuids.length !== currentInboundUuids.length ||
                     !newInboundUuids.every((uuid) => currentInboundUuids.includes(uuid));
 
                 if (hasChanges) {
-                    inboundsChanged = true;
                     await this.deleteManyActiveInboubdsByUserUuid({
                         userUuid: result.uuid,
                     });
@@ -268,8 +251,6 @@ export class UsersService {
                 isOk: true,
                 response: {
                     user: userWithInbounds,
-                    inboubdsChanged: inboundsChanged,
-                    oldInboundTags: oldInboundTags,
                     isNeedToBeAddedToNode,
                 },
             };
@@ -531,9 +512,8 @@ export class UsersService {
                 subRevokedAt: new Date(),
             });
 
-            // ! TODO: add event emitter for revoked subscription
             if (updatedUser.status === USERS_STATUS.ACTIVE) {
-                await this.eventBus.publish(new ReaddUserToNodeEvent(updatedUser));
+                await this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
             }
 
             this.eventEmitter.emit(
