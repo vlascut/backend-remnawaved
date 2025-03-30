@@ -363,7 +363,10 @@ export class UsersRepository implements ICrud<UserEntity> {
         let orderBy = sorting?.reduce(
             (acc, sort) => ({
                 ...acc,
-                [sort.id]: sort.desc ? 'desc' : 'asc',
+                [sort.id]: {
+                    sort: sort.desc ? 'desc' : 'asc',
+                    nulls: 'last',
+                },
             }),
             {},
         );
