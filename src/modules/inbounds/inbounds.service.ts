@@ -47,7 +47,20 @@ export class InboundsService {
                     .getConfig()
                     .inbounds.find((i) => i.tag === inbound.tag);
 
-                const port = Number(rawFromConfig!.port! || 0);
+                let port = 0;
+
+                if (typeof rawFromConfig?.port === 'number') {
+                    port = rawFromConfig.port;
+                } else if (typeof rawFromConfig?.port === 'string') {
+                    if (Array.isArray(rawFromConfig.port)) {
+                        port = Number(rawFromConfig.port[0]);
+                    } else if (rawFromConfig.port.includes(',')) {
+                        const ports = rawFromConfig.port.split(',');
+                        port = Number(ports[0]);
+                    } else {
+                        port = 0;
+                    }
+                }
 
                 result.push(new BaseInboundEntity(inbound, port));
             }
@@ -93,7 +106,20 @@ export class InboundsService {
                     .getConfig()
                     .inbounds.find((i) => i.tag === inbound.tag);
 
-                const port = Number(rawFromConfig!.port! || 0);
+                let port = 0;
+
+                if (typeof rawFromConfig?.port === 'number') {
+                    port = rawFromConfig.port;
+                } else if (typeof rawFromConfig?.port === 'string') {
+                    if (Array.isArray(rawFromConfig.port)) {
+                        port = Number(rawFromConfig.port[0]);
+                    } else if (rawFromConfig.port.includes(',')) {
+                        const ports = rawFromConfig.port.split(',');
+                        port = Number(ports[0]);
+                    } else {
+                        port = 0;
+                    }
+                }
 
                 result.push(
                     new GetFullInboundsResponseModel(
