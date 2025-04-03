@@ -88,6 +88,7 @@ export class SubscriptionService {
                     clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.MIHOMO;
                     break;
                 case REQUEST_TEMPLATE_TYPE.XRAY_JSON:
+                case REQUEST_TEMPLATE_TYPE.V2RAY_JSON:
                     clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON;
                     break;
                 case REQUEST_TEMPLATE_TYPE.CLASH:
