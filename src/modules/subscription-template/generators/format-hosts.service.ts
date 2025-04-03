@@ -44,21 +44,23 @@ export class FormatHostsService {
                 return formattedHosts;
             }
 
-            switch (user.status) {
-                case USERS_STATUS.EXPIRED:
-                    specialRemarks = settings.expiredUsersRemarks;
-                    break;
-                case USERS_STATUS.DISABLED:
-                    specialRemarks = settings.disabledUsersRemarks;
-                    break;
-                case USERS_STATUS.LIMITED:
-                    specialRemarks = settings.limitedUsersRemarks;
-                    break;
+            if (settings.isShowCustomRemarks) {
+                switch (user.status) {
+                    case USERS_STATUS.EXPIRED:
+                        specialRemarks = settings.expiredUsersRemarks;
+                        break;
+                    case USERS_STATUS.DISABLED:
+                        specialRemarks = settings.disabledUsersRemarks;
+                        break;
+                    case USERS_STATUS.LIMITED:
+                        specialRemarks = settings.limitedUsersRemarks;
+                        break;
+                }
+
+                formattedHosts.push(...this.createFallbackHosts(specialRemarks));
+
+                return formattedHosts;
             }
-
-            formattedHosts.push(...this.createFallbackHosts(specialRemarks));
-
-            return formattedHosts;
         }
 
         if (hosts.length === 0 && user.activeUserInbounds.length > 0) {
@@ -84,6 +86,8 @@ export class FormatHostsService {
 
             return formattedHosts;
         }
+
+        const publicKeyMap = await config.resolveInboundAndPublicKey();
 
         for (const inputHost of hosts) {
             const inbound = config.getInbound(inputHost.inboundTag.tag);
@@ -174,31 +178,9 @@ export class FormatHostsService {
                     const realitySettings = inbound.streamSettings?.realitySettings;
                     sniFromConfig = realitySettings?.serverNames?.[0];
                     fingerprintFromConfig = realitySettings?.fingerprint;
+                    // publicKeyFromConfig = realitySettings?.publicKey || realitySettings?.password;
 
-                    // TODO: Implement public key generation
-
-                    // try {
-                    //     const configPrivateKey = realitySettings!.privateKey;
-
-                    //     for (let i = 0; i < 100; i++) {
-                    //         console.time('genPublicKeyNodeCrypto');
-                    //         const { publicKey } = this.createX25519KeyPairFromBase64(
-                    //             configPrivateKey!,
-                    //         );
-                    //         const base64PublicKey = publicKey
-                    //             .export({
-                    //                 format: 'der',
-                    //                 type: 'spki',
-                    //             })
-                    //             .toString('base64url');
-
-                    //         console.timeEnd('genPublicKeyNodeCrypto');
-                    //     }
-                    // } catch (error) {
-                    //     console.log(error);
-                    // }
-
-                    publicKeyFromConfig = realitySettings?.publicKey || realitySettings?.password;
+                    publicKeyFromConfig = publicKeyMap.get(inbound.tag);
 
                     spiderXFromConfig = realitySettings?.spiderX;
                     const shortIds = inbound.streamSettings?.realitySettings?.shortIds || [];

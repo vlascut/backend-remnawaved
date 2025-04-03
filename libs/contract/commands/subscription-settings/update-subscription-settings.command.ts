@@ -16,6 +16,7 @@ export namespace UpdateSubscriptionSettingsCommand {
         isProfileWebpageUrlEnabled: z.optional(z.boolean()),
         serveJsonAtBaseSubscription: z.optional(z.boolean()),
         addUsernameToBaseSubscription: z.optional(z.boolean()),
+        isShowCustomRemarks: z.optional(z.boolean()),
 
         happAnnounce: z.optional(
             z

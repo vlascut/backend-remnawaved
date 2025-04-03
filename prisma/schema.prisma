@@ -279,6 +279,7 @@ model SubscriptionSettings {
   addUsernameToBaseSubscription Boolean @default(false) @map("add_username_to_base_subscription")
   happAnnounce                  String? @map("happ_announce")
   happRouting                   String? @map("happ_routing")
+  isShowCustomRemarks           Boolean @default(true) @map("is_show_custom_remarks")
   expiredUsersRemarks           Json    @map("expired_users_remarks")
   limitedUsersRemarks           Json    @map("limited_users_remarks")
   disabledUsersRemarks          Json    @map("disabled_users_remarks")

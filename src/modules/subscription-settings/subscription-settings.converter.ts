@@ -19,6 +19,7 @@ const entityToModel = (entity: SubscriptionSettingsEntity): SubscriptionSettings
         isProfileWebpageUrlEnabled: entity.isProfileWebpageUrlEnabled,
         serveJsonAtBaseSubscription: entity.serveJsonAtBaseSubscription,
         addUsernameToBaseSubscription: entity.addUsernameToBaseSubscription,
+        isShowCustomRemarks: entity.isShowCustomRemarks,
 
         happAnnounce: entity.happAnnounce,
         happRouting: entity.happRouting,

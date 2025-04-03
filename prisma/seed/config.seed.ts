@@ -663,6 +663,7 @@ async function seedSubscriptionSettings() {
             disabledUsersRemarks: disabledUserRemarks,
             serveJsonAtBaseSubscription: false,
             addUsernameToBaseSubscription: false,
+            isShowCustomRemarks: true,
         },
     });
 }

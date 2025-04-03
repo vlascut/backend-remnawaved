@@ -13,6 +13,7 @@ export const SubscriptionSettingsSchema = z.object({
     isProfileWebpageUrlEnabled: z.boolean(),
     serveJsonAtBaseSubscription: z.boolean(),
     addUsernameToBaseSubscription: z.boolean(),
+    isShowCustomRemarks: z.boolean(),
 
     happAnnounce: z.string().nullable(),
     happRouting: z.string().nullable(),
