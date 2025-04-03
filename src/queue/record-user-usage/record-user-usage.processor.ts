@@ -121,7 +121,7 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
             });
 
             await this.bulkIncrementUsedTraffic({
-                userUsageList,
+                userUsageList: userUsageList.sort((a, b) => a.userUuid.localeCompare(b.userUuid)),
             });
         }
 
