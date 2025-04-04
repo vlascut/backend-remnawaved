@@ -101,8 +101,6 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
         isConnected: boolean,
         message: string | undefined,
     ) {
-        this.logger.warn(`Can't get system stats for node ${nodeUuid}, error: ${message}`);
-
         const newNodeEntity = await this.updateNode({
             node: {
                 uuid: nodeUuid,
