@@ -4,9 +4,9 @@ import { TUsersStatus } from '@libs/contracts/constants';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces/last-connected-node';
 import { InboundsEntity } from '@modules/inbounds/entities';
 
-import { IUserWithLifetimeTraffic } from '../interfaces';
+import { IUserWithAsiAndLastConnectedNode } from '../interfaces';
 
-export class UserWithLifetimeTrafficEntity {
+export class UserWithAiAndLcnRawEntity {
     public uuid: string;
     public subscriptionUuid: string;
     public shortUuid: string;
@@ -40,7 +40,7 @@ export class UserWithLifetimeTrafficEntity {
 
     public lastConnectedNode: null | ILastConnectedNode;
 
-    constructor(user: Partial<IUserWithLifetimeTraffic>) {
+    constructor(user: Partial<IUserWithAsiAndLastConnectedNode>) {
         Object.assign(this, user);
 
         if (user.activeUserInbounds) {
@@ -53,10 +53,10 @@ export class UserWithLifetimeTrafficEntity {
             }));
         }
 
-        if (user.nodesUserUsageHistory && user.nodesUserUsageHistory.length > 0) {
+        if (user.lastConnectedNode) {
             this.lastConnectedNode = {
-                nodeName: user.nodesUserUsageHistory[0].node.name,
-                connectedAt: user.nodesUserUsageHistory[0].updatedAt,
+                nodeName: user.lastConnectedNode.nodeName,
+                connectedAt: user.lastConnectedNode.connectedAt,
             };
         } else {
             this.lastConnectedNode = null;

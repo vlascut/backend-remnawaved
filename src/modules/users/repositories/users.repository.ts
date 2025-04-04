@@ -25,15 +25,19 @@ import {
     UserForConfigEntity,
     UserWithActiveInboundsAndLastConnectedNodeEntity,
     UserWithActiveInboundsEntity,
-    UserWithLifetimeTrafficEntity,
+    UserWithAiAndLcnRawEntity,
 } from '../entities';
 import {
+    INCLUDE_ACTIVE_USER_INBOUNDS,
     IUserOnlineStats,
     IUserStats,
     USER_INCLUDE_INBOUNDS,
     USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
-    USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
 } from '../interfaces';
+import {
+    ILastConnectedNodeFromBuilder,
+    UsersLastConnectedNodeBuilder,
+} from '../builders/last-connected-node';
 import { UserConverter } from '../users.converter';
 
 dayjs.extend(utc);
@@ -306,7 +310,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         filters,
         filterModes,
         sorting,
-    }: GetAllUsersV2Command.RequestQuery): Promise<[UserWithLifetimeTrafficEntity[], number]> {
+    }: GetAllUsersV2Command.RequestQuery): Promise<[UserWithAiAndLcnRawEntity[], number]> {
         const where = filters?.reduce((acc, filter) => {
             const mode = filterModes?.[filter.id] || 'contains';
 
@@ -389,13 +393,30 @@ export class UsersRepository implements ICrud<UserEntity> {
                 take: size,
                 where,
                 orderBy,
-                include: USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
+                include: INCLUDE_ACTIVE_USER_INBOUNDS,
             }),
             this.prisma.tx.users.count({ where }),
         ]);
 
+        let histories: ILastConnectedNodeFromBuilder[] = [];
+        if (users.length > 0) {
+            const { query } = new UsersLastConnectedNodeBuilder(users.map((u) => u.uuid));
+            histories = await this.prisma.tx.$queryRaw<ILastConnectedNodeFromBuilder[]>(query);
+        }
+
+        const historyMap = new Map(
+            histories.map((h) => [
+                h.userUuid,
+                { nodeName: h.nodeName, connectedAt: h.connectedAt },
+            ]),
+        );
+
         const result = users.map((user) => {
-            return new UserWithLifetimeTrafficEntity(user);
+            const lastHistory = historyMap.get(user.uuid);
+            return new UserWithAiAndLcnRawEntity({
+                ...user,
+                lastConnectedNode: lastHistory,
+            });
         });
 
         return [result, total];

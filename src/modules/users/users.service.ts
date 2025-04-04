@@ -45,7 +45,7 @@ import {
 import {
     UserWithActiveInboundsEntity,
     UserEntity,
-    UserWithLifetimeTrafficEntity,
+    UserWithAiAndLcnRawEntity,
     UserWithActiveInboundsAndLastConnectedNodeEntity,
 } from './entities';
 import {
@@ -414,7 +414,7 @@ export class UsersService {
     public async getAllUsersV2(dto: GetAllUsersV2Command.RequestQuery): Promise<
         ICommandResponse<{
             total: number;
-            users: UserWithLifetimeTrafficEntity[];
+            users: UserWithAiAndLcnRawEntity[];
         }>
     > {
         try {

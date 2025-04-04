@@ -4,6 +4,7 @@ import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces
 
 import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
 import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+import { UserWithAiAndLcnRawEntity } from '../entities';
 
 export class GetFullUserResponseModel {
     public readonly uuid: string;
@@ -36,7 +37,10 @@ export class GetFullUserResponseModel {
 
     public readonly lastConnectedNode: ILastConnectedNode | null;
 
-    constructor(entity: UserWithActiveInboundsAndLastConnectedNodeEntity, subPublicDomain: string) {
+    constructor(
+        entity: UserWithActiveInboundsAndLastConnectedNodeEntity | UserWithAiAndLcnRawEntity,
+        subPublicDomain: string,
+    ) {
         this.uuid = entity.uuid;
         this.username = entity.username;
         this.shortUuid = entity.shortUuid;

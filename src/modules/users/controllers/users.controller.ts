@@ -66,7 +66,6 @@ import {
     GetAllUsersResponseModel,
     GetFullUserResponseModel,
     GetUserResponseModel,
-    UserWithLifetimeTrafficResponseModel,
 } from '../models';
 import {
     GetUserByTelegramIdRequestDto,
@@ -164,7 +163,7 @@ export class UsersController {
             response: new GetAllUsersResponseModel({
                 total: data.total,
                 users: data.users.map(
-                    (item) => new UserWithLifetimeTrafficResponseModel(item, this.subPublicDomain),
+                    (item) => new GetFullUserResponseModel(item, this.subPublicDomain),
                 ),
             }),
         };
