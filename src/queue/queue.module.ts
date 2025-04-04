@@ -13,6 +13,7 @@ import { BULLBOARD_ROOT } from '@libs/contracts/api';
 import { ExpireUserNotificationsQueueModule } from './expire-user-notifications/expire-user-notifications.module';
 import { BulkUserOperationsQueueModule } from './bulk-user-operations/bulk-user-operations.module';
 import { ResetUserTrafficQueueModule } from './reset-user-traffic/reset-user-traffic.module';
+import { UpdateUsersUsageQueueModule } from './update-users-usage/update-users-usage.module';
 import { NodeHealthCheckQueueModule } from './node-health-check/node-health-check.module';
 import { RecordNodeUsageQueueModule } from './record-node-usage/record-node-usage.module';
 import { RecordUserUsageQueueModule } from './record-user-usage/record-user-usage.module';
@@ -35,6 +36,7 @@ const queueModules = [
     UserJobsQueueModule,
     BulkUserOperationsQueueModule,
     ExpireUserNotificationsQueueModule,
+    UpdateUsersUsageQueueModule,
 
     ...LOGGER_MODULES,
 ];

@@ -1,6 +1,6 @@
 interface IBulkUpdateUsedTraffic {
-    userUuid: string;
-    bytes: bigint;
+    u: string;
+    b: string;
 }
 
 export class BulkIncrementUsedTrafficCommand {

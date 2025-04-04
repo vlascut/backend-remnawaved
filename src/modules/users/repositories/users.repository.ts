@@ -66,17 +66,10 @@ export class UsersRepository implements ICrud<UserEntity> {
     }
 
     public async bulkIncrementUsedTraffic(
-        userUsageList: { userUuid: string; bytes: bigint }[],
+        userUsageList: { u: string; b: string }[],
     ): Promise<number> {
-        const chunkSize = 5_000;
-        let affectedRows = 0;
-        for (let i = 0; i < userUsageList.length; i += chunkSize) {
-            const chunk = userUsageList.slice(i, i + chunkSize);
-            const { query } = new BulkUpdateUserUsedTrafficBuilder(chunk);
-            const result = await this.prisma.tx.$executeRaw<void>(query);
-            affectedRows += result;
-        }
-        return affectedRows;
+        const { query } = new BulkUpdateUserUsedTrafficBuilder(userUsageList);
+        return await this.prisma.tx.$executeRaw<number>(query);
     }
 
     public async changeUserStatus(userUuid: string, status: TUsersStatus): Promise<void> {

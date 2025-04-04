@@ -31,7 +31,7 @@ export class StopNodeQueueService extends AbstractQueueService implements OnAppl
         return this.addJob(StopNodeJobNames.stopNode, payload, {
             removeOnComplete: true,
             removeOnFail: true,
-            jobId: `${StopNodeJobNames.stopNode}-${payload.nodeUuid}`,
+            jobId: `${StopNodeJobNames.stopNode}-${payload.nodeUuid}-${payload.isNeedToBeDeleted}`,
         });
     }
 }
