@@ -928,10 +928,10 @@ export class UsersService {
         inboundUuids: string[],
     ): Promise<ICommandResponse<BulkOperationResponseModel>> {
         try {
-            const usersLenght = usersUuids.length;
+            const usersLength = usersUuids.length;
             const batchLength = 3_000;
 
-            for (let i = 0; i < usersLenght; i += batchLength) {
+            for (let i = 0; i < usersLength; i += batchLength) {
                 const batchUsersUuids = usersUuids.slice(i, i + batchLength);
                 await this.removeInboundsFromUsers(batchUsersUuids);
                 await this.addInboundsToUsers(batchUsersUuids, inboundUuids);
@@ -943,7 +943,7 @@ export class UsersService {
 
             return {
                 isOk: true,
-                response: new BulkOperationResponseModel(usersLenght),
+                response: new BulkOperationResponseModel(usersLength),
             };
         } catch (error) {
             this.logger.error(error);
@@ -1010,7 +1010,7 @@ export class UsersService {
             await this.resetUserTrafficQueueService.resetNoResetUserTraffic();
 
             await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
-                emitter: 'bulkUpdateAllUsers',
+                emitter: 'bulkAllResetUserTraffic',
             });
 
             return {

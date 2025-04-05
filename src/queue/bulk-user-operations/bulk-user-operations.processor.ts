@@ -57,6 +57,10 @@ export class BulkUserOperationsQueueProcessor extends WorkerHost {
             this.logger.error(
                 `Error handling "${BulkUserOperationsJobNames.resetUsersTraffic}" job: ${error}`,
             );
+
+            return {
+                isOk: false,
+            };
         }
     }
 

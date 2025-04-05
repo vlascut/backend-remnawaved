@@ -9,7 +9,7 @@ export namespace SetPortToManyHostsCommand {
 
     export const RequestSchema = z.object({
         uuids: z.array(z.string().uuid()),
-        port: z.number(),
+        port: z.number().int().min(1).max(65535),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

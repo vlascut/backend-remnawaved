@@ -4,7 +4,6 @@ export class GetBaseInboundsResponseModel {
     public uuid: string;
     public tag: string;
     public type: string;
-    public protocol: string;
     public port: number;
     public network: string | null;
     public security: string | null;

@@ -50,7 +50,7 @@ export class WebhookLoggerQueueProcessor extends WorkerHost {
         try {
             if (!this.webhookUrl || !this.webhookSecret) {
                 this.logger.error('Webhook URL or secret is not set');
-                return;
+                return { isOk: false };
             }
 
             const signature = createHmac('sha256', this.webhookSecret)

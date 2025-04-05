@@ -434,7 +434,7 @@ export const ERRORS = {
         httpCode: 500,
     },
     BULK_UPDATE_ALL_USERS_ERROR: {
-        code: 'A087',
+        code: 'A089',
         message: 'Bulk update all users error',
         httpCode: 500,
     },
