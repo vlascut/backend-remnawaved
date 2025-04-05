@@ -2,13 +2,15 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { ICrud } from '@common/types/crud-port';
+import { ICrudWithId } from '@common/types/crud-port';
 
 import { NodesTrafficUsageHistoryEntity } from '../entities/nodes-traffic-usage-history.entity';
 import { NodesTrafficUsageHistoryConverter } from '../nodes-traffic-usage-history.converter';
 
 @Injectable()
-export class NodesTrafficUsageHistoryRepository implements ICrud<NodesTrafficUsageHistoryEntity> {
+export class NodesTrafficUsageHistoryRepository
+    implements ICrudWithId<NodesTrafficUsageHistoryEntity>
+{
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly converter: NodesTrafficUsageHistoryConverter,
@@ -25,9 +27,9 @@ export class NodesTrafficUsageHistoryRepository implements ICrud<NodesTrafficUsa
         return this.converter.fromPrismaModelToEntity(result);
     }
 
-    public async findByUUID(uuid: string): Promise<NodesTrafficUsageHistoryEntity | null> {
+    public async findById(id: number | bigint): Promise<NodesTrafficUsageHistoryEntity | null> {
         const result = await this.prisma.tx.nodesTrafficUsageHistory.findUnique({
-            where: { uuid },
+            where: { id },
         });
         if (!result) {
             return null;
@@ -36,12 +38,12 @@ export class NodesTrafficUsageHistoryRepository implements ICrud<NodesTrafficUsa
     }
 
     public async update({
-        uuid,
+        id,
         ...data
     }: Partial<NodesTrafficUsageHistoryEntity>): Promise<NodesTrafficUsageHistoryEntity> {
         const result = await this.prisma.tx.nodesTrafficUsageHistory.update({
             where: {
-                uuid,
+                id,
             },
             data,
         });
@@ -58,8 +60,8 @@ export class NodesTrafficUsageHistoryRepository implements ICrud<NodesTrafficUsa
         return this.converter.fromPrismaModelsToEntities(list);
     }
 
-    public async deleteByUUID(uuid: string): Promise<boolean> {
-        const result = await this.prisma.tx.nodesTrafficUsageHistory.delete({ where: { uuid } });
+    public async deleteById(id: bigint | number): Promise<boolean> {
+        const result = await this.prisma.tx.nodesTrafficUsageHistory.delete({ where: { id } });
         return !!result;
     }
 }

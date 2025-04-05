@@ -2,7 +2,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { ICrud } from '@common/types/crud-port';
+import { ICrudWithId } from '@common/types/crud-port';
 
 import { RemoveInboundsFromUsersByUuidsBuilder } from '../builders/remove-inbounds-from-users-by-uuids';
 import { AddInboundsToUsersByUuidsBuilder } from '../builders/add-inbounds-to-users-by-uuids';
@@ -12,7 +12,9 @@ import { ActiveUserInboundEntity } from '../entities/active-user-inbound.entity'
 import { AddInboundToUsersBuilder } from '../builders/add-inbound-to-users';
 
 @Injectable()
-export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEntity> {
+export class ActiveUserInboundsRepository
+    implements Omit<ICrudWithId<ActiveUserInboundEntity>, 'findById' | 'deleteById' | 'update'>
+{
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly activeUserInboundsConverter: ActiveUserInboundsConverter,
@@ -72,34 +74,6 @@ export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEnti
         return this.activeUserInboundsConverter.fromPrismaModelToEntity(result);
     }
 
-    public async findByUUID(uuid: string): Promise<ActiveUserInboundEntity | null> {
-        const result = await this.prisma.tx.activeUserInbounds.findUnique({
-            where: { uuid },
-        });
-        if (!result) {
-            return null;
-        }
-        return this.activeUserInboundsConverter.fromPrismaModelToEntity(result);
-    }
-
-    public async update({
-        uuid,
-        ...data
-    }: Partial<ActiveUserInboundEntity>): Promise<ActiveUserInboundEntity> {
-        const model = this.activeUserInboundsConverter.fromEntityToPrismaModel({
-            uuid,
-            ...data,
-        } as ActiveUserInboundEntity);
-        const result = await this.prisma.tx.activeUserInbounds.update({
-            where: { uuid },
-            data: {
-                ...model,
-            },
-        });
-
-        return this.activeUserInboundsConverter.fromPrismaModelToEntity(result);
-    }
-
     public async findByCriteria(
         dto: Partial<ActiveUserInboundEntity>,
     ): Promise<ActiveUserInboundEntity[]> {
@@ -120,11 +94,6 @@ export class ActiveUserInboundsRepository implements ICrud<ActiveUserInboundEnti
             return null;
         }
         return this.activeUserInboundsConverter.fromPrismaModelToEntity(result);
-    }
-
-    public async deleteByUUID(uuid: string): Promise<boolean> {
-        const result = await this.prisma.tx.activeUserInbounds.delete({ where: { uuid } });
-        return !!result;
     }
 
     public async addInboundToUsers(uuid: string): Promise<number> {

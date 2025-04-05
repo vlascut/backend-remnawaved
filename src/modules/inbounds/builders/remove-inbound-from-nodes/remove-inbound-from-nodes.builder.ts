@@ -5,7 +5,6 @@ export class RemoveInboundFromNodesBuilder {
 
     constructor(inboundUuid: string) {
         this.query = this.getQuery(inboundUuid);
-        return this;
     }
 
     public getQuery(inboundUuid: string): Prisma.Sql {

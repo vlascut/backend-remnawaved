@@ -6,7 +6,5 @@ export class BaseInboundEntity extends InboundsEntity {
     constructor(entity: InboundsEntity, port: number) {
         super(entity);
         this.port = port;
-
-        return this;
     }
 }

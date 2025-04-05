@@ -12,7 +12,7 @@ const modelToEntity = (model: UserTrafficHistory): UserTrafficHistoryEntity => {
 
 const entityToModel = (entity: UserTrafficHistoryEntity): UserTrafficHistory => {
     return {
-        uuid: entity.uuid,
+        id: entity.id,
         userUuid: entity.userUuid,
         usedBytes: entity.usedBytes,
         resetAt: entity.resetAt,

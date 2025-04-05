@@ -2,7 +2,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { ICrud } from '@common/types/crud-port';
+import { ICrudHistoricalRecords } from '@common/types/crud-port';
 
 import { IGetUserUsageByRange } from '@modules/users/interfaces';
 
@@ -13,7 +13,9 @@ import { NodesUserUsageHistoryConverter } from '../nodes-user-usage-history.conv
 import { ILastConnectedNode } from '../interfaces';
 
 @Injectable()
-export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHistoryEntity> {
+export class NodesUserUsageHistoryRepository
+    implements ICrudHistoricalRecords<NodesUserUsageHistoryEntity>
+{
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly converter: NodesUserUsageHistoryConverter,
@@ -57,30 +59,6 @@ export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHist
         return this.converter.fromPrismaModelToEntity(result);
     }
 
-    public async findByUUID(uuid: string): Promise<NodesUserUsageHistoryEntity | null> {
-        const result = await this.prisma.tx.nodesUserUsageHistory.findUnique({
-            where: { uuid },
-        });
-        if (!result) {
-            return null;
-        }
-        return this.converter.fromPrismaModelToEntity(result);
-    }
-
-    public async update({
-        uuid,
-        ...data
-    }: Partial<NodesUserUsageHistoryEntity>): Promise<NodesUserUsageHistoryEntity> {
-        const result = await this.prisma.tx.nodesUserUsageHistory.update({
-            where: {
-                uuid,
-            },
-            data,
-        });
-
-        return this.converter.fromPrismaModelToEntity(result);
-    }
-
     public async findByCriteria(
         dto: Partial<NodesUserUsageHistoryEntity>,
     ): Promise<NodesUserUsageHistoryEntity[]> {
@@ -108,11 +86,6 @@ export class NodesUserUsageHistoryRepository implements ICrud<NodesUserUsageHist
             nodeName: result.node.name,
             connectedAt: result.updatedAt,
         };
-    }
-
-    public async deleteByUUID(uuid: string): Promise<boolean> {
-        const result = await this.prisma.tx.nodesUserUsageHistory.delete({ where: { uuid } });
-        return !!result;
     }
 
     public async bulkUpsertUsageHistory(

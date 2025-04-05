@@ -5,3 +5,16 @@ export interface ICrud<ENTITY> {
     findByUUID: (uuid: string) => Promise<ENTITY | null>;
     update: (entity: ENTITY) => Promise<ENTITY | null>;
 }
+
+export interface ICrudWithId<ENTITY> {
+    create: (entity: ENTITY) => Promise<ENTITY>;
+    deleteById: (id: bigint | number) => Promise<boolean>;
+    findByCriteria: (entity: Partial<ENTITY>) => Promise<ENTITY[]>;
+    findById: (id: bigint | number) => Promise<ENTITY | null>;
+    update: (entity: ENTITY) => Promise<ENTITY | null>;
+}
+
+export interface ICrudHistoricalRecords<ENTITY> {
+    create: (entity: ENTITY) => Promise<ENTITY>;
+    findByCriteria: (entity: Partial<ENTITY>) => Promise<ENTITY[]>;
+}

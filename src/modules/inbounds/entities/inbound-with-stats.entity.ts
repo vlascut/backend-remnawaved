@@ -43,7 +43,5 @@ export class InboundWithStatsEntity {
             enabled: Number(data.enabledNodes),
             disabled: Number(data.disabledNodes),
         };
-
-        return this;
     }
 }

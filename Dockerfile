@@ -1,36 +1,35 @@
-FROM node:22 AS build
-WORKDIR /opt/app
+FROM alpine:3.19 AS frontend
+WORKDIR /opt/frontend
 
-RUN apt-get update \
-    && apt-get install -y curl unzip \
+RUN apk add --no-cache curl unzip ca-certificates \
     && curl -L https://github.com/remnawave/frontend/releases/latest/download/remnawave-frontend.zip -o frontend.zip \
-    && unzip frontend.zip -d frontend_temp \
-    && mkdir frontend \
-    && cp -r frontend_temp/dist/* frontend/ \
-    && rm -rf frontend_temp frontend.zip \
-    && apt-get purge -y curl unzip \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && unzip frontend.zip -d frontend_temp
+
+FROM node:22 AS backend-build
+WORKDIR /opt/app
 
 COPY package*.json ./
 COPY prisma ./prisma
 
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 COPY . .
 
-RUN npm run migrate:generate
 RUN npm run build
-RUN npm run build:seed
+
+RUN npm run migrate:generate
+
+RUN npm cache clean --force 
+
+RUN npm prune --omit=dev
 
 FROM node:22
 WORKDIR /opt/app
 
-COPY --from=build /opt/app/dist ./dist
-COPY --from=build /opt/app/frontend ./frontend
-COPY --from=build /opt/app/prisma/schema.prisma ./prisma/
-COPY --from=build /opt/app/prisma/migrations ./prisma/migrations
+COPY --from=backend-build /opt/app/dist ./dist
+COPY --from=frontend /opt/frontend/frontend_temp/dist ./frontend
+COPY --from=backend-build /opt/app/prisma ./prisma
+COPY --from=backend-build /opt/app/node_modules ./node_modules
 
 COPY configs /var/lib/remnawave/configs
 COPY package*.json ./
@@ -39,12 +38,7 @@ COPY libs ./libs
 COPY ecosystem.config.js ./
 COPY docker-entrypoint.sh ./
 
-RUN npm ci --omit=dev --legacy-peer-deps \
-    && npm run migrate:generate \
-    && npm cache clean --force \
-    && npm install pm2 -g \
+RUN npm install pm2 -g \
     && npm link
-
-# CMD [ "npm", "run", "migrate:deploy", "&&", "pm2-runtime", "start", "ecosystem.config.js", "--env", "production" ]
 
 CMD [ "/bin/sh", "docker-entrypoint.sh" ]

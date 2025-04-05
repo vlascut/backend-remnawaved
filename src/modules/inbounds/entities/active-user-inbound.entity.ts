@@ -1,7 +1,6 @@
 import { ActiveUserInbounds } from '@prisma/client';
 
 export class ActiveUserInboundEntity implements ActiveUserInbounds {
-    uuid: string;
     userUuid: string;
     inboundUuid: string;
 

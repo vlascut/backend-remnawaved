@@ -12,7 +12,6 @@ const modelToEntity = (model: NodesUsageHistory): NodesUsageHistoryEntity => {
 
 const entityToModel = (entity: NodesUsageHistoryEntity): NodesUsageHistory => {
     return {
-        uuid: entity.uuid,
         nodeUuid: entity.nodeUuid,
         downloadBytes: entity.downloadBytes,
         uploadBytes: entity.uploadBytes,

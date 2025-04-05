@@ -146,7 +146,7 @@ model NodeInboundExclusions {
 }
 
 model NodesTrafficUsageHistory {
-  uuid         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           BigInt   @id @default(autoincrement())
   nodeUuid     String   @map("node_uuid") @db.Uuid
   trafficBytes BigInt   @map("traffic_bytes")
   resetAt      DateTime @default(dbgenerated("now()")) @map("reset_at")
@@ -157,7 +157,6 @@ model NodesTrafficUsageHistory {
 }
 
 model NodesUserUsageHistory {
-  uuid          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nodeUuid      String @map("node_uuid") @db.Uuid
   userUuid      String @map("user_uuid") @db.Uuid
   downloadBytes BigInt @map("download_bytes")
@@ -170,12 +169,11 @@ model NodesUserUsageHistory {
   node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
   user Users @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
 
-  @@unique([nodeUuid, userUuid, createdAt])
+  @@id([nodeUuid, userUuid, createdAt])
   @@map("nodes_user_usage_history")
 }
 
 model NodesUsageHistory {
-  uuid          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nodeUuid      String @map("node_uuid") @db.Uuid
   downloadBytes BigInt @map("download_bytes")
   uploadBytes   BigInt @map("upload_bytes")
@@ -185,12 +183,12 @@ model NodesUsageHistory {
 
   node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
 
-  @@unique([nodeUuid, createdAt])
+  @@id([nodeUuid, createdAt])
   @@map("nodes_usage_history")
 }
 
 model UserTrafficHistory {
-  uuid      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        BigInt   @id @default(autoincrement())
   userUuid  String   @map("user_uuid") @db.Uuid
   usedBytes BigInt   @map("used_bytes")
   resetAt   DateTime @default(dbgenerated("now()")) @map("reset_at")
@@ -245,14 +243,13 @@ model Hosts {
 }
 
 model ActiveUserInbounds {
-  uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userUuid    String @map("user_uuid") @db.Uuid
   inboundUuid String @map("inbound_uuid") @db.Uuid
 
   user    Users    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
   inbound Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 
-  @@unique([userUuid, inboundUuid])
+  @@id([userUuid, inboundUuid])
   @@map("active_user_inbounds")
 }
 
