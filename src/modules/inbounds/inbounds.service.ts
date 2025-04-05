@@ -58,7 +58,8 @@ export class InboundsService {
                         const ports = rawFromConfig.port.split(',');
                         port = Number(ports[0]);
                     } else {
-                        port = 0;
+                        const parsedPort = Number(rawFromConfig.port);
+                        port = isNaN(parsedPort) ? 0 : parsedPort;
                     }
                 }
 
@@ -117,7 +118,8 @@ export class InboundsService {
                         const ports = rawFromConfig.port.split(',');
                         port = Number(ports[0]);
                     } else {
-                        port = 0;
+                        const parsedPort = Number(rawFromConfig.port);
+                        port = isNaN(parsedPort) ? 0 : parsedPort;
                     }
                 }
 
