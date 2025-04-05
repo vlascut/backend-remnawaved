@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { LastConnectedNodeSchema, UsersSchema } from '../../models';
+import { ExtendedUsersSchema, UsersSchema } from '../../models';
 import { RESET_PERIODS } from '../../constants';
 import { REST_API } from '../../api';
 
@@ -56,10 +56,7 @@ export namespace UpdateUserCommand {
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({
-        response: UsersSchema.extend({
-            subscriptionUrl: z.string(),
-            lastConnectedNode: LastConnectedNodeSchema,
-        }),
+        response: ExtendedUsersSchema,
     });
 
     export type Response = z.infer<typeof ResponseSchema>;

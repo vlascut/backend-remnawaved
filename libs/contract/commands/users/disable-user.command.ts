@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { UsersSchema, LastConnectedNodeSchema } from '../../models';
+import { ExtendedUsersSchema } from '../../models';
 import { REST_API } from '../../api';
 export namespace DisableUserCommand {
     export const url = REST_API.USERS.DISABLE_USER;
@@ -13,10 +13,7 @@ export namespace DisableUserCommand {
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({
-        response: UsersSchema.extend({
-            subscriptionUrl: z.string(),
-            lastConnectedNode: LastConnectedNodeSchema,
-        }),
+        response: ExtendedUsersSchema,
     });
 
     export type Response = z.infer<typeof ResponseSchema>;

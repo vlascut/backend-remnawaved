@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { UsersSchema } from '../../models/users.schema';
-import { LastConnectedNodeSchema } from '../../models';
+import { ExtendedUsersSchema } from '../../models';
 import { REST_API } from '../../api';
 
 export namespace GetAllUsersV2Command {
@@ -57,12 +56,7 @@ export namespace GetAllUsersV2Command {
 
     export const ResponseSchema = z.object({
         response: z.object({
-            users: z.array(
-                UsersSchema.extend({
-                    subscriptionUrl: z.string(),
-                    lastConnectedNode: LastConnectedNodeSchema,
-                }),
-            ),
+            users: z.array(ExtendedUsersSchema),
             total: z.number(),
         }),
     });

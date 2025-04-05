@@ -1,3 +1,4 @@
+import { createHappCryptoLink } from '@common/utils';
 import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
@@ -37,6 +38,10 @@ export class GetFullUserResponseModel {
 
     public readonly lastConnectedNode: ILastConnectedNode | null;
 
+    public readonly happ: {
+        cryptoLink: string;
+    };
+
     constructor(
         entity: UserWithActiveInboundsAndLastConnectedNodeEntity | UserWithAiAndLcnRawEntity,
         subPublicDomain: string,
@@ -69,5 +74,9 @@ export class GetFullUserResponseModel {
 
         this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
         this.lastConnectedNode = entity.lastConnectedNode;
+
+        this.happ = {
+            cryptoLink: createHappCryptoLink(this.subscriptionUrl),
+        };
     }
 }

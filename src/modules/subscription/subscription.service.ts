@@ -8,6 +8,7 @@ import { TemplateEngine } from '@common/utils/templates/replace-templates-values
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { XRayConfig } from '@common/helpers/xray-config';
+import { createHappCryptoLink } from '@common/utils';
 import {
     ERRORS,
     REQUEST_TEMPLATE_TYPE,
@@ -334,6 +335,9 @@ export class SubscriptionService {
             links,
             ssConfLinks,
             subscriptionUrl,
+            happ: {
+                cryptoLink: createHappCryptoLink(subscriptionUrl),
+            },
         });
     }
 

@@ -16,11 +16,15 @@ export class SubscriptionRawResponse {
     public links: string[];
     public ssConfLinks: Record<string, string>;
     public subscriptionUrl: string;
+    public happ: {
+        cryptoLink: string;
+    };
     constructor(data: SubscriptionRawResponse) {
         this.isFound = data.isFound;
         this.user = data.user;
         this.links = data.links || [];
         this.ssConfLinks = data.ssConfLinks || {};
         this.subscriptionUrl = data.subscriptionUrl;
+        this.happ = data.happ;
     }
 }

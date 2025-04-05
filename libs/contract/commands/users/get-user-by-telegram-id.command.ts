@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { UsersSchema } from '../../models/users.schema';
-import { LastConnectedNodeSchema } from '../../models';
+import { ExtendedUsersSchema } from '../../models';
 import { REST_API } from '../../api';
 
 export namespace GetUserByTelegramIdCommand {
@@ -15,12 +14,7 @@ export namespace GetUserByTelegramIdCommand {
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({
-        response: z.array(
-            UsersSchema.extend({
-                subscriptionUrl: z.string(),
-                lastConnectedNode: LastConnectedNodeSchema,
-            }),
-        ),
+        response: z.array(ExtendedUsersSchema),
     });
 
     export type Response = z.infer<typeof ResponseSchema>;
