@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import dayjs from 'dayjs';
 
 import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
@@ -13,9 +12,7 @@ import {
 import { RawObject } from '@common/helpers/xray-config/interfaces/transport.config';
 import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
 import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
-import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
 import { SECURITY_LAYERS, USERS_STATUS } from '@libs/contracts/constants';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
@@ -57,7 +54,11 @@ export class FormatHostsService {
                         break;
                 }
 
-                formattedHosts.push(...this.createFallbackHosts(specialRemarks));
+                const templatedRemarks = specialRemarks.map((remark) =>
+                    TemplateEngine.formarWithUser(remark, user),
+                );
+
+                formattedHosts.push(...this.createFallbackHosts(templatedRemarks));
 
                 return formattedHosts;
             }
@@ -96,17 +97,7 @@ export class FormatHostsService {
                 continue;
             }
 
-            const remark = TemplateEngine.replace(inputHost.remark, {
-                DAYS_LEFT: dayjs(user.expireAt).diff(dayjs(), 'day'),
-                TRAFFIC_USED: prettyBytesUtil(user.usedTrafficBytes, true, 3),
-                TRAFFIC_LEFT: prettyBytesUtil(
-                    user.trafficLimitBytes - user.usedTrafficBytes,
-                    true,
-                    3,
-                ),
-                TOTAL_TRAFFIC: prettyBytesUtil(user.trafficLimitBytes, true, 3),
-                STATUS: USER_STATUSES_TEMPLATE[user.status],
-            });
+            const remark = TemplateEngine.formarWithUser(inputHost.remark, user);
 
             const address = inputHost.address;
             const port = inputHost.port;
