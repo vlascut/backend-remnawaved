@@ -123,6 +123,21 @@ export class NodesEvents {
         });
     }
 
+    @OnEvent(EVENTS.NODE.DELETED)
+    async onNodeDeleted(event: NodeEvent): Promise<void> {
+        const msg = `
+💀 <b>#nodeDeleted</b>
+<b>Node deleted</b>
+➖➖➖➖➖➖➖➖➖
+<b>Name:</b> <code>${event.node.name}</code>
+<b>Address:</b> <code>${event.node.address}:${event.node.port}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
+    }
+
     @OnEvent(EVENTS.NODE.TRAFFIC_NOTIFY)
     async onNodeTrafficNotify(event: NodeEvent): Promise<void> {
         const used = prettyBytesUtil(Number(event.node.trafficUsedBytes), true, 3, true);

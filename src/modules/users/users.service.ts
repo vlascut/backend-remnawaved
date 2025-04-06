@@ -785,6 +785,11 @@ export class UsersService {
 
             const lastConnectedNode = await this.getUserLastConnectedNode(newUser.uuid);
 
+            this.eventEmitter.emit(
+                EVENTS.USER.TRAFFIC_RESET,
+                new UserEvent(newUser, EVENTS.USER.TRAFFIC_RESET),
+            );
+
             return {
                 isOk: true,
                 response: {

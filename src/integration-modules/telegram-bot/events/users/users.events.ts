@@ -79,6 +79,20 @@ export class UsersEvents {
         });
     }
 
+    @OnEvent(EVENTS.USER.TRAFFIC_RESET)
+    async onUserTrafficReset(event: UserEvent): Promise<void> {
+        const msg = `
+🔄 <b>#traffic_reset</b>
+➖➖➖➖➖➖➖➖➖
+<b>Username:</b> <code>${event.user.username}</code>
+<b>Traffic:</b> <code>${prettyBytesUtil(event.user.usedTrafficBytes)}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+        });
+    }
+
     @OnEvent(EVENTS.USER.DELETED)
     async onUserDeleted(event: UserEvent): Promise<void> {
         const msg = `
