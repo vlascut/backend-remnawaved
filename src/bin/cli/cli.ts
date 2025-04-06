@@ -3,6 +3,9 @@
 import { PrismaClient } from '@prisma/client';
 import consola from 'consola';
 
+import { encodeCertPayload } from '@common/utils/certs/encode-node-payload';
+import { generateNodeCert } from '@common/utils/certs';
+
 const prisma = new PrismaClient({
     datasources: {
         db: {
@@ -13,6 +16,7 @@ const prisma = new PrismaClient({
 
 const enum CLI_ACTIONS {
     EXIT = 'exit',
+    GET_SSL_CERT_FOR_NODE = 'get-ssl-cert-for-node',
     RESET_CERTS = 'reset-certs',
     RESET_SUPERADMIN = 'reset-superadmin',
 }
@@ -99,8 +103,39 @@ async function resetCerts() {
     }
 }
 
+async function getSslCertForNode() {
+    consola.start('🔑 Getting SSL cert for node...');
+
+    const keygen = await prisma.keygen.findFirst();
+
+    if (!keygen) {
+        consola.error('❌ Keygen not found. Reset certs first or restart Remnawave.');
+        process.exit(1);
+    }
+
+    if (!keygen.caCert || !keygen.caKey) {
+        consola.error('❌ Certs not found. Reset certs first or restart Remnawave.');
+        process.exit(1);
+    }
+
+    const { nodeCertPem, nodeKeyPem } = await generateNodeCert(keygen.caCert, keygen.caKey);
+
+    const nodePayload = encodeCertPayload({
+        nodeCertPem,
+        nodeKeyPem,
+        caCertPem: keygen.caCert,
+        jwtPublicKey: keygen.pubKey,
+    });
+
+    consola.success('✅ SSL cert for node generated successfully.');
+
+    consola.info(`\nSSL_CERT="${nodePayload}"`);
+
+    process.exit(0);
+}
+
 async function main() {
-    consola.box('Remnawave Rescue CLI v0.1');
+    consola.box('Remnawave Rescue CLI v0.2');
 
     consola.start('🌱 Checking database connection...');
     const isConnected = await checkDatabaseConnection();
@@ -125,6 +160,11 @@ async function main() {
                 hint: 'Fully reset certs',
             },
             {
+                value: CLI_ACTIONS.GET_SSL_CERT_FOR_NODE,
+                label: 'Get SSL_CERT for a Remnawave Node',
+                hint: 'Get SSL_CERT in cases, where you can not get from Panel',
+            },
+            {
                 value: CLI_ACTIONS.EXIT,
                 label: 'Exit',
             },
@@ -138,6 +178,9 @@ async function main() {
             break;
         case CLI_ACTIONS.RESET_CERTS:
             await resetCerts();
+            break;
+        case CLI_ACTIONS.GET_SSL_CERT_FOR_NODE:
+            await getSslCertForNode();
             break;
         case CLI_ACTIONS.EXIT:
             consola.info('👋 Exiting...');
