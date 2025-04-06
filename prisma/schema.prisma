@@ -75,9 +75,13 @@ model Admin {
 }
 
 model Keygen {
-  uuid    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  privKey String @map("priv_key")
-  pubKey  String @map("pub_key")
+  uuid       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  privKey    String  @map("priv_key")
+  pubKey     String  @map("pub_key")
+  caCert     String? @map("ca_cert")
+  caKey      String? @map("ca_key")
+  clientCert String? @map("client_cert")
+  clientKey  String? @map("client_key")
 
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
@@ -142,7 +146,7 @@ model NodeInboundExclusions {
 }
 
 model NodesTrafficUsageHistory {
-  uuid         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           BigInt   @id @default(autoincrement())
   nodeUuid     String   @map("node_uuid") @db.Uuid
   trafficBytes BigInt   @map("traffic_bytes")
   resetAt      DateTime @default(dbgenerated("now()")) @map("reset_at")
@@ -153,7 +157,6 @@ model NodesTrafficUsageHistory {
 }
 
 model NodesUserUsageHistory {
-  uuid          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nodeUuid      String @map("node_uuid") @db.Uuid
   userUuid      String @map("user_uuid") @db.Uuid
   downloadBytes BigInt @map("download_bytes")
@@ -166,12 +169,11 @@ model NodesUserUsageHistory {
   node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
   user Users @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
 
-  @@unique([nodeUuid, userUuid, createdAt])
+  @@id([nodeUuid, userUuid, createdAt])
   @@map("nodes_user_usage_history")
 }
 
 model NodesUsageHistory {
-  uuid          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nodeUuid      String @map("node_uuid") @db.Uuid
   downloadBytes BigInt @map("download_bytes")
   uploadBytes   BigInt @map("upload_bytes")
@@ -181,12 +183,12 @@ model NodesUsageHistory {
 
   node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
 
-  @@unique([nodeUuid, createdAt])
+  @@id([nodeUuid, createdAt])
   @@map("nodes_usage_history")
 }
 
 model UserTrafficHistory {
-  uuid      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        BigInt   @id @default(autoincrement())
   userUuid  String   @map("user_uuid") @db.Uuid
   usedBytes BigInt   @map("used_bytes")
   resetAt   DateTime @default(dbgenerated("now()")) @map("reset_at")
@@ -219,19 +221,21 @@ model Inbounds {
 }
 
 model Hosts {
-  uuid          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  inboundUuid   String  @map("inbound_uuid") @db.Uuid
-  viewPosition  Int     @default(autoincrement()) @map("view_position")
-  remark        String  @unique @map("remark")
-  address       String  @map("address")
-  port          Int     @map("port")
-  path          String? @map("path")
-  sni           String? @map("sni")
-  host          String? @map("host")
-  alpn          String? @map("alpn") // ENUM: h2, http/1.1, h2,http/1.1 
-  fingerprint   String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
-  allowInsecure Boolean @default(false) @map("allowinsecure")
-  isDisabled    Boolean @default(false) @map("is_disabled")
+  uuid             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  inboundUuid      String  @map("inbound_uuid") @db.Uuid
+  viewPosition     Int     @default(autoincrement()) @map("view_position")
+  remark           String  @unique @map("remark")
+  address          String  @map("address")
+  port             Int     @map("port")
+  path             String? @map("path")
+  sni              String? @map("sni")
+  host             String? @map("host")
+  alpn             String? @map("alpn") // ENUM: h2, http/1.1, h2,http/1.1 
+  fingerprint      String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
+  securityLayer    String  @default("DEFAULT") @map("security_layer") // ENUM: DEFAULT, TLS, NONE
+  allowInsecure    Boolean @default(false) @map("allowinsecure")
+  xHttpExtraParams Json?   @map("xhttp_extra_params")
+  isDisabled       Boolean @default(false) @map("is_disabled")
 
   inboundTag Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 
@@ -239,14 +243,13 @@ model Hosts {
 }
 
 model ActiveUserInbounds {
-  uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userUuid    String @map("user_uuid") @db.Uuid
   inboundUuid String @map("inbound_uuid") @db.Uuid
 
   user    Users    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
   inbound Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
 
-  @@unique([userUuid, inboundUuid])
+  @@id([userUuid, inboundUuid])
   @@map("active_user_inbounds")
 }
 
@@ -273,6 +276,7 @@ model SubscriptionSettings {
   addUsernameToBaseSubscription Boolean @default(false) @map("add_username_to_base_subscription")
   happAnnounce                  String? @map("happ_announce")
   happRouting                   String? @map("happ_routing")
+  isShowCustomRemarks           Boolean @default(true) @map("is_show_custom_remarks")
   expiredUsersRemarks           Json    @map("expired_users_remarks")
   limitedUsersRemarks           Json    @map("limited_users_remarks")
   disabledUsersRemarks          Json    @map("disabled_users_remarks")

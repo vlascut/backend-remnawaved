@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 import { IReorderHost } from 'src/modules/hosts/interfaces/reorder-host.interface';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -5,6 +7,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
+import { TSecurityLayers } from '@libs/contracts/constants';
 
 import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
 import { HostsEntity } from '../entities/hosts.entity';
@@ -20,7 +23,10 @@ export class HostsRepository implements ICrud<HostsEntity> {
     public async create(entity: HostsEntity): Promise<HostsEntity> {
         const model = this.hostsConverter.fromEntityToPrismaModel(entity);
         const result = await this.prisma.tx.hosts.create({
-            data: model,
+            data: {
+                ...model,
+                xHttpExtraParams: model.xHttpExtraParams as Prisma.InputJsonValue,
+            },
         });
 
         return this.hostsConverter.fromPrismaModelToEntity(result);
@@ -41,13 +47,18 @@ export class HostsRepository implements ICrud<HostsEntity> {
             where: {
                 uuid,
             },
-            data,
+            data: {
+                ...data,
+                xHttpExtraParams: data.xHttpExtraParams as Prisma.InputJsonValue,
+            },
         });
 
         return this.hostsConverter.fromPrismaModelToEntity(result);
     }
 
-    public async findByCriteria(dto: Partial<HostsEntity>): Promise<HostsEntity[]> {
+    public async findByCriteria(
+        dto: Omit<Partial<HostsEntity>, 'xHttpExtraParams'>,
+    ): Promise<HostsEntity[]> {
         const list = await this.prisma.tx.hosts.findMany({
             where: dto,
         });
@@ -68,6 +79,42 @@ export class HostsRepository implements ICrud<HostsEntity> {
         return !!result;
     }
 
+    public async deleteMany(uuids: string[]): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.deleteMany({ where: { uuid: { in: uuids } } });
+        return !!result;
+    }
+
+    public async enableMany(uuids: string[]): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { isDisabled: false },
+        });
+        return !!result;
+    }
+
+    public async disableMany(uuids: string[]): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { isDisabled: true },
+        });
+        return !!result;
+    }
+
+    public async setInboundToManyHosts(uuids: string[], inboundUuid: string): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { inboundUuid },
+        });
+        return !!result;
+    }
+
+    public async setPortToManyHosts(uuids: string[], port: number): Promise<boolean> {
+        const result = await this.prisma.tx.hosts.updateMany({
+            where: { uuid: { in: uuids } },
+            data: { port },
+        });
+        return !!result;
+    }
     public async findActiveHostsByUserUuid(userUuid: string): Promise<HostWithInboundTagEntity[]> {
         const list = await this.prisma.tx.hosts.findMany({
             where: {
@@ -92,6 +139,8 @@ export class HostsRepository implements ICrud<HostsEntity> {
             (host) =>
                 new HostWithInboundTagEntity({
                     ...host,
+                    securityLayer: host.securityLayer as TSecurityLayers,
+                    xHttpExtraParams: host.xHttpExtraParams as object,
                 }),
         );
     }

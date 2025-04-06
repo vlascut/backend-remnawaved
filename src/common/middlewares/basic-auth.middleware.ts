@@ -1,5 +1,6 @@
+import { randomBytes, scrypt, scryptSync, timingSafeEqual } from 'node:crypto';
 import { NextFunction, Request, Response } from 'express';
-import * as bcrypt from 'bcrypt';
+import { promisify } from 'node:util';
 
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -9,11 +10,19 @@ export class BasicAuthMiddleware implements NestMiddleware {
     private readonly username: string;
     private readonly password: string;
     private readonly passwordHash: string;
+    private readonly salt: Buffer;
+    private readonly scryptAsync = promisify(scrypt);
 
     constructor(private readonly configService: ConfigService) {
         this.username = this.configService.get<string>('METRICS_USER') || '';
         this.password = this.configService.get<string>('METRICS_PASS') || '';
-        this.passwordHash = bcrypt.hashSync(this.password, 10);
+        this.salt = randomBytes(16);
+        this.passwordHash = this.hashPassword(this.password);
+    }
+
+    private hashPassword(password: string): string {
+        const hash = scryptSync(password, this.salt, 64).toString('hex');
+        return `${this.salt.toString('hex')}:${hash}`;
     }
 
     async use(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -33,7 +42,7 @@ export class BasicAuthMiddleware implements NestMiddleware {
             return;
         }
 
-        const isPasswordValid = await bcrypt.compare(password, this.passwordHash);
+        const isPasswordValid = await this.verifyPassword(password);
 
         if (!isPasswordValid) {
             this.sendUnauthorizedResponse(res);
@@ -41,6 +50,14 @@ export class BasicAuthMiddleware implements NestMiddleware {
         }
 
         next();
+    }
+
+    private async verifyPassword(password: string): Promise<boolean> {
+        const [saltHex, storedHash] = this.passwordHash.split(':');
+        const salt = Buffer.from(saltHex, 'hex');
+
+        const hash = (await this.scryptAsync(password, salt, 64)) as Buffer;
+        return timingSafeEqual(Buffer.from(storedHash), Buffer.from(hash.toString('hex')));
     }
 
     private sendUnauthorizedResponse(res: Response): void {

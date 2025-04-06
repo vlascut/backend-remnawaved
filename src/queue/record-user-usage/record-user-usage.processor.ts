@@ -1,5 +1,5 @@
-import pMap from '@cjs-exporter/p-map';
 import { Job } from 'bullmq';
+import pMap from 'p-map';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -12,12 +12,13 @@ import { fromNanoToNumber } from '@common/utils/nano';
 import { AxiosService } from '@common/axios';
 
 import { BulkUpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/bulk-upsert-user-history-entry';
-import { BulkIncrementUsedTrafficCommand } from '@modules/users/commands/bulk-increment-used-traffic';
 import { NodesUserUsageHistoryEntity } from '@modules/nodes-user-usage-history/entities';
 import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities';
 import { NodesEntity } from '@modules/nodes';
+
+import { UpdateUsersUsageQueueService } from '@queue/update-users-usage/update-users-usage.service';
 
 import { RecordUserUsagePayload } from './interfaces';
 import { RecordUserUsageJobNames } from './enums';
@@ -33,6 +34,7 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
         private readonly axios: AxiosService,
+        private readonly updateUsersUsageQueueService: UpdateUsersUsageQueueService,
     ) {
         super();
     }
@@ -84,7 +86,7 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
         });
 
         let allUsageRecords: NodesUserUsageHistoryEntity[] = [];
-        let userUsageList: { userUuid: string; bytes: bigint }[] = [];
+        let userUsageList: { u: string; b: string }[] = [];
 
         if (users.length > 0) {
             await pMap(
@@ -109,8 +111,8 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
                     );
 
                     userUsageList.push({
-                        userUuid,
-                        bytes: this.multiplyConsumption(consumptionMultiplier, totalBytes),
+                        u: userUuid,
+                        b: this.multiplyConsumption(consumptionMultiplier, totalBytes).toString(),
                     });
                 },
                 { concurrency: 40 },
@@ -120,9 +122,7 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
                 userUsageHistoryList: allUsageRecords,
             });
 
-            await this.bulkIncrementUsedTraffic({
-                userUsageList: userUsageList.sort((a, b) => a.userUuid.localeCompare(b.userUuid)),
-            });
+            await this.updateUsersUsageQueueService.updateUserUsage(userUsageList);
         }
 
         await this.updateNode({
@@ -153,14 +153,6 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
     ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<BulkUpsertUserHistoryEntryCommand, ICommandResponse<void>>(
             new BulkUpsertUserHistoryEntryCommand(dto.userUsageHistoryList),
-        );
-    }
-
-    private async bulkIncrementUsedTraffic(
-        dto: BulkIncrementUsedTrafficCommand,
-    ): Promise<ICommandResponse<number>> {
-        return this.commandBus.execute<BulkIncrementUsedTrafficCommand, ICommandResponse<number>>(
-            new BulkIncrementUsedTrafficCommand(dto.userUsageList),
         );
     }
 

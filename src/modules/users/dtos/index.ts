@@ -1,3 +1,4 @@
+export * from './activate-all-inbounds.dto';
 export * from './bulk';
 export * from './create-user.dto';
 export * from './delete-user.dto';
@@ -8,6 +9,7 @@ export * from './get-user-by-short-uuid.dto';
 export * from './get-user-by-subscription-uuid.dto';
 export * from './get-user-by-username.dto';
 export * from './get-user-by-uuid.dto';
+export * from './get-user-usage-by-range.dto';
 export * from './reset-user-traffic.dto';
 export * from './revoke-user-subscription.dto';
 export * from './update-user.dto';

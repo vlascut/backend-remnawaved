@@ -5,7 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { getJWTConfig } from '@common/config/jwt/jwt.config';
 
 import { KeygenRepository } from './repositories/keygen.repository';
-import { KeygenController } from './keygen.cotroller';
+import { KeygenController } from './keygen.controller';
 import { KeygenConverter } from './keygen.converter';
 import { KeygenService } from './keygen.service';
 import { COMMANDS } from './commands';

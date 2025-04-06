@@ -4,6 +4,7 @@ export const REQUEST_TEMPLATE_TYPE = {
     SINGBOX_LEGACY: 'singbox-legacy',
     MIHOMO: 'mihomo',
     XRAY_JSON: 'json',
+    V2RAY_JSON: 'v2ray-json',
     CLASH: 'clash',
 } as const;
 

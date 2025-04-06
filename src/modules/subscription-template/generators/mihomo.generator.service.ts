@@ -137,7 +137,7 @@ export class MihomoGeneratorService {
             network: host.network || 'tcp',
             tls: ['reality', 'tls'].includes(host.tls),
             sni: host.sni || '',
-            host: host.host[0],
+            host: host.host,
             path: host.path || '',
             headers: '',
             udp: true,
@@ -150,7 +150,14 @@ export class MihomoGeneratorService {
         switch (host.protocol) {
             case 'vless':
                 node.uuid = host.password.vlessPassword;
-                node.flow = 'xtls-rprx-vision';
+
+                if (
+                    ['raw', 'tcp'].includes(host.network) &&
+                    host.headerType !== 'http' &&
+                    ['reality', 'tls'].includes(host.tls)
+                ) {
+                    node.flow = 'xtls-rprx-vision';
+                }
 
                 // if (
                 //     ['tcp', 'raw', 'kcp'].includes(host.network) &&

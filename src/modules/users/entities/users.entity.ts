@@ -13,11 +13,11 @@ export class UserEntity implements Users {
 
     public trafficLimitBytes: bigint;
     public trafficLimitStrategy: TResetPeriods;
-    public subLastUserAgent: string;
-    public subLastOpenedAt: Date;
+    public subLastUserAgent: string | null;
+    public subLastOpenedAt: Date | null;
 
     public expireAt: Date;
-    public onlineAt: Date;
+    public onlineAt: Date | null;
     public subRevokedAt: Date | null;
     public lastTrafficResetAt: Date | null;
 

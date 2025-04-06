@@ -3,10 +3,13 @@ import { UpdateSubLastOpenedAndUserAgentHandler } from './update-sub-last-opened
 import { BatchResetLimitedUsersTrafficHandler } from './batch-reset-limited-users-traffic';
 import { BulkIncrementUsedTrafficHandler } from './bulk-increment-used-traffic';
 import { UpdateExceededTrafficUsersHandler } from './update-exceeded-users';
+import { RevokeUserSubscriptionHandler } from './revoke-user-subscription';
 import { BatchResetUserTrafficHandler } from './batch-reset-user-traffic';
+import { UpdateUserWithServiceHandler } from './update-user-with-service';
 import { IncrementUsedTrafficHandler } from './increment-used-traffic';
 import { UpdateExpiredUsersHandler } from './update-expired-users';
 import { ChangeUserStatusHandler } from './change-user-status';
+import { ResetUserTrafficHandler } from './reset-user-traffic';
 
 export const COMMANDS = [
     IncrementUsedTrafficHandler,
@@ -18,4 +21,7 @@ export const COMMANDS = [
     UpdateExceededTrafficUsersHandler,
     BatchResetLimitedUsersTrafficHandler,
     BulkIncrementUsedTrafficHandler,
+    RevokeUserSubscriptionHandler,
+    ResetUserTrafficHandler,
+    UpdateUserWithServiceHandler,
 ];

@@ -1,5 +1,5 @@
-import pMap from '@cjs-exporter/p-map';
 import { Job } from 'bullmq';
+import pMap from 'p-map';
 
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
@@ -54,6 +54,8 @@ export class ResetUserTrafficQueueProcessor extends WorkerHost {
                 return this.handleResetUserTraffic(job, RESET_PERIODS.MONTH);
             case ResetUserTrafficJobNames.resetWeeklyUserTraffic:
                 return this.handleResetUserTraffic(job, RESET_PERIODS.WEEK);
+            case ResetUserTrafficJobNames.resetNoResetUserTraffic:
+                return this.handleResetUserTraffic(job, RESET_PERIODS.NO_RESET);
             default:
                 this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;

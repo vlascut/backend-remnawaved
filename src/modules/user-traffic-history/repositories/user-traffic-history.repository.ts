@@ -2,13 +2,13 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { ICrud } from '@common/types/crud-port';
+import { ICrudWithId } from '@common/types/crud-port';
 
 import { UserTrafficHistoryEntity } from '../entities/user-traffic-history.entity';
 import { UserTrafficHistoryConverter } from '../user-traffic-history.converter';
 
 @Injectable()
-export class UserTrafficHistoryRepository implements ICrud<UserTrafficHistoryEntity> {
+export class UserTrafficHistoryRepository implements ICrudWithId<UserTrafficHistoryEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly converter: UserTrafficHistoryConverter,
@@ -23,9 +23,9 @@ export class UserTrafficHistoryRepository implements ICrud<UserTrafficHistoryEnt
         return this.converter.fromPrismaModelToEntity(result);
     }
 
-    public async findByUUID(uuid: string): Promise<null | UserTrafficHistoryEntity> {
+    public async findById(id: bigint | number): Promise<null | UserTrafficHistoryEntity> {
         const result = await this.prisma.tx.userTrafficHistory.findUnique({
-            where: { uuid },
+            where: { id },
         });
         if (!result) {
             return null;
@@ -34,12 +34,12 @@ export class UserTrafficHistoryRepository implements ICrud<UserTrafficHistoryEnt
     }
 
     public async update({
-        uuid,
+        id,
         ...data
     }: Partial<UserTrafficHistoryEntity>): Promise<UserTrafficHistoryEntity> {
         const result = await this.prisma.tx.userTrafficHistory.update({
             where: {
-                uuid,
+                id,
             },
             data,
         });
@@ -56,8 +56,8 @@ export class UserTrafficHistoryRepository implements ICrud<UserTrafficHistoryEnt
         return this.converter.fromPrismaModelsToEntities(list);
     }
 
-    public async deleteByUUID(uuid: string): Promise<boolean> {
-        const result = await this.prisma.tx.userTrafficHistory.delete({ where: { uuid } });
+    public async deleteById(id: bigint | number): Promise<boolean> {
+        const result = await this.prisma.tx.userTrafficHistory.delete({ where: { id } });
         return !!result;
     }
 }

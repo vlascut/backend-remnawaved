@@ -1,4 +1,5 @@
-import { readFileSync } from 'fs';
+import { createPublicKey, createPrivateKey, KeyObject } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 
 import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
 
@@ -275,5 +276,69 @@ export class XRayConfig {
         usersByTag.clear();
 
         return this.config;
+    }
+
+    public async resolveInboundAndPublicKey(): Promise<Map<string, string>> {
+        const publicKeyMap = new Map<string, string>();
+
+        for (const inbound of this.config.inbounds) {
+            if (inbound.streamSettings?.realitySettings) {
+                if (inbound.streamSettings.realitySettings.privateKey) {
+                    try {
+                        const { publicKey: jwkPublicKey } =
+                            await this.createX25519KeyPairFromBase64(
+                                inbound.streamSettings.realitySettings.privateKey,
+                            );
+
+                        const publicKeyJwk = jwkPublicKey.export({ format: 'jwk' });
+
+                        if (!publicKeyJwk) {
+                            continue;
+                        }
+
+                        const pubKeyRaw = publicKeyJwk.x;
+
+                        if (!pubKeyRaw) {
+                            continue;
+                        }
+
+                        publicKeyMap.set(inbound.tag, pubKeyRaw);
+                    } catch {
+                        continue;
+                    }
+                }
+            }
+        }
+
+        return publicKeyMap;
+    }
+
+    private async createX25519KeyPairFromBase64(base64PrivateKey: string): Promise<{
+        publicKey: KeyObject;
+        privateKey: KeyObject;
+    }> {
+        return new Promise((resolve, reject) => {
+            try {
+                const rawPrivateKey = Buffer.from(base64PrivateKey, 'base64');
+
+                const jwkPrivateKey = {
+                    kty: 'OKP',
+                    crv: 'X25519',
+                    d: Buffer.from(rawPrivateKey).toString('base64url'),
+                    x: '',
+                };
+
+                const privateKey = createPrivateKey({
+                    key: jwkPrivateKey,
+                    format: 'jwk',
+                });
+
+                const publicKey = createPublicKey(privateKey);
+
+                resolve({ publicKey, privateKey });
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 }

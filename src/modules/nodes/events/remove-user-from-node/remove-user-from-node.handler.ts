@@ -33,7 +33,6 @@ export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNo
 
             const userData: RemoveUserFromNodeCommandSdk.Request = {
                 username: userEntity.username,
-                tags: userEntity.activeUserInbounds.map((inbound) => inbound.tag),
             };
 
             await this.nodeUsersQueue.removeUserFromNodeBulk(

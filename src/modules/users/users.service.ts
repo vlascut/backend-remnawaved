@@ -1,3 +1,4 @@
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { customAlphabet } from 'nanoid';
@@ -8,6 +9,7 @@ import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Transactional } from '@nestjs-cls/transactional';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
@@ -17,41 +19,57 @@ import { UserEvent } from '@integration-modules/telegram-bot/events/users/interf
 
 import { DeleteManyActiveInboundsByUserUuidCommand } from '@modules/inbounds/commands/delete-many-active-inbounds-by-user-uuid';
 import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
+import { RemoveInboundsFromUsersByUuidsCommand } from '@modules/inbounds/commands/remove-inbounds-from-users-by-uuids';
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
 import { CreateManyUserActiveInboundsCommand } from '@modules/inbounds/commands/create-many-user-active-inbounds';
+import { AddInboundsToUsersByUuidsCommand } from '@modules/inbounds/commands/add-inbounds-to-users-by-uuids';
+import { GetUserUsageByRangeQuery } from '@modules/nodes-user-usage-history/queries/get-user-usage-by-range';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
-import { ReaddUserToNodeEvent } from '@modules/nodes/events/readd-user-to-node';
 import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
 import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
 import { InboundsEntity } from '@modules/inbounds/entities';
 
-import {
-    UserWithActiveInboundsEntity,
-    UserEntity,
-    UserWithLifetimeTrafficEntity,
-    UserWithActiveInboundsAndLastConnectedNodeEntity,
-} from './entities';
-import {
-    IGetUserWithLastConnectedNode,
-    IGetUserByUnique,
-    IGetUsersByTelegramIdOrEmail,
-} from './interfaces';
+import { BulkUserOperationsQueueService } from '@queue/bulk-user-operations/bulk-user-operations.service';
+import { ResetUserTrafficQueueService } from '@queue/reset-user-traffic/reset-user-traffic.service';
+import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-nodes.service';
+
 import {
     CreateUserRequestDto,
     UpdateUserRequestDto,
     BulkDeleteUsersByStatusRequestDto,
+    BulkUpdateUsersRequestDto,
+    BulkAllUpdateUsersRequestDto,
 } from './dtos';
+import {
+    UserWithActiveInboundsEntity,
+    UserEntity,
+    UserWithAiAndLcnRawEntity,
+    UserWithActiveInboundsAndLastConnectedNodeEntity,
+} from './entities';
+import {
+    DeleteUserResponseModel,
+    BulkDeleteByStatusResponseModel,
+    BulkOperationResponseModel,
+    BulkAllResponseModel,
+} from './models';
+import {
+    IGetUserWithLastConnectedNode,
+    IGetUserByUnique,
+    IGetUsersByTelegramIdOrEmail,
+    IGetUserUsageByRange,
+} from './interfaces';
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
-import { DeleteUserResponseModel, BulkDeleteByStatusResponseModel } from './models';
 import { UsersRepository } from './repositories/users.repository';
 
 dayjs.extend(utc);
+dayjs.extend(relativeTime);
 
 @Injectable()
 export class UsersService {
     private readonly logger = new Logger(UsersService.name);
+    private readonly shortUuidLength: number;
 
     constructor(
         private readonly userRepository: UsersRepository,
@@ -59,7 +77,13 @@ export class UsersService {
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
         private readonly queryBus: QueryBus,
-    ) {}
+        private readonly configService: ConfigService,
+        private readonly bulkUserOperationsQueueService: BulkUserOperationsQueueService,
+        private readonly startAllNodesQueue: StartAllNodesQueueService,
+        private readonly resetUserTrafficQueueService: ResetUserTrafficQueueService,
+    ) {
+        this.shortUuidLength = this.configService.getOrThrow<number>('SHORT_UUID_LENGTH');
+    }
 
     public async createUser(
         dto: CreateUserRequestDto,
@@ -90,13 +114,10 @@ export class UsersService {
             };
         }
 
-        if (user.response.inboubdsChanged) {
-            this.eventBus.publish(
-                new ReaddUserToNodeEvent(user.response.user, user.response.oldInboundTags),
-            );
-        }
-
-        if (user.response.isNeedToBeAddedToNode) {
+        if (
+            user.response.user.status === USERS_STATUS.ACTIVE &&
+            user.response.isNeedToBeAddedToNode
+        ) {
             this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
         }
 
@@ -119,9 +140,7 @@ export class UsersService {
     @Transactional()
     public async updateUserTransactional(dto: UpdateUserRequestDto): Promise<
         ICommandResponse<{
-            inboubdsChanged: boolean;
             isNeedToBeAddedToNode: boolean;
-            oldInboundTags: string[];
             user: UserWithActiveInboundsEntity;
         }>
     > {
@@ -183,13 +202,15 @@ export class UsersService {
                     trafficLimitBytes !== undefined ? BigInt(trafficLimitBytes) : undefined,
                 trafficLimitStrategy: trafficLimitStrategy || undefined,
                 status: newStatus || undefined,
-                description: description || undefined,
-                telegramId: telegramId ? BigInt(telegramId) : undefined,
-                email: email || undefined,
+                description: description,
+                telegramId:
+                    telegramId !== undefined
+                        ? telegramId === null
+                            ? null
+                            : BigInt(telegramId)
+                        : undefined,
+                email: email,
             });
-
-            let inboundsChanged = false;
-            let oldInboundTags: string[] = [];
 
             if (activeUserInbounds) {
                 const newInboundUuids = activeUserInbounds;
@@ -197,14 +218,11 @@ export class UsersService {
                 const currentInboundUuids =
                     user.activeUserInbounds?.map((inbound) => inbound.uuid) || [];
 
-                oldInboundTags = user.activeUserInbounds?.map((inbound) => inbound.tag) || [];
-
                 const hasChanges =
                     newInboundUuids.length !== currentInboundUuids.length ||
                     !newInboundUuids.every((uuid) => currentInboundUuids.includes(uuid));
 
                 if (hasChanges) {
-                    inboundsChanged = true;
                     await this.deleteManyActiveInboubdsByUserUuid({
                         userUuid: result.uuid,
                     });
@@ -213,6 +231,8 @@ export class UsersService {
                         userUuid: result.uuid,
                         inboundUuids: newInboundUuids,
                     });
+
+                    isNeedToBeAddedToNode = true;
 
                     if (!inboundResult.isOk) {
                         return {
@@ -238,8 +258,6 @@ export class UsersService {
                 isOk: true,
                 response: {
                     user: userWithInbounds,
-                    inboubdsChanged: inboundsChanged,
-                    oldInboundTags: oldInboundTags,
                     isNeedToBeAddedToNode,
                 },
             };
@@ -255,10 +273,10 @@ export class UsersService {
                 if (fields.includes('username')) {
                     return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
                 }
-                if (fields.includes('shortUuid')) {
+                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
                 }
-                if (fields.includes('subscriptionUuid')) {
+                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
                 }
             }
@@ -381,22 +399,22 @@ export class UsersService {
                 if (fields.includes('username')) {
                     return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
                 }
-                if (fields.includes('shortUuid')) {
+                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
                 }
-                if (fields.includes('subscriptionUuid')) {
+                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
                     return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
                 }
             }
 
-            return { isOk: false, ...ERRORS.CREATE_NODE_ERROR };
+            return { isOk: false, ...ERRORS.CREATE_USER_ERROR };
         }
     }
 
     public async getAllUsersV2(dto: GetAllUsersV2Command.RequestQuery): Promise<
         ICommandResponse<{
             total: number;
-            users: UserWithLifetimeTrafficEntity[];
+            users: UserWithAiAndLcnRawEntity[];
         }>
     > {
         try {
@@ -501,9 +519,8 @@ export class UsersService {
                 subRevokedAt: new Date(),
             });
 
-            // ! TODO: add event emitter for revoked subscription
             if (updatedUser.status === USERS_STATUS.ACTIVE) {
-                await this.eventBus.publish(new ReaddUserToNodeEvent(updatedUser));
+                await this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
             }
 
             this.eventEmitter.emit(
@@ -525,6 +542,77 @@ export class UsersService {
             return {
                 isOk: false,
                 ...ERRORS.REVOKE_USER_SUBSCRIPTION_ERROR,
+            };
+        }
+    }
+
+    public async activateAllInbounds(
+        userUuid: string,
+    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+        try {
+            const user = await this.userRepository.getUserByUUID(userUuid);
+            if (!user) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            const allInbounds = await this.getAllInbounds();
+
+            if (!allInbounds.isOk || !allInbounds.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_ALL_INBOUNDS_ERROR,
+                };
+            }
+
+            const inboundUuids = allInbounds.response.map((inbound) => inbound.uuid);
+
+            const inboundResult = await this.createManyUserActiveInbounds({
+                userUuid: user.uuid,
+                inboundUuids: inboundUuids,
+            });
+
+            if (!inboundResult.isOk) {
+                return {
+                    isOk: false,
+                    ...ERRORS.ACTIVATE_ALL_INBOUNDS_ERROR,
+                };
+            }
+
+            const updatedUser = await this.userRepository.getUserByUUID(user.uuid);
+
+            if (!updatedUser) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            if (updatedUser.status === USERS_STATUS.ACTIVE) {
+                await this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
+            }
+
+            this.eventEmitter.emit(
+                EVENTS.USER.MODIFIED,
+                new UserEvent(updatedUser, EVENTS.USER.MODIFIED),
+            );
+
+            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
+
+            return {
+                isOk: true,
+                response: {
+                    user: updatedUser,
+                    lastConnectedNode: lastConnectedNode.response || null,
+                },
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.ACTIVATE_ALL_INBOUNDS_ERROR,
             };
         }
     }
@@ -649,6 +737,7 @@ export class UsersService {
         }
     }
 
+    @Transactional()
     public async resetUserTraffic(
         userUuid: string,
     ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
@@ -696,6 +785,11 @@ export class UsersService {
 
             const lastConnectedNode = await this.getUserLastConnectedNode(newUser.uuid);
 
+            this.eventEmitter.emit(
+                EVENTS.USER.TRAFFIC_RESET,
+                new UserEvent(newUser, EVENTS.USER.TRAFFIC_RESET),
+            );
+
             return {
                 isOk: true,
                 response: {
@@ -731,13 +825,246 @@ export class UsersService {
         }
     }
 
+    public async bulkDeleteUsersByUuid(
+        uuids: string[],
+    ): Promise<ICommandResponse<BulkDeleteByStatusResponseModel>> {
+        try {
+            if (uuids.length === 0) {
+                return {
+                    isOk: true,
+                    response: new BulkOperationResponseModel(0),
+                };
+            }
+
+            const result = await this.userRepository.deleteManyByUuid(uuids);
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkDeleteUsersByUuid',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(result),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_DELETE_USERS_BY_UUID_ERROR,
+            };
+        }
+    }
+
+    public async bulkRevokeUsersSubscription(
+        uuids: string[],
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            // handled one by one
+            await this.bulkUserOperationsQueueService.revokeUsersSubscriptionBulk(uuids);
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(uuids.length),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_REVOKE_USERS_SUBSCRIPTION_ERROR,
+            };
+        }
+    }
+
+    public async bulkResetUserTraffic(
+        uuids: string[],
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            // handled one by one
+            await this.bulkUserOperationsQueueService.resetUserTrafficBulk(uuids);
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(uuids.length),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_RESET_USER_TRAFFIC_ERROR,
+            };
+        }
+    }
+
+    public async bulkUpdateUsers(
+        dto: BulkUpdateUsersRequestDto,
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            if (
+                dto.fields.status === USERS_STATUS.EXPIRED ||
+                dto.fields.status === USERS_STATUS.LIMITED
+            ) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INVALID_USER_STATUS_ERROR,
+                };
+            }
+
+            // handled one by one
+            await this.bulkUserOperationsQueueService.updateUsersBulk({
+                uuids: dto.uuids,
+                fields: dto.fields,
+            });
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(dto.uuids.length),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_UPDATE_USERS_ERROR,
+            };
+        }
+    }
+
+    public async bulkAddInboundsToUsers(
+        usersUuids: string[],
+        inboundUuids: string[],
+    ): Promise<ICommandResponse<BulkOperationResponseModel>> {
+        try {
+            const usersLength = usersUuids.length;
+            const batchLength = 3_000;
+
+            for (let i = 0; i < usersLength; i += batchLength) {
+                const batchUsersUuids = usersUuids.slice(i, i + batchLength);
+                await this.removeInboundsFromUsers(batchUsersUuids);
+                await this.addInboundsToUsers(batchUsersUuids, inboundUuids);
+            }
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkAddInboundsToUsers',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkOperationResponseModel(usersLength),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_ADD_INBOUNDS_TO_USERS_ERROR,
+            };
+        }
+    }
+
+    public async bulkUpdateAllUsers(
+        dto: BulkAllUpdateUsersRequestDto,
+    ): Promise<ICommandResponse<BulkAllResponseModel>> {
+        try {
+            if (dto.status === USERS_STATUS.EXPIRED || dto.status === USERS_STATUS.LIMITED) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INVALID_USER_STATUS_ERROR,
+                };
+            }
+
+            await this.userRepository.bulkUpdateAllUsers({
+                ...dto,
+                trafficLimitBytes:
+                    dto.trafficLimitBytes !== undefined ? BigInt(dto.trafficLimitBytes) : undefined,
+                telegramId:
+                    dto.telegramId !== undefined
+                        ? dto.telegramId === null
+                            ? null
+                            : BigInt(dto.telegramId)
+                        : undefined,
+            });
+
+            if (dto.trafficLimitBytes !== undefined) {
+                await this.userRepository.bulkSyncLimitedUsers();
+            }
+
+            if (dto.expireAt !== undefined) {
+                await this.userRepository.bulkSyncExpiredUsers();
+            }
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkUpdateAllUsers',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkAllResponseModel(true),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_UPDATE_ALL_USERS_ERROR,
+            };
+        }
+    }
+
+    public async bulkAllResetUserTraffic(): Promise<ICommandResponse<BulkAllResponseModel>> {
+        try {
+            await this.resetUserTrafficQueueService.resetDailyUserTraffic();
+            await this.resetUserTrafficQueueService.resetMonthlyUserTraffic();
+            await this.resetUserTrafficQueueService.resetWeeklyUserTraffic();
+            await this.resetUserTrafficQueueService.resetNoResetUserTraffic();
+
+            await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
+                emitter: 'bulkAllResetUserTraffic',
+            });
+
+            return {
+                isOk: true,
+                response: new BulkAllResponseModel(true),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.BULK_RESET_USER_TRAFFIC_ERROR,
+            };
+        }
+    }
+
+    public async getUserUsageByRange(
+        userUuid: string,
+        start: Date,
+        end: Date,
+    ): Promise<ICommandResponse<IGetUserUsageByRange[]>> {
+        try {
+            const startDate = dayjs(start).utc().toDate();
+            const endDate = dayjs(end).utc().toDate();
+
+            const result = await this.getUserUsageByRangeQuery(userUuid, startDate, endDate);
+
+            if (!result.isOk) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_USER_USAGE_BY_RANGE_ERROR,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_USER_USAGE_BY_RANGE_ERROR };
+        }
+    }
     private createUuid(): string {
         return randomUUID();
     }
 
     private createNanoId(): string {
         const alphabet = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ_abcdefghjkmnopqrstuvwxyz-';
-        const nanoid = customAlphabet(alphabet, 16);
+        const nanoid = customAlphabet(alphabet, this.shortUuidLength);
 
         return nanoid();
     }
@@ -804,5 +1131,32 @@ export class UsersService {
             GetUserLastConnectedNodeQuery,
             ICommandResponse<ILastConnectedNode | null>
         >(new GetUserLastConnectedNodeQuery(userUuid));
+    }
+
+    private async removeInboundsFromUsers(userUuids: string[]): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<
+            RemoveInboundsFromUsersByUuidsCommand,
+            ICommandResponse<void>
+        >(new RemoveInboundsFromUsersByUuidsCommand(userUuids));
+    }
+
+    private async addInboundsToUsers(
+        userUuids: string[],
+        inboundUuids: string[],
+    ): Promise<ICommandResponse<void>> {
+        return this.commandBus.execute<AddInboundsToUsersByUuidsCommand, ICommandResponse<void>>(
+            new AddInboundsToUsersByUuidsCommand(userUuids, inboundUuids),
+        );
+    }
+
+    private async getUserUsageByRangeQuery(
+        userUuid: string,
+        start: Date,
+        end: Date,
+    ): Promise<ICommandResponse<IGetUserUsageByRange[]>> {
+        return this.queryBus.execute<
+            GetUserUsageByRangeQuery,
+            ICommandResponse<IGetUserUsageByRange[]>
+        >(new GetUserUsageByRangeQuery(userUuid, start, end));
     }
 }

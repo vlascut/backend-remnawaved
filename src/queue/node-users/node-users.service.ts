@@ -4,11 +4,7 @@ import _ from 'lodash';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 
-import {
-    IRemoveUserFromNodePayload,
-    IAddUserToNodePayload,
-    IReaddUserFromNodePayload,
-} from './interfaces';
+import { IRemoveUserFromNodePayload, IAddUserToNodePayload } from './interfaces';
 import { AbstractQueueService } from '../queue.service';
 import { NodeUsersJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
@@ -34,10 +30,6 @@ export class NodeUsersQueueService extends AbstractQueueService implements OnApp
 
     public async addUsersToNode(payload: IAddUserToNodePayload) {
         return this.addJob(NodeUsersJobNames.addUserToNode, payload);
-    }
-
-    public async readdUserToNode(payload: IReaddUserFromNodePayload) {
-        return this.addJob(NodeUsersJobNames.readdUserToNode, payload);
     }
 
     public async removeUserFromNode(payload: IRemoveUserFromNodePayload) {

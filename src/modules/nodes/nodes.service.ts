@@ -208,6 +208,8 @@ export class NodesService {
                 isNeedToBeDeleted: true,
             });
 
+            this.eventEmitter.emit(EVENTS.NODE.DELETED, new NodeEvent(node, EVENTS.NODE.DELETED));
+
             return {
                 isOk: true,
                 response: new DeleteNodeResponseModel({

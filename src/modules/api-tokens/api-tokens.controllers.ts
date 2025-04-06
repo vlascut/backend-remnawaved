@@ -53,7 +53,11 @@ export class ApiTokensController {
         description:
             'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
     })
-    @ApiResponse({ status: 201, description: 'Token created successfully' })
+    @ApiResponse({
+        status: 201,
+        description: 'Token created successfully',
+        type: CreateApiTokenResponseDto,
+    })
     @HttpCode(HttpStatus.CREATED)
     @Post(API_TOKENS_ROUTES.CREATE)
     async create(@Body() body: CreateApiTokenRequestDto): Promise<CreateApiTokenResponseDto> {
@@ -71,7 +75,11 @@ export class ApiTokensController {
             'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
     })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the API token' })
-    @ApiResponse({ status: 200, description: 'Token deleted successfully' })
+    @ApiResponse({
+        status: 200,
+        description: 'Token deleted successfully',
+        type: DeleteApiTokenResponseDto,
+    })
     @HttpCode(HttpStatus.OK)
     @Delete(`${API_TOKENS_ROUTES.DELETE}/:uuid`)
     async delete(@Param() paramData: DeleteApiTokenRequestDto): Promise<DeleteApiTokenResponseDto> {
@@ -87,7 +95,11 @@ export class ApiTokensController {
         description:
             'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
     })
-    @ApiResponse({ status: 200, description: 'Tokens fetched successfully' })
+    @ApiResponse({
+        status: 200,
+        description: 'Tokens fetched successfully',
+        type: FindAllApiTokensResponseDto,
+    })
     @HttpCode(HttpStatus.OK)
     @Get(API_TOKENS_ROUTES.GET_ALL)
     async findAll(): Promise<FindAllApiTokensResponseDto> {

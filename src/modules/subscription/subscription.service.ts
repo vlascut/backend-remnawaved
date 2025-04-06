@@ -4,9 +4,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 
+import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { XRayConfig } from '@common/helpers/xray-config';
+import { createHappCryptoLink } from '@common/utils';
 import {
     ERRORS,
     REQUEST_TEMPLATE_TYPE,
@@ -88,6 +90,7 @@ export class SubscriptionService {
                     clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.MIHOMO;
                     break;
                 case REQUEST_TEMPLATE_TYPE.XRAY_JSON:
+                case REQUEST_TEMPLATE_TYPE.V2RAY_JSON:
                     clientOverride = SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON;
                     break;
                 case REQUEST_TEMPLATE_TYPE.CLASH:
@@ -332,6 +335,9 @@ export class SubscriptionService {
             links,
             ssConfLinks,
             subscriptionUrl,
+            happ: {
+                cryptoLink: createHappCryptoLink(subscriptionUrl),
+            },
         });
     }
 
@@ -364,7 +370,9 @@ export class SubscriptionService {
         const headers: ISubscriptionHeaders = {
             'content-disposition': `attachment; filename="${user.username}"`,
             'support-url': settings.supportLink,
-            'profile-title': `base64:${Buffer.from(settings.profileTitle).toString('base64')}`,
+            'profile-title': `base64:${Buffer.from(
+                TemplateEngine.formarWithUser(settings.profileTitle, user),
+            ).toString('base64')}`,
             'profile-update-interval': settings.profileUpdateInterval.toString(),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
                 .map(([key, val]) => `${key}=${val}`)
@@ -372,7 +380,9 @@ export class SubscriptionService {
         };
 
         if (isHapp && settings.happAnnounce) {
-            headers.announce = `base64:${Buffer.from(settings.happAnnounce).toString('base64')}`;
+            headers.announce = `base64:${Buffer.from(
+                TemplateEngine.formarWithUser(settings.happAnnounce, user),
+            ).toString('base64')}`;
         }
 
         if (isHapp && settings.happRouting) {

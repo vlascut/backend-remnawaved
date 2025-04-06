@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import dayjs from 'dayjs';
 
 import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
@@ -13,10 +12,8 @@ import {
 import { RawObject } from '@common/helpers/xray-config/interfaces/transport.config';
 import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
 import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
-import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants/templates/user-statuses';
-import { USERS_STATUS } from '@libs/contracts/constants';
+import { SECURITY_LAYERS, USERS_STATUS } from '@libs/contracts/constants';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
@@ -44,44 +41,54 @@ export class FormatHostsService {
                 return formattedHosts;
             }
 
-            switch (user.status) {
-                case USERS_STATUS.EXPIRED:
-                    specialRemarks = settings.expiredUsersRemarks;
-                    break;
-                case USERS_STATUS.DISABLED:
-                    specialRemarks = settings.disabledUsersRemarks;
-                    break;
-                case USERS_STATUS.LIMITED:
-                    specialRemarks = settings.limitedUsersRemarks;
-                    break;
-            }
+            if (settings.isShowCustomRemarks) {
+                switch (user.status) {
+                    case USERS_STATUS.EXPIRED:
+                        specialRemarks = settings.expiredUsersRemarks;
+                        break;
+                    case USERS_STATUS.DISABLED:
+                        specialRemarks = settings.disabledUsersRemarks;
+                        break;
+                    case USERS_STATUS.LIMITED:
+                        specialRemarks = settings.limitedUsersRemarks;
+                        break;
+                }
 
-            specialRemarks.forEach((remark) => {
-                formattedHosts.push({
-                    remark,
-                    address: '0.0.0.0',
-                    port: 0,
-                    protocol: 'trojan',
-                    path: '',
-                    host: '',
-                    tls: 'tls',
-                    sni: '',
-                    alpn: '',
-                    publicKey: '',
-                    fingerprint: '',
-                    shortId: '',
-                    spiderX: '',
-                    network: 'tcp',
-                    password: {
-                        trojanPassword: '00000',
-                        vlessPassword: randomUUID(),
-                        ssPassword: '00000',
-                    },
-                });
-            });
+                const templatedRemarks = specialRemarks.map((remark) =>
+                    TemplateEngine.formarWithUser(remark, user),
+                );
+
+                formattedHosts.push(...this.createFallbackHosts(templatedRemarks));
+
+                return formattedHosts;
+            }
+        }
+
+        if (hosts.length === 0 && user.activeUserInbounds.length > 0) {
+            formattedHosts.push(
+                ...this.createFallbackHosts([
+                    '→ Remnawave',
+                    '→ Did you forget to add hosts?',
+                    '→ No hosts found',
+                ]),
+            );
 
             return formattedHosts;
         }
+
+        if (user.activeUserInbounds.length === 0) {
+            formattedHosts.push(
+                ...this.createFallbackHosts([
+                    '→ Remnawave',
+                    '→ User has no active inbounds',
+                    '→ No active inbounds found',
+                ]),
+            );
+
+            return formattedHosts;
+        }
+
+        const publicKeyMap = await config.resolveInboundAndPublicKey();
 
         for (const inputHost of hosts) {
             const inbound = config.getInbound(inputHost.inboundTag.tag);
@@ -90,17 +97,7 @@ export class FormatHostsService {
                 continue;
             }
 
-            const remark = TemplateEngine.replace(inputHost.remark, {
-                DAYS_LEFT: dayjs(user.expireAt).diff(dayjs(), 'day'),
-                TRAFFIC_USED: prettyBytesUtil(user.usedTrafficBytes, true, 3),
-                TRAFFIC_LEFT: prettyBytesUtil(
-                    user.trafficLimitBytes - user.usedTrafficBytes,
-                    true,
-                    3,
-                ),
-                TOTAL_TRAFFIC: prettyBytesUtil(user.trafficLimitBytes, true, 3),
-                STATUS: USER_STATUSES_TEMPLATE[user.status],
-            });
+            const remark = TemplateEngine.formarWithUser(inputHost.remark, user);
 
             const address = inputHost.address;
             const port = inputHost.port;
@@ -111,6 +108,7 @@ export class FormatHostsService {
             let hostFromConfig: string | undefined;
             let additionalParams: IFormattedHost['additionalParams'] | undefined;
             let headerType: string | undefined;
+            let xHttpExtraParams: null | object | undefined;
 
             switch (network) {
                 case 'xhttp': {
@@ -119,15 +117,11 @@ export class FormatHostsService {
                     pathFromConfig = settings?.path;
                     hostFromConfig = settings?.host;
                     additionalParams = {
-                        scMaxEachPostBytes: settings?.extra?.scMaxEachPostBytes || 1000000,
-                        scMaxBufferedPosts: settings?.extra?.scMaxBufferedPosts || 1000000,
-                        scMaxConcurrentPosts: settings?.extra?.scMaxConcurrentPosts || 100,
-                        scMinPostsIntervalMs: settings?.extra?.scMinPostsIntervalMs || 30,
-                        xPaddingBytes: settings?.extra?.xPaddingBytes || '100-1000',
-                        noGRPCHeader: settings?.extra?.noGRPCHeader || false,
                         heartbeatPeriod: settings?.extra?.heartbeatPeriod || undefined,
                         mode: settings?.mode || 'auto',
                     };
+
+                    xHttpExtraParams = inputHost.xHttpExtraParams;
 
                     break;
                 }
@@ -175,31 +169,9 @@ export class FormatHostsService {
                     const realitySettings = inbound.streamSettings?.realitySettings;
                     sniFromConfig = realitySettings?.serverNames?.[0];
                     fingerprintFromConfig = realitySettings?.fingerprint;
+                    // publicKeyFromConfig = realitySettings?.publicKey || realitySettings?.password;
 
-                    // TODO: Implement public key generation
-
-                    // try {
-                    //     const configPrivateKey = realitySettings!.privateKey;
-
-                    //     for (let i = 0; i < 100; i++) {
-                    //         console.time('genPublicKeyNodeCrypto');
-                    //         const { publicKey } = this.createX25519KeyPairFromBase64(
-                    //             configPrivateKey!,
-                    //         );
-                    //         const base64PublicKey = publicKey
-                    //             .export({
-                    //                 format: 'der',
-                    //                 type: 'spki',
-                    //             })
-                    //             .toString('base64url');
-
-                    //         console.timeEnd('genPublicKeyNodeCrypto');
-                    //     }
-                    // } catch (error) {
-                    //     console.log(error);
-                    // }
-
-                    publicKeyFromConfig = realitySettings?.publicKey;
+                    publicKeyFromConfig = publicKeyMap.get(inbound.tag);
 
                     spiderXFromConfig = realitySettings?.spiderX;
                     const shortIds = inbound.streamSettings?.realitySettings?.shortIds || [];
@@ -215,6 +187,20 @@ export class FormatHostsService {
                 default:
                     tlsFromConfig = '';
                     break;
+            }
+
+            // Security Layer Override
+            if (inputHost.securityLayer !== SECURITY_LAYERS.DEFAULT) {
+                switch (inputHost.securityLayer) {
+                    case SECURITY_LAYERS.TLS:
+                        tlsFromConfig = 'tls';
+                        break;
+                    case SECURITY_LAYERS.NONE:
+                        tlsFromConfig = 'none';
+                        break;
+                    default:
+                        break;
+                }
             }
 
             const protocol = inbound.protocol;
@@ -240,8 +226,10 @@ export class FormatHostsService {
                 sni = inputHost.address;
             }
 
+            // Fingerprint
             const fp = inputHost.fingerprint || fingerprintFromConfig || '';
 
+            // ALPN
             const alpn = inputHost.alpn || alpnFromConfig || '';
 
             // Public key
@@ -274,6 +262,7 @@ export class FormatHostsService {
                     ssPassword: user.ssPassword,
                 },
                 additionalParams,
+                xHttpExtraParams,
             });
         }
 
@@ -291,5 +280,29 @@ export class FormatHostsService {
         }
 
         return settingsResponse.response;
+    }
+
+    private createFallbackHosts(remarks: string[]): IFormattedHost[] {
+        return remarks.map((remark) => ({
+            remark,
+            address: '0.0.0.0',
+            port: 0,
+            protocol: 'trojan',
+            path: '',
+            host: '',
+            tls: 'tls',
+            sni: '',
+            alpn: '',
+            publicKey: '',
+            fingerprint: '',
+            shortId: '',
+            spiderX: '',
+            network: 'tcp',
+            password: {
+                trojanPassword: '00000',
+                vlessPassword: randomUUID(),
+                ssPassword: '00000',
+            },
+        }));
     }
 }

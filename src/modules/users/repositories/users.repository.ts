@@ -25,15 +25,19 @@ import {
     UserForConfigEntity,
     UserWithActiveInboundsAndLastConnectedNodeEntity,
     UserWithActiveInboundsEntity,
-    UserWithLifetimeTrafficEntity,
+    UserWithAiAndLcnRawEntity,
 } from '../entities';
 import {
+    INCLUDE_ACTIVE_USER_INBOUNDS,
     IUserOnlineStats,
     IUserStats,
     USER_INCLUDE_INBOUNDS,
     USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
-    USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
 } from '../interfaces';
+import {
+    ILastConnectedNodeFromBuilder,
+    UsersLastConnectedNodeBuilder,
+} from '../builders/last-connected-node';
 import { UserConverter } from '../users.converter';
 
 dayjs.extend(utc);
@@ -66,17 +70,10 @@ export class UsersRepository implements ICrud<UserEntity> {
     }
 
     public async bulkIncrementUsedTraffic(
-        userUsageList: { userUuid: string; bytes: bigint }[],
+        userUsageList: { u: string; b: string }[],
     ): Promise<number> {
-        const chunkSize = 5_000;
-        let affectedRows = 0;
-        for (let i = 0; i < userUsageList.length; i += chunkSize) {
-            const chunk = userUsageList.slice(i, i + chunkSize);
-            const { query } = new BulkUpdateUserUsedTrafficBuilder(chunk);
-            const result = await this.prisma.tx.$executeRaw<void>(query);
-            affectedRows += result;
-        }
-        return affectedRows;
+        const { query } = new BulkUpdateUserUsedTrafficBuilder(userUsageList);
+        return await this.prisma.tx.$executeRaw<number>(query);
     }
 
     public async changeUserStatus(userUuid: string, status: TUsersStatus): Promise<void> {
@@ -234,6 +231,22 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result.map((value) => new UserWithActiveInboundsEntity(value));
     }
 
+    public async findUsersByExpireAt(
+        start: Date,
+        end: Date,
+    ): Promise<UserWithActiveInboundsEntity[]> {
+        const result = await this.prisma.tx.users.findMany({
+            where: {
+                expireAt: {
+                    gte: start,
+                    lte: end,
+                },
+            },
+            include: USER_INCLUDE_INBOUNDS,
+        });
+        return result.map((value) => new UserWithActiveInboundsEntity(value));
+    }
+
     public async updateExpiredUsers(): Promise<{ uuid: string }[]> {
         const result = await this.prisma.tx.users.updateManyAndReturn({
             select: {
@@ -297,7 +310,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         filters,
         filterModes,
         sorting,
-    }: GetAllUsersV2Command.RequestQuery): Promise<[UserWithLifetimeTrafficEntity[], number]> {
+    }: GetAllUsersV2Command.RequestQuery): Promise<[UserWithAiAndLcnRawEntity[], number]> {
         const where = filters?.reduce((acc, filter) => {
             const mode = filterModes?.[filter.id] || 'contains';
 
@@ -344,13 +357,29 @@ export class UsersRepository implements ICrud<UserEntity> {
             };
         }, {});
 
-        let orderBy = sorting?.reduce(
-            (acc, sort) => ({
+        let orderBy = sorting?.reduce((acc, sort) => {
+            const dateFields = [
+                'lastTrafficResetAt',
+                'subLastOpenedAt',
+                'subRevokedAt',
+                'onlineAt',
+            ];
+
+            if (dateFields.includes(sort.id)) {
+                return {
+                    ...acc,
+                    [sort.id]: {
+                        sort: sort.desc ? 'desc' : 'asc',
+                        nulls: 'last',
+                    },
+                };
+            }
+
+            return {
                 ...acc,
                 [sort.id]: sort.desc ? 'desc' : 'asc',
-            }),
-            {},
-        );
+            };
+        }, {});
 
         if (orderBy === undefined || Object.keys(orderBy).length === 0) {
             orderBy = {
@@ -364,13 +393,30 @@ export class UsersRepository implements ICrud<UserEntity> {
                 take: size,
                 where,
                 orderBy,
-                include: USER_WITH_LIFETIME_TRAFFIC_INCLUDE,
+                include: INCLUDE_ACTIVE_USER_INBOUNDS,
             }),
             this.prisma.tx.users.count({ where }),
         ]);
 
+        let histories: ILastConnectedNodeFromBuilder[] = [];
+        if (users.length > 0) {
+            const { query } = new UsersLastConnectedNodeBuilder(users.map((u) => u.uuid));
+            histories = await this.prisma.tx.$queryRaw<ILastConnectedNodeFromBuilder[]>(query);
+        }
+
+        const historyMap = new Map(
+            histories.map((h) => [
+                h.userUuid,
+                { nodeName: h.nodeName, connectedAt: h.connectedAt },
+            ]),
+        );
+
         const result = users.map((user) => {
-            return new UserWithLifetimeTrafficEntity(user);
+            const lastHistory = historyMap.get(user.uuid);
+            return new UserWithAiAndLcnRawEntity({
+                ...user,
+                lastConnectedNode: lastHistory,
+            });
         });
 
         return [result, total];
@@ -650,5 +696,73 @@ export class UsersRepository implements ICrud<UserEntity> {
         const result = await this.prisma.tx.$queryRaw<UserForConfigEntity[]>(query);
 
         return result;
+    }
+
+    public async deleteManyByUuid(uuids: string[]): Promise<number> {
+        const result = await this.prisma.tx.users.deleteMany({ where: { uuid: { in: uuids } } });
+
+        return result.count;
+    }
+
+    public async bulkUpdateAllUsers(fields: Partial<UserEntity>): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            data: fields,
+        });
+
+        return result.count;
+    }
+
+    public async bulkSyncLimitedUsers(): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            where: {
+                status: 'LIMITED',
+                OR: [
+                    {
+                        usedTrafficBytes: {
+                            lt: this.prisma.tx.users.fields.trafficLimitBytes,
+                        },
+                    },
+                    {
+                        usedTrafficBytes: {
+                            equals: 0n,
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: 'ACTIVE',
+            },
+        });
+
+        return result.count;
+    }
+
+    public async bulkSyncExpiredUsers(): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            where: {
+                status: 'EXPIRED',
+                OR: [
+                    {
+                        expireAt: {
+                            gt: new Date(),
+                        },
+                    },
+                ],
+            },
+            data: {
+                status: 'ACTIVE',
+            },
+        });
+
+        return result.count;
+    }
+
+    public async bulkUpdateUsers(uuids: string[], fields: Partial<UserEntity>): Promise<number> {
+        const result = await this.prisma.tx.users.updateMany({
+            where: { uuid: { in: uuids } },
+            data: fields,
+        });
+
+        return result.count;
     }
 }

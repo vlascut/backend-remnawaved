@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-export interface IUserWithLifetimeTraffic
+export interface IUserWithAsiAndLastConnectedNode
     extends Prisma.UsersGetPayload<{
         include: {
             activeUserInbounds: {
@@ -16,26 +16,15 @@ export interface IUserWithLifetimeTraffic
                     };
                 };
             };
-            nodesUserUsageHistory: {
-                orderBy: {
-                    updatedAt: 'desc';
-                };
-                select: {
-                    node: {
-                        select: {
-                            name: true;
-                        };
-                    };
-                    updatedAt: true;
-                };
-                take: 1;
-            };
         };
     }> {
-    totalUsedBytes?: bigint | null | number | string | undefined;
+    lastConnectedNode: {
+        nodeName: string;
+        connectedAt: Date;
+    };
 }
 
-export const USER_WITH_LIFETIME_TRAFFIC_INCLUDE = {
+export const INCLUDE_ACTIVE_USER_INBOUNDS = {
     activeUserInbounds: {
         select: {
             inbound: {
@@ -49,18 +38,18 @@ export const USER_WITH_LIFETIME_TRAFFIC_INCLUDE = {
             },
         },
     },
-    nodesUserUsageHistory: {
-        orderBy: {
-            updatedAt: 'desc',
-        },
-        select: {
-            node: {
-                select: {
-                    name: true,
-                },
-            },
-            updatedAt: true,
-        },
-        take: 1,
-    },
+    // nodesUserUsageHistory: {
+    //     orderBy: {
+    //         updatedAt: 'desc',
+    //     },
+    //     select: {
+    //         node: {
+    //             select: {
+    //                 name: true,
+    //             },
+    //         },
+    //         updatedAt: true,
+    //     },
+    //     take: 1,
+    // },
 } as const;

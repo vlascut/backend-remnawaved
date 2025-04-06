@@ -6,7 +6,7 @@ import { Logger } from '@nestjs/common';
 import { AxiosService } from '@common/axios';
 
 import { IAddUserToNodePayload } from './interfaces/add-user-to-node.payload.interface';
-import { IReaddUserFromNodePayload, IRemoveUserFromNodePayload } from './interfaces';
+import { IRemoveUserFromNodePayload } from './interfaces';
 import { NodeUsersJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
 
@@ -24,8 +24,6 @@ export class NodeUsersQueueProcessor extends WorkerHost {
         switch (job.name) {
             case NodeUsersJobNames.addUserToNode:
                 return this.handleAddUsersToNode(job);
-            case NodeUsersJobNames.readdUserToNode:
-                return this.handleReaddUserToNode(job);
             case NodeUsersJobNames.removeUserFromNode:
                 return this.handleRemoveUserFromNode(job);
             default:
@@ -68,38 +66,6 @@ export class NodeUsersQueueProcessor extends WorkerHost {
         } catch (error) {
             this.logger.error(
                 `Error handling "${NodeUsersJobNames.removeUserFromNode}" job: ${error}`,
-            );
-        }
-    }
-
-    private async handleReaddUserToNode(job: Job<IReaddUserFromNodePayload>) {
-        try {
-            const { removePayload, addPayload, node } = job.data;
-
-            const removeResult = await this.axios.deleteUser(
-                removePayload,
-                node.address,
-                node.port,
-            );
-
-            if (!removeResult.isOk) {
-                this.logger.error(
-                    `Error removing user from node ${node.address}:${node.port}: ${removeResult.message}`,
-                );
-            }
-
-            const addResult = await this.axios.addUser(addPayload, node.address, node.port);
-
-            if (!addResult.isOk) {
-                this.logger.error(
-                    `Error adding user to node ${node.address}:${node.port}: ${addResult.message}`,
-                );
-            }
-
-            return addResult;
-        } catch (error) {
-            this.logger.error(
-                `Error handling "${NodeUsersJobNames.readdUserToNode}" job: ${error}`,
             );
         }
     }

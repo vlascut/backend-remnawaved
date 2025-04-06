@@ -29,6 +29,7 @@ export interface RealityObject {
     serverNames?: string[];
     privateKey?: string;
     publicKey?: string;
+    password?: string;
     maxClientVer?: string;
     maxTimeDiff?: number;
     minClientVer?: string;

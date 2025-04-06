@@ -4,5 +4,8 @@ export const TEMPLATE_KEYS = [
     'TRAFFIC_LEFT',
     'STATUS',
     'TOTAL_TRAFFIC',
+    'USERNAME',
+    'EMAIL',
+    'TELEGRAM_ID',
 ] as const;
 export type TemplateKeys = (typeof TEMPLATE_KEYS)[number];

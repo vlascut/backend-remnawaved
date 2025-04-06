@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { FINGERPRINTS } from '../../constants/hosts/fingerprints';
-import { ALPN } from '../../constants/hosts/alpn';
+import { FINGERPRINTS, SECURITY_LAYERS, ALPN } from '../../constants/hosts';
 import { HostsSchema } from '../../models';
 import { REST_API } from '../../api';
 
@@ -44,6 +43,8 @@ export namespace UpdateHostCommand {
         fingerprint: z.optional(z.nativeEnum(FINGERPRINTS).nullable()),
         allowInsecure: z.optional(z.boolean()),
         isDisabled: z.optional(z.boolean()),
+        securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS)),
+        xHttpExtraParams: z.optional(z.nullable(z.unknown())),
     });
     export type Request = z.infer<typeof RequestSchema>;
 

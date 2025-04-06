@@ -37,12 +37,14 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
         super();
     }
     async process(job: Job<NodeHealthCheckPayload>) {
-        this.logger.debug(
-            `Handling "${NodeHealthCheckJobNames.checkNodeHealth}" job with ID: ${job?.id || ''}`,
-        );
-
         try {
-            const { nodeAddress, nodePort, nodeUuid, isConnected } = job.data;
+            const { nodeAddress, nodePort, nodeUuid, isConnected, isConnecting } = job.data;
+
+            if (isConnecting) {
+                this.logger.warn(`Node ${nodeUuid} is connecting, skipping health check`);
+                return;
+            }
+
             const response = await this.axios.getSystemStats(nodeAddress, nodePort);
             switch (response.isOk) {
                 case true:

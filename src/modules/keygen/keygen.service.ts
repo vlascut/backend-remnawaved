@@ -1,15 +1,12 @@
-import { generateKeyPair } from 'crypto';
-import { promisify } from 'util';
-
 import { Injectable, Logger } from '@nestjs/common';
 
+import { encodeCertPayload } from '@common/utils/certs/encode-node-payload';
 import { ICommandResponse } from '@common/types/command-response.type';
+import { generateNodeCert } from '@common/utils';
 import { ERRORS } from '@libs/contracts/constants/errors';
 
 import { KeygenRepository } from './repositories/keygen.repository';
 import { KeygenEntity } from './entities/keygen.entity';
-
-const generateKeyPairAsync = promisify(generateKeyPair);
 
 @Injectable()
 export class KeygenService {
@@ -17,39 +14,39 @@ export class KeygenService {
 
     constructor(private readonly keygenRepository: KeygenRepository) {}
 
-    public async generateKey(): Promise<ICommandResponse<KeygenEntity>> {
+    public async generateKey(): Promise<ICommandResponse<{ payload: string } & KeygenEntity>> {
         try {
             const pubKey = await this.keygenRepository.findFirstByCriteria({});
 
-            if (pubKey) {
+            if (!pubKey) {
                 return {
-                    isOk: true,
-                    response: pubKey,
+                    isOk: false,
+                    ...ERRORS.KEYPAIR_CREATION_ERROR,
                 };
             }
 
-            const { privateKey, publicKey } = await generateKeyPairAsync('rsa', {
-                modulusLength: 2048,
-                publicKeyEncoding: {
-                    type: 'spki',
-                    format: 'pem',
-                },
-                privateKeyEncoding: {
-                    type: 'pkcs8',
-                    format: 'pem',
-                },
-            });
+            if (!pubKey.caCert || !pubKey.caKey || !pubKey.clientCert || !pubKey.clientKey) {
+                return {
+                    isOk: false,
+                    ...ERRORS.KEYPAIR_NOT_FOUND,
+                };
+            }
 
-            const keygenEntity = new KeygenEntity({
-                privKey: privateKey,
-                pubKey: publicKey,
-            });
+            const { nodeCertPem, nodeKeyPem } = await generateNodeCert(pubKey.caCert, pubKey.caKey);
 
-            const newEntity = await this.keygenRepository.create(keygenEntity);
+            const nodePayload = encodeCertPayload({
+                nodeCertPem,
+                nodeKeyPem,
+                caCertPem: pubKey.caCert,
+                jwtPublicKey: pubKey.pubKey,
+            });
 
             return {
                 isOk: true,
-                response: newEntity,
+                response: {
+                    payload: nodePayload,
+                    ...pubKey,
+                },
             };
         } catch (error) {
             this.logger.error(error);

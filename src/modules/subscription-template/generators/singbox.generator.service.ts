@@ -205,7 +205,11 @@ export class SingBoxGeneratorService {
         }
 
         if (alpn) {
-            config.alpn = Array.isArray(alpn) ? alpn : [alpn];
+            if (typeof alpn === 'string' && alpn.includes(',')) {
+                config.alpn = alpn.split(',').map((a) => a.trim());
+            } else {
+                config.alpn = Array.isArray(alpn) ? alpn : [alpn];
+            }
         }
 
         return config;
@@ -304,7 +308,7 @@ export class SingBoxGeneratorService {
             config.transport = this.transportConfig(
                 settings,
                 params.network,
-                params.host[0],
+                params.host,
                 params.path,
                 max_early_data,
                 early_data_header_name,

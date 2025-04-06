@@ -72,6 +72,16 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
             config.getOrThrow<string>('SCALAR_PATH'),
 
             apiReference({
+                showSidebar: true,
+                layout: 'modern',
+                hideModels: false,
+                hideDownloadButton: false,
+                hideTestRequestButton: false,
+                isEditable: false,
+                isLoading: false,
+                hideDarkModeToggle: false,
+                withDefaultFonts: true,
+                hideSearch: false,
                 theme: 'purple',
                 hideClientButton: false,
                 darkMode: true,

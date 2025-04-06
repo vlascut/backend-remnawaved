@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { UsersSchema } from '../../models/users.schema';
-import { LastConnectedNodeSchema } from '../../models';
+import { ExtendedUsersSchema } from '../../models';
 import { REST_API } from '../../api';
 
 export namespace GetAllUsersV2Command {
@@ -19,8 +18,16 @@ export namespace GetAllUsersV2Command {
     });
 
     export const RequestQuerySchema = z.object({
-        start: z.coerce.number().optional(),
-        size: z.coerce.number().optional(),
+        start: z.coerce
+            .number()
+            .default(0)
+            .describe('Start index (offset) of the users to return, default is 0'),
+        size: z.coerce
+            .number()
+            .min(1, 'Size (limit) must be greater than 0')
+            .max(1000, 'Size (limit) must be less than 1000')
+            .describe('Number of users to return, no more than 1000')
+            .default(25),
         filters: z
             .preprocess(
                 (str) => (typeof str === 'string' ? JSON.parse(str) : str),
@@ -49,13 +56,7 @@ export namespace GetAllUsersV2Command {
 
     export const ResponseSchema = z.object({
         response: z.object({
-            users: z.array(
-                UsersSchema.extend({
-                    subscriptionUrl: z.string(),
-                    lastConnectedNode: LastConnectedNodeSchema,
-                }),
-            ),
-
+            users: z.array(ExtendedUsersSchema),
             total: z.number(),
         }),
     });

@@ -45,4 +45,8 @@ export class ResetUserTrafficQueueService
     public async resetWeeklyUserTraffic() {
         return this.addJob(ResetUserTrafficJobNames.resetWeeklyUserTraffic, {});
     }
+
+    public async resetNoResetUserTraffic() {
+        return this.addJob(ResetUserTrafficJobNames.resetNoResetUserTraffic, {});
+    }
 }

@@ -16,6 +16,8 @@ const ADD_EXCLUSIONS_SELECT = {
                     uuid: true,
                     tag: true,
                     type: true,
+                    network: true,
+                    security: true,
                 },
             },
         },

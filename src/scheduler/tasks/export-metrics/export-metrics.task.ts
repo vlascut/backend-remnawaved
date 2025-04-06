@@ -58,7 +58,7 @@ export class ExportMetricsTask {
                 currentTime - this.lastUserStatsUpdateTime > this.CACHE_TTL_MS;
 
             if (shouldUpdateCache) {
-                this.logger.debug('Updating user stats cache from database...');
+                // this.logger.debug('Updating user stats cache from database...');
                 const usersResponse = await this.getShortUserStats();
 
                 if (!usersResponse.isOk || !usersResponse.response) {
@@ -68,11 +68,11 @@ export class ExportMetricsTask {
                 this.cachedUserStats = usersResponse.response;
                 this.lastUserStatsUpdateTime = currentTime;
 
-                this.logger.debug(
-                    `User stats cache updated successfully at ${new Date().toISOString()}`,
-                );
+                // this.logger.debug(
+                //     `User stats cache updated successfully at ${new Date().toISOString()}`,
+                // );
             } else {
-                this.logger.debug('Using cached user stats (less than 1 minute old)');
+                // this.logger.debug('Using cached user stats (less than 1 minute old)');
             }
 
             if (this.cachedUserStats) {
@@ -84,9 +84,9 @@ export class ExportMetricsTask {
 
                 this.usersTotal.set({ type: 'all' }, stats.statusCounts.totalUsers);
 
-                this.logger.debug(
-                    `Short users stats metrics updated from ${shouldUpdateCache ? 'fresh' : 'cached'} data.`,
-                );
+                // this.logger.debug(
+                //     `Short users stats metrics updated from ${shouldUpdateCache ? 'fresh' : 'cached'} data.`,
+                // );
             }
         } catch (error) {
             this.logger.error(`Error in reportShortUserStats: ${error}`);

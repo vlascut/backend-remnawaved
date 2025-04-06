@@ -1,4 +1,6 @@
+export * from './activate-all-inbounds.command';
 export * from './bulk';
+export * from './bulk-all';
 export * from './create-user.command';
 export * from './delete-user.command';
 export * from './disable-user.command';
@@ -10,6 +12,7 @@ export * from './get-user-by-subscription-uuid.command';
 export * from './get-user-by-telegram-id.command';
 export * from './get-user-by-username.command';
 export * from './get-user-by-uuid.command';
+export * from './get-user-usage-by-range.command';
 export * from './reset-user-traffic.command';
 export * from './revoke-user-subscription.command';
 export * from './update-user.command';

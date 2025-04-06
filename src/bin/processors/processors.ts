@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 
 import { NotFoundExceptionFilter } from '@common/exception/not-found-exception.filter';
 import { WorkerRoutesGuard } from '@common/guards/worker-routes/worker-routes.guard';
+import { customLogFilter } from '@common/utils/filter-logs/filter-logs';
 import { isDevelopment } from '@common/utils/startup-app';
 import { AxiosService } from '@common/axios';
 import { METRICS_ROOT } from '@libs/contracts/api';
@@ -27,6 +28,7 @@ const instanceId = process.env.INSTANCE_ID || '0';
 const logger = createLogger({
     transports: [new winston.transports.Console()],
     format: winston.format.combine(
+        customLogFilter(),
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss.SSS',
         }),

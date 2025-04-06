@@ -1,7 +1,7 @@
 import { NodesTrafficUsageHistory } from '@prisma/client';
 
 export class NodesTrafficUsageHistoryEntity implements NodesTrafficUsageHistory {
-    uuid: string;
+    id: bigint;
     nodeUuid: string;
     trafficBytes: bigint;
     resetAt: Date;

@@ -10,7 +10,9 @@ import { NodesRepository } from '@modules/nodes/repositories/nodes.repository';
 import { StopNodeJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
 
-@Processor(QueueNames.stopNode)
+@Processor(QueueNames.stopNode, {
+    concurrency: 30,
+})
 export class StopNodeQueueProcessor extends WorkerHost {
     private readonly logger = new Logger(StopNodeQueueProcessor.name);
 

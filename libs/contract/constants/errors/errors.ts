@@ -358,4 +358,109 @@ export const ERRORS = {
         message: 'Update subscription settings error',
         httpCode: 500,
     },
+    ADD_INBOUND_TO_USERS_ERROR: {
+        code: 'A074',
+        message: 'Add inbound to users error',
+        httpCode: 500,
+    },
+    REMOVE_INBOUND_FROM_USERS_ERROR: {
+        code: 'A075',
+        message: 'Remove inbound from users error',
+        httpCode: 500,
+    },
+    INBOUND_NOT_FOUND: {
+        code: 'A076',
+        message: 'Inbound not found',
+        httpCode: 404,
+    },
+    ADD_INBOUND_TO_NODES_ERROR: {
+        code: 'A077',
+        message: 'Add inbound to nodes error',
+        httpCode: 500,
+    },
+    REMOVE_INBOUND_FROM_NODES_ERROR: {
+        code: 'A078',
+        message: 'Remove inbound from nodes error',
+        httpCode: 500,
+    },
+    DELETE_HOSTS_ERROR: {
+        code: 'A079',
+        message: 'Delete hosts error',
+        httpCode: 500,
+    },
+    BULK_ENABLE_HOSTS_ERROR: {
+        code: 'A080',
+        message: 'Bulk enable hosts error',
+        httpCode: 500,
+    },
+    BULK_DISABLE_HOSTS_ERROR: {
+        code: 'A081',
+        message: 'Bulk disable hosts error',
+        httpCode: 500,
+    },
+    SET_INBOUND_TO_HOSTS_ERROR: {
+        code: 'A082',
+        message: 'Set inbound to hosts error',
+        httpCode: 500,
+    },
+    SET_PORT_TO_HOSTS_ERROR: {
+        code: 'A083',
+        message: 'Set port to hosts error',
+        httpCode: 500,
+    },
+    BULK_DELETE_USERS_BY_UUID_ERROR: {
+        code: 'A084',
+        message: 'Bulk delete users by UUID error',
+        httpCode: 500,
+    },
+    BULK_REVOKE_USERS_SUBSCRIPTION_ERROR: {
+        code: 'A085',
+        message: 'Bulk revoke users subscription error',
+        httpCode: 500,
+    },
+    BULK_RESET_USER_TRAFFIC_ERROR: {
+        code: 'A086',
+        message: 'Bulk reset user traffic error',
+        httpCode: 500,
+    },
+    BULK_UPDATE_USERS_ERROR: {
+        code: 'A087',
+        message: 'Bulk update users error',
+        httpCode: 500,
+    },
+    BULK_ADD_INBOUNDS_TO_USERS_ERROR: {
+        code: 'A088',
+        message: 'Bulk add inbounds to users error',
+        httpCode: 500,
+    },
+    BULK_UPDATE_ALL_USERS_ERROR: {
+        code: 'A089',
+        message: 'Bulk update all users error',
+        httpCode: 500,
+    },
+    INVALID_USER_STATUS_ERROR: {
+        code: 'A089',
+        message: 'LIMITED and EXPIRED statuses are not allowed to be set manually.',
+        httpCode: 400,
+    },
+    KEYPAIR_CREATION_ERROR: {
+        code: 'A090',
+        message: 'Keypair creation error',
+        httpCode: 500,
+    },
+    GET_USER_USAGE_BY_RANGE_ERROR: {
+        code: 'A091',
+        message: 'Get user usage by range error',
+        httpCode: 500,
+    },
+    KEYPAIR_NOT_FOUND: {
+        code: 'A092',
+        message: 'Keypair not found. Restart app.',
+        httpCode: 500,
+    },
+    ACTIVATE_ALL_INBOUNDS_ERROR: {
+        code: 'A093',
+        message: 'Activate all inbounds error',
+        httpCode: 500,
+    },
 } as const;

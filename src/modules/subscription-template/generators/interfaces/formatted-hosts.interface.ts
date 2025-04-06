@@ -4,7 +4,7 @@ export interface IFormattedHost {
     address: string;
     alpn: string;
     fingerprint: string;
-    host: string | string[];
+    host: string;
     network: StreamSettingsObject['network'];
     password: {
         ssPassword: string;
@@ -23,12 +23,7 @@ export interface IFormattedHost {
     headerType?: string;
     additionalParams?: {
         mode?: string;
-        scMaxEachPostBytes?: number;
-        scMaxBufferedPosts?: number;
-        scMaxConcurrentPosts?: number;
-        scMinPostsIntervalMs?: number;
-        xPaddingBytes?: string;
-        noGRPCHeader?: boolean;
         heartbeatPeriod?: number;
     };
+    xHttpExtraParams?: null | object;
 }

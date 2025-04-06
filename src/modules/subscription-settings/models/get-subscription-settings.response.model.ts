@@ -8,6 +8,7 @@ export class SubscriptionSettingsResponseModel {
     public serveJsonAtBaseSubscription: boolean;
     public addUsernameToBaseSubscription: boolean;
     public isProfileWebpageUrlEnabled: boolean;
+    public isShowCustomRemarks: boolean;
     public happAnnounce: string | null;
     public happRouting: string | null;
     public expiredUsersRemarks: string[];
@@ -25,6 +26,7 @@ export class SubscriptionSettingsResponseModel {
         this.isProfileWebpageUrlEnabled = entity.isProfileWebpageUrlEnabled;
         this.serveJsonAtBaseSubscription = entity.serveJsonAtBaseSubscription;
         this.addUsernameToBaseSubscription = entity.addUsernameToBaseSubscription;
+        this.isShowCustomRemarks = entity.isShowCustomRemarks;
         this.happAnnounce = entity.happAnnounce;
         this.happRouting = entity.happRouting;
         this.expiredUsersRemarks = entity.expiredUsersRemarks;

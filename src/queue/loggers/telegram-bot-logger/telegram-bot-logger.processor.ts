@@ -1,0 +1,64 @@
+import { InjectBot } from '@kastov/grammy-nestjs';
+import { parseMode } from '@grammyjs/parse-mode';
+import { Context } from 'grammy';
+import { Job } from 'bullmq';
+import { Bot } from 'grammy';
+
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Logger, Optional } from '@nestjs/common';
+
+import { BOT_NAME } from '@integration-modules/telegram-bot/constants';
+
+import { TelegramBotLoggerJobNames } from './enums';
+import { QueueNames } from '../../queue.enum';
+
+@Processor(QueueNames.telegramBotLogger, {
+    concurrency: 100,
+    limiter: {
+        max: 20,
+        duration: 1_000,
+    },
+})
+export class TelegramBotLoggerQueueProcessor extends WorkerHost {
+    private readonly logger = new Logger(TelegramBotLoggerQueueProcessor.name);
+
+    constructor(
+        @Optional()
+        @InjectBot(BOT_NAME)
+        private readonly bot: Bot<Context>,
+    ) {
+        super();
+        if (this.bot) {
+            this.bot.api.config.use(parseMode('html'));
+        }
+    }
+
+    async process(job: Job) {
+        if (!this.bot) {
+            this.logger.debug(
+                `Bot is not initialized. Skipping job "${job.name}" with ID: ${job?.id || ''}`,
+            );
+            return;
+        }
+
+        switch (job.name) {
+            case TelegramBotLoggerJobNames.sendTelegramMessage:
+                return this.handleSendTelegramMessage(job);
+            default:
+                this.logger.warn(`Job "${job.name}" is not handled.`);
+                break;
+        }
+    }
+
+    private async handleSendTelegramMessage(job: Job<{ message: string; chatId: string }>) {
+        const { message, chatId } = job.data;
+
+        try {
+            await this.bot.api.sendMessage(chatId, message);
+        } catch (error) {
+            this.logger.error(
+                `Error handling "${TelegramBotLoggerJobNames.sendTelegramMessage}" job: ${error}`,
+            );
+        }
+    }
+}

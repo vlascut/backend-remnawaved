@@ -14,6 +14,7 @@ import { NestFactory } from '@nestjs/core';
 
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
 import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
+import { getStartMessage } from '@common/utils/startup-app/get-start-message';
 import { getRealIp } from '@common/middlewares/get-real-ip';
 import { AxiosService } from '@common/axios';
 
@@ -61,8 +62,6 @@ async function bootstrap(): Promise<void> {
 
     const config = app.get(ConfigService);
 
-    await getDocs(app, config);
-
     app.use(
         helmet({
             contentSecurityPolicy: {
@@ -81,21 +80,25 @@ async function bootstrap(): Promise<void> {
 
     app.use(getRealIp);
 
-    if (isProduction()) {
-        app.use(
-            morgan(
-                ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-                // {
-                //     skip: (req) => req.url === ROOT + METRICS_ROOT,
-                //     stream: {
-                //         write: (message) => logger.http(message.trim()),
-                //     },
-                // },
-            ),
-        );
+    if (config.getOrThrow<string>('IS_HTTP_LOGGING_ENABLED') === 'true') {
+        if (isProduction()) {
+            app.use(
+                morgan(
+                    ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+                    // {
+                    //     skip: (req) => req.url === ROOT + METRICS_ROOT,
+                    //     stream: {
+                    //         write: (message) => logger.http(message.trim()),
+                    //     },
+                    // },
+                ),
+            );
+        }
     }
 
     app.setGlobalPrefix(ROOT);
+
+    await getDocs(app, config);
 
     app.enableCors({
         origin: isDevelopment() ? '*' : config.getOrThrow<string>('FRONT_END_DOMAIN'),
@@ -121,5 +124,7 @@ async function bootstrap(): Promise<void> {
 
     //     await app.close();
     // });
+
+    logger.info('\n' + (await getStartMessage()) + '\n');
 }
 void bootstrap();

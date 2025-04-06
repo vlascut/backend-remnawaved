@@ -16,10 +16,22 @@ const NETWORK_CONFIGS: Record<
     StreamSettingsObject['network'],
     (params: IFormattedHost) => Partial<Record<string, unknown>>
 > = {
-    ws: (params) => ({ path: params.path, host: params.host }),
-    tcp: (params) => ({ path: params.path, host: params.host }),
-    raw: (params) => ({ path: params.path, host: params.host }),
-    xhttp: (params) => ({ path: params.path, host: params.host }),
+    ws: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
+    tcp: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
+    raw: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
+    xhttp: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
 };
 
 @Injectable()
@@ -107,20 +119,17 @@ export class XrayGeneratorService {
         }
 
         if (params.network === 'xhttp') {
-            const extra: IFormattedHost['additionalParams'] = {
-                scMaxEachPostBytes: params.additionalParams?.scMaxEachPostBytes,
-                scMaxConcurrentPosts: params.additionalParams?.scMaxConcurrentPosts,
-                scMinPostsIntervalMs: params.additionalParams?.scMinPostsIntervalMs,
-                xPaddingBytes: params.additionalParams?.xPaddingBytes,
-                noGRPCHeader: params.additionalParams?.noGRPCHeader,
-            };
-
             Object.assign(payload, {
                 path: params.path,
                 host: params.host,
                 mode: params.additionalParams?.mode || 'auto',
-                extra: JSON.stringify(extra),
             });
+
+            if (params.xHttpExtraParams !== null && params.xHttpExtraParams !== undefined) {
+                Object.assign(payload, {
+                    extra: JSON.stringify(params.xHttpExtraParams),
+                });
+            }
         }
 
         if (params.network === 'ws') {
@@ -181,20 +190,17 @@ export class XrayGeneratorService {
         }
 
         if (params.network === 'xhttp') {
-            const extra: IFormattedHost['additionalParams'] = {
-                scMaxEachPostBytes: params.additionalParams?.scMaxEachPostBytes,
-                scMaxConcurrentPosts: params.additionalParams?.scMaxConcurrentPosts,
-                scMinPostsIntervalMs: params.additionalParams?.scMinPostsIntervalMs,
-                xPaddingBytes: params.additionalParams?.xPaddingBytes,
-                noGRPCHeader: params.additionalParams?.noGRPCHeader,
-            };
-
             Object.assign(payload, {
                 path: params.path,
                 host: params.host,
                 mode: params.additionalParams?.mode || 'auto',
-                extra: JSON.stringify(extra),
             });
+
+            if (params.xHttpExtraParams !== null && params.xHttpExtraParams !== undefined) {
+                Object.assign(payload, {
+                    extra: JSON.stringify(params.xHttpExtraParams),
+                });
+            }
         }
 
         if (params.network === 'ws') {

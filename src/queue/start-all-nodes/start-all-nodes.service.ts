@@ -39,4 +39,8 @@ export class StartAllNodesQueueService
             },
         });
     }
+
+    public async startAllNodesWithoutDeduplication(payload: { emitter: string }) {
+        return this.addJob(StartAllNodesJobNames.startAllNodes, payload, {});
+    }
 }

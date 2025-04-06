@@ -12,7 +12,6 @@ const modelToEntity = (model: ActiveUserInbounds): ActiveUserInboundEntity => {
 
 const entityToModel = (entity: ActiveUserInboundEntity): ActiveUserInbounds => {
     return {
-        uuid: entity.uuid,
         userUuid: entity.userUuid,
         inboundUuid: entity.inboundUuid,
     };

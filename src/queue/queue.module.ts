@@ -10,7 +10,10 @@ import { BasicAuthMiddleware } from '@common/middlewares';
 import { useBullBoard } from '@common/utils/startup-app';
 import { BULLBOARD_ROOT } from '@libs/contracts/api';
 
+import { ExpireUserNotificationsQueueModule } from './expire-user-notifications/expire-user-notifications.module';
+import { BulkUserOperationsQueueModule } from './bulk-user-operations/bulk-user-operations.module';
 import { ResetUserTrafficQueueModule } from './reset-user-traffic/reset-user-traffic.module';
+import { UpdateUsersUsageQueueModule } from './update-users-usage/update-users-usage.module';
 import { NodeHealthCheckQueueModule } from './node-health-check/node-health-check.module';
 import { RecordNodeUsageQueueModule } from './record-node-usage/record-node-usage.module';
 import { RecordUserUsageQueueModule } from './record-user-usage/record-user-usage.module';
@@ -19,6 +22,7 @@ import { StartNodeQueueModule } from './start-node/start-node.module';
 import { NodeUsersQueueModule } from './node-users/node-users.module';
 import { StopNodeQueueModule } from './stop-node/stop-node.module';
 import { UserJobsQueueModule } from './user-jobs/user-jobs.module';
+import { LOGGER_MODULES } from './loggers/logger-modules';
 
 const queueModules = [
     StartAllNodesQueueModule,
@@ -30,6 +34,11 @@ const queueModules = [
     RecordUserUsageQueueModule,
     ResetUserTrafficQueueModule,
     UserJobsQueueModule,
+    BulkUserOperationsQueueModule,
+    ExpireUserNotificationsQueueModule,
+    UpdateUsersUsageQueueModule,
+
+    ...LOGGER_MODULES,
 ];
 
 const bullBoard = [

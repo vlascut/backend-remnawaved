@@ -49,6 +49,7 @@ export class NodeHealthCheckQueueService
                     nodeAddress: node.address,
                     nodePort: node.port,
                     isConnected: node.isConnected,
+                    isConnecting: node.isConnecting,
                 };
 
                 return {

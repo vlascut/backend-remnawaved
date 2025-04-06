@@ -136,7 +136,7 @@ export class ClashGeneratorService {
             network: host.network || 'tcp',
             tls: host.tls === 'tls',
             sni: host.sni || '',
-            host: host.host[0],
+            host: host.host,
             path: host.path || '',
             headers: '',
             udp: true,

@@ -32,7 +32,8 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
                     adapter: new TransactionalAdapterPrisma({
                         prismaInjectionToken: PrismaService,
                         defaultTxOptions: {
-                            timeout: 60_000,
+                            maxWait: 20_000,
+                            timeout: 120_000,
                         },
                     }),
                 }),

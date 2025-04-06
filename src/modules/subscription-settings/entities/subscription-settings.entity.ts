@@ -8,6 +8,7 @@ export class SubscriptionSettingsEntity implements SubscriptionSettings {
     isProfileWebpageUrlEnabled: boolean;
     serveJsonAtBaseSubscription: boolean;
     addUsernameToBaseSubscription: boolean;
+    isShowCustomRemarks: boolean;
 
     happAnnounce: string | null;
     happRouting: string | null;

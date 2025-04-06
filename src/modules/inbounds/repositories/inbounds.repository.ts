@@ -5,6 +5,8 @@ import { Injectable } from '@nestjs/common';
 import { ICrud } from '@common/types/crud-port';
 
 import { InboundsWithTagsAndType } from '../interfaces/inbounds-with-tags-and-type.interface';
+import { GetInboundStatsByUuidBuilder } from '../builders/get-inbound-stats-by-uuid';
+import { InboundStatsRaw, InboundWithStatsEntity } from '../entities';
 import { InboundsConverter } from '../converters/inbounds.converter';
 import { InboundsEntity } from '../entities/inbounds.entity';
 
@@ -95,5 +97,16 @@ export class InboundsRepository implements ICrud<InboundsEntity> {
     public async deleteByUUID(uuid: string): Promise<boolean> {
         const result = await this.prisma.tx.inbounds.delete({ where: { uuid } });
         return !!result;
+    }
+
+    public async getInboundStatsByUuid(uuid: string): Promise<InboundWithStatsEntity | null> {
+        const { query } = new GetInboundStatsByUuidBuilder(uuid);
+        const result = await this.prisma.tx.$queryRaw<InboundStatsRaw[]>(query);
+
+        if (result.length === 0) {
+            return null;
+        }
+
+        return new InboundWithStatsEntity(result[0]);
     }
 }
