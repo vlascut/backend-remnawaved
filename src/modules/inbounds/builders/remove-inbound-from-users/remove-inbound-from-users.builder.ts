@@ -11,7 +11,7 @@ export class RemoveInboundFromUsersBuilder {
     public getQuery(inboundUuid: string): Prisma.Sql {
         const query = Prisma.sql`
 DELETE FROM "public"."active_user_inbounds"
-WHERE "inbound_uuid" = ${inboundUuid};
+WHERE "inbound_uuid" = ${inboundUuid}::uuid;
     `;
         return query;
     }
