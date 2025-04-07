@@ -13,6 +13,8 @@ export const NODES_ROUTES = {
     GET_ONE: 'get-one',
     STATS: {
         USAGE_BY_RANGE: 'usage/range',
+        USAGE_BY_RANGE_USER: 'usage/users/range',
+        USAGE_REALTIME: 'usage/realtime',
     },
     REORDER: 'reorder',
 } as const;

@@ -6,11 +6,17 @@ import { ICrudHistoricalRecords } from '@common/types/crud-port';
 
 import { IGetUserUsageByRange } from '@modules/users/interfaces';
 
+import { GetNodeUsersUsageByRangeBuilder } from '../builders/get-node-users-usage-by-range/get-node-users-usage-by-range.builder';
 import { BulkUpsertHistoryEntryBuilder } from '../builders/bulk-upsert-history-entry/bulk-upsert-history-entry.builder';
+import { GetNodesRealtimeUsageBuilder } from '../builders/get-nodes-realtime-usage/get-nodes-realtime-usage.builder';
+import {
+    IGetNodesRealtimeUsage,
+    IGetNodeUserUsageByRange,
+    ILastConnectedNode,
+} from '../interfaces';
 import { GetUserUsageByRangeBuilder } from '../builders/get-user-usage-by-range/get-user-usage-by-range.builder';
 import { NodesUserUsageHistoryEntity } from '../entities/nodes-user-usage-history.entity';
 import { NodesUserUsageHistoryConverter } from '../nodes-user-usage-history.converter';
-import { ILastConnectedNode } from '../interfaces';
 
 @Injectable()
 export class NodesUserUsageHistoryRepository
@@ -106,6 +112,22 @@ export class NodesUserUsageHistoryRepository
     ): Promise<IGetUserUsageByRange[]> {
         const { query } = new GetUserUsageByRangeBuilder(userUuid, start, end);
         const result = await this.prisma.tx.$queryRaw<IGetUserUsageByRange[]>(query);
+        return result;
+    }
+
+    public async getNodeUsersUsageByRange(
+        nodeUuid: string,
+        start: Date,
+        end: Date,
+    ): Promise<IGetNodeUserUsageByRange[]> {
+        const { query } = new GetNodeUsersUsageByRangeBuilder(nodeUuid, start, end);
+        const result = await this.prisma.tx.$queryRaw<IGetNodeUserUsageByRange[]>(query);
+        return result;
+    }
+
+    public async getNodesRealtimeUsage(): Promise<IGetNodesRealtimeUsage[]> {
+        const { query } = new GetNodesRealtimeUsageBuilder();
+        const result = await this.prisma.tx.$queryRaw<IGetNodesRealtimeUsage[]>(query);
         return result;
     }
 }

@@ -106,32 +106,37 @@ async function resetCerts() {
 async function getSslCertForNode() {
     consola.start('🔑 Getting SSL cert for node...');
 
-    const keygen = await prisma.keygen.findFirst();
+    try {
+        const keygen = await prisma.keygen.findFirst();
 
-    if (!keygen) {
-        consola.error('❌ Keygen not found. Reset certs first or restart Remnawave.');
+        if (!keygen) {
+            consola.error('❌ Keygen not found. Reset certs first or restart Remnawave.');
+            process.exit(1);
+        }
+
+        if (!keygen.caCert || !keygen.caKey) {
+            consola.error('❌ Certs not found. Reset certs first or restart Remnawave.');
+            process.exit(1);
+        }
+
+        const { nodeCertPem, nodeKeyPem } = await generateNodeCert(keygen.caCert, keygen.caKey);
+
+        const nodePayload = encodeCertPayload({
+            nodeCertPem,
+            nodeKeyPem,
+            caCertPem: keygen.caCert,
+            jwtPublicKey: keygen.pubKey,
+        });
+
+        consola.success('✅ SSL cert for node generated successfully.');
+
+        consola.info(`\nSSL_CERT="${nodePayload}"`);
+
+        process.exit(0);
+    } catch (error) {
+        consola.error('❌ Failed to get SSL cert for node:', error);
         process.exit(1);
     }
-
-    if (!keygen.caCert || !keygen.caKey) {
-        consola.error('❌ Certs not found. Reset certs first or restart Remnawave.');
-        process.exit(1);
-    }
-
-    const { nodeCertPem, nodeKeyPem } = await generateNodeCert(keygen.caCert, keygen.caKey);
-
-    const nodePayload = encodeCertPayload({
-        nodeCertPem,
-        nodeKeyPem,
-        caCertPem: keygen.caCert,
-        jwtPublicKey: keygen.pubKey,
-    });
-
-    consola.success('✅ SSL cert for node generated successfully.');
-
-    consola.info(`\nSSL_CERT="${nodePayload}"`);
-
-    process.exit(0);
 }
 
 async function main() {
