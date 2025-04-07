@@ -463,4 +463,14 @@ export const ERRORS = {
         message: 'Activate all inbounds error',
         httpCode: 500,
     },
+    GET_NODES_USER_USAGE_BY_RANGE_ERROR: {
+        code: 'A094',
+        message: 'Get nodes user usage by range error',
+        httpCode: 500,
+    },
+    GET_NODES_REALTIME_USAGE_ERROR: {
+        code: 'A095',
+        message: 'Get nodes realtime usage error',
+        httpCode: 500,
+    },
 } as const;
