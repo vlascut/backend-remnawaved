@@ -77,12 +77,17 @@ jobs:
         uses: JinoArch/get-latest-tag@latest
 
       - name: Create Release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GH_DEPLOY }}
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: v${{ github.ref_name }}
+          name: v${{ github.ref_name }}
+          generate_release_notes: true
+          append_body: true
+          make_latest: true
+          draft: false
+          prerelease: false
           body: |
             🚀 Release v${{ github.ref_name }}
 
@@ -95,8 +100,6 @@ jobs:
             Docker images:
             - `remnawave/backend:${{github.ref_name}}`
             - `ghcr.io/remnawave/backend:${{github.ref_name}}`
-          draft: false
-          prerelease: false
 
   send-finish-tg-msg:
     name: Send TG message
