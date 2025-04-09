@@ -70,19 +70,47 @@ jobs:
           append_body: true
           make_latest: true
           body: |
-            🚀 Release v${{ github.ref_name }} (Backend: v${{ steps.backend-tag.outputs.latestTag }}, Frontend: v${{ steps.frontend-tag.outputs.release }})
+            # 🌊 Remnawave v${{ github.ref_name }}
 
+            <p align="center">
+              <a href="https://t.me/remnawave" target="_blank" rel="noopener noreferrer">
+                <img src="https://img.shields.io/badge/Join%20community-Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Join community on Telegram" width="220" height="auto">
+              </a>
+            </p>
 
-            📝 Compare Backend changes: [${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }}](https://github.com/${{ github.repository }}/compare/${{ steps.backend-tag.outputs.previousTag }}...${{ steps.backend-tag.outputs.latestTag }})
+            ---
 
-            📝 Compare Frontend changes: [${{ steps.frontend-prev-tag.outputs.tag }}...${{ steps.frontend-tag.outputs.release }}](https://github.com/remnawave/frontend/compare/${{ steps.frontend-prev-tag.outputs.tag }}...${{ steps.frontend-tag.outputs.release }})
+            ## 💻 Frontend v${{ steps.frontend-tag.outputs.release }}
+            [![GitHub Release](https://img.shields.io/badge/release-v${{ steps.frontend-tag.outputs.release }}-blue.svg)](https://github.com/remnawave/frontend/releases/tag/${{ steps.frontend-tag.outputs.release }})
 
-            Latest Docker images:
-            - `remnawave/backend:latest`
-            - `ghcr.io/remnawave/backend:latest`
+            ### 📋 Changes
+            - [View full changelog](https://github.com/remnawave/frontend/releases/tag/${steps.frontend-tag.outputs.release})
+            - [Compare changes (${steps.frontend-prev-tag.outputs.tag}...${steps.frontend-tag.outputs.release})](https://github.com/remnawave/frontend/compare/${steps.frontend-prev-tag.outputs.tag}...${steps.frontend-tag.outputs.release})
 
-            Docker images:
-            - `remnawave/backend:${{github.ref_name}}`
-            - `ghcr.io/remnawave/backend:${{github.ref_name}}`
+            ---
+
+            ## 🖥️ Backend v${{ steps.backend-tag.outputs.latestTag }}
+            [![GitHub Release](https://img.shields.io/badge/release-v${{ steps.backend-tag.outputs.latestTag }}-blue.svg)](https://github.com/remnawave/backend/releases/tag/${{ steps.backend-tag.outputs.latestTag }})
+
+            ### 📋 Changes
+            - [View full changelog](https://github.com/remnawave/backend/releases/tag/${steps.backend-tag.outputs.latestTag})
+            - [Compare changes (${steps.backend-prev-tag.outputs.tag}...${steps.backend-tag.outputs.latestTag})](https://github.com/remnawave/backend/compare/${steps.backend-prev-tag.outputs.tag}...${steps.backend-tag.outputs.latestTag})
+
+            ---
+
+            ## 🐳 Docker Images
+
+            ### Latest:
+            ```
+            remnawave/backend:latest
+            ghcr.io/remnawave/backend:latest
+            ```
+
+            ### Versioned:
+            ```
+            remnawave/backend:${{github.ref_name}}
+            ghcr.io/remnawave/backend:${{github.ref_name}}
+            ```
+
           draft: false
           prerelease: false

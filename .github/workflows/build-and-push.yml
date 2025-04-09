@@ -72,9 +72,27 @@ jobs:
     needs: [build-docker-image]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
       - name: NewTag
         id: tag
         uses: JinoArch/get-latest-tag@latest
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          CHANGELOG=$(npx changelogen --from=${{ steps.tag.outputs.previousTag }} --to=${{ steps.tag.outputs.latestTag }} | sed '/^\[log\]/d')
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -89,9 +107,15 @@ jobs:
           draft: false
           prerelease: false
           body: |
-            🚀 Release v${{ github.ref_name }}
+            🌊 Remnawave Backend v${{ github.ref_name }}
 
-            📝 Compare changes: [${{ steps.tag.outputs.previousTag }}...${{ steps.tag.outputs.latestTag }}](https://github.com/${{ github.repository }}/compare/${{ steps.tag.outputs.previousTag }}...${{ steps.tag.outputs.latestTag }})
+            <p align="center">
+              <a href="https://t.me/remnawave" target="_blank" rel="noopener noreferrer">
+                <img src="https://img.shields.io/badge/Join%20community-Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Join community on Telegram" width="220" height="auto">
+              </a>
+            </p>
+
+            ${{ env.CHANGELOG }}
 
             Latest Docker image:
             - `remnawave/backend:latest`
