@@ -5,6 +5,7 @@ export * from './extented-users.schema';
 export * from './full-inbounds.schema';
 export * from './happ.schema';
 export * from './hosts.schema';
+export * from './hwid-user-device.schema';
 export * from './inbounds.schema';
 export * from './last-connected-node.schema';
 export * from './nodes.schema';

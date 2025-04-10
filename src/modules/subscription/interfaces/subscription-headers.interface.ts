@@ -7,4 +7,5 @@ export interface ISubscriptionHeaders {
     'support-url': string;
     announce?: string;
     routing?: string;
+    providerid?: string;
 }

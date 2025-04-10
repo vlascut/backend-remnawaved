@@ -51,6 +51,7 @@ export namespace UpdateUserCommand {
         description: z.optional(z.string().nullable()),
         telegramId: z.optional(z.number().int().nullable()),
         email: z.optional(z.string().email('Invalid email format').nullable()),
+        hwidDeviceLimit: z.optional(z.number().int().nullable()),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

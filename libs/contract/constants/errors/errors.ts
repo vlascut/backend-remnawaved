@@ -473,4 +473,34 @@ export const ERRORS = {
         message: 'Get nodes realtime usage error',
         httpCode: 500,
     },
+    CREATE_HWID_USER_DEVICE_ERROR: {
+        code: 'A096',
+        message: 'Create hwid user device error',
+        httpCode: 500,
+    },
+    CHECK_HWID_EXISTS_ERROR: {
+        code: 'A097',
+        message: 'Check hwid exists error',
+        httpCode: 500,
+    },
+    USER_HWID_DEVICE_ALREADY_EXISTS: {
+        code: 'A098',
+        message: 'User hwid device already exists',
+        httpCode: 400,
+    },
+    USER_HWID_DEVICE_LIMIT_REACHED: {
+        code: 'A099',
+        message: 'User hwid device limit reached',
+        httpCode: 400,
+    },
+    GET_USER_HWID_DEVICES_ERROR: {
+        code: 'A100',
+        message: 'Get user hwid devices error',
+        httpCode: 500,
+    },
+    DELETE_HWID_USER_DEVICE_ERROR: {
+        code: 'A101',
+        message: 'Delete hwid user device error',
+        httpCode: 500,
+    },
 } as const;

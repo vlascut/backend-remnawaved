@@ -155,6 +155,7 @@ export class UsersService {
                 description,
                 telegramId,
                 email,
+                hwidDeviceLimit,
             } = dto;
 
             const user = await this.userRepository.getUserByUUID(uuid);
@@ -210,6 +211,7 @@ export class UsersService {
                             : BigInt(telegramId)
                         : undefined,
                 email: email,
+                hwidDeviceLimit: hwidDeviceLimit,
             });
 
             if (activeUserInbounds) {
@@ -308,6 +310,7 @@ export class UsersService {
                 activateAllInbounds,
                 telegramId,
                 email,
+                hwidDeviceLimit,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -327,6 +330,7 @@ export class UsersService {
                 createdAt: createdAt ? new Date(createdAt) : undefined,
                 lastTrafficResetAt: lastTrafficResetAt ? new Date(lastTrafficResetAt) : undefined,
                 description: description || undefined,
+                hwidDeviceLimit: hwidDeviceLimit || null,
             });
 
             const result = await this.userRepository.create(userEntity);

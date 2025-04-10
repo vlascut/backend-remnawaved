@@ -61,6 +61,8 @@ export const UsersSchema = z.object({
     telegramId: z.nullable(z.number().int()),
     email: z.nullable(z.string().email()),
 
+    hwidDeviceLimit: z.nullable(z.number().int()),
+
     createdAt: z
         .string()
         .datetime()

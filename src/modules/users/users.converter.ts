@@ -38,6 +38,8 @@ const entityToModel = (entity: UserEntity): UserEntity => {
         telegramId: entity.telegramId,
         email: entity.email,
 
+        hwidDeviceLimit: entity.hwidDeviceLimit,
+
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };

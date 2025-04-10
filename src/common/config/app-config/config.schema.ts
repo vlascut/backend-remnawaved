@@ -52,6 +52,19 @@ export const configSchema = z
             .transform((val) => parseInt(val, 10))
             .refine((val) => val >= 16 && val <= 64, 'SHORT_UUID_LENGTH must be between 16 and 64'),
         IS_HTTP_LOGGING_ENABLED: z.string().default('false'),
+
+        HWID_DEVICE_LIMIT_ENABLED: z.string().default('false'),
+        HWID_FALLBACK_DEVICE_LIMIT: z.optional(
+            z
+                .string()
+                .transform((val) => parseInt(val, 10))
+                .refine(
+                    (val) => val >= 1 && val <= 999,
+                    'HWID_FALLBACK_DEVICE_LIMIT must be between 1 and 999',
+                ),
+        ),
+        HWID_MAX_DEVICES_ANNOUNCE: z.optional(z.string()),
+        PROVIDER_ID: z.optional(z.string()),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -113,6 +126,26 @@ export const configSchema = z
                     code: z.ZodIssueCode.custom,
                     message: 'NODES_NOTIFY_CHAT_ID is required when IS_TELEGRAM_ENABLED is true',
                     path: ['NODES_NOTIFY_CHAT_ID'],
+                });
+            }
+        }
+
+        if (data.HWID_DEVICE_LIMIT_ENABLED === 'true') {
+            if (!data.HWID_FALLBACK_DEVICE_LIMIT) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'HWID_FALLBACK_DEVICE_LIMIT is required when HWID_DEVICE_LIMIT_ENABLED is true',
+                    path: ['HWID_FALLBACK_DEVICE_LIMIT'],
+                });
+            }
+
+            if (!data.HWID_MAX_DEVICES_ANNOUNCE) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'HWID_MAX_DEVICES_ANNOUNCE is required when HWID_DEVICE_LIMIT_ENABLED is true',
+                    path: ['HWID_MAX_DEVICES_ANNOUNCE'],
                 });
             }
         }
