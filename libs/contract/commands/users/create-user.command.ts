@@ -109,6 +109,8 @@ export namespace CreateUserCommand {
         telegramId: z.optional(z.number().int()),
         email: z.string().email('Invalid email format').optional(),
 
+        hwidDeviceLimit: z.optional(z.number().int()),
+
         activateAllInbounds: z.boolean().optional(),
     });
 
