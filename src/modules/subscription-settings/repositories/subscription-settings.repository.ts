@@ -24,6 +24,7 @@ export class SubscriptionSettingsRepository implements ICrud<SubscriptionSetting
                 expiredUsersRemarks: model.expiredUsersRemarks as Prisma.InputJsonValue,
                 limitedUsersRemarks: model.limitedUsersRemarks as Prisma.InputJsonValue,
                 disabledUsersRemarks: model.disabledUsersRemarks as Prisma.InputJsonValue,
+                customResponseHeaders: model.customResponseHeaders as Prisma.InputJsonValue,
             },
         });
 
@@ -55,6 +56,7 @@ export class SubscriptionSettingsRepository implements ICrud<SubscriptionSetting
                 expiredUsersRemarks: model.expiredUsersRemarks as Prisma.InputJsonValue,
                 limitedUsersRemarks: model.limitedUsersRemarks as Prisma.InputJsonValue,
                 disabledUsersRemarks: model.disabledUsersRemarks as Prisma.InputJsonValue,
+                customResponseHeaders: model.customResponseHeaders as Prisma.InputJsonValue,
             },
         });
 
@@ -76,6 +78,9 @@ export class SubscriptionSettingsRepository implements ICrud<SubscriptionSetting
                     : undefined,
                 disabledUsersRemarks: model.disabledUsersRemarks
                     ? { equals: model.disabledUsersRemarks as Prisma.InputJsonValue }
+                    : undefined,
+                customResponseHeaders: model.customResponseHeaders
+                    ? { equals: model.customResponseHeaders as Prisma.InputJsonValue }
                     : undefined,
             },
         });

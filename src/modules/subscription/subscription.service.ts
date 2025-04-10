@@ -417,7 +417,7 @@ export class SubscriptionService {
                 .join('; '),
         };
 
-        if (isHapp && settings.happAnnounce) {
+        if (settings.happAnnounce) {
             headers.announce = `base64:${Buffer.from(
                 TemplateEngine.formarWithUser(settings.happAnnounce, user),
             ).toString('base64')}`;
@@ -436,6 +436,12 @@ export class SubscriptionService {
             const happProviderId = this.configService.get<string>('HAPP_PREMIUM_PROVIDER_ID');
             if (happProviderId) {
                 headers.providerid = happProviderId;
+            }
+        }
+
+        if (settings.customResponseHeaders) {
+            for (const [key, value] of Object.entries(settings.customResponseHeaders)) {
+                headers[key] = value;
             }
         }
 
