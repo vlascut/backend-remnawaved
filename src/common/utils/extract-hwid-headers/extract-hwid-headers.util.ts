@@ -15,19 +15,11 @@ export function extractHwidHeaders(request: Request): HwidHeaders | null {
         return null;
     }
 
-    if (
-        request.headers['x-device-os'] &&
-        request.headers['x-ver-os'] &&
-        request.headers['x-device-model']
-    ) {
-        return {
-            hwid,
-            platform: request.headers['x-device-os'] as string | undefined,
-            osVersion: request.headers['x-ver-os'] as string | undefined,
-            deviceModel: request.headers['x-device-model'] as string | undefined,
-            userAgent: request.headers['user-agent'] as string | undefined,
-        };
-    }
-
-    return null;
+    return {
+        hwid,
+        platform: request.headers['x-device-os'] as string | undefined,
+        osVersion: request.headers['x-ver-os'] as string | undefined,
+        deviceModel: request.headers['x-device-model'] as string | undefined,
+        userAgent: request.headers['user-agent'] as string | undefined,
+    };
 }
