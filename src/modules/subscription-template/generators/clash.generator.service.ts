@@ -106,6 +106,13 @@ export class ClashGeneratorService {
             }
 
             for (const group of yamlConfig['proxy-groups']) {
+                if (group?.remnawave) {
+                    if (group.remnawave['include-proxies'] === false) {
+                        delete group.remnawave;
+                        continue;
+                    }
+                }
+
                 if (Array.isArray(group.proxies)) {
                     for (const proxyRemark of proxyRemarks) {
                         group.proxies.push(proxyRemark);
