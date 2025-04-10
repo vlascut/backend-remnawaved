@@ -22,6 +22,8 @@ export const SubscriptionSettingsSchema = z.object({
     limitedUsersRemarks: z.array(z.string()),
     disabledUsersRemarks: z.array(z.string()),
 
+    customResponseHeaders: z.nullable(z.record(z.string(), z.string())),
+
     createdAt: z
         .string()
         .datetime()

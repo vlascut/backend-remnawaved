@@ -28,6 +28,8 @@ const entityToModel = (entity: SubscriptionSettingsEntity): SubscriptionSettings
         limitedUsersRemarks: entity.limitedUsersRemarks,
         disabledUsersRemarks: entity.disabledUsersRemarks,
 
+        customResponseHeaders: entity.customResponseHeaders,
+
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };

@@ -17,6 +17,8 @@ export class SubscriptionSettingsEntity implements SubscriptionSettings {
     limitedUsersRemarks: string[];
     disabledUsersRemarks: string[];
 
+    customResponseHeaders: Record<string, string> | null;
+
     createdAt: Date;
     updatedAt: Date;
     constructor(config: Partial<SubscriptionSettings>) {

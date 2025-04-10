@@ -29,6 +29,8 @@ export namespace UpdateSubscriptionSettingsCommand {
         expiredUsersRemarks: z.optional(z.array(z.string())),
         limitedUsersRemarks: z.optional(z.array(z.string())),
         disabledUsersRemarks: z.optional(z.array(z.string())),
+
+        customResponseHeaders: z.optional(z.record(z.string(), z.string())),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

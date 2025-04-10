@@ -15,6 +15,8 @@ export class SubscriptionSettingsResponseModel {
     public limitedUsersRemarks: string[];
     public disabledUsersRemarks: string[];
 
+    public customResponseHeaders: Record<string, string> | null;
+
     public createdAt: Date;
     public updatedAt: Date;
 
@@ -32,6 +34,7 @@ export class SubscriptionSettingsResponseModel {
         this.expiredUsersRemarks = entity.expiredUsersRemarks;
         this.limitedUsersRemarks = entity.limitedUsersRemarks;
         this.disabledUsersRemarks = entity.disabledUsersRemarks;
+        this.customResponseHeaders = entity.customResponseHeaders;
         this.createdAt = entity.createdAt;
         this.updatedAt = entity.updatedAt;
     }

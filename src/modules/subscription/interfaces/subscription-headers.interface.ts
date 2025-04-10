@@ -8,4 +8,5 @@ export interface ISubscriptionHeaders {
     announce?: string;
     routing?: string;
     providerid?: string;
+    [key: string]: string | undefined;
 }
