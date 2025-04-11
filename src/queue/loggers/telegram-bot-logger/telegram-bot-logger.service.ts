@@ -34,7 +34,11 @@ export class TelegramBotLoggerQueueService
         await this.checkConnection();
     }
 
-    public async addJobToSendTelegramMessage(payload: { message: string; chatId: string }) {
+    public async addJobToSendTelegramMessage(payload: {
+        message: string;
+        chatId: string;
+        threadId: string | undefined;
+    }) {
         return this.addJob(TelegramBotLoggerJobNames.sendTelegramMessage, payload);
     }
 }

@@ -50,11 +50,15 @@ export class TelegramBotLoggerQueueProcessor extends WorkerHost {
         }
     }
 
-    private async handleSendTelegramMessage(job: Job<{ message: string; chatId: string }>) {
-        const { message, chatId } = job.data;
+    private async handleSendTelegramMessage(
+        job: Job<{ message: string; chatId: string; threadId: string | undefined }>,
+    ) {
+        const { message, chatId, threadId } = job.data;
 
         try {
-            await this.bot.api.sendMessage(chatId, message);
+            await this.bot.api.sendMessage(chatId, message, {
+                ...(threadId && { message_thread_id: parseInt(threadId, 10) }),
+            });
         } catch (error) {
             this.logger.error(
                 `Error handling "${TelegramBotLoggerJobNames.sendTelegramMessage}" job: ${error}`,

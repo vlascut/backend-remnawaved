@@ -21,9 +21,21 @@ export const configSchema = z
                 (val) => val !== 'change_me',
                 'JWT_API_TOKENS_SECRET cannot be set to "change_me"',
             ),
+
         TELEGRAM_BOT_TOKEN: z.string().optional(),
         TELEGRAM_ADMIN_ID: z.string().optional(),
+
         NODES_NOTIFY_CHAT_ID: z.string().optional(),
+
+        TELEGRAM_ADMIN_THREAD_ID: z
+            .string()
+            .transform((val) => (val === '' ? undefined : val))
+            .optional(),
+        NODES_NOTIFY_THREAD_ID: z
+            .string()
+            .transform((val) => (val === '' ? undefined : val))
+            .optional(),
+
         IS_TELEGRAM_ENABLED: z.string().default('false'),
         FRONT_END_DOMAIN: z.string(),
         IS_DOCS_ENABLED: z.string().default('false'),
