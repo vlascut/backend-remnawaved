@@ -528,20 +528,20 @@ export class SubscriptionService {
         }>
     > {
         try {
-            if (hwidHeaders === null) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
-            }
-
             if (user.hwidDeviceLimit === 0) {
                 return {
                     isOk: true,
                     response: {
                         isSubscriptionAllowed: true,
+                    },
+                };
+            }
+
+            if (hwidHeaders === null) {
+                return {
+                    isOk: true,
+                    response: {
+                        isSubscriptionAllowed: false,
                     },
                 };
             }
