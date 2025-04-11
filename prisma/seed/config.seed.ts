@@ -785,6 +785,34 @@ async function seedKeygen() {
     }
 }
 
+async function ensureConfigUnique() {
+    const countConfigs = await prisma.xrayConfig.count();
+    try {
+        consola.info(`XTLS configs count: ${countConfigs}`);
+        if (countConfigs > 1) {
+            consola.warn('More than one XTLS config found! Deleting all except the first one...');
+            const firstConfig = await prisma.xrayConfig.findFirst({
+                orderBy: { updatedAt: 'asc' },
+            });
+
+            if (firstConfig) {
+                await prisma.xrayConfig.deleteMany({
+                    where: {
+                        uuid: {
+                            not: firstConfig.uuid,
+                        },
+                    },
+                });
+            }
+
+            consola.success('Successfully deleted all XTLS configs except the first one!');
+        }
+    } catch (error) {
+        consola.error('Failed to ensure config unique:', error);
+        process.exit(1);
+    }
+}
+
 async function checkDatabaseConnection() {
     try {
         await prisma.$queryRaw`SELECT 1`;
@@ -810,6 +838,7 @@ async function seedAll() {
             await seedConfigVariables();
             await seedSubscriptionSettings();
             await seedKeygen();
+            await ensureConfigUnique();
             break;
         } else {
             consola.info('Failed to connect to database. Retrying in 5 seconds...');
