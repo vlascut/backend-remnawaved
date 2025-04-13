@@ -41,6 +41,7 @@ export class NodesService {
 
             const nodeEntity = new NodesEntity({
                 ...nodeData,
+                address: nodeData.address.trim(),
                 isConnected: false,
                 isConnecting: false,
                 isDisabled: false,
@@ -246,6 +247,7 @@ export class NodesService {
 
             const result = await this.nodesRepository.update({
                 ...nodeData,
+                address: nodeData.address ? nodeData.address.trim() : undefined,
                 trafficLimitBytes: nodeData.trafficLimitBytes
                     ? BigInt(nodeData.trafficLimitBytes)
                     : undefined,
