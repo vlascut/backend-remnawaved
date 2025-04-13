@@ -86,10 +86,13 @@ export const configSchema = z
                     message: 'WEBHOOK_URL is required when WEBHOOK_ENABLED is true',
                     path: ['WEBHOOK_URL'],
                 });
-            } else if (!data.WEBHOOK_URL.startsWith('https://')) {
+            } else if (
+                !data.WEBHOOK_URL.startsWith('http://') &&
+                !data.WEBHOOK_URL.startsWith('https://')
+            ) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: 'WEBHOOK_URL must start with https://',
+                    message: 'WEBHOOK_URL must start with http:// or https://',
                     path: ['WEBHOOK_URL'],
                 });
             }
