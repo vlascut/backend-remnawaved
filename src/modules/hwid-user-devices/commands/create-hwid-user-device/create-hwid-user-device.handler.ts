@@ -9,10 +9,10 @@ import { HwidUserDevicesRepository } from '../../repositories/hwid-user-devices.
 import { CreateHwidUserDeviceCommand } from './create-hwid-user-device.command';
 
 @CommandHandler(CreateHwidUserDeviceCommand)
-export class CreateHappUserDeviceHandler
+export class CreateHwidUserDeviceHandler
     implements ICommandHandler<CreateHwidUserDeviceCommand, ICommandResponse<void>>
 {
-    public readonly logger = new Logger(CreateHappUserDeviceHandler.name);
+    public readonly logger = new Logger(CreateHwidUserDeviceHandler.name);
 
     constructor(private readonly hwidUserDevicesReposity: HwidUserDevicesRepository) {}
 

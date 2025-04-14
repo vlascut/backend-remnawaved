@@ -433,9 +433,9 @@ export class SubscriptionService {
         }
 
         if (isHapp && this.hwidDeviceLimitEnabled) {
-            const happProviderId = this.configService.get<string>('HAPP_PREMIUM_PROVIDER_ID');
-            if (happProviderId) {
-                headers.providerid = happProviderId;
+            const providerId = this.configService.get<string>('PROVIDER_ID');
+            if (providerId) {
+                headers.providerid = providerId;
             }
         }
 
