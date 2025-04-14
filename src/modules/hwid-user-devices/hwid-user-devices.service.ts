@@ -65,7 +65,6 @@ export class HwidUserDevicesService {
 
             const userHwidDevices = await this.hwidUserDevicesRepository.findByCriteria({
                 userUuid: dto.userUuid,
-                hwid: dto.hwid,
             });
 
             return {

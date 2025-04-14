@@ -16,13 +16,11 @@ export class CountUsersDevicesHandler
 
     async execute(query: CountUsersDevicesQuery): Promise<ICommandResponse<number>> {
         try {
-            const users = await this.hwidUserDevicesRepository.findByCriteria({
-                userUuid: query.userUuid,
-            });
+            const count = await this.hwidUserDevicesRepository.countByUserUuid(query.userUuid);
 
             return {
                 isOk: true,
-                response: users.length,
+                response: count,
             };
         } catch (error) {
             this.logger.error(error);

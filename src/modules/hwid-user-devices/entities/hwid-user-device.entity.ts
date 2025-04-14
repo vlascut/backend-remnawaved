@@ -15,6 +15,4 @@ export class HwidUserDeviceEntity implements HwidUserDevices {
         Object.assign(this, history);
         return this;
     }
-    deviceOS: string | null;
-    versionOS: string | null;
 }

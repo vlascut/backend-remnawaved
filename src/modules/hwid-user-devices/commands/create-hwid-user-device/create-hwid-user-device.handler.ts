@@ -14,11 +14,11 @@ export class CreateHwidUserDeviceHandler
 {
     public readonly logger = new Logger(CreateHwidUserDeviceHandler.name);
 
-    constructor(private readonly hwidUserDevicesReposity: HwidUserDevicesRepository) {}
+    constructor(private readonly hwidUserDevicesRepository: HwidUserDevicesRepository) {}
 
     async execute(command: CreateHwidUserDeviceCommand): Promise<ICommandResponse<void>> {
         try {
-            await this.hwidUserDevicesReposity.create(command.hwidUserDevice);
+            await this.hwidUserDevicesRepository.create(command.hwidUserDevice);
             return {
                 isOk: true,
             };
