@@ -510,7 +510,7 @@ export const XrayJsonDefaultConfig = {
         {
             tag: 'socks',
             port: 10808,
-            listen: '[::1]',
+            listen: '127.0.0.1',
             protocol: 'socks',
             settings: {
                 udp: true,
@@ -526,7 +526,7 @@ export const XrayJsonDefaultConfig = {
         {
             tag: 'http',
             port: 10809,
-            listen: '[::1]',
+            listen: '127.0.0.1',
             protocol: 'http',
             settings: {
                 udp: true,
