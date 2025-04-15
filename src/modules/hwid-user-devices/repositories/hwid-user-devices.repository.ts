@@ -8,7 +8,9 @@ import { HwidUserDeviceEntity } from '../entities/hwid-user-device.entity';
 import { HwidUserDevicesConverter } from '../hwid-user-devices.converter';
 
 @Injectable()
-export class HwidUserDevicesRepository implements ICrudWithStringId<HwidUserDeviceEntity> {
+export class HwidUserDevicesRepository
+    implements Omit<ICrudWithStringId<HwidUserDeviceEntity>, 'deleteById' | 'findById' | 'update'>
+{
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly converter: HwidUserDevicesConverter,
@@ -18,30 +20,6 @@ export class HwidUserDevicesRepository implements ICrudWithStringId<HwidUserDevi
         const model = this.converter.fromEntityToPrismaModel(entity);
         const result = await this.prisma.tx.hwidUserDevices.create({
             data: model,
-        });
-
-        return this.converter.fromPrismaModelToEntity(result);
-    }
-
-    public async findById(hwid: string): Promise<null | HwidUserDeviceEntity> {
-        const result = await this.prisma.tx.hwidUserDevices.findUnique({
-            where: { hwid },
-        });
-        if (!result) {
-            return null;
-        }
-        return this.converter.fromPrismaModelToEntity(result);
-    }
-
-    public async update({
-        hwid,
-        ...data
-    }: Partial<HwidUserDeviceEntity>): Promise<HwidUserDeviceEntity> {
-        const result = await this.prisma.tx.hwidUserDevices.update({
-            where: {
-                hwid,
-            },
-            data,
         });
 
         return this.converter.fromPrismaModelToEntity(result);
@@ -64,7 +42,7 @@ export class HwidUserDevicesRepository implements ICrudWithStringId<HwidUserDevi
 
     public async checkHwidExists(hwid: string, userUuid: string): Promise<boolean> {
         const result = await this.prisma.tx.hwidUserDevices.findUnique({
-            where: { hwid, userUuid },
+            where: { hwid_userUuid: { hwid, userUuid } },
             select: {
                 hwid: true,
             },
@@ -72,14 +50,9 @@ export class HwidUserDevicesRepository implements ICrudWithStringId<HwidUserDevi
         return !!result;
     }
 
-    public async deleteById(hwid: string): Promise<boolean> {
-        const result = await this.prisma.tx.hwidUserDevices.delete({ where: { hwid } });
-        return !!result;
-    }
-
     public async deleteByHwidAndUserUuid(hwid: string, userUuid: string): Promise<boolean> {
         const result = await this.prisma.tx.hwidUserDevices.delete({
-            where: { hwid, userUuid },
+            where: { hwid_userUuid: { hwid, userUuid } },
         });
         return !!result;
     }
