@@ -35,6 +35,8 @@ export class ProxyCheckGuard implements CanActivate {
             response.socket?.destroy();
 
             this.logger.error('Reverse proxy and HTTPS are required.');
+
+            return false;
         }
 
         return true;
