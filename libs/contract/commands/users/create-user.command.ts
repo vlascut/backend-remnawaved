@@ -109,6 +109,14 @@ export namespace CreateUserCommand {
         telegramId: z.optional(z.number().int()),
         email: z.string().email('Invalid email format').optional(),
 
+        hwidDeviceLimit: z.optional(
+            z
+                .number({ invalid_type_error: 'Device limit must be a number' })
+                .int('Device limit must be an integer')
+                .min(0, 'Device limit must be greater than 0')
+                .describe('Device limit'),
+        ),
+
         activateAllInbounds: z.boolean().optional(),
     });
 

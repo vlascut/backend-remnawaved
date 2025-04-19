@@ -21,9 +21,21 @@ export const configSchema = z
                 (val) => val !== 'change_me',
                 'JWT_API_TOKENS_SECRET cannot be set to "change_me"',
             ),
+
         TELEGRAM_BOT_TOKEN: z.string().optional(),
         TELEGRAM_ADMIN_ID: z.string().optional(),
+
         NODES_NOTIFY_CHAT_ID: z.string().optional(),
+
+        TELEGRAM_ADMIN_THREAD_ID: z
+            .string()
+            .transform((val) => (val === '' ? undefined : val))
+            .optional(),
+        NODES_NOTIFY_THREAD_ID: z
+            .string()
+            .transform((val) => (val === '' ? undefined : val))
+            .optional(),
+
         IS_TELEGRAM_ENABLED: z.string().default('false'),
         FRONT_END_DOMAIN: z.string(),
         IS_DOCS_ENABLED: z.string().default('false'),
@@ -52,6 +64,19 @@ export const configSchema = z
             .transform((val) => parseInt(val, 10))
             .refine((val) => val >= 16 && val <= 64, 'SHORT_UUID_LENGTH must be between 16 and 64'),
         IS_HTTP_LOGGING_ENABLED: z.string().default('false'),
+
+        HWID_DEVICE_LIMIT_ENABLED: z.string().default('false'),
+        HWID_FALLBACK_DEVICE_LIMIT: z.optional(
+            z
+                .string()
+                .transform((val) => parseInt(val, 10))
+                .refine(
+                    (val) => val >= 1 && val <= 999,
+                    'HWID_FALLBACK_DEVICE_LIMIT must be between 1 and 999',
+                ),
+        ),
+        HWID_MAX_DEVICES_ANNOUNCE: z.optional(z.string()),
+        PROVIDER_ID: z.optional(z.string()),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -61,10 +86,13 @@ export const configSchema = z
                     message: 'WEBHOOK_URL is required when WEBHOOK_ENABLED is true',
                     path: ['WEBHOOK_URL'],
                 });
-            } else if (!data.WEBHOOK_URL.startsWith('https://')) {
+            } else if (
+                !data.WEBHOOK_URL.startsWith('http://') &&
+                !data.WEBHOOK_URL.startsWith('https://')
+            ) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: 'WEBHOOK_URL must start with https://',
+                    message: 'WEBHOOK_URL must start with http:// or https://',
                     path: ['WEBHOOK_URL'],
                 });
             }
@@ -113,6 +141,26 @@ export const configSchema = z
                     code: z.ZodIssueCode.custom,
                     message: 'NODES_NOTIFY_CHAT_ID is required when IS_TELEGRAM_ENABLED is true',
                     path: ['NODES_NOTIFY_CHAT_ID'],
+                });
+            }
+        }
+
+        if (data.HWID_DEVICE_LIMIT_ENABLED === 'true') {
+            if (!data.HWID_FALLBACK_DEVICE_LIMIT) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'HWID_FALLBACK_DEVICE_LIMIT is required when HWID_DEVICE_LIMIT_ENABLED is true',
+                    path: ['HWID_FALLBACK_DEVICE_LIMIT'],
+                });
+            }
+
+            if (!data.HWID_MAX_DEVICES_ANNOUNCE) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'HWID_MAX_DEVICES_ANNOUNCE is required when HWID_DEVICE_LIMIT_ENABLED is true',
+                    path: ['HWID_MAX_DEVICES_ANNOUNCE'],
                 });
             }
         }

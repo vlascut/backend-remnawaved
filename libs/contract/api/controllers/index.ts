@@ -1,6 +1,7 @@
 export * from './api-tokens';
 export * from './auth';
 export * from './hosts';
+export * from './hwid';
 export * from './inbounds';
 export * from './keygen';
 export * from './nodes';

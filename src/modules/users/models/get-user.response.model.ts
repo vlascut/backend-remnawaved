@@ -33,6 +33,8 @@ export class GetUserResponseModel {
     public readonly telegramId: number | null;
     public readonly email: string | null;
 
+    public readonly hwidDeviceLimit: number | null;
+
     public readonly subscriptionUrl: string;
 
     public readonly happ: {
@@ -71,6 +73,8 @@ export class GetUserResponseModel {
 
         this.telegramId = entity.telegramId ? Number(entity.telegramId) : null;
         this.email = entity.email;
+
+        this.hwidDeviceLimit = entity.hwidDeviceLimit;
 
         this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
         this.lastConnectedNode = lastConnectedNode;

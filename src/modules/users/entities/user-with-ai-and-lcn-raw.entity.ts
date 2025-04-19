@@ -33,6 +33,8 @@ export class UserWithAiAndLcnRawEntity {
     public telegramId: bigint | null;
     public email: string | null;
 
+    public hwidDeviceLimit: number | null;
+
     public createdAt: Date;
     public updatedAt: Date;
 

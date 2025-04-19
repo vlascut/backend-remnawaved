@@ -101,7 +101,7 @@ export class FormatHostsService {
 
             const address = inputHost.address;
             const port = inputHost.port;
-            const network = inbound.streamSettings?.network || 'tcp';
+            let network = inbound.streamSettings?.network || 'tcp';
 
             let streamSettings: WebSocketObject | xHttpObject | RawObject | TcpObject | undefined;
             let pathFromConfig: string | undefined;
@@ -131,9 +131,17 @@ export class FormatHostsService {
                     pathFromConfig = settings?.path;
                     break;
                 }
-                case 'raw':
-                    streamSettings = inbound.streamSettings?.rawSettings as RawObject;
+                case 'raw': {
+                    const settings = inbound.streamSettings?.rawSettings as RawObject;
+
+                    streamSettings = settings;
+                    headerType = settings?.header?.type;
+
+                    // fallback to tcp
+                    network = 'tcp';
+
                     break;
+                }
                 case 'tcp': {
                     if (inbound.protocol === 'shadowsocks') {
                         break;

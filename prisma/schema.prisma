@@ -40,12 +40,15 @@ model Users {
   telegramId BigInt? @map("telegram_id")
   email      String? @map("email")
 
+  hwidDeviceLimit Int? @map("hwid_device_limit")
+
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   nodesUserUsageHistory NodesUserUsageHistory[]
   activeUserInbounds    ActiveUserInbounds[]
   userTrafficHistory    UserTrafficHistory[]
+  hwidUserDevices       HwidUserDevices[]
 
   @@map("users")
 }
@@ -280,9 +283,27 @@ model SubscriptionSettings {
   expiredUsersRemarks           Json    @map("expired_users_remarks")
   limitedUsersRemarks           Json    @map("limited_users_remarks")
   disabledUsersRemarks          Json    @map("disabled_users_remarks")
+  customResponseHeaders         Json?   @map("custom_response_headers")
 
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   @@map("subscription_settings")
+}
+
+model HwidUserDevices {
+  hwid        String  @map("hwid")
+  userUuid    String  @map("user_uuid") @db.Uuid
+  platform    String? @map("platform")
+  osVersion   String? @map("os_version")
+  deviceModel String? @map("device_model")
+  userAgent   String? @map("user_agent")
+
+  user Users @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@id([hwid, userUuid])
+  @@map("hwid_user_devices")
 }

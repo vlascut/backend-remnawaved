@@ -31,6 +31,7 @@ export class HostsService {
 
             const hostEntity = new HostsEntity({
                 ...dto,
+                address: dto.address.trim(),
                 xHttpExtraParams,
             });
 
@@ -79,6 +80,7 @@ export class HostsService {
 
             const result = await this.hostsRepository.update({
                 ...dto,
+                address: dto.address ? dto.address.trim() : undefined,
                 xHttpExtraParams,
             });
 

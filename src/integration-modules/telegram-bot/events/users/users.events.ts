@@ -17,7 +17,7 @@ import { UserEvent } from './interfaces';
 
 export class UsersEvents {
     private readonly adminId: string;
-
+    private readonly adminThreadId: string | undefined;
     constructor(
         @InjectBot(BOT_NAME)
         private readonly _: Bot<Context>,
@@ -26,6 +26,7 @@ export class UsersEvents {
         private readonly configService: ConfigService,
     ) {
         this.adminId = this.configService.getOrThrow<string>('TELEGRAM_ADMIN_ID');
+        this.adminThreadId = this.configService.get<string>('TELEGRAM_ADMIN_THREAD_ID');
     }
 
     @OnEvent(EVENTS.USER.CREATED)
@@ -42,6 +43,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -59,6 +61,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -76,6 +79,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -90,6 +94,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -103,6 +108,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -116,6 +122,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -129,6 +136,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -142,6 +150,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -155,6 +164,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -168,6 +178,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -181,6 +192,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -194,6 +206,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 
@@ -207,6 +220,7 @@ export class UsersEvents {
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
             chatId: this.adminId,
+            threadId: this.adminThreadId,
         });
     }
 }

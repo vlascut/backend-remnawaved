@@ -4,6 +4,7 @@ import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
 import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
+import { extractHwidHeaders } from '@common/utils/extract-hwid-headers';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
 import { REQUEST_TEMPLATE_TYPE } from '@libs/contracts/constants';
@@ -64,6 +65,7 @@ export class SubscriptionController {
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
             undefined,
+            extractHwidHeaders(request),
         );
 
         if (result instanceof SubscriptionNotFoundResponse) {
@@ -101,6 +103,7 @@ export class SubscriptionController {
             (request.headers['user-agent'] as string) || '',
             ((request.headers['accept'] as string) || '').includes('text/html'),
             clientType,
+            extractHwidHeaders(request),
         );
 
         if (result instanceof SubscriptionNotFoundResponse) {
