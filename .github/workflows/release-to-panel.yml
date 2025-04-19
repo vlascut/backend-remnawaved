@@ -85,7 +85,7 @@ jobs:
 
             ### 📋 Changes
             - [View full changelog](https://github.com/remnawave/frontend/releases/tag/${{ steps.frontend-tag.outputs.release }})
-            - [Compare changes (${steps.frontend-prev-tag.outputs.tag}...${{ steps.frontend-tag.outputs.release }})](https://github.com/remnawave/frontend/compare/${{steps.frontend-prev-tag.outputs.tag}}...${{ steps.frontend-tag.outputs.release }})
+            - [Compare changes (${{ steps.frontend-prev-tag.outputs.tag }}...${{ steps.frontend-tag.outputs.release }})](https://github.com/remnawave/frontend/compare/${{steps.frontend-prev-tag.outputs.tag}}...${{ steps.frontend-tag.outputs.release }})
 
             ---
 

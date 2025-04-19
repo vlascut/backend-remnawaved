@@ -1,18 +1,18 @@
 import { HwidUserDevices } from '@prisma/client';
 
 export class HwidUserDeviceEntity implements HwidUserDevices {
-    hwid: string;
-    userUuid: string;
-    platform: string | null;
-    osVersion: string | null;
-    deviceModel: string | null;
-    userAgent: string | null;
+    public hwid: string;
+    public userUuid: string;
+    public platform: string | null;
+    public osVersion: string | null;
+    public deviceModel: string | null;
+    public userAgent: string | null;
 
-    createdAt: Date;
-    updatedAt: Date;
+    public createdAt: Date;
+    public updatedAt: Date;
 
-    constructor(history: Partial<HwidUserDevices>) {
-        Object.assign(this, history);
+    constructor(hwidUserDevice: Partial<HwidUserDevices>) {
+        Object.assign(this, hwidUserDevice);
         return this;
     }
 }

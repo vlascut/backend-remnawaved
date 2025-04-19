@@ -21,7 +21,6 @@ import {
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
-import { CreateHwidUserDeviceCommand } from '@modules/hwid-user-devices/commands/create-hwid-user-device';
 import { UpsertHwidUserDeviceCommand } from '@modules/hwid-user-devices/commands/upsert-hwid-user-device';
 import { XrayGeneratorService } from '@modules/subscription-template/generators/xray.generator.service';
 import { FormatHostsService } from '@modules/subscription-template/generators/format-hosts.service';
@@ -513,15 +512,6 @@ export class SubscriptionService {
         );
     }
 
-    private async createHwidUserDevice(
-        dto: CreateHwidUserDeviceCommand,
-    ): Promise<ICommandResponse<HwidUserDeviceEntity>> {
-        return this.commandBus.execute<
-            CreateHwidUserDeviceCommand,
-            ICommandResponse<HwidUserDeviceEntity>
-        >(new CreateHwidUserDeviceCommand(dto.hwidUserDevice));
-    }
-
     private async upsertHwidUserDevice(
         dto: UpsertHwidUserDeviceCommand,
     ): Promise<ICommandResponse<HwidUserDeviceEntity>> {
@@ -569,6 +559,17 @@ export class SubscriptionService {
 
             if (isDeviceExists.isOk && isDeviceExists.response) {
                 if (isDeviceExists.response.exists) {
+                    await this.upsertHwidUserDevice({
+                        hwidUserDevice: new HwidUserDeviceEntity({
+                            hwid: hwidHeaders.hwid,
+                            userUuid: user.uuid,
+                            platform: hwidHeaders.platform,
+                            osVersion: hwidHeaders.osVersion,
+                            deviceModel: hwidHeaders.deviceModel,
+                            userAgent: hwidHeaders.userAgent,
+                        }),
+                    });
+
                     return {
                         isOk: true,
                         response: {
@@ -584,7 +585,7 @@ export class SubscriptionService {
 
             if (!count.isOk || count.response === undefined) {
                 return {
-                    isOk: false,
+                    isOk: true,
                     response: {
                         isSubscriptionAllowed: false,
                     },
@@ -600,7 +601,7 @@ export class SubscriptionService {
                 };
             }
 
-            const result = await this.createHwidUserDevice({
+            const result = await this.upsertHwidUserDevice({
                 hwidUserDevice: new HwidUserDeviceEntity({
                     hwid: hwidHeaders.hwid,
                     userUuid: user.uuid,

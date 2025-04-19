@@ -52,13 +52,10 @@ export class HwidUserDevicesRepository
     }
 
     public async checkHwidExists(hwid: string, userUuid: string): Promise<boolean> {
-        const result = await this.prisma.tx.hwidUserDevices.findUnique({
-            where: { hwid_userUuid: { hwid, userUuid } },
-            select: {
-                hwid: true,
-            },
+        const count = await this.prisma.tx.hwidUserDevices.count({
+            where: { hwid, userUuid },
         });
-        return !!result;
+        return count > 0;
     }
 
     public async deleteByHwidAndUserUuid(hwid: string, userUuid: string): Promise<boolean> {

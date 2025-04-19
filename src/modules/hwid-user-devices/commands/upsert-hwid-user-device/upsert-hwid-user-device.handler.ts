@@ -27,7 +27,7 @@ export class UpsertHwidUserDeviceHandler
                 isOk: true,
                 response: result,
             };
-        } catch (error: unknown) {
+        } catch (error) {
             this.logger.error(error);
             return {
                 isOk: false,

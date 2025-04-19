@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const HwidUserDeviceSchema = z.object({
     hwid: z.string(),
-    userUuid: z.string(),
+    userUuid: z.string().uuid(),
     platform: z.nullable(z.string()),
     osVersion: z.nullable(z.string()),
     deviceModel: z.nullable(z.string()),
