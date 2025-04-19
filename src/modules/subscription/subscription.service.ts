@@ -22,6 +22,7 @@ import {
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
 import { CreateHwidUserDeviceCommand } from '@modules/hwid-user-devices/commands/create-hwid-user-device';
+import { UpsertHwidUserDeviceCommand } from '@modules/hwid-user-devices/commands/upsert-hwid-user-device';
 import { XrayGeneratorService } from '@modules/subscription-template/generators/xray.generator.service';
 import { FormatHostsService } from '@modules/subscription-template/generators/format-hosts.service';
 import { HwidUserDeviceEntity } from '@modules/hwid-user-devices/entities/hwid-user-device.entity';
@@ -109,6 +110,8 @@ export class SubscriptionService {
 
                     return response;
                 }
+            } else {
+                await this.checkAndUpsertHwidUserDevice(user.response, hwidHeaders);
             }
 
             let clientOverride: TSubscriptionTemplateType | undefined;
@@ -519,6 +522,15 @@ export class SubscriptionService {
         >(new CreateHwidUserDeviceCommand(dto.hwidUserDevice));
     }
 
+    private async upsertHwidUserDevice(
+        dto: UpsertHwidUserDeviceCommand,
+    ): Promise<ICommandResponse<HwidUserDeviceEntity>> {
+        return this.commandBus.execute<
+            UpsertHwidUserDeviceCommand,
+            ICommandResponse<HwidUserDeviceEntity>
+        >(new UpsertHwidUserDeviceCommand(dto.hwidUserDevice));
+    }
+
     private async checkHwidDeviceLimit(
         user: UserWithActiveInboundsEntity,
         hwidHeaders: HwidHeaders | null,
@@ -623,6 +635,32 @@ export class SubscriptionService {
                     isSubscriptionAllowed: false,
                 },
             };
+        }
+    }
+
+    private async checkAndUpsertHwidUserDevice(
+        user: UserWithActiveInboundsEntity,
+        hwidHeaders: HwidHeaders | null,
+    ): Promise<void> {
+        try {
+            if (hwidHeaders === null) {
+                return;
+            }
+
+            await this.upsertHwidUserDevice({
+                hwidUserDevice: new HwidUserDeviceEntity({
+                    hwid: hwidHeaders.hwid,
+                    userUuid: user.uuid,
+                    platform: hwidHeaders.platform,
+                    osVersion: hwidHeaders.osVersion,
+                    deviceModel: hwidHeaders.deviceModel,
+                    userAgent: hwidHeaders.userAgent,
+                }),
+            });
+        } catch (error) {
+            this.logger.error(`Error upserting hwid user device: ${error}`);
+
+            return;
         }
     }
 }

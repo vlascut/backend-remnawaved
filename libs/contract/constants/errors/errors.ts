@@ -503,4 +503,9 @@ export const ERRORS = {
         message: 'Delete hwid user device error',
         httpCode: 500,
     },
+    UPSERT_HWID_USER_DEVICE_ERROR: {
+        code: 'A102',
+        message: 'Upsert hwid user device error',
+        httpCode: 500,
+    },
 } as const;

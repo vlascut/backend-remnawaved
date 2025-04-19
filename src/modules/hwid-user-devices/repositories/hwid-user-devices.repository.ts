@@ -25,6 +25,17 @@ export class HwidUserDevicesRepository
         return this.converter.fromPrismaModelToEntity(result);
     }
 
+    public async upsert(entity: HwidUserDeviceEntity): Promise<HwidUserDeviceEntity> {
+        const model = this.converter.fromEntityToPrismaModel(entity);
+        const result = await this.prisma.tx.hwidUserDevices.upsert({
+            where: { hwid_userUuid: { hwid: entity.hwid, userUuid: entity.userUuid } },
+            update: model,
+            create: model,
+        });
+
+        return this.converter.fromPrismaModelToEntity(result);
+    }
+
     public async findByCriteria(
         dto: Partial<HwidUserDeviceEntity>,
     ): Promise<HwidUserDeviceEntity[]> {
