@@ -25,7 +25,11 @@ import { IFormattedHost } from './interfaces/formatted-hosts.interface';
 
 @Injectable()
 export class FormatHostsService {
-    constructor(private readonly queryBus: QueryBus) {}
+    private readonly nanoid: ReturnType<typeof customAlphabet>;
+
+    constructor(private readonly queryBus: QueryBus) {
+        this.nanoid = customAlphabet('0123456789abcdefghjkmnopqrstuvwxyz', 10);
+    }
 
     public async generateFormattedHosts(
         config: XRayConfig,
@@ -184,7 +188,6 @@ export class FormatHostsService {
                     const realitySettings = inbound.streamSettings?.realitySettings;
                     sniFromConfig = realitySettings?.serverNames?.[0];
                     fingerprintFromConfig = realitySettings?.fingerprint;
-                    // publicKeyFromConfig = realitySettings?.publicKey || realitySettings?.password;
 
                     publicKeyFromConfig = publicKeyMap.get(inbound.tag);
 
@@ -242,9 +245,7 @@ export class FormatHostsService {
             }
 
             if (sni.includes('*.')) {
-                const nanoid = customAlphabet('0123456789abcdefghjkmnopqrstuvwxyz', 10);
-
-                sni = sni.replace('*', nanoid());
+                sni = sni.replace('*', this.nanoid());
             }
 
             // Fingerprint
