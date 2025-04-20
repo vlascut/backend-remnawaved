@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { customAlphabet } from 'nanoid';
 
 import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
@@ -99,7 +100,13 @@ export class FormatHostsService {
 
             const remark = TemplateEngine.formarWithUser(inputHost.remark, user);
 
-            const address = inputHost.address;
+            let address = inputHost.address;
+
+            if (address.includes(',')) {
+                const addressList = address.split(',');
+                address = addressList[Math.floor(Math.random() * addressList.length)].trim();
+            }
+
             const port = inputHost.port;
             let network = inbound.streamSettings?.network || 'tcp';
 
@@ -232,6 +239,12 @@ export class FormatHostsService {
 
             if (!sni && isDomain(inputHost.address)) {
                 sni = inputHost.address;
+            }
+
+            if (sni.includes('*.')) {
+                const nanoid = customAlphabet('0123456789abcdefghjkmnopqrstuvwxyz', 10);
+
+                sni = sni.replace('*', nanoid());
             }
 
             // Fingerprint
