@@ -207,7 +207,7 @@ export class RenderTemplatesService {
         }
 
         const v2rayNMatch = userAgent.match(/^v2rayN\/(\d+\.\d+\.\d+)/);
-        if (v2rayNMatch && semver.gte(v2rayNMatch[1], '6.40')) {
+        if (v2rayNMatch && semver.gte(v2rayNMatch[1], '6.40.0')) {
             return true;
         }
 
