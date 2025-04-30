@@ -121,6 +121,10 @@ export class UsersService {
             this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
         }
 
+        if (user.response.isNeedToBeRemovedFromNode) {
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user));
+        }
+
         this.eventEmitter.emit(
             EVENTS.USER.MODIFIED,
             new UserEvent(user.response.user, EVENTS.USER.MODIFIED),
@@ -141,6 +145,7 @@ export class UsersService {
     public async updateUserTransactional(dto: UpdateUserRequestDto): Promise<
         ICommandResponse<{
             isNeedToBeAddedToNode: boolean;
+            isNeedToBeRemovedFromNode: boolean;
             user: UserWithActiveInboundsEntity;
         }>
     > {
@@ -170,6 +175,8 @@ export class UsersService {
 
             let isNeedToBeAddedToNode =
                 user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
+
+            const isNeedToBeRemovedFromNode = status !== USERS_STATUS.DISABLED;
 
             if (trafficLimitBytes !== undefined) {
                 if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes >= 0) {
@@ -261,6 +268,7 @@ export class UsersService {
                 response: {
                     user: userWithInbounds,
                     isNeedToBeAddedToNode,
+                    isNeedToBeRemovedFromNode,
                 },
             };
         } catch (error) {
