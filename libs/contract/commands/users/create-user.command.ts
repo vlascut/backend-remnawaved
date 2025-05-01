@@ -1,12 +1,18 @@
 import { z } from 'zod';
 
+import { getEndpointDetails, RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { ExtendedUsersSchema, UsersSchema } from '../../models';
-import { RESET_PERIODS, USERS_STATUS } from '../../constants';
-import { REST_API } from '../../api';
+import { REST_API, USERS_ROUTES } from '../../api';
 
 export namespace CreateUserCommand {
     export const url = REST_API.USERS.CREATE;
     export const TSQ_url = url;
+
+    export const endpointDetails = getEndpointDetails(
+        USERS_ROUTES.CREATE,
+        'post',
+        'Create a new user',
+    );
 
     export const RequestSchema = z.object({
         username: z

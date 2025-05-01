@@ -1,11 +1,18 @@
 import { z } from 'zod';
 
-import { ExtendedUsersSchema } from '../../models';
-import { REST_API } from '../../api';
+import { getEndpointDetails } from '../../../constants';
+import { ExtendedUsersSchema } from '../../../models';
+import { REST_API, USERS_ROUTES } from '../../../api';
 
 export namespace GetUserByTelegramIdCommand {
-    export const url = REST_API.USERS.GET_BY_TELEGRAM_ID;
+    export const url = REST_API.USERS.GET_BY.TELEGRAM_ID;
     export const TSQ_url = url(':telegramId');
+
+    export const endpointDetails = getEndpointDetails(
+        USERS_ROUTES.GET_BY.TELEGRAM_ID(':telegramId'),
+        'get',
+        'Get users by telegram ID',
+    );
 
     export const RequestSchema = z.object({
         telegramId: z.string(),

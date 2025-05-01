@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
 
-import { Controller, Get, Param, Req, Res, UseFilters } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, Req, Res, UseFilters } from '@nestjs/common';
 import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { extractHwidHeaders } from '@common/utils/extract-hwid-headers';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
+import { GetSubscriptionInfoByShortUuidCommand } from '@libs/contracts/commands';
 import { REQUEST_TEMPLATE_TYPE } from '@libs/contracts/constants';
 
 import {
@@ -36,7 +38,10 @@ export class SubscriptionController {
         description: 'Subscription info fetched successfully',
         type: GetSubscriptionInfoResponseDto,
     })
-    @Get('/:shortUuid' + SUBSCRIPTION_ROUTES.GET_INFO)
+    @Endpoint({
+        command: GetSubscriptionInfoByShortUuidCommand,
+        httpCode: HttpStatus.OK,
+    })
     async getSubscriptionInfoByShortUuid(
         @Param() { shortUuid }: GetSubscriptionInfoRequestDto,
     ): Promise<GetSubscriptionInfoResponseDto> {

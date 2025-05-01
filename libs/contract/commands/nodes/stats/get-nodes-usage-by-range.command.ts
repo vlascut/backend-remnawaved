@@ -1,10 +1,17 @@
 import { z } from 'zod';
 
-import { REST_API } from '../../api';
+import { getEndpointDetails } from '../../../constants';
+import { NODES_ROUTES, REST_API } from '../../../api';
 
 export namespace GetNodesUsageByRangeCommand {
     export const url = REST_API.NODES.STATS.USAGE_BY_RANGE;
     export const TSQ_url = url;
+
+    export const endpointDetails = getEndpointDetails(
+        NODES_ROUTES.STATS.USAGE_BY_RANGE,
+        'get',
+        'Get nodes usage by range',
+    );
 
     export const RequestQuerySchema = z.object({
         start: z.string(),

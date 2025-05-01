@@ -1,10 +1,8 @@
 import {
     ApiBearerAuth,
-    ApiBody,
     ApiCreatedResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
-    ApiOperation,
     ApiParam,
     ApiQuery,
     ApiTags,
@@ -12,13 +10,9 @@ import {
 import {
     Body,
     Controller,
-    Delete,
-    Get,
     HttpCode,
     HttpStatus,
     Param,
-    Patch,
-    Post,
     Query,
     UseFilters,
     UseGuards,
@@ -27,10 +21,28 @@ import { ConfigService } from '@nestjs/config';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
-import { USERS_CONTROLLER, USERS_ROUTES } from '@libs/contracts/api';
+import {
+    ActivateAllInboundsCommand,
+    CreateUserCommand,
+    DeleteUserCommand,
+    DisableUserCommand,
+    EnableUserCommand,
+    GetAllUsersCommand,
+    GetUserByEmailCommand,
+    GetUserByShortUuidCommand,
+    GetUserBySubscriptionUuidCommand,
+    GetUserByTelegramIdCommand,
+    GetUserByUsernameCommand,
+    GetUserByUuidCommand,
+    ResetUserTrafficCommand,
+    RevokeUserSubscriptionCommand,
+    UpdateUserCommand,
+} from '@libs/contracts/commands';
+import { USERS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -44,8 +56,8 @@ import {
     DisableUserResponseDto,
     EnableUserRequestDto,
     EnableUserResponseDto,
-    GetAllUsersV2QueryDto,
-    GetAllUsersV2ResponseDto,
+    GetAllUsersQueryDto,
+    GetAllUsersResponseDto,
     GetUserByShortUuidRequestDto,
     GetUserByShortUuidResponseDto,
     GetUserBySubscriptionUuidRequestDto,
@@ -90,14 +102,15 @@ export class UsersController {
         this.subPublicDomain = this.configService.getOrThrow<string>('SUB_PUBLIC_DOMAIN');
     }
 
-    @ApiBody({ type: CreateUserRequestDto })
     @ApiCreatedResponse({
         type: CreateUserResponseDto,
         description: 'User created successfully',
     })
-    @ApiOperation({ summary: 'Create User', description: 'Create a new user' })
-    @HttpCode(HttpStatus.CREATED)
-    @Post(USERS_ROUTES.CREATE)
+    @Endpoint({
+        command: CreateUserCommand,
+        httpCode: HttpStatus.CREATED,
+        apiBody: CreateUserRequestDto,
+    })
     async createUser(@Body() body: CreateUserRequestDto): Promise<CreateUserResponseDto> {
         const result = await this.usersService.createUser(body);
 
@@ -107,14 +120,15 @@ export class UsersController {
         };
     }
 
-    @ApiBody({ type: UpdateUserRequestDto })
     @ApiOkResponse({
         type: UpdateUserResponseDto,
         description: 'User updated successfully',
     })
-    @ApiOperation({ summary: 'Update User', description: 'Update a user' })
-    @HttpCode(HttpStatus.OK)
-    @Post(USERS_ROUTES.UPDATE)
+    @Endpoint({
+        command: UpdateUserCommand,
+        httpCode: HttpStatus.OK,
+        apiBody: UpdateUserRequestDto,
+    })
     async updateUser(@Body() body: UpdateUserRequestDto): Promise<UpdateUserResponseDto> {
         const result = await this.usersService.updateUser(body);
 
@@ -128,11 +142,31 @@ export class UsersController {
         };
     }
 
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
     @ApiOkResponse({
-        type: GetAllUsersV2ResponseDto,
+        type: DeleteUserResponseDto,
+        description: 'User deleted successfully',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @Endpoint({
+        command: DeleteUserCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async deleteUser(@Param() paramData: DeleteUserRequestDto): Promise<DeleteUserResponseDto> {
+        const result = await this.usersService.deleteUser(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiOkResponse({
+        type: GetAllUsersResponseDto,
         description: 'Users fetched successfully',
     })
-    @ApiOperation({ summary: 'Get All Users', description: 'Get all users' })
     @ApiQuery({
         name: 'start',
         type: 'number',
@@ -145,11 +179,13 @@ export class UsersController {
         required: false,
         description: 'Page size for pagination',
     })
-    @HttpCode(HttpStatus.OK)
-    @Get(USERS_ROUTES.GET_ALL_V2)
-    async getAllUsersV2(@Query() query: GetAllUsersV2QueryDto): Promise<GetAllUsersV2ResponseDto> {
+    @Endpoint({
+        command: GetAllUsersCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getAllUsers(@Query() query: GetAllUsersQueryDto): Promise<GetAllUsersResponseDto> {
         const { start, size, filters, filterModes, globalFilterMode, sorting } = query;
-        const result = await this.usersService.getAllUsersV2({
+        const result = await this.usersService.getAllUsers({
             start,
             size,
             filters,
@@ -176,13 +212,11 @@ export class UsersController {
         type: RevokeUserSubscriptionResponseDto,
         description: 'User subscription revoked successfully',
     })
-    @ApiOperation({
-        summary: 'Revoke User Subscription',
-        description: 'Revoke user subscription',
-    })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @HttpCode(HttpStatus.OK)
-    @Patch(USERS_ROUTES.REVOKE_SUBSCRIPTION + '/:uuid')
+    @Endpoint({
+        command: RevokeUserSubscriptionCommand,
+        httpCode: HttpStatus.OK,
+    })
     async revokeUserSubscription(
         @Param() paramData: RevokeUserSubscriptionRequestDto,
     ): Promise<RevokeUserSubscriptionResponseDto> {
@@ -205,13 +239,12 @@ export class UsersController {
         type: DisableUserResponseDto,
         description: 'User disabled successfully',
     })
-    @ApiOperation({
-        summary: 'Disable User',
-        description: 'Disable user',
-    })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @Endpoint({
+        command: DisableUserCommand,
+        httpCode: HttpStatus.OK,
+    })
     @HttpCode(HttpStatus.OK)
-    @Patch(USERS_ROUTES.DISABLE_USER + '/:uuid')
     async disableUser(@Param() paramData: DisableUserRequestDto): Promise<DisableUserResponseDto> {
         const result = await this.usersService.disableUser(paramData.uuid);
 
@@ -229,39 +262,14 @@ export class UsersController {
         description: 'User not found',
     })
     @ApiOkResponse({
-        type: DeleteUserResponseDto,
-        description: 'User deleted successfully',
-    })
-    @ApiOperation({
-        summary: 'Delete User',
-        description: 'Delete user',
-    })
-    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @HttpCode(HttpStatus.OK)
-    @Delete(USERS_ROUTES.DELETE_USER + '/:uuid')
-    async deleteUser(@Param() paramData: DeleteUserRequestDto): Promise<DeleteUserResponseDto> {
-        const result = await this.usersService.deleteUser(paramData.uuid);
-
-        const data = errorHandler(result);
-        return {
-            response: data,
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
         type: EnableUserResponseDto,
         description: 'User enabled successfully',
     })
-    @ApiOperation({
-        summary: 'Enable User',
-        description: 'Enable user',
-    })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @HttpCode(HttpStatus.OK)
-    @Patch(USERS_ROUTES.ENABLE_USER + '/:uuid')
+    @Endpoint({
+        command: EnableUserCommand,
+        httpCode: HttpStatus.OK,
+    })
     async enableUser(@Param() paramData: EnableUserRequestDto): Promise<EnableUserResponseDto> {
         const result = await this.usersService.enableUser(paramData.uuid);
 
@@ -282,13 +290,11 @@ export class UsersController {
         type: ResetUserTrafficResponseDto,
         description: 'User traffic reset successfully',
     })
-    @ApiOperation({
-        summary: 'Reset User Traffic',
-        description: 'Reset user traffic',
-    })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @HttpCode(HttpStatus.OK)
-    @Patch(USERS_ROUTES.RESET_USER_TRAFFIC + '/:uuid')
+    @Endpoint({
+        command: ResetUserTrafficCommand,
+        httpCode: HttpStatus.OK,
+    })
     async resetUserTraffic(
         @Param() paramData: ResetUserTrafficRequestDto,
     ): Promise<ResetUserTrafficResponseDto> {
@@ -311,13 +317,11 @@ export class UsersController {
         type: ActivateAllInboundsResponseDto,
         description: 'All inbounds activated successfully',
     })
-    @ApiOperation({
-        summary: 'Activate All Inbounds',
-        description: 'Activate all inbounds',
-    })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @HttpCode(HttpStatus.OK)
-    @Patch(USERS_ROUTES.ACTIVATE_ALL_INBOUNDS + '/:uuid')
+    @Endpoint({
+        command: ActivateAllInboundsCommand,
+        httpCode: HttpStatus.OK,
+    })
     async activateAllInbounds(
         @Param() paramData: ActivateAllInboundsRequestDto,
     ): Promise<ActivateAllInboundsResponseDto> {
@@ -347,15 +351,16 @@ export class UsersController {
         type: GetUserByShortUuidResponseDto,
         description: 'User fetched successfully',
     })
-    @ApiOperation({ summary: 'Get User By Short UUID', description: 'Get user by short UUID' })
     @ApiParam({
         name: 'shortUuid',
         type: String,
         description: 'Short UUID of the user',
         required: true,
     })
-    @HttpCode(HttpStatus.OK)
-    @Get(USERS_ROUTES.GET_BY_SHORT_UUID + '/:shortUuid')
+    @Endpoint({
+        command: GetUserByShortUuidCommand,
+        httpCode: HttpStatus.OK,
+    })
     async getUserByShortUuid(
         @Param() paramData: GetUserByShortUuidRequestDto,
     ): Promise<GetUserByShortUuidResponseDto> {
@@ -376,18 +381,16 @@ export class UsersController {
         type: GetUserBySubscriptionUuidResponseDto,
         description: 'User fetched successfully',
     })
-    @ApiOperation({
-        summary: 'Get User By Subscription UUID',
-        description: 'Get user by subscription UUID',
-    })
     @ApiParam({
         name: 'subscriptionUuid',
         type: String,
         description: 'UUID of the subscription',
         required: true,
     })
-    @HttpCode(HttpStatus.OK)
-    @Get(USERS_ROUTES.GET_BY_SUBSCRIPTION_UUID + '/:subscriptionUuid')
+    @Endpoint({
+        command: GetUserBySubscriptionUuidCommand,
+        httpCode: HttpStatus.OK,
+    })
     async getUserBySubscriptionUuid(
         @Param() paramData: GetUserBySubscriptionUuidRequestDto,
     ): Promise<GetUserBySubscriptionUuidResponseDto> {
@@ -408,13 +411,11 @@ export class UsersController {
         type: GetUserByUuidResponseDto,
         description: 'User fetched successfully',
     })
-    @ApiOperation({
-        summary: 'Get User By UUID',
-        description: 'Get user by UUID',
-    })
     @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @HttpCode(HttpStatus.OK)
-    @Get(USERS_ROUTES.GET_BY_UUID + '/:uuid')
+    @Endpoint({
+        command: GetUserByUuidCommand,
+        httpCode: HttpStatus.OK,
+    })
     async getUserByUuid(
         @Param() paramData: GetUserByUuidRequestDto,
     ): Promise<GetUserByUuidResponseDto> {
@@ -433,15 +434,16 @@ export class UsersController {
         type: GetUserByUsernameResponseDto,
         description: 'User fetched successfully',
     })
-    @ApiOperation({ summary: 'Get User By Username', description: 'Get user by username' })
     @ApiParam({
         name: 'username',
         type: String,
         description: 'Username of the user',
         required: true,
     })
-    @HttpCode(HttpStatus.OK)
-    @Get(USERS_ROUTES.GET_BY_USERNAME + '/:username')
+    @Endpoint({
+        command: GetUserByUsernameCommand,
+        httpCode: HttpStatus.OK,
+    })
     async getUserByUsername(
         @Param() paramData: GetUserByUsernameRequestDto,
     ): Promise<GetUserByUsernameResponseDto> {
@@ -462,15 +464,16 @@ export class UsersController {
         type: GetUserByTelegramIdResponseDto,
         description: 'Users fetched successfully',
     })
-    @ApiOperation({ summary: 'Get Users By Telegram ID', description: 'Get users by telegram ID' })
     @ApiParam({
         name: 'telegramId',
         type: String,
         description: 'Telegram ID of the user',
         required: true,
     })
-    @HttpCode(HttpStatus.OK)
-    @Get(USERS_ROUTES.GET_BY_TELEGRAM_ID + '/:telegramId')
+    @Endpoint({
+        command: GetUserByTelegramIdCommand,
+        httpCode: HttpStatus.OK,
+    })
     async getUserByTelegramId(
         @Param() paramData: GetUserByTelegramIdRequestDto,
     ): Promise<GetUserByTelegramIdResponseDto> {
@@ -491,15 +494,16 @@ export class UsersController {
         type: GetUserByEmailResponseDto,
         description: 'Users fetched successfully',
     })
-    @ApiOperation({ summary: 'Get Users By Email', description: 'Get users by email' })
     @ApiParam({
         name: 'email',
         type: String,
         description: 'Email of the user',
         required: true,
     })
-    @HttpCode(HttpStatus.OK)
-    @Get(USERS_ROUTES.GET_BY_EMAIL + '/:email')
+    @Endpoint({
+        command: GetUserByEmailCommand,
+        httpCode: HttpStatus.OK,
+    })
     async getUsersByEmail(
         @Param() paramData: GetUserByEmailRequestDto,
     ): Promise<GetUserByEmailResponseDto> {

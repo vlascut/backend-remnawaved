@@ -9,7 +9,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
-import { GetAllUsersV2Command } from '@libs/contracts/commands';
+import { GetAllUsersCommand } from '@libs/contracts/commands';
 
 import { InboundsEntity } from '@modules/inbounds/entities';
 
@@ -310,7 +310,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         filters,
         filterModes,
         sorting,
-    }: GetAllUsersV2Command.RequestQuery): Promise<[UserWithAiAndLcnRawEntity[], number]> {
+    }: GetAllUsersCommand.RequestQuery): Promise<[UserWithAiAndLcnRawEntity[], number]> {
         const where = filters?.reduce((acc, filter) => {
             const mode = filterModes?.[filter.id] || 'contains';
 

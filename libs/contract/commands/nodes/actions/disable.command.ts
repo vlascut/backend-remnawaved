@@ -1,11 +1,18 @@
 import { z } from 'zod';
 
-import { NodesSchema } from '../../models';
-import { REST_API } from '../../api';
+import { getEndpointDetails } from '../../../constants';
+import { NODES_ROUTES, REST_API } from '../../../api';
+import { NodesSchema } from '../../../models';
 
 export namespace DisableNodeCommand {
-    export const url = REST_API.NODES.DISABLE;
+    export const url = REST_API.NODES.ACTIONS.DISABLE;
     export const TSQ_url = url(':uuid');
+
+    export const endpointDetails = getEndpointDetails(
+        NODES_ROUTES.ACTIONS.DISABLE(':uuid'),
+        'post',
+        'Disable a node',
+    );
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),

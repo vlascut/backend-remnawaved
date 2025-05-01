@@ -1,10 +1,17 @@
 import { z } from 'zod';
 
-import { REST_API } from '../../api';
+import { getEndpointDetails } from '../../../constants';
+import { NODES_ROUTES, REST_API } from '../../../api';
 
 export namespace RestartNodeCommand {
-    export const url = REST_API.NODES.RESTART;
+    export const url = REST_API.NODES.ACTIONS.RESTART;
     export const TSQ_url = url(':uuid');
+
+    export const endpointDetails = getEndpointDetails(
+        NODES_ROUTES.ACTIONS.RESTART(':uuid'),
+        'post',
+        'Restart node',
+    );
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),

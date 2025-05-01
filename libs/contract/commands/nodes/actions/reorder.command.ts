@@ -1,11 +1,18 @@
 import { z } from 'zod';
 
-import { NodesSchema } from '../../models';
-import { REST_API } from '../../api';
+import { getEndpointDetails } from '../../../constants';
+import { NODES_ROUTES, REST_API } from '../../../api';
+import { NodesSchema } from '../../../models';
 
 export namespace ReorderNodeCommand {
-    export const url = REST_API.NODES.REORDER;
+    export const url = REST_API.NODES.ACTIONS.REORDER;
     export const TSQ_url = url;
+
+    export const endpointDetails = getEndpointDetails(
+        NODES_ROUTES.ACTIONS.REORDER,
+        'post',
+        'Reorder nodes',
+    );
 
     export const RequestSchema = z.object({
         nodes: z.array(

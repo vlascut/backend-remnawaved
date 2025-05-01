@@ -1,12 +1,18 @@
 import { z } from 'zod';
 
+import { getEndpointDetails, RESET_PERIODS } from '../../constants';
 import { ExtendedUsersSchema, UsersSchema } from '../../models';
-import { RESET_PERIODS } from '../../constants';
-import { REST_API } from '../../api';
+import { REST_API, USERS_ROUTES } from '../../api';
 
 export namespace UpdateUserCommand {
     export const url = REST_API.USERS.UPDATE;
     export const TSQ_url = url;
+
+    export const endpointDetails = getEndpointDetails(
+        USERS_ROUTES.UPDATE,
+        'patch',
+        'Update a user',
+    );
 
     export const RequestSchema = UsersSchema.pick({
         uuid: true,

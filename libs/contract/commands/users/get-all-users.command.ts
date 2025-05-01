@@ -1,11 +1,14 @@
 import { z } from 'zod';
 
+import { getEndpointDetails } from '../../constants';
 import { ExtendedUsersSchema } from '../../models';
-import { REST_API } from '../../api';
+import { REST_API, USERS_ROUTES } from '../../api';
 
-export namespace GetAllUsersV2Command {
-    export const url = REST_API.USERS.GET_ALL_V2;
+export namespace GetAllUsersCommand {
+    export const url = REST_API.USERS.GET;
     export const TSQ_url = url;
+
+    export const endpointDetails = getEndpointDetails(USERS_ROUTES.GET, 'get', 'Get all users');
 
     const FilterSchema = z.object({
         id: z.string(),

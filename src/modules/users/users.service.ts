@@ -13,7 +13,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
-import { GetAllUsersV2Command } from '@libs/contracts/commands';
+import { GetAllUsersCommand } from '@libs/contracts/commands';
 
 import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
 
@@ -423,7 +423,7 @@ export class UsersService {
         }
     }
 
-    public async getAllUsersV2(dto: GetAllUsersV2Command.RequestQuery): Promise<
+    public async getAllUsers(dto: GetAllUsersCommand.RequestQuery): Promise<
         ICommandResponse<{
             total: number;
             users: UserWithAiAndLcnRawEntity[];

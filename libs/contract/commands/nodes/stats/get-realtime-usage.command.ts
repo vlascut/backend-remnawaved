@@ -1,10 +1,17 @@
 import { z } from 'zod';
 
-import { REST_API } from '../../api';
+import { getEndpointDetails } from '../../../constants';
+import { NODES_ROUTES, REST_API } from '../../../api';
 
 export namespace GetNodesRealtimeUsageCommand {
     export const url = REST_API.NODES.STATS.USAGE_REALTIME;
     export const TSQ_url = url;
+
+    export const endpointDetails = getEndpointDetails(
+        NODES_ROUTES.STATS.USAGE_REALTIME,
+        'get',
+        'Get nodes realtime usage',
+    );
 
     export const ResponseSchema = z.object({
         response: z.array(

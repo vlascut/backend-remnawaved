@@ -1,11 +1,18 @@
 import { z } from 'zod';
 
-import { ExtendedUsersSchema } from '../../models';
-import { REST_API } from '../../api';
+import { getEndpointDetails } from '../../../constants';
+import { ExtendedUsersSchema } from '../../../models';
+import { REST_API, USERS_ROUTES } from '../../../api';
 
 export namespace GetUserByUsernameCommand {
-    export const url = REST_API.USERS.GET_BY_USERNAME;
+    export const url = REST_API.USERS.GET_BY.USERNAME;
     export const TSQ_url = url(':username');
+
+    export const endpointDetails = getEndpointDetails(
+        USERS_ROUTES.GET_BY.USERNAME(':username'),
+        'get',
+        'Get user by username',
+    );
 
     export const RequestSchema = z.object({
         username: z.string(),
