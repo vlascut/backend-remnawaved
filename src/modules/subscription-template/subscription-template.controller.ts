@@ -1,8 +1,12 @@
-import { ROLE, TSubscriptionTemplateType } from '@contract/constants';
+import {
+    ROLE,
+    SUBSCRIPTION_TEMPLATE_TYPE_VALUES,
+    TSubscriptionTemplateType,
+} from '@contract/constants';
 import { SUBSCRIPTION_TEMPLATE_CONTROLLER } from '@contract/api';
 
 import { Body, Controller, HttpStatus, Param, UseFilters, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -32,6 +36,13 @@ export class SubscriptionTemplateController {
     @ApiOkResponse({
         type: GetTemplateResponseDto,
         description: 'Template retrieved successfully',
+    })
+    @ApiParam({
+        name: 'templateType',
+        type: String,
+        description: 'Template type',
+        required: true,
+        enum: SUBSCRIPTION_TEMPLATE_TYPE_VALUES,
     })
     @Endpoint({
         command: GetSubscriptionTemplateCommand,

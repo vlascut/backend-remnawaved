@@ -3,15 +3,16 @@ import {
     ApiCreatedResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
+    ApiParam,
     ApiTags,
 } from '@nestjs/swagger';
 import { Body, Controller, HttpStatus, Param, UseFilters, UseGuards } from '@nestjs/common';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { RolesGuard } from '@common/guards/roles/roles.guard';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import {
     CreateHostCommand,
@@ -104,6 +105,7 @@ export class HostsController {
         type: GetOneHostResponseDto,
         description: 'Host fetched successfully',
     })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the host', required: true })
     @Endpoint({
         command: GetOneHostCommand,
         httpCode: HttpStatus.OK,
@@ -144,6 +146,7 @@ export class HostsController {
         type: DeleteHostResponseDto,
         description: 'Host deleted successfully',
     })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the host', required: true })
     @Endpoint({
         command: DeleteHostCommand,
         httpCode: HttpStatus.OK,
