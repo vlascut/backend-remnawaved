@@ -3,8 +3,8 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import { GetFullInboundsCommand, GetInboundsCommand } from '@libs/contracts/commands';
@@ -25,7 +25,7 @@ export class InboundsController {
     constructor(private readonly inboundsService: InboundsService) {}
 
     @ApiOkResponse({
-        type: [GetInboundsResponseDto],
+        type: GetInboundsResponseDto,
         description: 'Get inbounds',
     })
     @Endpoint({
@@ -42,7 +42,7 @@ export class InboundsController {
     }
 
     @ApiOkResponse({
-        type: [GetFullInboundsResponseDto],
+        type: GetFullInboundsResponseDto,
         description: 'Get full inbounds',
     })
     @Endpoint({

@@ -3,8 +3,8 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
@@ -39,7 +39,7 @@ export class InboundsBulkActionsController {
     constructor(private readonly inboundsService: InboundsService) {}
 
     @ApiOkResponse({
-        type: [AddInboundToUsersResponseDto],
+        type: AddInboundToUsersResponseDto,
         description: 'Add inbound to users',
     })
     @Endpoint({
@@ -58,7 +58,7 @@ export class InboundsBulkActionsController {
     }
 
     @ApiOkResponse({
-        type: [RemoveInboundFromUsersResponseDto],
+        type: RemoveInboundFromUsersResponseDto,
         description: 'Remove inbound from users',
     })
     @Endpoint({
@@ -77,7 +77,7 @@ export class InboundsBulkActionsController {
     }
 
     @ApiOkResponse({
-        type: [AddInboundToNodesResponseDto],
+        type: AddInboundToNodesResponseDto,
         description: 'Inbound successfully added to all nodes',
     })
     @Endpoint({
@@ -96,7 +96,7 @@ export class InboundsBulkActionsController {
     }
 
     @ApiOkResponse({
-        type: [RemoveInboundFromNodesResponseDto],
+        type: RemoveInboundFromNodesResponseDto,
         description: 'Inbound successfully removed from all nodes',
     })
     @Endpoint({
