@@ -27,8 +27,10 @@ import { FormatHostsService } from '@modules/subscription-template/generators/fo
 import { HwidUserDeviceEntity } from '@modules/hwid-user-devices/entities/hwid-user-device.entity';
 import { RenderTemplatesService } from '@modules/subscription-template/render-templates.service';
 import { CountUsersDevicesQuery } from '@modules/hwid-user-devices/queries/count-users-devices';
+import { GetUsersWithPaginationQuery } from '@modules/users/queries/get-users-with-pagination';
 import { CheckHwidExistsQuery } from '@modules/hwid-user-devices/queries/check-hwid-exists';
 import { IFormattedHost } from '@modules/subscription-template/generators/interfaces';
+import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
 
 import {
     SubscriptionNotFoundResponse,
@@ -43,6 +45,7 @@ import { ISubscriptionHeaders } from './interfaces/subscription-headers.interfac
 import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
+import { GetAllSubscriptionsQueryDto } from './dto';
 
 @Injectable()
 export class SubscriptionService {
@@ -381,6 +384,114 @@ export class SubscriptionService {
         });
     }
 
+    public async getAllSubscriptions(query: GetAllSubscriptionsQueryDto): Promise<
+        ICommandResponse<{
+            total: number;
+            subscriptions: SubscriptionRawResponse[];
+        }>
+    > {
+        try {
+            const { start, size } = query;
+
+            const usersResponse = await this.getUsersWithPagination({ start, size });
+
+            if (!usersResponse.isOk || !usersResponse.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            const users = usersResponse.response.users;
+            const total = usersResponse.response.total;
+
+            const config = await this.getValidatedConfig();
+            if (!config) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            const settingsResponse = await this.getSubscriptionSettings();
+
+            if (!settingsResponse.isOk || !settingsResponse.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            const settings = settingsResponse.response;
+
+            const subscriptions: SubscriptionRawResponse[] = [];
+
+            for (const user of users) {
+                const hosts = await this.getHostsByUserUuid({ userUuid: user.uuid });
+                const formattedHosts = await this.formatHostsService.generateFormattedHosts(
+                    config,
+                    hosts.response || [],
+                    user,
+                );
+
+                const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+
+                const ssConfLinks = await this.generateSsConfLinks(user.shortUuid, formattedHosts);
+
+                subscriptions.push(await this.getUserInfo(user, xrayLinks, ssConfLinks, settings));
+            }
+
+            return {
+                isOk: true,
+                response: {
+                    total,
+                    subscriptions,
+                },
+            };
+        } catch (error) {
+            this.logger.error(`Error getting subscription info by short uuid: ${error}`);
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
+        }
+    }
+
+    public async getSubscriptionByUsername(
+        username: string,
+    ): Promise<ICommandResponse<SubscriptionRawResponse>> {
+        try {
+            const user = await this.getUserByUsername({ username });
+
+            if (!user.isOk || !user.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            const result = await this.getSubscriptionInfoByShortUuid(user.response.shortUuid);
+
+            if (!result.isOk || !result.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(`Error getting subscription by username: ${error}`);
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
+        }
+    }
+
     private async generateSsConfLinks(
         subscriptionShortUuid: string,
         formattedHosts: IFormattedHost[],
@@ -457,6 +568,24 @@ export class SubscriptionService {
             GetUserByShortUuidQuery,
             ICommandResponse<UserWithActiveInboundsEntity>
         >(new GetUserByShortUuidQuery(dto.shortUuid));
+    }
+
+    private async getUserByUsername(
+        dto: GetUserByUsernameQuery,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+        return this.queryBus.execute<
+            GetUserByUsernameQuery,
+            ICommandResponse<UserWithActiveInboundsEntity>
+        >(new GetUserByUsernameQuery(dto.username));
+    }
+
+    private async getUsersWithPagination(
+        dto: GetUsersWithPaginationQuery,
+    ): Promise<ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>> {
+        return this.queryBus.execute<
+            GetUsersWithPaginationQuery,
+            ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>
+        >(new GetUsersWithPaginationQuery(dto.start, dto.size));
     }
 
     private async getHostsByUserUuid(

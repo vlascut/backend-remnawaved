@@ -16,10 +16,10 @@ import {
     GetSubscriptionByShortUuidByClientTypeRequestDto,
     GetSubscriptionInfoRequestDto,
     GetSubscriptionInfoResponseDto,
-} from './dto';
-import { GetSubscriptionByShortUuidRequestDto } from './dto/get-subscription.dto';
-import { SubscriptionNotFoundResponse, SubscriptionRawResponse } from './models';
-import { SubscriptionService } from './subscription.service';
+} from '../dto';
+import { GetSubscriptionByShortUuidRequestDto } from '../dto/get-subscription.dto';
+import { SubscriptionNotFoundResponse, SubscriptionRawResponse } from '../models';
+import { SubscriptionService } from '../subscription.service';
 
 @ApiTags('Subscription Controller')
 @UseFilters(HttpExceptionFilter)

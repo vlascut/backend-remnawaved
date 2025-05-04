@@ -422,6 +422,28 @@ export class UsersRepository implements ICrud<UserEntity> {
         return [result, total];
     }
 
+    public async getUsersWithPagination({
+        start,
+        size,
+    }: GetAllUsersCommand.RequestQuery): Promise<[UserWithActiveInboundsEntity[], number]> {
+        const [users, total] = await Promise.all([
+            this.prisma.tx.users.findMany({
+                skip: start,
+                take: size,
+
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                include: INCLUDE_ACTIVE_USER_INBOUNDS,
+            }),
+            this.prisma.tx.users.count(),
+        ]);
+
+        const usersResult = users.map((user) => new UserWithActiveInboundsEntity(user));
+
+        return [usersResult, total];
+    }
+
     public async getUserByShortUuid(
         shortUuid: string,
     ): Promise<null | UserWithActiveInboundsEntity> {

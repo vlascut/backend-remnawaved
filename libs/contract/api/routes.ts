@@ -202,4 +202,13 @@ export const REST_API = {
             )}`,
         DELETE_USER_HWID_DEVICE: `${ROOT}/${CONTROLLERS.HWID_CONTROLLER}/${CONTROLLERS.HWID_ROUTES.DELETE_USER_HWID_DEVICE}`,
     },
+    SUBSCRIPTIONS: {
+        GET: `${ROOT}/${CONTROLLERS.SUBSCRIPTIONS_CONTROLLER}/${CONTROLLERS.SUBSCRIPTIONS_ROUTES.GET}`,
+        GET_BY: {
+            USERNAME: (username: string) =>
+                `${ROOT}/${CONTROLLERS.SUBSCRIPTIONS_CONTROLLER}/${CONTROLLERS.SUBSCRIPTIONS_ROUTES.GET_BY.USERNAME(
+                    username,
+                )}`,
+        },
+    },
 } as const;
