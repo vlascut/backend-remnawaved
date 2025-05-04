@@ -49,13 +49,15 @@ export class SubscriptionsController {
         name: 'start',
         type: 'number',
         required: false,
-        description: 'Offset for pagination',
+        example: 0,
+        description: GetAllSubscriptionsCommand.RequestQuerySchema.shape.start.description,
     })
     @ApiQuery({
         name: 'size',
         type: 'number',
         required: false,
-        description: 'Page size for pagination',
+        example: 25,
+        description: GetAllSubscriptionsCommand.RequestQuerySchema.shape.size.description,
     })
     @Endpoint({
         command: GetAllSubscriptionsCommand,
