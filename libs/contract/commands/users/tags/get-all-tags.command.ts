@@ -4,7 +4,7 @@ import { getEndpointDetails } from '../../../constants';
 import { REST_API, USERS_ROUTES } from '../../../api';
 
 export namespace GetAllTagsCommand {
-    export const url = REST_API.USERS.GET;
+    export const url = REST_API.USERS.TAGS.GET;
     export const TSQ_url = url;
 
     export const endpointDetails = getEndpointDetails(
