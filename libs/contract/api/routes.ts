@@ -125,6 +125,10 @@ export const REST_API = {
                 `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY.EMAIL(
                     email,
                 )}`,
+            TAG: (tag: string) =>
+                `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY.TAG(
+                    tag,
+                )}`,
         },
 
         BULK: {
@@ -144,6 +148,10 @@ export const REST_API = {
                 `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.STATS.GET_USAGE_BY_RANGE(
                     uuid,
                 )}`,
+        },
+
+        TAGS: {
+            GET: `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.TAGS.GET}`,
         },
     },
     SUBSCRIPTION: {

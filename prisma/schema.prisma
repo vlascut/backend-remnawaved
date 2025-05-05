@@ -36,6 +36,7 @@ model Users {
   ssPassword     String @map("ss_password")
 
   description String? @map("description")
+  tag         String? @map("tag")
 
   telegramId BigInt? @map("telegram_id")
   email      String? @map("email")
@@ -50,6 +51,7 @@ model Users {
   userTrafficHistory    UserTrafficHistory[]
   hwidUserDevices       HwidUserDevices[]
 
+  @@index([tag])
   @@map("users")
 }
 

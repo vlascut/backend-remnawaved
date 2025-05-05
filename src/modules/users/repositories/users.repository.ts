@@ -787,4 +787,15 @@ export class UsersRepository implements ICrud<UserEntity> {
 
         return result.count;
     }
+
+    public async getAllTags(): Promise<string[]> {
+        const result = await this.prisma.tx.users.findMany({
+            select: {
+                tag: true,
+            },
+            distinct: ['tag'],
+        });
+
+        return result.map((user) => user.tag).filter((tag) => tag !== null);
+    }
 }

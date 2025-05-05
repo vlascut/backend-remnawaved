@@ -168,6 +168,7 @@ export class UsersService {
                 telegramId,
                 email,
                 hwidDeviceLimit,
+                tag,
             } = dto;
 
             const user = await this.userRepository.getUserByUUID(uuid);
@@ -226,6 +227,7 @@ export class UsersService {
                         : undefined,
                 email: email,
                 hwidDeviceLimit: hwidDeviceLimit,
+                tag: tag,
             });
 
             if (activeUserInbounds) {
@@ -494,6 +496,7 @@ export class UsersService {
                 {
                     email: dto.email || undefined,
                     telegramId: dto.telegramId ? BigInt(dto.telegramId) : undefined,
+                    tag: dto.tag || undefined,
                 },
             );
 
@@ -1077,6 +1080,21 @@ export class UsersService {
             return { isOk: false, ...ERRORS.GET_USER_USAGE_BY_RANGE_ERROR };
         }
     }
+
+    public async getAllTags(): Promise<ICommandResponse<string[]>> {
+        try {
+            const result = await this.userRepository.getAllTags();
+
+            return {
+                isOk: true,
+                response: result,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_ALL_TAGS_ERROR };
+        }
+    }
+
     private createUuid(): string {
         return randomUUID();
     }

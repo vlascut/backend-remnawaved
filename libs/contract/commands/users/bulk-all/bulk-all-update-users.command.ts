@@ -46,6 +46,16 @@ export namespace BulkAllUpdateUsersCommand {
         description: z.optional(z.string().nullable()),
         telegramId: z.optional(z.number().int().nullable()),
         email: z.optional(z.string().email('Invalid email format').nullable()),
+        tag: z.optional(
+            z
+                .string()
+                .regex(
+                    /^[A-Z0-9_]+$/,
+                    'Tag can only contain uppercase letters, numbers, underscores',
+                )
+                .max(16, 'Tag must be less than 16 characters')
+                .nullable(),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

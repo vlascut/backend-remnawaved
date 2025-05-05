@@ -111,6 +111,11 @@ export namespace CreateUserCommand {
             .describe('Date format: 2025-01-17T15:38:45.065Z')
             .optional(),
         description: z.string().optional(),
+        tag: z
+            .string()
+            .regex(/^[A-Z0-9_]+$/, 'Tag can only contain uppercase letters, numbers, underscores')
+            .max(16, 'Tag must be less than 16 characters')
+            .optional(),
 
         telegramId: z.optional(z.number().int()),
         email: z.string().email('Invalid email format').optional(),

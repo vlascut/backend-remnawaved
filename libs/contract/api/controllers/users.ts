@@ -22,6 +22,7 @@ export const USERS_ROUTES = {
         SUBSCRIPTION_UUID: (subscriptionUuid: string) => `by-subscription-uuid/${subscriptionUuid}`,
         TELEGRAM_ID: (telegramId: string) => `by-telegram-id/${telegramId}`,
         EMAIL: (email: string) => `by-email/${email}`,
+        TAG: (tag: string) => `by-tag/${tag}`,
     },
 
     BULK: {
@@ -39,5 +40,9 @@ export const USERS_ROUTES = {
 
     STATS: {
         GET_USAGE_BY_RANGE: (uuid: string) => `stats/usage/${uuid}/range`,
+    },
+
+    TAGS: {
+        GET: 'tags',
     },
 } as const;
