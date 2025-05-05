@@ -108,6 +108,13 @@ export class UsersService {
         const user = await this.updateUserTransactional(dto);
 
         if (!user.isOk || !user.response) {
+            if (user.code === 'A025') {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
             return {
                 isOk: false,
                 ...ERRORS.UPDATE_USER_ERROR,
@@ -291,7 +298,7 @@ export class UsersService {
                 }
             }
 
-            return { isOk: false, ...ERRORS.CREATE_NODE_ERROR };
+            return { isOk: false, ...ERRORS.UPDATE_USER_ERROR };
         }
     }
 
