@@ -53,6 +53,8 @@ export class SubscriptionService {
 
     private readonly hwidDeviceLimitEnabled: boolean;
 
+    private readonly subPublicDomain: string;
+
     constructor(
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
@@ -63,6 +65,7 @@ export class SubscriptionService {
     ) {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
+        this.subPublicDomain = this.configService.getOrThrow<string>('SUB_PUBLIC_DOMAIN');
     }
 
     public async getSubscriptionByShortUuid(
@@ -522,7 +525,7 @@ export class SubscriptionService {
             'content-disposition': `attachment; filename="${user.username}"`,
             'support-url': settings.supportLink,
             'profile-title': `base64:${Buffer.from(
-                TemplateEngine.formarWithUser(settings.profileTitle, user),
+                TemplateEngine.formarWithUser(settings.profileTitle, user, this.subPublicDomain),
             ).toString('base64')}`,
             'profile-update-interval': settings.profileUpdateInterval.toString(),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
@@ -532,7 +535,7 @@ export class SubscriptionService {
 
         if (settings.happAnnounce) {
             headers.announce = `base64:${Buffer.from(
-                TemplateEngine.formarWithUser(settings.happAnnounce, user),
+                TemplateEngine.formarWithUser(settings.happAnnounce, user, this.subPublicDomain),
             ).toString('base64')}`;
         }
 
@@ -541,8 +544,7 @@ export class SubscriptionService {
         }
 
         if (settings.isProfileWebpageUrlEnabled && !this.hwidDeviceLimitEnabled) {
-            headers['profile-web-page-url'] =
-                `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`;
+            headers['profile-web-page-url'] = `https://${this.subPublicDomain}/${user.shortUuid}`;
         }
 
         if (isHapp && this.hwidDeviceLimitEnabled) {
@@ -554,7 +556,7 @@ export class SubscriptionService {
 
         if (settings.customResponseHeaders) {
             for (const [key, value] of Object.entries(settings.customResponseHeaders)) {
-                headers[key] = value;
+                headers[key] = TemplateEngine.formarWithUser(value, user, this.subPublicDomain);
             }
         }
 
