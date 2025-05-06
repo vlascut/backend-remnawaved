@@ -7,9 +7,14 @@ import {
 import { Body, Controller, HttpStatus, UseFilters } from '@nestjs/common';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
-import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { GetStatusCommand, LoginCommand, RegisterCommand } from '@libs/contracts/commands';
+import { Endpoint } from '@common/decorators/base-endpoint';
+import {
+    GetStatusCommand,
+    LoginCommand,
+    RegisterCommand,
+    TelegramCallbackCommand,
+} from '@libs/contracts/commands';
 import { AUTH_CONTROLLER } from '@libs/contracts/api/controllers/auth';
 
 import {
@@ -18,6 +23,8 @@ import {
     LoginResponseDto,
     RegisterRequestDto,
     RegisterResponseDto,
+    TelegramCallbackRequestDto,
+    TelegramCallbackResponseDto,
 } from './dtos';
 import { RegisterResponseModel } from './model/register.response.model';
 import { AuthResponseModel } from './model/auth-response.model';
@@ -88,6 +95,26 @@ export class AuthController {
     })
     async getStatus(): Promise<GetStatusResponseDto> {
         const result = await this.authService.getStatus();
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiResponse({
+        type: TelegramCallbackResponseDto,
+        description: 'Access token for further requests',
+    })
+    @Endpoint({
+        command: TelegramCallbackCommand,
+        httpCode: HttpStatus.OK,
+        apiBody: TelegramCallbackRequestDto,
+    })
+    async telegramCallback(
+        @Body() body: TelegramCallbackRequestDto,
+    ): Promise<TelegramCallbackResponseDto> {
+        const result = await this.authService.telegramCallback(body);
 
         const data = errorHandler(result);
         return {

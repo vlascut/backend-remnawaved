@@ -17,6 +17,11 @@ export namespace GetStatusCommand {
         response: z.object({
             isLoginAllowed: z.boolean(),
             isRegisterAllowed: z.boolean(),
+            tgAuth: z
+                .object({
+                    botId: z.number(),
+                })
+                .nullable(),
         }),
     });
 

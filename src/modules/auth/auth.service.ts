@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -12,10 +12,12 @@ import { ROLE } from '@libs/contracts/constants';
 
 import { GetAdminByUsernameQuery } from '@modules/admin/queries/get-admin-by-username';
 import { CountAdminsByRoleQuery } from '@modules/admin/queries/count-admins-by-role';
+import { GetFirstAdminQuery } from '@modules/admin/queries/get-first-admin';
 import { CreateAdminCommand } from '@modules/admin/commands/create-admin';
 import { AdminEntity } from '@modules/admin/entities/admin.entity';
 
 import { GetStatusResponseModel } from './model/get-status.response.model';
+import { TelegramCallbackRequestDto } from './dtos';
 import { ILogin, IRegister } from './interfaces';
 
 const scryptAsync = promisify(scrypt);
@@ -201,8 +203,23 @@ export class AuthService {
                     response: new GetStatusResponseModel({
                         isLoginAllowed: false,
                         isRegisterAllowed: true,
+                        tgAuth: null,
                     }),
                 };
+            }
+
+            let tgAuth: {
+                botId: number;
+            } | null = null;
+            const isTgAuthEnabled = this.configService.get<string>('TELEGRAM_OAUTH_ENABLED');
+            if (isTgAuthEnabled === 'true') {
+                const botData = await this.getTgAuth();
+
+                if (botData) {
+                    tgAuth = {
+                        botId: botData,
+                    };
+                }
             }
 
             return {
@@ -210,6 +227,7 @@ export class AuthService {
                 response: new GetStatusResponseModel({
                     isLoginAllowed: true,
                     isRegisterAllowed: false,
+                    tgAuth,
                 }),
             };
         } catch (error) {
@@ -217,6 +235,79 @@ export class AuthService {
             return {
                 isOk: false,
                 ...ERRORS.GET_AUTH_STATUS_ERROR,
+            };
+        }
+    }
+
+    public async telegramCallback(dto: TelegramCallbackRequestDto): Promise<
+        ICommandResponse<{
+            accessToken: string;
+        }>
+    > {
+        try {
+            const { id } = dto;
+
+            const statusResponse = await this.getStatus();
+
+            if (!statusResponse.isOk || !statusResponse.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_AUTH_STATUS_ERROR,
+                };
+            }
+
+            if (!statusResponse.response.isLoginAllowed) {
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
+
+            const adminIds = this.configService.getOrThrow<number[]>('TELEGRAM_OAUTH_ADMIN_IDS');
+
+            if (!adminIds.includes(id)) {
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
+
+            const isHashValid = await this.checkTelegramHash(dto);
+
+            if (!isHashValid) {
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
+
+            const firstAdmin = await this.getFirstAdmin();
+
+            if (!firstAdmin.isOk || !firstAdmin.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
+
+            const accessToken = this.jwtService.sign(
+                {
+                    username: firstAdmin.response.username,
+                    uuid: firstAdmin.response.uuid,
+                    role: ROLE.ADMIN,
+                },
+                { expiresIn: '12h' },
+            );
+
+            return {
+                isOk: true,
+                response: { accessToken },
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.LOGIN_ERROR,
             };
         }
     }
@@ -232,6 +323,12 @@ export class AuthService {
     ): Promise<ICommandResponse<AdminEntity>> {
         return this.queryBus.execute<GetAdminByUsernameQuery, ICommandResponse<AdminEntity>>(
             new GetAdminByUsernameQuery(dto.username, dto.role),
+        );
+    }
+
+    private async getFirstAdmin(): Promise<ICommandResponse<AdminEntity>> {
+        return this.queryBus.execute<GetFirstAdminQuery, ICommandResponse<AdminEntity>>(
+            new GetFirstAdminQuery(ROLE.ADMIN),
         );
     }
 
@@ -267,5 +364,48 @@ export class AuthService {
         return this.commandBus.execute<CreateAdminCommand, ICommandResponse<AdminEntity>>(
             new CreateAdminCommand(dto.username, dto.password, dto.role),
         );
+    }
+
+    private async getTgAuth(): Promise<number | null> {
+        const botToken = this.configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN');
+        if (!botToken) {
+            return null;
+        }
+
+        const botId = botToken.split(':')[0];
+
+        return Number(botId);
+    }
+
+    private async checkTelegramHash(dto: TelegramCallbackRequestDto): Promise<boolean> {
+        const { hash, ...dataToCheck } = dto;
+        const authDateValidSeconds = 15;
+
+        if (
+            authDateValidSeconds &&
+            dataToCheck.auth_date + authDateValidSeconds < Math.floor(Date.now() / 1000)
+        ) {
+            return false;
+        }
+
+        const dataCheckString = Object.keys(dataToCheck)
+            .sort()
+            .map(
+                (key) =>
+                    `${key}=${(dataToCheck as unknown as Record<string, string | number>)[key]}`,
+            )
+            .join('\n');
+
+        const secretKey = createHash('sha256')
+            .update(this.configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN'))
+            .digest();
+
+        const checkHash = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+
+        if (hash !== checkHash) {
+            return false;
+        }
+
+        return true;
     }
 }
