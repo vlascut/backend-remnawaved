@@ -214,7 +214,10 @@ export class AuthService {
             } | null = null;
             const isTgAuthEnabled = this.configService.get<string>('TELEGRAM_OAUTH_ENABLED');
             if (isTgAuthEnabled === 'true') {
-                const botData = await this.getTgAuth();
+                const tgAuthInstance = new TelegramOAuth2({
+                    botToken: this.configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN'),
+                });
+                const botData = tgAuthInstance.getBotId();
 
                 if (botData) {
                     tgAuth = {
@@ -376,16 +379,5 @@ export class AuthService {
         return this.commandBus.execute<CreateAdminCommand, ICommandResponse<AdminEntity>>(
             new CreateAdminCommand(dto.username, dto.password, dto.role),
         );
-    }
-
-    private async getTgAuth(): Promise<number | null> {
-        const botToken = this.configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN');
-        if (!botToken) {
-            return null;
-        }
-
-        const botId = botToken.split(':')[0];
-
-        return Number(botId);
     }
 }
