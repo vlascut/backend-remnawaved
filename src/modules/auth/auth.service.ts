@@ -1,4 +1,5 @@
-import { createHash, createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { TelegramOAuth2 } from '@exact-team/telegram-oauth2';
 import { promisify } from 'node:util';
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -272,9 +273,20 @@ export class AuthService {
                 };
             }
 
-            const isHashValid = await this.checkTelegramHash(dto);
+            const isHashValid = new TelegramOAuth2({
+                botToken: this.configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN'),
+                validUntil: 15,
+            }).handleTelegramOAuthCallback({
+                auth_date: dto.auth_date,
+                first_name: dto.first_name,
+                hash: dto.hash,
+                id: id,
+                last_name: dto.last_name,
+                username: dto.username,
+                photo_url: dto.photo_url,
+            });
 
-            if (!isHashValid) {
+            if (!isHashValid.isSuccess) {
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -375,37 +387,5 @@ export class AuthService {
         const botId = botToken.split(':')[0];
 
         return Number(botId);
-    }
-
-    private async checkTelegramHash(dto: TelegramCallbackRequestDto): Promise<boolean> {
-        const { hash, ...dataToCheck } = dto;
-        const authDateValidSeconds = 15;
-
-        if (
-            authDateValidSeconds &&
-            dataToCheck.auth_date + authDateValidSeconds < Math.floor(Date.now() / 1000)
-        ) {
-            return false;
-        }
-
-        const dataCheckString = Object.keys(dataToCheck)
-            .sort()
-            .map(
-                (key) =>
-                    `${key}=${(dataToCheck as unknown as Record<string, string | number>)[key]}`,
-            )
-            .join('\n');
-
-        const secretKey = createHash('sha256')
-            .update(this.configService.getOrThrow<string>('TELEGRAM_BOT_TOKEN'))
-            .digest();
-
-        const checkHash = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-
-        if (hash !== checkHash) {
-            return false;
-        }
-
-        return true;
     }
 }
