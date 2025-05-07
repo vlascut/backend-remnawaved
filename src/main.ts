@@ -71,7 +71,15 @@ async function bootstrap(): Promise<void> {
                     imgSrc: ["'self'", 'data:', '*'],
                     connectSrc: ["'self'", '*'],
                     workerSrc: ["'self'", 'blob:', '*'],
+                    frameSrc: ["'self'", 'oauth.telegram.org', '*'],
+                    frameAncestors: ["'self'", '*'],
                 },
+            },
+
+            crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+            crossOriginResourcePolicy: { policy: 'same-site' },
+            referrerPolicy: {
+                policy: 'strict-origin-when-cross-origin',
             },
         }),
     );

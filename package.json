@@ -29,7 +29,7 @@
     "dev:worker": "NODE_ENV=development INSTANCE_TYPE=processor nest start processors --watch",
     "dev:scheduler": "NODE_ENV=development INSTANCE_TYPE=scheduler nest start scheduler --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
-    "start:prod": "NODE_ENV=production NODE_NO_WARNINGS=1 node dist/src/main",
+    "start:prod": "NODE_ENV=production INSTANCE_TYPE=api NODE_NO_WARNINGS=1 node dist/src/main",
     "prod:deploy": "prisma migrate deploy && NODE_ENV=production NODE_NO_WARNINGS=1 node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
