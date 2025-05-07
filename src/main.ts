@@ -13,9 +13,10 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
-import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
+// import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
 import { getRealIp } from '@common/middlewares/get-real-ip';
+import { proxyCheckMiddleware } from '@common/middlewares';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
@@ -106,6 +107,8 @@ async function bootstrap(): Promise<void> {
 
     app.setGlobalPrefix(ROOT);
 
+    app.use(proxyCheckMiddleware);
+
     await getDocs(app, config);
 
     app.enableCors({
@@ -116,7 +119,7 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalPipes(new ZodValidationPipe());
 
-    app.useGlobalGuards(new ProxyCheckGuard({ exclude: [] }));
+    // app.useGlobalGuards(new ProxyCheckGuard({ exclude: [] }));
 
     app.enableShutdownHooks();
 
