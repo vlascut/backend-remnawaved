@@ -328,6 +328,7 @@ export class UsersService {
                 telegramId,
                 email,
                 hwidDeviceLimit,
+                tag,
             } = dto;
 
             const userEntity = new UserEntity({
@@ -348,6 +349,7 @@ export class UsersService {
                 lastTrafficResetAt: lastTrafficResetAt ? new Date(lastTrafficResetAt) : undefined,
                 description: description || undefined,
                 hwidDeviceLimit: hwidDeviceLimit || null,
+                tag: tag,
             });
 
             const result = await this.userRepository.create(userEntity);
