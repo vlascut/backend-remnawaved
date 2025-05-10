@@ -184,7 +184,7 @@ export class UsersService {
             let isNeedToBeAddedToNode =
                 user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
 
-            const isNeedToBeRemovedFromNode = status !== USERS_STATUS.DISABLED;
+            const isNeedToBeRemovedFromNode = status === USERS_STATUS.DISABLED;
 
             if (trafficLimitBytes !== undefined) {
                 if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes >= 0) {

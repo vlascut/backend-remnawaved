@@ -513,4 +513,9 @@ export const ERRORS = {
         message: 'Get all tags error',
         httpCode: 500,
     },
+    GETTING_ALL_SUBSCRIPTIONS_ERROR: {
+        code: 'A104',
+        message: 'Getting all subscriptions error',
+        httpCode: 500,
+    },
 } as const;

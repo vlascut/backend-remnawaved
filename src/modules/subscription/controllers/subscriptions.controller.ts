@@ -63,7 +63,7 @@ export class SubscriptionsController {
         command: GetAllSubscriptionsCommand,
         httpCode: HttpStatus.OK,
     })
-    async getAllUsers(
+    async getAllSubscriptions(
         @Query() query: GetAllSubscriptionsQueryDto,
     ): Promise<GetAllSubscriptionsResponseDto> {
         const { start, size } = query;

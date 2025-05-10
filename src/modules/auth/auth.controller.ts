@@ -118,7 +118,7 @@ export class AuthController {
 
         const data = errorHandler(result);
         return {
-            response: data,
+            response: new AuthResponseModel(data),
         };
     }
 }

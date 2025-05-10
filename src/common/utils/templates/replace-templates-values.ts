@@ -25,7 +25,7 @@ export class TemplateEngine {
         return hasReplacement ? result : template;
     }
 
-    static formarWithUser(
+    static formatWithUser(
         template: string,
         user: UserWithActiveInboundsEntity,
         subPublicDomain: string,

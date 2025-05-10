@@ -11,7 +11,7 @@ export namespace CreateApiTokenCommand {
         API_TOKENS_ROUTES.CREATE,
         'post',
         'Create a new API token',
-        'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
+        'This endpoint is forbidden to use via "API-key". It can only be used with an admin JWT-token.',
     );
 
     export const RequestSchema = z.object({

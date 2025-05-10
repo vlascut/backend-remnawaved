@@ -105,9 +105,9 @@ async function bootstrap(): Promise<void> {
         }
     }
 
-    app.setGlobalPrefix(ROOT);
-
     app.use(proxyCheckMiddleware);
+
+    app.setGlobalPrefix(ROOT);
 
     await getDocs(app, config);
 

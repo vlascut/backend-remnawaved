@@ -7,16 +7,7 @@ import {
     ApiQuery,
     ApiTags,
 } from '@nestjs/swagger';
-import {
-    Body,
-    Controller,
-    HttpCode,
-    HttpStatus,
-    Param,
-    Query,
-    UseFilters,
-    UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpStatus, Param, Query, UseFilters, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
@@ -487,7 +478,6 @@ export class UsersController {
         command: DisableUserCommand,
         httpCode: HttpStatus.OK,
     })
-    @HttpCode(HttpStatus.OK)
     async disableUser(@Param() paramData: DisableUserRequestDto): Promise<DisableUserResponseDto> {
         const result = await this.usersService.disableUser(paramData.uuid);
 

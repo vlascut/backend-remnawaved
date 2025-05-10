@@ -25,13 +25,6 @@ export class GetUsersWithPaginationHandler
         try {
             const [users, total] = await this.usersRepository.getUsersWithPagination(query);
 
-            if (!users) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
-            }
-
             return {
                 isOk: true,
                 response: {

@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import pMap from 'p-map';
 
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -429,20 +430,29 @@ export class SubscriptionService {
 
             const subscriptions: SubscriptionRawResponse[] = [];
 
-            for (const user of users) {
-                const hosts = await this.getHostsByUserUuid({ userUuid: user.uuid });
-                const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-                    config,
-                    hosts.response || [],
-                    user,
-                );
+            await pMap(
+                users,
+                async (user) => {
+                    const hosts = await this.getHostsByUserUuid({ userUuid: user.uuid });
+                    const formattedHosts = await this.formatHostsService.generateFormattedHosts(
+                        config,
+                        hosts.response || [],
+                        user,
+                    );
 
-                const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+                    const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
 
-                const ssConfLinks = await this.generateSsConfLinks(user.shortUuid, formattedHosts);
+                    const ssConfLinks = await this.generateSsConfLinks(
+                        user.shortUuid,
+                        formattedHosts,
+                    );
 
-                subscriptions.push(await this.getUserInfo(user, xrayLinks, ssConfLinks, settings));
-            }
+                    subscriptions.push(
+                        await this.getUserInfo(user, xrayLinks, ssConfLinks, settings),
+                    );
+                },
+                { concurrency: 100 },
+            );
 
             return {
                 isOk: true,
@@ -452,10 +462,10 @@ export class SubscriptionService {
                 },
             };
         } catch (error) {
-            this.logger.error(`Error getting subscription info by short uuid: ${error}`);
+            this.logger.error(`Error getting all subscriptions: ${error}`);
             return {
                 isOk: false,
-                ...ERRORS.INTERNAL_SERVER_ERROR,
+                ...ERRORS.GETTING_ALL_SUBSCRIPTIONS_ERROR,
             };
         }
     }
@@ -525,7 +535,7 @@ export class SubscriptionService {
             'content-disposition': `attachment; filename="${user.username}"`,
             'support-url': settings.supportLink,
             'profile-title': `base64:${Buffer.from(
-                TemplateEngine.formarWithUser(settings.profileTitle, user, this.subPublicDomain),
+                TemplateEngine.formatWithUser(settings.profileTitle, user, this.subPublicDomain),
             ).toString('base64')}`,
             'profile-update-interval': settings.profileUpdateInterval.toString(),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
@@ -535,7 +545,7 @@ export class SubscriptionService {
 
         if (settings.happAnnounce) {
             headers.announce = `base64:${Buffer.from(
-                TemplateEngine.formarWithUser(settings.happAnnounce, user, this.subPublicDomain),
+                TemplateEngine.formatWithUser(settings.happAnnounce, user, this.subPublicDomain),
             ).toString('base64')}`;
         }
 
@@ -556,7 +566,7 @@ export class SubscriptionService {
 
         if (settings.customResponseHeaders) {
             for (const [key, value] of Object.entries(settings.customResponseHeaders)) {
-                headers[key] = TemplateEngine.formarWithUser(value, user, this.subPublicDomain);
+                headers[key] = TemplateEngine.formatWithUser(value, user, this.subPublicDomain);
             }
         }
 

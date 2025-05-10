@@ -202,8 +202,8 @@ export class NodesController {
     }
 
     @ApiOkResponse({
-        type: RestartNodeResponseDto,
-        description: 'Node restarted',
+        type: RestartAllNodesResponseDto,
+        description: 'All nodes restarted',
     })
     @Endpoint({
         command: RestartAllNodesCommand,

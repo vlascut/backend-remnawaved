@@ -66,7 +66,7 @@ export class FormatHostsService {
                 }
 
                 const templatedRemarks = specialRemarks.map((remark) =>
-                    TemplateEngine.formarWithUser(remark, user, this.subPublicDomain),
+                    TemplateEngine.formatWithUser(remark, user, this.subPublicDomain),
                 );
 
                 formattedHosts.push(...this.createFallbackHosts(templatedRemarks));
@@ -108,7 +108,7 @@ export class FormatHostsService {
                 continue;
             }
 
-            const remark = TemplateEngine.formarWithUser(
+            const remark = TemplateEngine.formatWithUser(
                 inputHost.remark,
                 user,
                 this.subPublicDomain,

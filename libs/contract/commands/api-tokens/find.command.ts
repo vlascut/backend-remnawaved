@@ -12,7 +12,7 @@ export namespace FindAllApiTokensCommand {
         API_TOKENS_ROUTES.GET,
         'get',
         'Get all API tokens',
-        'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
+        'This endpoint is forbidden to use via "API-key". It can only be used with admin JWT-token.',
     );
 
     export const ResponseSchema = z.object({

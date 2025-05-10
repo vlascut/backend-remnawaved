@@ -11,7 +11,7 @@ export namespace DeleteApiTokenCommand {
         API_TOKENS_ROUTES.DELETE(':uuid'),
         'delete',
         'Delete an API token by UUID',
-        'This endpoint is forbidden to use via "API-key". It can be used only admin JWT-token.',
+        'This endpoint is forbidden to use via "API-key". It can be used only with an admin JWT-token.',
     );
 
     export const RequestSchema = z.object({

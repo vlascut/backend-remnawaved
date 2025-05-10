@@ -191,7 +191,14 @@ export const configSchema = z
                 });
             }
 
-            if (data.TELEGRAM_OAUTH_ADMIN_IDS && data.TELEGRAM_OAUTH_ADMIN_IDS.length === 0) {
+            if (!data.TELEGRAM_OAUTH_ADMIN_IDS) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'TELEGRAM_OAUTH_ADMIN_IDS is required when TELEGRAM_OAUTH_ENABLED is true',
+                    path: ['TELEGRAM_OAUTH_ADMIN_IDS'],
+                });
+            } else if (data.TELEGRAM_OAUTH_ADMIN_IDS.length === 0) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: 'TELEGRAM_OAUTH_ADMIN_IDS must not be empty',
