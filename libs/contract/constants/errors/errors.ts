@@ -508,4 +508,14 @@ export const ERRORS = {
         message: 'Upsert hwid user device error',
         httpCode: 500,
     },
+    GET_ALL_TAGS_ERROR: {
+        code: 'A103',
+        message: 'Get all tags error',
+        httpCode: 500,
+    },
+    GETTING_ALL_SUBSCRIPTIONS_ERROR: {
+        code: 'A104',
+        message: 'Getting all subscriptions error',
+        httpCode: 500,
+    },
 } as const;

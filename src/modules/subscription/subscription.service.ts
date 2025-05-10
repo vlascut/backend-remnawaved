@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import pMap from 'p-map';
 
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -27,8 +28,10 @@ import { FormatHostsService } from '@modules/subscription-template/generators/fo
 import { HwidUserDeviceEntity } from '@modules/hwid-user-devices/entities/hwid-user-device.entity';
 import { RenderTemplatesService } from '@modules/subscription-template/render-templates.service';
 import { CountUsersDevicesQuery } from '@modules/hwid-user-devices/queries/count-users-devices';
+import { GetUsersWithPaginationQuery } from '@modules/users/queries/get-users-with-pagination';
 import { CheckHwidExistsQuery } from '@modules/hwid-user-devices/queries/check-hwid-exists';
 import { IFormattedHost } from '@modules/subscription-template/generators/interfaces';
+import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
 
 import {
     SubscriptionNotFoundResponse,
@@ -43,12 +46,15 @@ import { ISubscriptionHeaders } from './interfaces/subscription-headers.interfac
 import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
+import { GetAllSubscriptionsQueryDto } from './dto';
 
 @Injectable()
 export class SubscriptionService {
     private readonly logger = new Logger(SubscriptionService.name);
 
     private readonly hwidDeviceLimitEnabled: boolean;
+
+    private readonly subPublicDomain: string;
 
     constructor(
         private readonly queryBus: QueryBus,
@@ -60,6 +66,7 @@ export class SubscriptionService {
     ) {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
+        this.subPublicDomain = this.configService.getOrThrow<string>('SUB_PUBLIC_DOMAIN');
     }
 
     public async getSubscriptionByShortUuid(
@@ -381,6 +388,123 @@ export class SubscriptionService {
         });
     }
 
+    public async getAllSubscriptions(query: GetAllSubscriptionsQueryDto): Promise<
+        ICommandResponse<{
+            total: number;
+            subscriptions: SubscriptionRawResponse[];
+        }>
+    > {
+        try {
+            const { start, size } = query;
+
+            const usersResponse = await this.getUsersWithPagination({ start, size });
+
+            if (!usersResponse.isOk || !usersResponse.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            const users = usersResponse.response.users;
+            const total = usersResponse.response.total;
+
+            const config = await this.getValidatedConfig();
+            if (!config) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            const settingsResponse = await this.getSubscriptionSettings();
+
+            if (!settingsResponse.isOk || !settingsResponse.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            const settings = settingsResponse.response;
+
+            const subscriptions: SubscriptionRawResponse[] = [];
+
+            await pMap(
+                users,
+                async (user) => {
+                    const hosts = await this.getHostsByUserUuid({ userUuid: user.uuid });
+                    const formattedHosts = await this.formatHostsService.generateFormattedHosts(
+                        config,
+                        hosts.response || [],
+                        user,
+                    );
+
+                    const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+
+                    const ssConfLinks = await this.generateSsConfLinks(
+                        user.shortUuid,
+                        formattedHosts,
+                    );
+
+                    subscriptions.push(
+                        await this.getUserInfo(user, xrayLinks, ssConfLinks, settings),
+                    );
+                },
+                { concurrency: 100 },
+            );
+
+            return {
+                isOk: true,
+                response: {
+                    total,
+                    subscriptions,
+                },
+            };
+        } catch (error) {
+            this.logger.error(`Error getting all subscriptions: ${error}`);
+            return {
+                isOk: false,
+                ...ERRORS.GETTING_ALL_SUBSCRIPTIONS_ERROR,
+            };
+        }
+    }
+
+    public async getSubscriptionByUsername(
+        username: string,
+    ): Promise<ICommandResponse<SubscriptionRawResponse>> {
+        try {
+            const user = await this.getUserByUsername({ username });
+
+            if (!user.isOk || !user.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            const result = await this.getSubscriptionInfoByShortUuid(user.response.shortUuid);
+
+            if (!result.isOk || !result.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: result.response,
+            };
+        } catch (error) {
+            this.logger.error(`Error getting subscription by username: ${error}`);
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
+        }
+    }
+
     private async generateSsConfLinks(
         subscriptionShortUuid: string,
         formattedHosts: IFormattedHost[],
@@ -411,7 +535,7 @@ export class SubscriptionService {
             'content-disposition': `attachment; filename="${user.username}"`,
             'support-url': settings.supportLink,
             'profile-title': `base64:${Buffer.from(
-                TemplateEngine.formarWithUser(settings.profileTitle, user),
+                TemplateEngine.formatWithUser(settings.profileTitle, user, this.subPublicDomain),
             ).toString('base64')}`,
             'profile-update-interval': settings.profileUpdateInterval.toString(),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
@@ -421,7 +545,7 @@ export class SubscriptionService {
 
         if (settings.happAnnounce) {
             headers.announce = `base64:${Buffer.from(
-                TemplateEngine.formarWithUser(settings.happAnnounce, user),
+                TemplateEngine.formatWithUser(settings.happAnnounce, user, this.subPublicDomain),
             ).toString('base64')}`;
         }
 
@@ -430,8 +554,7 @@ export class SubscriptionService {
         }
 
         if (settings.isProfileWebpageUrlEnabled && !this.hwidDeviceLimitEnabled) {
-            headers['profile-web-page-url'] =
-                `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`;
+            headers['profile-web-page-url'] = `https://${this.subPublicDomain}/${user.shortUuid}`;
         }
 
         if (isHapp && this.hwidDeviceLimitEnabled) {
@@ -443,7 +566,7 @@ export class SubscriptionService {
 
         if (settings.customResponseHeaders) {
             for (const [key, value] of Object.entries(settings.customResponseHeaders)) {
-                headers[key] = value;
+                headers[key] = TemplateEngine.formatWithUser(value, user, this.subPublicDomain);
             }
         }
 
@@ -457,6 +580,24 @@ export class SubscriptionService {
             GetUserByShortUuidQuery,
             ICommandResponse<UserWithActiveInboundsEntity>
         >(new GetUserByShortUuidQuery(dto.shortUuid));
+    }
+
+    private async getUserByUsername(
+        dto: GetUserByUsernameQuery,
+    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+        return this.queryBus.execute<
+            GetUserByUsernameQuery,
+            ICommandResponse<UserWithActiveInboundsEntity>
+        >(new GetUserByUsernameQuery(dto.username));
+    }
+
+    private async getUsersWithPagination(
+        dto: GetUsersWithPaginationQuery,
+    ): Promise<ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>> {
+        return this.queryBus.execute<
+            GetUsersWithPaginationQuery,
+            ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>
+        >(new GetUsersWithPaginationQuery(dto.start, dto.size));
     }
 
     private async getHostsByUserUuid(
