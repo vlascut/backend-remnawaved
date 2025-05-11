@@ -2,6 +2,7 @@ import { createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { TelegramOAuth2 } from '@exact-team/telegram-oauth2';
 import { promisify } from 'node:util';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
@@ -9,7 +10,9 @@ import { JwtService } from '@nestjs/jwt';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';
-import { ROLE } from '@libs/contracts/constants';
+import { EVENTS, ROLE } from '@libs/contracts/constants';
+
+import { ServiceEvent } from '@integration-modules/telegram-bot/events/service/interfaces';
 
 import { GetAdminByUsernameQuery } from '@modules/admin/queries/get-admin-by-username';
 import { CountAdminsByRoleQuery } from '@modules/admin/queries/count-admins-by-role';
@@ -33,11 +36,16 @@ export class AuthService {
         private readonly configService: ConfigService,
         private readonly queryBus: QueryBus,
         private readonly commandBus: CommandBus,
+        private readonly eventEmitter: EventEmitter2,
     ) {
         this.jwtSecret = this.configService.getOrThrow<string>('JWT_AUTH_SECRET');
     }
 
-    public async login(dto: ILogin): Promise<
+    public async login(
+        dto: ILogin,
+        ip: string,
+        userAgent: string,
+    ): Promise<
         ICommandResponse<{
             accessToken: string;
         }>
@@ -55,6 +63,28 @@ export class AuthService {
             }
 
             if (!statusResponse.response.isLoginAllowed) {
+                await this.emitFailedLoginAttempt(
+                    username,
+                    password,
+                    ip,
+                    userAgent,
+                    'Login is not allowed.',
+                );
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
+
+            if (statusResponse.response.tgAuth) {
+                await this.emitFailedLoginAttempt(
+                    username,
+                    password,
+                    ip,
+                    userAgent,
+                    'Telegram Oauth enabled, so username/password login is disabled.',
+                );
+
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -67,6 +97,13 @@ export class AuthService {
             });
 
             if (!admin.isOk || !admin.response) {
+                await this.emitFailedLoginAttempt(
+                    username,
+                    password,
+                    ip,
+                    userAgent,
+                    'Admin is not found in database.',
+                );
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -79,6 +116,13 @@ export class AuthService {
             );
 
             if (!isPasswordValid) {
+                await this.emitFailedLoginAttempt(
+                    username,
+                    password,
+                    ip,
+                    userAgent,
+                    'Invalid password.',
+                );
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -93,6 +137,8 @@ export class AuthService {
                 },
                 { expiresIn: '12h' },
             );
+
+            await this.emitLoginSuccess(username, ip, userAgent);
 
             return {
                 isOk: true,
@@ -243,13 +289,17 @@ export class AuthService {
         }
     }
 
-    public async telegramCallback(dto: TelegramCallbackRequestDto): Promise<
+    public async telegramCallback(
+        dto: TelegramCallbackRequestDto,
+        ip: string,
+        userAgent: string,
+    ): Promise<
         ICommandResponse<{
             accessToken: string;
         }>
     > {
         try {
-            const { id } = dto;
+            const { id, username, first_name } = dto;
 
             const statusResponse = await this.getStatus();
 
@@ -261,6 +311,13 @@ export class AuthService {
             }
 
             if (!statusResponse.response.isLoginAllowed) {
+                await this.emitFailedLoginAttempt(
+                    username ? `@${username}` : first_name,
+                    `Telegram ID: ${id}`,
+                    ip,
+                    userAgent,
+                    'Login is not allowed.',
+                );
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -270,6 +327,13 @@ export class AuthService {
             const adminIds = this.configService.getOrThrow<number[]>('TELEGRAM_OAUTH_ADMIN_IDS');
 
             if (!adminIds.includes(id)) {
+                await this.emitFailedLoginAttempt(
+                    username ? `@${username}` : first_name,
+                    `Telegram ID: ${id}`,
+                    ip,
+                    userAgent,
+                    'UserID is not in the allowed list.',
+                );
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -290,6 +354,12 @@ export class AuthService {
             });
 
             if (!isHashValid.isSuccess) {
+                await this.emitFailedLoginAttempt(
+                    username ? `@${username}` : first_name,
+                    `Telegram ID: ${id}`,
+                    ip,
+                    userAgent,
+                );
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -299,6 +369,13 @@ export class AuthService {
             const firstAdmin = await this.getFirstAdmin();
 
             if (!firstAdmin.isOk || !firstAdmin.response) {
+                await this.emitFailedLoginAttempt(
+                    username ? `@${username}` : first_name,
+                    `Telegram ID: ${id}`,
+                    ip,
+                    userAgent,
+                    'Superadmin is not found.',
+                );
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
@@ -312,6 +389,13 @@ export class AuthService {
                     role: ROLE.ADMIN,
                 },
                 { expiresIn: '12h' },
+            );
+
+            await this.emitLoginSuccess(
+                `${username ? `@${username}` : first_name}, ID: ${id}`,
+                ip,
+                userAgent,
+                'Logged via Telegram OAuth.',
             );
 
             return {
@@ -378,6 +462,46 @@ export class AuthService {
     private async createAdmin(dto: CreateAdminCommand): Promise<ICommandResponse<AdminEntity>> {
         return this.commandBus.execute<CreateAdminCommand, ICommandResponse<AdminEntity>>(
             new CreateAdminCommand(dto.username, dto.password, dto.role),
+        );
+    }
+
+    private async emitFailedLoginAttempt(
+        username: string,
+        password: string,
+        ip: string,
+        userAgent: string,
+        description?: string,
+    ): Promise<void> {
+        this.eventEmitter.emit(
+            EVENTS.SERVICE.LOGIN_ATTEMPT_FAILED,
+            new ServiceEvent(EVENTS.SERVICE.LOGIN_ATTEMPT_FAILED, {
+                loginAttempt: {
+                    username,
+                    password,
+                    ip,
+                    userAgent,
+                    description: description ?? '–',
+                },
+            }),
+        );
+    }
+
+    private async emitLoginSuccess(
+        username: string,
+        ip: string,
+        userAgent: string,
+        description?: string,
+    ): Promise<void> {
+        this.eventEmitter.emit(
+            EVENTS.SERVICE.LOGIN_ATTEMPT_SUCCESS,
+            new ServiceEvent(EVENTS.SERVICE.LOGIN_ATTEMPT_SUCCESS, {
+                loginAttempt: {
+                    username,
+                    ip,
+                    userAgent,
+                    description: description ?? '–',
+                },
+            }),
         );
     }
 }

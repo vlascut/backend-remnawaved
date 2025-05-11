@@ -1,8 +1,14 @@
+import requestIp from 'request-ip';
+
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export const ClientIp = createParamDecorator((data: unknown, ctx: ExecutionContext): string => {
+export const IpAddress = createParamDecorator((data, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    const ip = request.headers['cf-connecting-ip'] as string;
 
-    return Array.isArray(ip) ? ip[0] : ip.split(',')[0].trim();
+    if (request.clientIp) {
+        return request.clientIp;
+    }
+
+    const ip = requestIp.getClientIp(request);
+    return ip || 'Unknown';
 });

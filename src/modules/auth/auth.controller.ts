@@ -7,7 +7,9 @@ import {
 import { Body, Controller, HttpStatus, UseFilters } from '@nestjs/common';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
+import { UserAgent } from '@common/decorators/get-useragent/get-useragent';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { IpAddress } from '@common/decorators/get-ip/get-ip';
 import { Endpoint } from '@common/decorators/base-endpoint';
 import {
     GetStatusCommand,
@@ -53,8 +55,12 @@ export class AuthController {
         httpCode: HttpStatus.OK,
         apiBody: LoginRequestDto,
     })
-    async login(@Body() body: LoginRequestDto): Promise<LoginResponseDto> {
-        const result = await this.authService.login(body);
+    async login(
+        @Body() body: LoginRequestDto,
+        @IpAddress() ip: string,
+        @UserAgent() userAgent: string,
+    ): Promise<LoginResponseDto> {
+        const result = await this.authService.login(body, ip, userAgent);
 
         const data = errorHandler(result);
         return {
@@ -113,8 +119,10 @@ export class AuthController {
     })
     async telegramCallback(
         @Body() body: TelegramCallbackRequestDto,
+        @IpAddress() ip: string,
+        @UserAgent() userAgent: string,
     ): Promise<TelegramCallbackResponseDto> {
-        const result = await this.authService.telegramCallback(body);
+        const result = await this.authService.telegramCallback(body, ip, userAgent);
 
         const data = errorHandler(result);
         return {

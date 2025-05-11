@@ -57,6 +57,9 @@ export class TelegramBotLoggerQueueProcessor extends WorkerHost {
 
         try {
             await this.bot.api.sendMessage(chatId, message, {
+                link_preview_options: {
+                    is_disabled: true,
+                },
                 ...(threadId && { message_thread_id: parseInt(threadId, 10) }),
             });
         } catch (error) {

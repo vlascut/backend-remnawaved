@@ -3,6 +3,7 @@ import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
+import requestIp from 'request-ip';
 import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -60,6 +61,8 @@ async function bootstrap(): Promise<void> {
     });
 
     app.use(json({ limit: '100mb' }));
+
+    app.use(requestIp.mw());
 
     const config = app.get(ConfigService);
 
