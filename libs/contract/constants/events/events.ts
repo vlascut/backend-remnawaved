@@ -26,9 +26,16 @@ export const EVENTS = {
         CONNECTION_RESTORED: 'node.connection_restored',
         TRAFFIC_NOTIFY: 'node.traffic_notify',
     },
+    SERVICE: {
+        PANEL_STARTED: 'service.panel_started',
+        LOGIN_ATTEMPT_FAILED: 'service.login_attempt_failed',
+        LOGIN_ATTEMPT_SUCCESS: 'service.login_attempt_success',
+    },
     CATCH_ALL_USER_EVENTS: 'user.*',
     CATCH_ALL_NODE_EVENTS: 'node.*',
+    CATCH_ALL_SERVICE_EVENTS: 'service.*',
 } as const;
 
 export type TNodeEvents = (typeof EVENTS.NODE)[keyof typeof EVENTS.NODE];
 export type TUserEvents = (typeof EVENTS.USER)[keyof typeof EVENTS.USER];
+export type TServiceEvents = (typeof EVENTS.SERVICE)[keyof typeof EVENTS.SERVICE];
