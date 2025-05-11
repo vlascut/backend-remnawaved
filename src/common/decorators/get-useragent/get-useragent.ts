@@ -4,7 +4,7 @@ export const UserAgent = createParamDecorator((data, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
 
     if (request.headers['user-agent']) {
-        return request.headers['user-agent'] || 'Unknown';
+        return request.headers['user-agent'];
     }
 
     return 'Unknown';

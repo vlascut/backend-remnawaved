@@ -64,7 +64,7 @@ export class WebhookEvents {
             const payload = {
                 event: event.eventName,
                 timestamp: dayjs().toISOString(),
-                data: instanceToPlain(event),
+                data: instanceToPlain(event.data),
             };
 
             const { json } = serialize(payload);

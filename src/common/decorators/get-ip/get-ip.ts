@@ -9,5 +9,6 @@ export const IpAddress = createParamDecorator((data, ctx: ExecutionContext) => {
         return request.clientIp;
     }
 
-    return requestIp.getClientIp(request);
+    const ip = requestIp.getClientIp(request);
+    return ip || 'Unknown';
 });
