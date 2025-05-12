@@ -515,7 +515,6 @@ export const XrayJsonDefaultConfig = {
             settings: {
                 udp: true,
                 auth: 'noauth',
-                allowTransparent: false,
             },
             sniffing: {
                 enabled: true,
@@ -529,8 +528,6 @@ export const XrayJsonDefaultConfig = {
             listen: '127.0.0.1',
             protocol: 'http',
             settings: {
-                udp: true,
-                auth: 'noauth',
                 allowTransparent: false,
             },
             sniffing: {
