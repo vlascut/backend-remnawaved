@@ -245,6 +245,27 @@ export class SingBoxGeneratorService {
         return config;
     }
 
+    private httpUpgradeConfig(
+        settings: Record<string, any> | undefined,
+        host: string = '',
+        path: string = '',
+    ): TransportConfig {
+        const config = structuredClone(settings?.httpupgradeSettings || { headers: {} });
+
+        if (!config.headers) {
+            config.headers = {};
+        }
+
+        if (path) {
+            config.path = path;
+        }
+        if (host) {
+            config.headers.Host = host;
+        }
+
+        return config;
+    }
+
     private transportConfig(
         settings: Record<string, any> | undefined,
         transport_type: string = '',
@@ -265,6 +286,9 @@ export class SingBoxGeneratorService {
                         max_early_data,
                         early_data_header_name,
                     );
+                    break;
+                case 'httpupgrade':
+                    transport_config = this.httpUpgradeConfig(settings, host, path);
                     break;
             }
         }
@@ -294,7 +318,7 @@ export class SingBoxGeneratorService {
             config.network = 'tcp';
         }
 
-        if (['ws'].includes(params.network)) {
+        if (['httpupgrade', 'ws'].includes(params.network)) {
             let max_early_data: number | undefined;
             let early_data_header_name: string | undefined;
 

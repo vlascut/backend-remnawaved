@@ -6,6 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
 import {
+    HttpUpgradeObject,
     StreamSettingsObject,
     TcpObject,
     WebSocketObject,
@@ -148,6 +149,13 @@ export class FormatHostsService {
                 }
                 case 'ws': {
                     const settings = inbound.streamSettings?.wsSettings as WebSocketObject;
+                    streamSettings = settings;
+                    pathFromConfig = settings?.path;
+                    break;
+                }
+                case 'httpupgrade': {
+                    const settings = inbound.streamSettings
+                        ?.httpupgradeSettings as HttpUpgradeObject;
                     streamSettings = settings;
                     pathFromConfig = settings?.path;
                     break;

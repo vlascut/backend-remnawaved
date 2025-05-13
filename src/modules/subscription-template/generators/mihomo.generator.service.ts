@@ -332,6 +332,7 @@ export class MihomoGeneratorService {
 
         if (isHttpupgrade) {
             config['v2ray-http-upgrade'] = true;
+            config['v2ray-http-upgrade-fast-open'] = true;
         }
 
         return config;

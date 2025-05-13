@@ -11,6 +11,7 @@ interface StreamSettings {
     rawSettings?: unknown;
     xhttpSettings?: unknown;
     tlsSettings?: unknown;
+    httpupgradeSettings?: unknown;
     realitySettings?: unknown;
     sockopt?: unknown;
 }
@@ -188,6 +189,10 @@ export class XrayJsonGeneratorService {
                 streamSettings.wsSettings = this.createWsSettings(host);
                 break;
 
+            case 'httpupgrade':
+                streamSettings.httpupgradeSettings = this.createHttpUpgradeSettings(host);
+                break;
+
             case 'tcp':
             case 'raw':
                 streamSettings.tcpSettings = this.createTcpSettings(host);
@@ -221,6 +226,17 @@ export class XrayJsonGeneratorService {
         if (host.additionalParams?.heartbeatPeriod) {
             settings.heartbeatPeriod = host.additionalParams.heartbeatPeriod;
         }
+
+        return settings;
+    }
+
+    private createHttpUpgradeSettings(host: IFormattedHost): Record<string, unknown> {
+        const settings: Record<string, any> = {
+            path: host.path,
+            headers: {},
+        };
+
+        settings.headers.Host = host.host;
 
         return settings;
     }

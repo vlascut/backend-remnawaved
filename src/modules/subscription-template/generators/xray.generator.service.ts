@@ -32,6 +32,10 @@ const NETWORK_CONFIGS: Record<
         path: params.path,
         host: params.host,
     }),
+    httpupgrade: (params) => ({
+        path: params.path,
+        host: params.host,
+    }),
 };
 
 @Injectable()

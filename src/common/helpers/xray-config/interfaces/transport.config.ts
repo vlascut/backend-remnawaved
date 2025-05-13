@@ -115,7 +115,7 @@ export interface DomainSocketObject {
 }
 
 export interface StreamSettingsObject {
-    network: 'raw' | 'xhttp' | 'ws' | 'tcp';
+    network: 'raw' | 'xhttp' | 'ws' | 'tcp' | 'httpupgrade';
     security?: 'none' | 'reality' | 'tls';
     tlsSettings?: TLSObject;
     realitySettings?: RealityObject;
@@ -123,6 +123,7 @@ export interface StreamSettingsObject {
     tcpSettings?: TcpObject;
     xhttpSettings?: xHttpObject;
     wsSettings?: WebSocketObject;
+    httpupgradeSettings?: HttpUpgradeObject;
     sockopt?: unknown;
 }
 
@@ -132,9 +133,16 @@ export type OneOfStreamSettingsObject =
     | RawObject
     | TcpObject
     | xHttpObject
-    | WebSocketObject;
+    | WebSocketObject
+    | HttpUpgradeObject;
 
 export interface WebSocketObject {
+    acceptProxyProtocol?: boolean;
+    headers?: Record<string, string>;
+    path?: string;
+}
+
+export interface HttpUpgradeObject {
     acceptProxyProtocol?: boolean;
     headers?: Record<string, string>;
     path?: string;
