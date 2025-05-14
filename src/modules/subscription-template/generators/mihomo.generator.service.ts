@@ -297,8 +297,9 @@ export class MihomoGeneratorService {
                 'public-key': publicKey,
                 'short-id': shortId,
             };
-            node['client-fingerprint'] = clientFingerprint || 'chrome';
         }
+
+        node['client-fingerprint'] = clientFingerprint || 'chrome';
 
         return node;
     }
