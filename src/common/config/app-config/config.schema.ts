@@ -90,6 +90,18 @@ export const configSchema = z
         ),
         HWID_MAX_DEVICES_ANNOUNCE: z.optional(z.string()),
         PROVIDER_ID: z.optional(z.string()),
+
+        COOKIE_AUTH_ENABLED: z
+            .string()
+            .default('false')
+            .transform((val) => val === 'true'),
+        COOKIE_AUTH_NONCE: z.optional(
+            z
+                .string()
+                .regex(/^[a-zA-Z0-9]+$/, 'Nonce can only contain letters and numbers')
+                .max(64, 'Nonce must be less than 64 characters')
+                .min(6, 'Nonce must be at least 6 characters'),
+        ),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -211,6 +223,16 @@ export const configSchema = z
                     code: z.ZodIssueCode.custom,
                     message: 'TELEGRAM_BOT_TOKEN is required when TELEGRAM_OAUTH_ENABLED is true',
                     path: ['TELEGRAM_BOT_TOKEN'],
+                });
+            }
+        }
+
+        if (data.COOKIE_AUTH_ENABLED) {
+            if (!data.COOKIE_AUTH_NONCE) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'COOKIE_AUTH_NONCE is required when COOKIE_AUTH_ENABLED is true',
+                    path: ['COOKIE_AUTH_NONCE'],
                 });
             }
         }
