@@ -524,6 +524,7 @@ export class UsersService {
 
     public async revokeUserSubscription(
         userUuid: string,
+        shortUuid?: string,
     ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const user = await this.userRepository.getUserByUUID(userUuid);
@@ -535,7 +536,7 @@ export class UsersService {
             }
             const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
                 uuid: user.uuid,
-                shortUuid: this.createNanoId(),
+                shortUuid: shortUuid ?? this.createNanoId(),
                 subscriptionUuid: this.createUuid(),
                 trojanPassword: this.createTrojanPassword(),
                 vlessUuid: this.createUuid(),

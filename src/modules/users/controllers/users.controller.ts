@@ -64,6 +64,7 @@ import {
     GetUserByUuidResponseDto,
     ResetUserTrafficRequestDto,
     ResetUserTrafficResponseDto,
+    RevokeUserSubscriptionBodyDto,
     RevokeUserSubscriptionRequestDto,
     RevokeUserSubscriptionResponseDto,
     UpdateUserRequestDto,
@@ -450,11 +451,14 @@ export class UsersController {
     @Endpoint({
         command: RevokeUserSubscriptionCommand,
         httpCode: HttpStatus.OK,
+        apiBody: RevokeUserSubscriptionBodyDto,
     })
     async revokeUserSubscription(
         @Param() paramData: RevokeUserSubscriptionRequestDto,
+        @Body() bodyData: RevokeUserSubscriptionBodyDto,
     ): Promise<RevokeUserSubscriptionResponseDto> {
-        const result = await this.usersService.revokeUserSubscription(paramData.uuid);
+        const shortUuid = bodyData.shortUuid ?? undefined;
+        const result = await this.usersService.revokeUserSubscription(paramData.uuid, shortUuid);
 
         const data = errorHandler(result);
         return {
