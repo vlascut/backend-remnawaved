@@ -95,13 +95,7 @@ export const configSchema = z
             .string()
             .default('false')
             .transform((val) => val === 'true'),
-        COOKIE_AUTH_NONCE: z.optional(
-            z
-                .string()
-                .regex(/^[a-zA-Z0-9]+$/, 'Nonce can only contain letters and numbers')
-                .max(64, 'Nonce must be less than 64 characters')
-                .min(6, 'Nonce must be at least 6 characters'),
-        ),
+        COOKIE_AUTH_NONCE: z.optional(z.string()),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -234,6 +228,30 @@ export const configSchema = z
                     message: 'COOKIE_AUTH_NONCE is required when COOKIE_AUTH_ENABLED is true',
                     path: ['COOKIE_AUTH_NONCE'],
                 });
+            } else if (!data.COOKIE_AUTH_NONCE) {
+                if (!/^[a-zA-Z0-9]+$/.test(data.COOKIE_AUTH_NONCE)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'COOKIE_AUTH_NONCE can only contain letters and numbers',
+                        path: ['COOKIE_AUTH_NONCE'],
+                    });
+                }
+
+                if (data.COOKIE_AUTH_NONCE.length > 64) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'COOKIE_AUTH_NONCE must be less than 64 characters',
+                        path: ['COOKIE_AUTH_NONCE'],
+                    });
+                }
+
+                if (data.COOKIE_AUTH_NONCE.length < 6) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'COOKIE_AUTH_NONCE must be at least 6 characters',
+                        path: ['COOKIE_AUTH_NONCE'],
+                    });
+                }
             }
         }
     });
