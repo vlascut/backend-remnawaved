@@ -16,7 +16,6 @@ import { NestFactory } from '@nestjs/core';
 
 import { proxyCheckMiddleware, checkAuthCookieMiddleware, getRealIp } from '@common/middlewares';
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
-// import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
 import { AxiosService } from '@common/axios';
 
@@ -131,8 +130,6 @@ async function bootstrap(): Promise<void> {
     });
 
     app.useGlobalPipes(new ZodValidationPipe());
-
-    // app.useGlobalGuards(new ProxyCheckGuard({ exclude: [] }));
 
     app.enableShutdownHooks();
 
