@@ -41,7 +41,6 @@ export const EVENTS = {
     CATCH_ALL_NODE_EVENTS: 'node.*',
     CATCH_ALL_SERVICE_EVENTS: 'service.*',
     CATCH_ALL_ERRORS_EVENTS: 'errors.*',
-    CATCH_ALL_ERRORS: '*',
 } as const;
 
 export type TNodeEvents = (typeof EVENTS.NODE)[keyof typeof EVENTS.NODE];
