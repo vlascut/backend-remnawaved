@@ -35,11 +35,15 @@ export class FirstConnectedUsersQueueService
         await this.checkConnection();
     }
 
-    public async addFirstConnectedUsersBulkJob(uuids: string[]) {
+    public async addFirstConnectedUsersBulkJob(
+        users: {
+            uuid: string;
+        }[],
+    ) {
         return this.addBulk(
-            uuids.map((uuid) => ({
+            users.map((user) => ({
                 name: FirstConnectedUsersJobNames.handleFirstConnectedUsers,
-                data: { uuid },
+                data: { uuid: user.uuid },
                 options: {
                     removeOnComplete: true,
                     removeOnFail: true,

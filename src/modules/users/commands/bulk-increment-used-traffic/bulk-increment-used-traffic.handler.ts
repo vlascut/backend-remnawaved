@@ -13,10 +13,7 @@ import { UsersRepository } from '../../repositories/users.repository';
 @CommandHandler(BulkIncrementUsedTrafficCommand)
 export class BulkIncrementUsedTrafficHandler
     implements
-        ICommandHandler<
-            BulkIncrementUsedTrafficCommand,
-            ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>
-        >
+        ICommandHandler<BulkIncrementUsedTrafficCommand, ICommandResponse<{ uuid: string }[]>>
 {
     public readonly logger = new Logger(BulkIncrementUsedTrafficHandler.name);
 
@@ -28,7 +25,7 @@ export class BulkIncrementUsedTrafficHandler
     })
     async execute(
         command: BulkIncrementUsedTrafficCommand,
-    ): Promise<ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>> {
+    ): Promise<ICommandResponse<{ uuid: string }[]>> {
         try {
             const result = await this.usersRepository.bulkIncrementUsedTraffic(
                 command.userUsageList,

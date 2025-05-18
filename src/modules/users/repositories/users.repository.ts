@@ -72,11 +72,9 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async bulkIncrementUsedTraffic(
         userUsageList: { u: string; b: string }[],
-    ): Promise<{ uuid: string; isFirstConnection: boolean }[]> {
+    ): Promise<{ uuid: string }[]> {
         const { query } = new BulkUpdateUserUsedTrafficBuilder(userUsageList);
-        return await this.prisma.tx.$queryRaw<{ uuid: string; isFirstConnection: boolean }[]>(
-            query,
-        );
+        return await this.prisma.tx.$queryRaw<{ uuid: string }[]>(query);
     }
 
     public async triggerThresholdNotifications(percentages: number[]): Promise<{ uuid: string }[]> {

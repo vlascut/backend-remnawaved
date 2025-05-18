@@ -48,14 +48,14 @@ export class UpdateUsersUsageQueueProcessor extends WorkerHost {
                 throw new Error(JSON.stringify(result));
             }
 
-            await this.firstConnectedUsersQueueService.addFirstConnectedUsersBulkJob(
-                result.response
-                    .filter((user) => user.isFirstConnection === true)
-                    .map((user) => user.uuid),
-            );
+            if (result.response.length > 0) {
+                await this.firstConnectedUsersQueueService.addFirstConnectedUsersBulkJob(
+                    result.response,
+                );
+            }
 
             return {
-                affectedRows: result.response,
+                affectedRows: userUsageList.length,
             };
         } catch (error) {
             this.logger.error(
@@ -68,10 +68,10 @@ export class UpdateUsersUsageQueueProcessor extends WorkerHost {
 
     private async bulkIncrementUsedTraffic(
         dto: BulkIncrementUsedTrafficCommand,
-    ): Promise<ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>> {
+    ): Promise<ICommandResponse<{ uuid: string }[]>> {
         return this.commandBus.execute<
             BulkIncrementUsedTrafficCommand,
-            ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>
+            ICommandResponse<{ uuid: string }[]>
         >(new BulkIncrementUsedTrafficCommand(dto.userUsageList));
     }
 }
