@@ -228,6 +228,7 @@ export class UsersService {
                 email: email,
                 hwidDeviceLimit: hwidDeviceLimit,
                 tag: tag,
+                lastTriggeredThreshold: trafficLimitBytes !== undefined ? 0 : undefined,
             });
 
             if (activeUserInbounds) {
@@ -997,6 +998,7 @@ export class UsersService {
 
             await this.userRepository.bulkUpdateAllUsers({
                 ...dto,
+                lastTriggeredThreshold: dto.trafficLimitBytes !== undefined ? 0 : undefined,
                 trafficLimitBytes:
                     dto.trafficLimitBytes !== undefined ? BigInt(dto.trafficLimitBytes) : undefined,
                 telegramId:

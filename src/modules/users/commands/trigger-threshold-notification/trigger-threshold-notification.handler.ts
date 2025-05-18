@@ -7,18 +7,15 @@ import { Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 
-import { BulkIncrementUsedTrafficCommand } from './bulk-increment-used-traffic.command';
+import { TriggerThresholdNotificationCommand } from './trigger-threshold-notification.command';
 import { UsersRepository } from '../../repositories/users.repository';
 
-@CommandHandler(BulkIncrementUsedTrafficCommand)
-export class BulkIncrementUsedTrafficHandler
+@CommandHandler(TriggerThresholdNotificationCommand)
+export class TriggerThresholdNotificationHandler
     implements
-        ICommandHandler<
-            BulkIncrementUsedTrafficCommand,
-            ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>
-        >
+        ICommandHandler<TriggerThresholdNotificationCommand, ICommandResponse<{ uuid: string }[]>>
 {
-    public readonly logger = new Logger(BulkIncrementUsedTrafficHandler.name);
+    public readonly logger = new Logger(TriggerThresholdNotificationHandler.name);
 
     constructor(private readonly usersRepository: UsersRepository) {}
 
@@ -27,11 +24,11 @@ export class BulkIncrementUsedTrafficHandler
         timeout: 120_000,
     })
     async execute(
-        command: BulkIncrementUsedTrafficCommand,
-    ): Promise<ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>> {
+        command: TriggerThresholdNotificationCommand,
+    ): Promise<ICommandResponse<{ uuid: string }[]>> {
         try {
-            const result = await this.usersRepository.bulkIncrementUsedTraffic(
-                command.userUsageList,
+            const result = await this.usersRepository.triggerThresholdNotifications(
+                command.percentages,
             );
 
             return {
@@ -42,7 +39,7 @@ export class BulkIncrementUsedTrafficHandler
             this.logger.error(error);
             return {
                 isOk: false,
-                ...ERRORS.UPDATE_USER_ERROR,
+                ...ERRORS.TRIGGER_THRESHOLD_NOTIFICATION_ERROR,
             };
         }
     }

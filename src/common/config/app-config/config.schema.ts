@@ -96,6 +96,22 @@ export const configSchema = z
             .default('false')
             .transform((val) => val === 'true'),
         COOKIE_AUTH_NONCE: z.optional(z.string()),
+
+        BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED: z.string().default('false'),
+        BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD: z
+            .string()
+            .optional()
+            .transform((val) => {
+                if (!val || val === '') return undefined;
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    throw new Error(
+                        'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD must be a valid JSON array',
+                    );
+                }
+            })
+            .pipe(z.array(z.number()).optional()),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -251,6 +267,58 @@ export const configSchema = z
                         message: 'COOKIE_AUTH_NONCE must be at least 6 characters',
                         path: ['COOKIE_AUTH_NONCE'],
                     });
+                }
+            }
+        }
+
+        if (data.BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED === 'true') {
+            if (!data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD is required when BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED is true',
+                    path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                });
+            } else if (data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD must not be empty',
+                    path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                });
+            } else {
+                if (data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.length > 5) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message:
+                            'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD must contain at most 5 values',
+                        path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                    });
+                }
+
+                if (
+                    data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.some(
+                        (t) => isNaN(t) || !Number.isInteger(t) || t < 1 || t > 99,
+                    )
+                ) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'All threshold values must be integers between 1 and 99',
+                        path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                    });
+                }
+
+                for (let i = 1; i < data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.length; i++) {
+                    if (
+                        data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD[i] <=
+                        data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD[i - 1]
+                    ) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'Threshold values must be in strictly ascending order',
+                            path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                        });
+                        break;
+                    }
                 }
             }
         }

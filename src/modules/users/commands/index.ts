@@ -1,6 +1,7 @@
 import { UpdateStatusAndTrafficAndResetAtHandler } from './update-status-and-traffic-and-reset-at';
 import { UpdateSubLastOpenedAndUserAgentHandler } from './update-sub-last-opened-and-user-agent';
 import { BatchResetLimitedUsersTrafficHandler } from './batch-reset-limited-users-traffic';
+import { TriggerThresholdNotificationHandler } from './trigger-threshold-notification';
 import { BulkIncrementUsedTrafficHandler } from './bulk-increment-used-traffic';
 import { UpdateExceededTrafficUsersHandler } from './update-exceeded-users';
 import { RevokeUserSubscriptionHandler } from './revoke-user-subscription';
@@ -24,4 +25,5 @@ export const COMMANDS = [
     RevokeUserSubscriptionHandler,
     ResetUserTrafficHandler,
     UpdateUserWithServiceHandler,
+    TriggerThresholdNotificationHandler,
 ];

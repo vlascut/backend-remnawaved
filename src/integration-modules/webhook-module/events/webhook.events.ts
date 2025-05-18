@@ -7,7 +7,10 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { EVENTS } from '@libs/contracts/constants';
 
-import { ServiceEvent } from '@integration-modules/telegram-bot/events/service/interfaces';
+import {
+    ServiceEvent,
+    CustomErrorEvent,
+} from '@integration-modules/telegram-bot/events/service/interfaces';
 import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
 import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
 
@@ -60,6 +63,26 @@ export class WebhookEvents {
 
     @OnEvent(EVENTS.CATCH_ALL_SERVICE_EVENTS)
     async onCatchAllServiceEvents(event: ServiceEvent): Promise<void> {
+        try {
+            const payload = {
+                event: event.eventName,
+                timestamp: dayjs().toISOString(),
+                data: instanceToPlain(event.data),
+            };
+
+            const { json } = serialize(payload);
+
+            await this.webhookLoggerQueueService.sendWebhook({
+                payload: JSON.stringify(json),
+                timestamp: payload.timestamp,
+            });
+        } catch (error) {
+            this.logger.error(`Error sending webhook event: ${error}`);
+        }
+    }
+
+    @OnEvent(EVENTS.CATCH_ALL_ERRORS_EVENTS)
+    async onCatchAllErrorsEvents(event: CustomErrorEvent): Promise<void> {
         try {
             const payload = {
                 event: event.eventName,

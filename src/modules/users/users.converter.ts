@@ -41,6 +41,9 @@ const entityToModel = (entity: UserEntity): UserEntity => {
 
         hwidDeviceLimit: entity.hwidDeviceLimit,
 
+        firstConnectedAt: entity.firstConnectedAt,
+        lastTriggeredThreshold: entity.lastTriggeredThreshold,
+
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };

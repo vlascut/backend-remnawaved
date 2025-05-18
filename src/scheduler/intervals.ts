@@ -26,4 +26,8 @@ export const JOBS_INTERVALS = {
         FIND_EXPIRED_USERS: CronExpression.EVERY_30_SECONDS,
     },
     EXPIRE_NOTIFICATIONS: CronExpression.EVERY_MINUTE,
+
+    BANDWIDTH_USAGE_NOTIFICATIONS: {
+        FIND_USERS_TO_SEND_NOTIFICATIONS: CronExpression.EVERY_5_MINUTES,
+    },
 } as const;

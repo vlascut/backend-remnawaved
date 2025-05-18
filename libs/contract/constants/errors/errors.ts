@@ -518,4 +518,9 @@ export const ERRORS = {
         message: 'Getting all subscriptions error',
         httpCode: 500,
     },
+    TRIGGER_THRESHOLD_NOTIFICATION_ERROR: {
+        code: 'A105',
+        message: 'Trigger threshold notification error',
+        httpCode: 500,
+    },
 } as const;

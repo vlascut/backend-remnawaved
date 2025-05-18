@@ -36,6 +36,9 @@ export class UserWithAiAndLcnRawEntity {
 
     public hwidDeviceLimit: number | null;
 
+    public firstConnectedAt: Date | null;
+    public lastTriggeredThreshold: number;
+
     public createdAt: Date;
     public updatedAt: Date;
 

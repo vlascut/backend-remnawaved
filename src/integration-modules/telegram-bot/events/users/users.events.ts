@@ -223,4 +223,40 @@ export class UsersEvents {
             threadId: this.adminThreadId,
         });
     }
+
+    @OnEvent(EVENTS.USER.FIRST_CONNECTED)
+    async onUserFirstConnected(event: UserEvent): Promise<void> {
+        const msg = `
+🆕 <b>#first_connected</b>
+➖➖➖➖➖➖➖➖➖
+<b>Username:</b> <code>${event.user.username}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+            threadId: this.adminThreadId,
+        });
+    }
+
+    @OnEvent(EVENTS.USER.BANDWIDTH_USAGE_THRESHOLD_REACHED)
+    async onUserThresholdNotification(event: UserEvent): Promise<void> {
+        if (event.skipTelegramNotification) {
+            return;
+        }
+
+        const msg = `
+⚠️ <b>#bandwidth_usage_threshold_reached</b>
+➖➖➖➖➖➖➖➖➖
+<b>Username:</b> <code>${event.user.username}</code>
+<b>Traffic:</b> <code>${prettyBytesUtil(event.user.usedTrafficBytes)}</code>
+<b>Limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
+
+<b>Threshold:</b> <code>${event.user.lastTriggeredThreshold}%</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+            threadId: this.adminThreadId,
+        });
+    }
 }

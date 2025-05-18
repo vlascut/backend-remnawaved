@@ -12,6 +12,7 @@ import { BOT_NAME } from '@integration-modules/telegram-bot/constants';
 
 import { TelegramBotLoggerQueueService } from '@queue/loggers/telegram-bot-logger';
 
+import { CustomErrorEvent } from './interfaces/error.event.interface';
 import { ServiceEvent } from './interfaces/service.event.interface';
 
 export class ServiceEvents {
@@ -76,6 +77,20 @@ export class ServiceEvents {
 <b>🌐 IP:</b> <code>${event.data.loginAttempt?.ip}</code>
 <b>💻 User agent:</b> <code>${event.data.loginAttempt?.userAgent}</code>
 <b>💬 Description:</b> <code>${event.data.loginAttempt?.description}</code>
+        `;
+        await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
+            message: msg,
+            chatId: this.adminId,
+            threadId: this.adminThreadId,
+        });
+    }
+
+    @OnEvent(EVENTS.ERRORS.BANDWIDTH_USAGE_THRESHOLD_REACHED_MAX_NOTIFICATIONS)
+    async onBandwidthUsageThresholdReachedMaxNotifications(event: CustomErrorEvent): Promise<void> {
+        const msg = `
+📢 <b>#bandwidth_usage_threshold_reached_max_notifications</b>
+➖➖➖➖➖➖➖➖➖
+<b>Description:</b> <code>${event.data.description}</code>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,

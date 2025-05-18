@@ -35,6 +35,9 @@ export class CreateUserResponseModel {
 
     public readonly hwidDeviceLimit: number | null;
 
+    public readonly firstConnectedAt: Date | null;
+    public readonly lastTriggeredThreshold: number;
+
     public readonly subscriptionUrl: string;
 
     public readonly happ: {
@@ -72,6 +75,9 @@ export class CreateUserResponseModel {
         this.email = entity.email;
 
         this.hwidDeviceLimit = entity.hwidDeviceLimit;
+
+        this.firstConnectedAt = entity.firstConnectedAt;
+        this.lastTriggeredThreshold = entity.lastTriggeredThreshold;
 
         this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
         this.lastConnectedNode = null;

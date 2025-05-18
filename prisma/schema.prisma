@@ -43,6 +43,9 @@ model Users {
 
   hwidDeviceLimit Int? @map("hwid_device_limit")
 
+  firstConnectedAt       DateTime? @map("first_connected_at")
+  lastTriggeredThreshold Int       @default(0) @map("last_triggered_threshold") // 1-99
+
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 

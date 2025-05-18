@@ -11,6 +11,7 @@ import { useBullBoard } from '@common/utils/startup-app';
 import { BULLBOARD_ROOT } from '@libs/contracts/api';
 
 import { ExpireUserNotificationsQueueModule } from './expire-user-notifications/expire-user-notifications.module';
+import { FirstConnectedUsersQueueModule } from './first-connected-users/first-connected-users.module';
 import { BulkUserOperationsQueueModule } from './bulk-user-operations/bulk-user-operations.module';
 import { ResetUserTrafficQueueModule } from './reset-user-traffic/reset-user-traffic.module';
 import { UpdateUsersUsageQueueModule } from './update-users-usage/update-users-usage.module';
@@ -37,6 +38,7 @@ const queueModules = [
     BulkUserOperationsQueueModule,
     ExpireUserNotificationsQueueModule,
     UpdateUsersUsageQueueModule,
+    FirstConnectedUsersQueueModule,
 
     ...LOGGER_MODULES,
 ];
@@ -58,6 +60,7 @@ const bullBoard = [
                 },
                 pollingInterval: {
                     showSetting: true,
+                    forceInterval: 3,
                 },
                 miscLinks: [
                     {

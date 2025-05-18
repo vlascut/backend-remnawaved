@@ -26,7 +26,8 @@ export class BatchResetUsersUsageBuilder {
             )
         UPDATE users 
         SET used_traffic_bytes = 0,
-            last_traffic_reset_at = NOW()
+            last_traffic_reset_at = NOW(),
+            last_triggered_threshold = 0
         WHERE uuid IN (SELECT uuid FROM users_to_reset);
     `;
         return Prisma.raw(query);

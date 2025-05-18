@@ -8,6 +8,8 @@ import { ICommandResponse } from '@common/types/command-response.type';
 
 import { BulkIncrementUsedTrafficCommand } from '@modules/users/commands/bulk-increment-used-traffic';
 
+import { FirstConnectedUsersQueueService } from '@queue/first-connected-users/first-connected-users.service';
+
 import { UpdateUsersUsageJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
 
@@ -17,7 +19,10 @@ import { QueueNames } from '../queue.enum';
 export class UpdateUsersUsageQueueProcessor extends WorkerHost {
     private readonly logger = new Logger(UpdateUsersUsageQueueProcessor.name);
 
-    constructor(private readonly commandBus: CommandBus) {
+    constructor(
+        private readonly commandBus: CommandBus,
+        private readonly firstConnectedUsersQueueService: FirstConnectedUsersQueueService,
+    ) {
         super();
     }
 
@@ -39,9 +44,15 @@ export class UpdateUsersUsageQueueProcessor extends WorkerHost {
                 userUsageList,
             });
 
-            if (!result.isOk) {
+            if (!result.isOk || !result.response) {
                 throw new Error(JSON.stringify(result));
             }
+
+            await this.firstConnectedUsersQueueService.addFirstConnectedUsersBulkJob(
+                result.response
+                    .filter((user) => user.isFirstConnection === true)
+                    .map((user) => user.uuid),
+            );
 
             return {
                 affectedRows: result.response,
@@ -57,9 +68,10 @@ export class UpdateUsersUsageQueueProcessor extends WorkerHost {
 
     private async bulkIncrementUsedTraffic(
         dto: BulkIncrementUsedTrafficCommand,
-    ): Promise<ICommandResponse<number>> {
-        return this.commandBus.execute<BulkIncrementUsedTrafficCommand, ICommandResponse<number>>(
-            new BulkIncrementUsedTrafficCommand(dto.userUsageList),
-        );
+    ): Promise<ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>> {
+        return this.commandBus.execute<
+            BulkIncrementUsedTrafficCommand,
+            ICommandResponse<{ uuid: string; isFirstConnection: boolean }[]>
+        >(new BulkIncrementUsedTrafficCommand(dto.userUsageList));
     }
 }
