@@ -30,6 +30,8 @@ const entityToModel = (entity: SubscriptionSettingsEntity): SubscriptionSettings
 
         customResponseHeaders: entity.customResponseHeaders,
 
+        randomizeHosts: entity.randomizeHosts,
+
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
     };

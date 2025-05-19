@@ -17,6 +17,8 @@ export class SubscriptionSettingsResponseModel {
 
     public customResponseHeaders: Record<string, string> | null;
 
+    public randomizeHosts: boolean;
+
     public createdAt: Date;
     public updatedAt: Date;
 
@@ -35,6 +37,7 @@ export class SubscriptionSettingsResponseModel {
         this.limitedUsersRemarks = entity.limitedUsersRemarks;
         this.disabledUsersRemarks = entity.disabledUsersRemarks;
         this.customResponseHeaders = entity.customResponseHeaders;
+        this.randomizeHosts = entity.randomizeHosts;
         this.createdAt = entity.createdAt;
         this.updatedAt = entity.updatedAt;
     }

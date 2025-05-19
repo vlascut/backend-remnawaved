@@ -38,6 +38,8 @@ export namespace UpdateSubscriptionSettingsCommand {
         disabledUsersRemarks: z.optional(z.array(z.string())),
 
         customResponseHeaders: z.optional(z.record(z.string(), z.string())),
+
+        randomizeHosts: z.optional(z.boolean()),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

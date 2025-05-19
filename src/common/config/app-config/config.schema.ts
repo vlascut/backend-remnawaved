@@ -89,7 +89,6 @@ export const configSchema = z
                 ),
         ),
         HWID_MAX_DEVICES_ANNOUNCE: z.optional(z.string()),
-        PROVIDER_ID: z.optional(z.string()),
 
         COOKIE_AUTH_ENABLED: z
             .string()

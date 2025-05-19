@@ -661,6 +661,7 @@ async function seedSubscriptionSettings() {
             serveJsonAtBaseSubscription: false,
             addUsernameToBaseSubscription: false,
             isShowCustomRemarks: true,
+            randomizeHosts: false,
         },
     });
 }

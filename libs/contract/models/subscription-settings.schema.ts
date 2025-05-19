@@ -29,6 +29,8 @@ export const SubscriptionSettingsSchema = z.object({
         ),
     ),
 
+    randomizeHosts: z.boolean(),
+
     createdAt: z
         .string()
         .datetime()

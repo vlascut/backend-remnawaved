@@ -12,6 +12,7 @@ export function getSubscriptionUserInfo(user: UserWithActiveInboundsEntity): Sub
         upload: 0,
         download: Number(user.usedTrafficBytes),
         total: Number(user.trafficLimitBytes),
-        expire: Math.floor(user.expireAt.getTime() / 1000),
+        expire:
+            user.expireAt.getFullYear() !== 2099 ? Math.floor(user.expireAt.getTime() / 1000) : 0,
     };
 }
