@@ -143,7 +143,15 @@ export class FormatHostsService {
                         mode: settings?.mode || 'auto',
                     };
 
-                    xHttpExtraParams = inputHost.xHttpExtraParams;
+                    if (
+                        inputHost.xHttpExtraParams !== null &&
+                        inputHost.xHttpExtraParams !== undefined &&
+                        Object.keys(inputHost.xHttpExtraParams).length > 0
+                    ) {
+                        xHttpExtraParams = inputHost.xHttpExtraParams;
+                    } else {
+                        xHttpExtraParams = null;
+                    }
 
                     break;
                 }

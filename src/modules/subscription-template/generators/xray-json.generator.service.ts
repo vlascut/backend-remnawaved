@@ -269,10 +269,6 @@ export class XrayJsonGeneratorService {
     private createXHttpSettings(host: IFormattedHost): Record<string, unknown> {
         const settings: Record<string, any> = {
             mode: host.additionalParams?.mode || 'auto',
-            headers: {},
-            extra: {
-                xmux: {},
-            },
         };
 
         settings.host = host.host;
@@ -281,7 +277,11 @@ export class XrayJsonGeneratorService {
             settings.path = host.path;
         }
 
-        if (host.xHttpExtraParams !== null && host.xHttpExtraParams !== undefined) {
+        if (
+            host.xHttpExtraParams !== null &&
+            host.xHttpExtraParams !== undefined &&
+            Object.keys(host.xHttpExtraParams).length > 0
+        ) {
             settings.extra = host.xHttpExtraParams;
         }
 
