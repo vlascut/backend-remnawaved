@@ -296,12 +296,12 @@ export const configSchema = z
 
                 if (
                     data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.some(
-                        (t) => isNaN(t) || !Number.isInteger(t) || t < 1 || t > 99,
+                        (t) => isNaN(t) || !Number.isInteger(t) || t < 25 || t > 95,
                     )
                 ) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
-                        message: 'All threshold values must be integers between 1 and 99',
+                        message: 'All threshold values must be integers between 25 and 95',
                         path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
                     });
                 }
