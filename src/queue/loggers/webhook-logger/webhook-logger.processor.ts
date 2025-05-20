@@ -17,7 +17,7 @@ import { QueueNames } from '../../queue.enum';
 @Processor(QueueNames.webhookLogger, {
     concurrency: 100,
     limiter: {
-        max: 100,
+        max: 150,
         duration: 1_000,
     },
 })

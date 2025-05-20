@@ -676,8 +676,8 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result;
     }
 
-    public async deleteManyByStatus(status: TUsersStatus): Promise<number> {
-        const { query } = new BulkDeleteByStatusBuilder(status);
+    public async deleteManyByStatus(status: TUsersStatus, limit?: number): Promise<number> {
+        const { query } = new BulkDeleteByStatusBuilder(status, limit);
 
         const result = await this.prisma.tx.$executeRaw<unknown>(query);
 
@@ -808,5 +808,11 @@ export class UsersRepository implements ICrud<UserEntity> {
         });
 
         return result.map((user) => user.tag).filter((tag) => tag !== null);
+    }
+
+    public async countByStatus(status: TUsersStatus): Promise<number> {
+        const result = await this.prisma.tx.users.count({ where: { status } });
+
+        return result;
     }
 }

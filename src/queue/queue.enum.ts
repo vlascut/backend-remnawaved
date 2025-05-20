@@ -12,6 +12,7 @@ export enum QueueNames {
     stopNode = 'STOP_NODE_QUEUE',
     telegramBotLogger = 'TELEGRAM_BOT_LOGGER_QUEUE',
     updateUsersUsage = 'UPDATE_USERS_USAGE_QUEUE',
+    userActions = 'USER_ACTIONS_QUEUE',
     userJobs = 'USER_JOBS_QUEUE',
     webhookLogger = 'WEBHOOK_LOGGER_QUEUE',
 }

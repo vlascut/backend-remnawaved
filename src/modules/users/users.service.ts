@@ -34,6 +34,7 @@ import { InboundsEntity } from '@modules/inbounds/entities';
 import { BulkUserOperationsQueueService } from '@queue/bulk-user-operations/bulk-user-operations.service';
 import { ResetUserTrafficQueueService } from '@queue/reset-user-traffic/reset-user-traffic.service';
 import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-nodes.service';
+import { UserActionsQueueService } from '@queue/user-actions/user-actions.service';
 
 import {
     CreateUserRequestDto,
@@ -81,6 +82,7 @@ export class UsersService {
         private readonly bulkUserOperationsQueueService: BulkUserOperationsQueueService,
         private readonly startAllNodesQueue: StartAllNodesQueueService,
         private readonly resetUserTrafficQueueService: ResetUserTrafficQueueService,
+        private readonly userActionsQueueService: UserActionsQueueService,
     ) {
         this.shortUuidLength = this.configService.getOrThrow<number>('SHORT_UUID_LENGTH');
     }
@@ -836,11 +838,13 @@ export class UsersService {
         dto: BulkDeleteUsersByStatusRequestDto,
     ): Promise<ICommandResponse<BulkDeleteByStatusResponseModel>> {
         try {
-            const result = await this.userRepository.deleteManyByStatus(dto.status);
+            const affectedUsers = await this.userRepository.countByStatus(dto.status);
+
+            await this.userActionsQueueService.bulkDeleteByStatus(dto.status);
 
             return {
                 isOk: true,
-                response: new BulkDeleteByStatusResponseModel(result),
+                response: new BulkDeleteByStatusResponseModel(affectedUsers),
             };
         } catch (error) {
             this.logger.error(error);

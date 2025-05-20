@@ -8,6 +8,7 @@ import { RevokeUserSubscriptionHandler } from './revoke-user-subscription';
 import { BatchResetUserTrafficHandler } from './batch-reset-user-traffic';
 import { UpdateUserWithServiceHandler } from './update-user-with-service';
 import { IncrementUsedTrafficHandler } from './increment-used-traffic';
+import { BulkDeleteByStatusHandler } from './bulk-delete-by-status';
 import { UpdateExpiredUsersHandler } from './update-expired-users';
 import { ChangeUserStatusHandler } from './change-user-status';
 import { ResetUserTrafficHandler } from './reset-user-traffic';
@@ -26,4 +27,5 @@ export const COMMANDS = [
     ResetUserTrafficHandler,
     UpdateUserWithServiceHandler,
     TriggerThresholdNotificationHandler,
+    BulkDeleteByStatusHandler,
 ];
