@@ -196,6 +196,7 @@ export class RenderTemplatesService {
             /^Happ\//,
             /^ktor-client/,
             /^V2Box/,
+            /^v2raytun[\w\-]*\//,
             /^io\.github\.saeeddev94\.xray\//,
         ];
 
