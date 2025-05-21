@@ -41,7 +41,8 @@ const logger = createLogger({
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss.SSS',
         }),
-        winston.format.ms(),
+        // winston.format.ms(),
+        winston.format.align(),
         nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
