@@ -45,7 +45,11 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
                 case true:
                     return this.handleOk(nodeUuid, response.response!);
                 case false:
-                    this.logger.error(`Can't get nodes stats, node: ${nodeUuid}`);
+                    this.logger.error(
+                        `Can't get nodes stats, node: ${nodeUuid}, error: ${JSON.stringify(
+                            response,
+                        )}`,
+                    );
                     return;
             }
         } catch (error) {

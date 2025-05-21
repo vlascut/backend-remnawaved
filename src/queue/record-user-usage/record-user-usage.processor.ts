@@ -55,7 +55,11 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
                 case true:
                     return await this.handleOk(nodeUuid, response.response!, consumptionMultiplier);
                 case false:
-                    this.logger.error(`Can't get users stats, node: ${nodeUuid}`);
+                    this.logger.error(
+                        `Can't get users stats, node: ${nodeUuid}, error: ${JSON.stringify(
+                            response,
+                        )}`,
+                    );
                     return;
             }
         } catch (error) {
