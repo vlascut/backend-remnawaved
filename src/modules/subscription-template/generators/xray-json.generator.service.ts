@@ -233,10 +233,8 @@ export class XrayJsonGeneratorService {
     private createHttpUpgradeSettings(host: IFormattedHost): Record<string, unknown> {
         const settings: Record<string, any> = {
             path: host.path,
-            headers: {},
+            host: host.host,
         };
-
-        settings.headers.Host = host.host;
 
         return settings;
     }
