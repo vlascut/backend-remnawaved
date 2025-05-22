@@ -1,6 +1,5 @@
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
-import cookieParser from 'cookie-parser';
 import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
@@ -14,9 +13,9 @@ import { ROOT } from '@contract/api';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
-import { proxyCheckMiddleware, checkAuthCookieMiddleware, getRealIp } from '@common/middlewares';
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
+import { proxyCheckMiddleware, getRealIp } from '@common/middlewares';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
@@ -110,15 +109,15 @@ async function bootstrap(): Promise<void> {
 
     app.use(proxyCheckMiddleware);
 
-    if (config.getOrThrow<boolean>('COOKIE_AUTH_ENABLED')) {
-        app.use(cookieParser());
-        app.use(
-            checkAuthCookieMiddleware(
-                config.getOrThrow<string>('JWT_AUTH_SECRET'),
-                config.getOrThrow<string>('COOKIE_AUTH_NONCE'),
-            ),
-        );
-    }
+    // if (config.getOrThrow<boolean>('COOKIE_AUTH_ENABLED')) {
+    //     app.use(cookieParser());
+    //     app.use(
+    //         checkAuthCookieMiddleware(
+    //             config.getOrThrow<string>('JWT_AUTH_SECRET'),
+    //             config.getOrThrow<string>('COOKIE_AUTH_NONCE'),
+    //         ),
+    //     );
+    // }
 
     app.setGlobalPrefix(ROOT);
 

@@ -90,11 +90,11 @@ export const configSchema = z
         ),
         HWID_MAX_DEVICES_ANNOUNCE: z.optional(z.string()),
 
-        COOKIE_AUTH_ENABLED: z
-            .string()
-            .default('false')
-            .transform((val) => val === 'true'),
-        COOKIE_AUTH_NONCE: z.optional(z.string()),
+        // COOKIE_AUTH_ENABLED: z
+        //     .string()
+        //     .default('false')
+        //     .transform((val) => val === 'true'),
+        // COOKIE_AUTH_NONCE: z.optional(z.string()),
 
         BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED: z.string().default('false'),
         BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD: z
@@ -236,39 +236,39 @@ export const configSchema = z
             }
         }
 
-        if (data.COOKIE_AUTH_ENABLED) {
-            if (!data.COOKIE_AUTH_NONCE) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'COOKIE_AUTH_NONCE is required when COOKIE_AUTH_ENABLED is true',
-                    path: ['COOKIE_AUTH_NONCE'],
-                });
-            } else if (!data.COOKIE_AUTH_NONCE) {
-                if (!/^[a-zA-Z0-9]+$/.test(data.COOKIE_AUTH_NONCE)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'COOKIE_AUTH_NONCE can only contain letters and numbers',
-                        path: ['COOKIE_AUTH_NONCE'],
-                    });
-                }
+        // if (data.COOKIE_AUTH_ENABLED) {
+        //     if (!data.COOKIE_AUTH_NONCE) {
+        //         ctx.addIssue({
+        //             code: z.ZodIssueCode.custom,
+        //             message: 'COOKIE_AUTH_NONCE is required when COOKIE_AUTH_ENABLED is true',
+        //             path: ['COOKIE_AUTH_NONCE'],
+        //         });
+        //     } else if (!data.COOKIE_AUTH_NONCE) {
+        //         if (!/^[a-zA-Z0-9]+$/.test(data.COOKIE_AUTH_NONCE)) {
+        //             ctx.addIssue({
+        //                 code: z.ZodIssueCode.custom,
+        //                 message: 'COOKIE_AUTH_NONCE can only contain letters and numbers',
+        //                 path: ['COOKIE_AUTH_NONCE'],
+        //             });
+        //         }
 
-                if (data.COOKIE_AUTH_NONCE.length > 64) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'COOKIE_AUTH_NONCE must be less than 64 characters',
-                        path: ['COOKIE_AUTH_NONCE'],
-                    });
-                }
+        //         if (data.COOKIE_AUTH_NONCE.length > 64) {
+        //             ctx.addIssue({
+        //                 code: z.ZodIssueCode.custom,
+        //                 message: 'COOKIE_AUTH_NONCE must be less than 64 characters',
+        //                 path: ['COOKIE_AUTH_NONCE'],
+        //             });
+        //         }
 
-                if (data.COOKIE_AUTH_NONCE.length < 6) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'COOKIE_AUTH_NONCE must be at least 6 characters',
-                        path: ['COOKIE_AUTH_NONCE'],
-                    });
-                }
-            }
-        }
+        //         if (data.COOKIE_AUTH_NONCE.length < 6) {
+        //             ctx.addIssue({
+        //                 code: z.ZodIssueCode.custom,
+        //                 message: 'COOKIE_AUTH_NONCE must be at least 6 characters',
+        //                 path: ['COOKIE_AUTH_NONCE'],
+        //             });
+        //         }
+        //     }
+        // }
 
         if (data.BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED === 'true') {
             if (!data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD) {
