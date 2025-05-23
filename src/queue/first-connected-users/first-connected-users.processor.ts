@@ -37,6 +37,8 @@ export class FirstConnectedUsersQueueProcessor extends WorkerHost {
                 this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
         }
+
+        return { isOk: true };
     }
 
     private async handleFirstConnectedUsers(job: Job<{ uuid: string }>) {
@@ -46,7 +48,7 @@ export class FirstConnectedUsersQueueProcessor extends WorkerHost {
             const user = await this.getUserByUuid(userUuids.uuid);
 
             if (!user.isOk || !user.response) {
-                return;
+                return { isOk: false };
             }
 
             this.eventEmitter.emit(

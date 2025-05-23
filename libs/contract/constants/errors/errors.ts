@@ -523,4 +523,9 @@ export const ERRORS = {
         message: 'Trigger threshold notification error',
         httpCode: 500,
     },
+    BULK_DELETE_BY_STATUS_ERROR: {
+        code: 'A106',
+        message: 'Bulk delete by status error',
+        httpCode: 500,
+    },
 } as const;

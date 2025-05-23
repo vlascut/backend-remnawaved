@@ -97,7 +97,7 @@ export namespace CreateUserCommand {
                 invalid_type_error: 'Enabled inbounds must be an array',
             })
             .optional()
-            .describe('Optional.Array of UUIDs representing enabled inbound connections.'),
+            .describe('Optional. Array of UUIDs representing enabled inbound connections.'),
         expireAt: z
             .string({
                 required_error: 'Expiration date is required',

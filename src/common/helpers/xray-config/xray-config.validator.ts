@@ -68,6 +68,7 @@ export class XRayConfig {
             throw new Error("Config doesn't have inbounds.");
         }
 
+        const seenTags = new Set<string>();
         for (const inbound of this.config.inbounds) {
             const network = inbound.streamSettings?.network;
 
@@ -101,6 +102,12 @@ export class XRayConfig {
             if (inbound.tag.includes(',')) {
                 throw new Error("Character ',' is not allowed in inbound tag.");
             }
+            if (seenTags.has(inbound.tag)) {
+                throw new Error(
+                    `Duplicate inbound tag "${inbound.tag}" found. All inbound tags must be unique.`,
+                );
+            }
+            seenTags.add(inbound.tag);
         }
     }
 
@@ -214,10 +221,7 @@ export class XRayConfig {
 
     public getAllInbounds(): InboundsWithTagsAndType[] {
         return this.inbounds
-            .filter(
-                (inbound) =>
-                    !['dokodemo-door', 'http', 'mixed', 'wireguard'].includes(inbound.protocol),
-            )
+            .filter((inbound) => this.isInboundWithUsers(inbound.protocol))
             .map((inbound) => ({
                 tag: inbound.tag,
                 type: inbound.protocol,
@@ -279,10 +283,7 @@ export class XRayConfig {
 
         const inboundMap = new Map(
             this.config.inbounds
-                .filter(
-                    (inbound) =>
-                        !['dokodemo-door', 'http', 'mixed', 'wireguard'].includes(inbound.protocol),
-                )
+                .filter((inbound) => this.isInboundWithUsers(inbound.protocol))
                 .map((inbound) => [inbound.tag, inbound]),
         );
 
@@ -366,5 +367,9 @@ export class XRayConfig {
                 reject(error);
             }
         });
+    }
+
+    private isInboundWithUsers(protocol: string): boolean {
+        return !['dokodemo-door', 'http', 'mixed', 'wireguard'].includes(protocol);
     }
 }

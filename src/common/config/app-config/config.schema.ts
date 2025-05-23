@@ -306,18 +306,16 @@ export const configSchema = z
                     });
                 }
 
-                for (let i = 1; i < data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.length; i++) {
-                    if (
-                        data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD[i] <=
-                        data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD[i - 1]
-                    ) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'Threshold values must be in strictly ascending order',
-                            path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
-                        });
-                        break;
-                    }
+                if (
+                    !data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.every(
+                        (value, index, array) => index === 0 || value > array[index - 1],
+                    )
+                ) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Threshold values must be in strictly ascending order',
+                        path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                    });
                 }
             }
         }

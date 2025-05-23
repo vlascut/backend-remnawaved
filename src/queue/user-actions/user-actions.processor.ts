@@ -33,6 +33,8 @@ export class UserActionsQueueProcessor extends WorkerHost {
                 this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
         }
+
+        return { isOk: true };
     }
 
     private async handleBulkDeleteByStatusJob(job: Job<{ status: TUsersStatus }>) {
@@ -84,6 +86,10 @@ export class UserActionsQueueProcessor extends WorkerHost {
             this.logger.error(
                 `Error handling "${UserActionsJobNames.bulkDeleteByStatus}" job: ${error}`,
             );
+
+            return {
+                isOk: false,
+            };
         }
     }
 

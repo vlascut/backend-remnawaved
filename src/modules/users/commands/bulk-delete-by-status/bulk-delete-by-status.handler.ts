@@ -40,7 +40,7 @@ export class BulkDeleteByStatusHandler
             this.logger.error(error);
             return {
                 isOk: false,
-                ...ERRORS.UPDATE_USER_ERROR,
+                ...ERRORS.BULK_DELETE_BY_STATUS_ERROR,
             };
         }
     }

@@ -21,7 +21,7 @@ export class TriggerThresholdNotificationsBuilder {
             JOIN thresholds t
                 ON u."status" = 'ACTIVE'
                 AND u."traffic_limit_bytes" > 0
-                AND u."used_traffic_bytes" * 100 >= u."traffic_limit_bytes" * t.pct
+                AND u."used_traffic_bytes" >= u."traffic_limit_bytes" * t.pct / 100
                 AND u."last_triggered_threshold"   < t.pct
             GROUP BY u."uuid"
             ORDER BY u."created_at"

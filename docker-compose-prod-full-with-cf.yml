@@ -77,8 +77,8 @@ services:
     restart: always
     environment:
       - REMNAWAVE_PANEL_URL=http://remnawave:3000
-      - META_TITLE="Subscription page"
-      - META_DESCRIPTION="Subscription page description"
+      - META_TITLE=Subscription page
+      - META_DESCRIPTION=Subscription page description
     ports:
       - '127.0.0.1:3010:3010'
     networks:

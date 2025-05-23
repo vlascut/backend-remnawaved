@@ -238,7 +238,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
                             );
                         } catch (error) {
                             this.logger.error(
-                                `Error handling "${UserJobsJobNames.findExceededUsers}" job: ${error}`,
+                                `Error handling "${UserJobsJobNames.findUsersForThresholdNotification}" job: ${error}`,
                             );
                         }
                     },

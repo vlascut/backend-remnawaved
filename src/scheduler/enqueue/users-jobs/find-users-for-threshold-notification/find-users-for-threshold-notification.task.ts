@@ -37,11 +37,21 @@ export class FindUsersForThresholdNotificationTask implements OnApplicationBoots
             if (job) {
                 job.start();
                 this.logger.log('Find users for threshold notification job enabled.');
+            } else {
+                this.logger.warn('Find users for threshold notification job not found.');
             }
         } else {
-            this.schedulerRegistry.deleteCronJob(FindUsersForThresholdNotificationTask.CRON_NAME);
+            try {
+                this.schedulerRegistry.deleteCronJob(
+                    FindUsersForThresholdNotificationTask.CRON_NAME,
+                );
 
-            this.logger.log('Find users for threshold notification job disabled.');
+                this.logger.log('Find users for threshold notification job disabled.');
+            } catch (error) {
+                this.logger.error(
+                    `Error deleting "${FindUsersForThresholdNotificationTask.CRON_NAME}" cron job: ${error}`,
+                );
+            }
         }
     }
 
