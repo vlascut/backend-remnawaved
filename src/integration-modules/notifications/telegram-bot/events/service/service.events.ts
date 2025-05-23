@@ -8,12 +8,10 @@ import { ConfigService } from '@nestjs/config';
 
 import { EVENTS } from '@libs/contracts/constants';
 
-import { BOT_NAME } from '@integration-modules/telegram-bot/constants';
+import { CustomErrorEvent, ServiceEvent } from '@integration-modules/notifications/interfaces';
+import { BOT_NAME } from '@integration-modules/notifications/telegram-bot/constants';
 
-import { TelegramBotLoggerQueueService } from '@queue/loggers/telegram-bot-logger';
-
-import { CustomErrorEvent } from './interfaces/error.event.interface';
-import { ServiceEvent } from './interfaces/service.event.interface';
+import { TelegramBotLoggerQueueService } from '@queue/notifications/telegram-bot-logger';
 
 export class ServiceEvents {
     private readonly adminId: string;

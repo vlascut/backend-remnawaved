@@ -19,12 +19,12 @@ import { NodeHealthCheckQueueModule } from './node-health-check/node-health-chec
 import { RecordNodeUsageQueueModule } from './record-node-usage/record-node-usage.module';
 import { RecordUserUsageQueueModule } from './record-user-usage/record-user-usage.module';
 import { StartAllNodesQueueModule } from './start-all-nodes/start-all-nodes.module';
+import { NOTIFICATIONS_MODULES } from './notifications/notifications-modules';
 import { UserActionsQueueModule } from './user-actions/user-actions.module';
 import { StartNodeQueueModule } from './start-node/start-node.module';
 import { NodeUsersQueueModule } from './node-users/node-users.module';
 import { StopNodeQueueModule } from './stop-node/stop-node.module';
 import { UserJobsQueueModule } from './user-jobs/user-jobs.module';
-import { LOGGER_MODULES } from './loggers/logger-modules';
 
 const queueModules = [
     StartAllNodesQueueModule,
@@ -42,7 +42,7 @@ const queueModules = [
     FirstConnectedUsersQueueModule,
     UserActionsQueueModule,
 
-    ...LOGGER_MODULES,
+    ...NOTIFICATIONS_MODULES,
 ];
 
 const bullBoard = [

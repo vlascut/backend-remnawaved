@@ -11,7 +11,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { AxiosService } from '@common/axios';
 import { EVENTS } from '@libs/contracts/constants';
 
-import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
+import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
 import { NodesEntity } from '@modules/nodes/entities/nodes.entity';

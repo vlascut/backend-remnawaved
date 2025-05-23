@@ -8,7 +8,7 @@ import { Module } from '@nestjs/common';
 
 import { useBullBoard, useQueueProcessor } from '@common/utils/startup-app';
 
-import { WebhookModule } from '@integration-modules/webhook-module/webhook.module';
+import { WebhookModule } from '@integration-modules/notifications/webhook-module/webhook.module';
 
 import { WebhookLoggerQueueProcessor } from './webhook-logger.processor';
 import { WebhookLoggerQueueService } from './webhook-logger.service';

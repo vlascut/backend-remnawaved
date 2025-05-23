@@ -8,7 +8,7 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS } from '@libs/contracts/constants';
 
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces/user.event.interface';
+import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
 import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid/get-user-by-uuid.query';

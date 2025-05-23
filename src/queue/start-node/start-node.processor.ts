@@ -10,7 +10,7 @@ import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { AxiosService } from '@common/axios/axios.service';
 import { EVENTS } from '@libs/contracts/constants';
 
-import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
+import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetPreparedConfigWithUsersQuery } from '@modules/users/queries/get-prepared-config-with-users';
 import { InboundsEntity } from '@modules/inbounds/entities/inbounds.entity';

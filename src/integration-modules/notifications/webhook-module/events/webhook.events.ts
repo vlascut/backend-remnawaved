@@ -8,13 +8,13 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { EVENTS } from '@libs/contracts/constants';
 
 import {
+    UserEvent,
     ServiceEvent,
     CustomErrorEvent,
-} from '@integration-modules/telegram-bot/events/service/interfaces';
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
-import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
+    NodeEvent,
+} from '@integration-modules/notifications/interfaces';
 
-import { WebhookLoggerQueueService } from '@queue/loggers/webhook-logger/webhook-logger.service';
+import { WebhookLoggerQueueService } from '@queue/notifications/webhook-logger/webhook-logger.service';
 @Injectable()
 export class WebhookEvents {
     private readonly logger = new Logger(WebhookEvents.name);

@@ -10,7 +10,7 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS, TUserEvents } from '@libs/contracts/constants';
 
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
+import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetUsersByExpireAtQuery } from '@modules/users/queries/get-users-by-expire-at/get-users-by-expire-at.query';
 import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';

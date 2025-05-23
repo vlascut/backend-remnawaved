@@ -1,14 +1,15 @@
 import { InjectBot } from '@kastov/grammy-nestjs';
 import { parseMode } from '@grammyjs/parse-mode';
-import { Context } from 'grammy';
+import { Context, GrammyError } from 'grammy';
 import { Job } from 'bullmq';
 import { Bot } from 'grammy';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger, Optional } from '@nestjs/common';
 
-import { BOT_NAME } from '@integration-modules/telegram-bot/constants';
+import { BOT_NAME } from '@integration-modules/notifications/telegram-bot/constants';
 
+import { TelegramBotLoggerQueueService } from './telegram-bot-logger.service';
 import { TelegramBotLoggerJobNames } from './enums';
 import { QueueNames } from '../../queue.enum';
 
@@ -26,6 +27,7 @@ export class TelegramBotLoggerQueueProcessor extends WorkerHost {
         @Optional()
         @InjectBot(BOT_NAME)
         private readonly bot: Bot<Context>,
+        private readonly telegramBotLoggerQueueService: TelegramBotLoggerQueueService,
     ) {
         super();
         if (this.bot) {
@@ -63,6 +65,16 @@ export class TelegramBotLoggerQueueProcessor extends WorkerHost {
                 ...(threadId && { message_thread_id: parseInt(threadId, 10) }),
             });
         } catch (error) {
+            if (error instanceof GrammyError) {
+                if (error.error_code === 429) {
+                    const retryAfter = error.parameters.retry_after;
+                    if (retryAfter) {
+                        this.logger.warn(`Rate limit exceeded. Retrying in ${retryAfter} seconds.`);
+                        await this.telegramBotLoggerQueueService.rateLimit(retryAfter);
+                        return;
+                    }
+                }
+            }
             this.logger.error(
                 `Error handling "${TelegramBotLoggerJobNames.sendTelegramMessage}" job: ${error}`,
             );

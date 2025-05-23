@@ -41,4 +41,8 @@ export class TelegramBotLoggerQueueService
     }) {
         return this.addJob(TelegramBotLoggerJobNames.sendTelegramMessage, payload);
     }
+
+    public async rateLimit(seconds: number) {
+        return this.queue.rateLimit(seconds * 1000);
+    }
 }

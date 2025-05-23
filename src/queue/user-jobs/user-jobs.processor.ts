@@ -10,7 +10,7 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS } from '@libs/contracts/constants/events/events';
 
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces/user.event.interface';
+import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { TriggerThresholdNotificationCommand } from '@modules/users/commands/trigger-threshold-notification';
 import { UpdateExceededTrafficUsersCommand } from '@modules/users/commands/update-exceeded-users';

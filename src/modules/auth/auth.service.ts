@@ -12,7 +12,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';
 import { EVENTS, ROLE } from '@libs/contracts/constants';
 
-import { ServiceEvent } from '@integration-modules/telegram-bot/events/service/interfaces';
+import { ServiceEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetAdminByUsernameQuery } from '@modules/admin/queries/get-admin-by-username';
 import { CountAdminsByRoleQuery } from '@modules/admin/queries/count-admins-by-role';

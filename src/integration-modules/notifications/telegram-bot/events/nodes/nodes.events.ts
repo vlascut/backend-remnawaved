@@ -9,11 +9,11 @@ import { ConfigService } from '@nestjs/config';
 import { prettyBytesUtil } from '@common/utils/bytes';
 import { EVENTS } from '@libs/contracts/constants';
 
-import { BOT_NAME } from '@integration-modules/webhook-module/constants/bot-name.constant';
+import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
-import { TelegramBotLoggerQueueService } from '@queue/loggers/telegram-bot-logger';
+import { TelegramBotLoggerQueueService } from '@queue/notifications/telegram-bot-logger';
 
-import { NodeEvent } from './interfaces';
+import { BOT_NAME } from '../../constants/bot-name.constant';
 
 export class NodesEvents {
     private readonly notifyChatId: string;

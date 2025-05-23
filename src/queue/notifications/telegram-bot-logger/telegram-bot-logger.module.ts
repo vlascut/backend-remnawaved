@@ -8,7 +8,7 @@ import { Module } from '@nestjs/common';
 
 import { useBullBoard, useQueueProcessor } from '@common/utils/startup-app';
 
-import { TelegramBotModule } from '@integration-modules/telegram-bot/telegram-bot.module';
+import { TelegramBotModule } from '@integration-modules/notifications/telegram-bot/telegram-bot.module';
 
 import { TelegramBotLoggerQueueProcessor } from './telegram-bot-logger.processor';
 import { TelegramBotLoggerQueueService } from './telegram-bot-logger.service';
@@ -22,7 +22,11 @@ const requiredModules = [
 const processors = [TelegramBotLoggerQueueProcessor];
 const services = [TelegramBotLoggerQueueService];
 
-const queues = [BullModule.registerQueue({ name: QueueNames.telegramBotLogger })];
+const queues = [
+    BullModule.registerQueue({
+        name: QueueNames.telegramBotLogger,
+    }),
+];
 
 const bullBoard = [
     BullBoardModule.forFeature({ name: QueueNames.telegramBotLogger, adapter: BullMQAdapter }),

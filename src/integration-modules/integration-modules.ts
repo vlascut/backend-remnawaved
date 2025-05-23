@@ -1,8 +1,8 @@
 import { ConditionalModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 
-import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
-import { WebhookModule } from './webhook-module/webhook.module';
+import { TelegramBotModule } from './notifications/telegram-bot/telegram-bot.module';
+import { WebhookModule } from './notifications/webhook-module/webhook.module';
 
 @Module({
     imports: [

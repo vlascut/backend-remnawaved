@@ -15,7 +15,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
 import { GetAllUsersCommand } from '@libs/contracts/commands';
 
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
+import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { DeleteManyActiveInboundsByUserUuidCommand } from '@modules/inbounds/commands/delete-many-active-inbounds-by-user-uuid';
 import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
