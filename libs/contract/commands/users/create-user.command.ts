@@ -75,6 +75,7 @@ export namespace CreateUserCommand {
             })
             .int('Traffic limit must be an integer')
             .min(0, 'Traffic limit must be greater than 0')
+            .optional()
             .describe('Optional. Traffic limit in bytes. Set to 0 for unlimited traffic.'),
         trafficLimitStrategy: UsersSchema.shape.trafficLimitStrategy
             .describe(
@@ -113,6 +114,7 @@ export namespace CreateUserCommand {
             })
             .datetime({ message: 'Invalid date format', offset: true, local: true })
             .transform((str) => new Date(str))
+            .optional()
             .describe('Optional. Account creation date. Format: 2025-01-17T15:38:45.065Z'),
         lastTrafficResetAt: z
             .string({
@@ -120,6 +122,7 @@ export namespace CreateUserCommand {
             })
             .datetime({ message: 'Invalid date format', offset: true, local: true })
             .transform((str) => new Date(str))
+            .optional()
             .describe('Optional. Date of last traffic reset. Format: 2025-01-17T15:38:45.065Z'),
         description: z
             .string()
