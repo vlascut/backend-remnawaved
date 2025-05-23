@@ -77,23 +77,21 @@ export namespace CreateUserCommand {
             .min(0, 'Traffic limit must be greater than 0')
             .optional()
             .describe('Optional. Traffic limit in bytes. Set to 0 for unlimited traffic.'),
-        trafficLimitStrategy: UsersSchema.shape.trafficLimitStrategy
-            .describe(
-                'Optional. Strategy for resetting traffic limits. Defaults to NO_RESET. Must be a valid reset period.',
-            )
-            .optional()
-            .default(RESET_PERIODS.NO_RESET)
-            .superRefine((val, ctx) => {
-                if (val && !Object.values(RESET_PERIODS).includes(val)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.invalid_enum_value,
-                        message: 'Invalid traffic limit strategy',
-                        path: ['trafficLimitStrategy'],
-                        received: val,
-                        options: Object.values(RESET_PERIODS),
-                    });
-                }
-            }),
+        trafficLimitStrategy: z.optional(
+            UsersSchema.shape.trafficLimitStrategy
+                .default(RESET_PERIODS.NO_RESET)
+                .superRefine((val, ctx) => {
+                    if (val && !Object.values(RESET_PERIODS).includes(val)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.invalid_enum_value,
+                            message: 'Invalid traffic limit strategy',
+                            path: ['trafficLimitStrategy'],
+                            received: val,
+                            options: Object.values(RESET_PERIODS),
+                        });
+                    }
+                }),
+        ),
         activeUserInbounds: z
             .array(z.string().uuid(), {
                 invalid_type_error: 'Enabled inbounds must be an array',
