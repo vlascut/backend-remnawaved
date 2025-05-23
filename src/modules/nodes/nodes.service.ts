@@ -10,7 +10,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { toNano } from '@common/utils/nano';
 
-import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
+import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
 import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
 

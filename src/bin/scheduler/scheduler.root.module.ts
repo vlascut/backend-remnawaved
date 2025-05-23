@@ -1,15 +1,12 @@
-import { BullBoardModule } from '@bull-board/nestjs';
-import { ExpressAdapter } from '@bull-board/express';
 import { ClsModule } from 'nestjs-cls';
 
 import { QueueModule } from 'src/queue/queue.module';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
-import { BullModule } from '@nestjs/bullmq';
+import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 
 import { validateEnvConfig } from '@common/utils/validate-env-config';
@@ -52,28 +49,6 @@ import { SchedulerModule } from '@scheduler/scheduler.module';
             wildcard: true,
             delimiter: '.',
         }),
-        // BullModule.forRootAsync({
-        //     imports: [ConfigModule],
-        //     useFactory: (configService: ConfigService) => ({
-        //         connection: {
-        //             host: configService.getOrThrow<string>('REDIS_HOST'),
-        //             port: configService.getOrThrow<number>('REDIS_PORT'),
-        //             db: configService.getOrThrow<number>('REDIS_DB'),
-        //             password: configService.get<string | undefined>('REDIS_PASSWORD'),
-        //         },
-        //     }),
-        //     inject: [ConfigService],
-        // }),
-        // BullBoardModule.forRoot({
-        //     route: '/queues',
-        //     adapter: ExpressAdapter,
-        //     // middleware: [BasicAuthMiddleware],
-        //     boardOptions: {
-        //         uiConfig: {
-        //             boardTitle: 'Remnawave',
-        //         },
-        //     },
-        // }),
         RemnawaveModules,
         PrometheusReporterModule,
 

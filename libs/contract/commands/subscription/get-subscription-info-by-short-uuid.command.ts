@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { REST_API, SUBSCRIPTION_ROUTES } from '../../api';
 import { getEndpointDetails } from '../../constants';
+import { HappSchema } from '../../models';
 
 export namespace GetSubscriptionInfoByShortUuidCommand {
     export const url = REST_API.SUBSCRIPTION.GET_INFO;
@@ -40,6 +41,7 @@ export namespace GetSubscriptionInfoByShortUuidCommand {
             links: z.array(z.string()),
             ssConfLinks: z.record(z.string(), z.string()),
             subscriptionUrl: z.string(),
+            happ: HappSchema,
         }),
     });
 

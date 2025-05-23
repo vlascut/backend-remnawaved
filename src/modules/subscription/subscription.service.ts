@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import pMap from 'p-map';
+import _ from 'lodash';
 
 import { Injectable, Logger } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -162,6 +163,10 @@ export class SubscriptionService {
 
             if (!hosts.isOk || !hosts.response) {
                 return new SubscriptionNotFoundResponse();
+            }
+
+            if (settingEntity.randomizeHosts) {
+                hosts.response = _.shuffle(hosts.response);
             }
 
             const config = await this.getValidatedConfig();
@@ -532,7 +537,7 @@ export class SubscriptionService {
         settings: SubscriptionSettingsEntity,
     ): Promise<ISubscriptionHeaders> {
         const headers: ISubscriptionHeaders = {
-            'content-disposition': `attachment; filename="${user.username}"`,
+            'content-disposition': `attachment; filename=${user.username}`,
             'support-url': settings.supportLink,
             'profile-title': `base64:${Buffer.from(
                 TemplateEngine.formatWithUser(settings.profileTitle, user, this.subPublicDomain),
@@ -555,13 +560,6 @@ export class SubscriptionService {
 
         if (settings.isProfileWebpageUrlEnabled && !this.hwidDeviceLimitEnabled) {
             headers['profile-web-page-url'] = `https://${this.subPublicDomain}/${user.shortUuid}`;
-        }
-
-        if (isHapp && this.hwidDeviceLimitEnabled) {
-            const providerId = this.configService.get<string>('PROVIDER_ID');
-            if (providerId) {
-                headers.providerid = providerId;
-            }
         }
 
         if (settings.customResponseHeaders) {

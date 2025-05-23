@@ -38,6 +38,7 @@ import {
     ILastConnectedNodeFromBuilder,
     UsersLastConnectedNodeBuilder,
 } from '../builders/last-connected-node';
+import { TriggerThresholdNotificationsBuilder } from '../builders/trigger-threshold-notifications-builder';
 import { UserConverter } from '../users.converter';
 
 dayjs.extend(utc);
@@ -71,9 +72,14 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async bulkIncrementUsedTraffic(
         userUsageList: { u: string; b: string }[],
-    ): Promise<number> {
+    ): Promise<{ uuid: string }[]> {
         const { query } = new BulkUpdateUserUsedTrafficBuilder(userUsageList);
-        return await this.prisma.tx.$executeRaw<number>(query);
+        return await this.prisma.tx.$queryRaw<{ uuid: string }[]>(query);
+    }
+
+    public async triggerThresholdNotifications(percentages: number[]): Promise<{ uuid: string }[]> {
+        const { query } = new TriggerThresholdNotificationsBuilder(percentages);
+        return await this.prisma.tx.$queryRaw<{ uuid: string }[]>(query);
     }
 
     public async changeUserStatus(userUuid: string, status: TUsersStatus): Promise<void> {
@@ -90,7 +96,12 @@ export class UsersRepository implements ICrud<UserEntity> {
     ): Promise<void> {
         await this.prisma.tx.users.update({
             where: { uuid: userUuid },
-            data: { lastTrafficResetAt: lastResetAt, status, usedTrafficBytes: 0 },
+            data: {
+                lastTrafficResetAt: lastResetAt,
+                status,
+                usedTrafficBytes: 0,
+                lastTriggeredThreshold: 0,
+            },
         });
     }
 
@@ -665,8 +676,8 @@ export class UsersRepository implements ICrud<UserEntity> {
         return result;
     }
 
-    public async deleteManyByStatus(status: TUsersStatus): Promise<number> {
-        const { query } = new BulkDeleteByStatusBuilder(status);
+    public async deleteManyByStatus(status: TUsersStatus, limit?: number): Promise<number> {
+        const { query } = new BulkDeleteByStatusBuilder(status, limit);
 
         const result = await this.prisma.tx.$executeRaw<unknown>(query);
 
@@ -797,5 +808,11 @@ export class UsersRepository implements ICrud<UserEntity> {
         });
 
         return result.map((user) => user.tag).filter((tag) => tag !== null);
+    }
+
+    public async countByStatus(status: TUsersStatus): Promise<number> {
+        const result = await this.prisma.tx.users.count({ where: { status } });
+
+        return result;
     }
 }

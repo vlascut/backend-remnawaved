@@ -50,4 +50,16 @@ export class UserJobsQueueService extends AbstractQueueService implements OnAppl
             },
         );
     }
+
+    public async findUsersForThresholdNotification() {
+        return this.addJob(
+            UserJobsJobNames.findUsersForThresholdNotification,
+            {},
+            {
+                jobId: `${UserJobsJobNames.findUsersForThresholdNotification}`,
+                removeOnComplete: true,
+                removeOnFail: true,
+            },
+        );
+    }
 }

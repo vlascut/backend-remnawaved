@@ -518,4 +518,14 @@ export const ERRORS = {
         message: 'Getting all subscriptions error',
         httpCode: 500,
     },
+    TRIGGER_THRESHOLD_NOTIFICATION_ERROR: {
+        code: 'A105',
+        message: 'Trigger threshold notification error',
+        httpCode: 500,
+    },
+    BULK_DELETE_BY_STATUS_ERROR: {
+        code: 'A106',
+        message: 'Bulk delete by status error',
+        httpCode: 500,
+    },
 } as const;

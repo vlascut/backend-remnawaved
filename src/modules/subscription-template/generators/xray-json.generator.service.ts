@@ -11,6 +11,7 @@ interface StreamSettings {
     rawSettings?: unknown;
     xhttpSettings?: unknown;
     tlsSettings?: unknown;
+    httpupgradeSettings?: unknown;
     realitySettings?: unknown;
     sockopt?: unknown;
 }
@@ -188,6 +189,10 @@ export class XrayJsonGeneratorService {
                 streamSettings.wsSettings = this.createWsSettings(host);
                 break;
 
+            case 'httpupgrade':
+                streamSettings.httpupgradeSettings = this.createHttpUpgradeSettings(host);
+                break;
+
             case 'tcp':
             case 'raw':
                 streamSettings.tcpSettings = this.createTcpSettings(host);
@@ -225,6 +230,15 @@ export class XrayJsonGeneratorService {
         return settings;
     }
 
+    private createHttpUpgradeSettings(host: IFormattedHost): Record<string, unknown> {
+        const settings: Record<string, any> = {
+            path: host.path,
+            host: host.host,
+        };
+
+        return settings;
+    }
+
     private createTcpSettings(host: IFormattedHost): Record<string, unknown> {
         const settings: Record<string, any> = {};
 
@@ -253,10 +267,6 @@ export class XrayJsonGeneratorService {
     private createXHttpSettings(host: IFormattedHost): Record<string, unknown> {
         const settings: Record<string, any> = {
             mode: host.additionalParams?.mode || 'auto',
-            headers: {},
-            extra: {
-                xmux: {},
-            },
         };
 
         settings.host = host.host;
@@ -265,7 +275,11 @@ export class XrayJsonGeneratorService {
             settings.path = host.path;
         }
 
-        if (host.xHttpExtraParams !== null && host.xHttpExtraParams !== undefined) {
+        if (
+            host.xHttpExtraParams !== null &&
+            host.xHttpExtraParams !== undefined &&
+            Object.keys(host.xHttpExtraParams).length > 0
+        ) {
             settings.extra = host.xHttpExtraParams;
         }
 

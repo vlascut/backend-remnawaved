@@ -1,6 +1,7 @@
 export enum QueueNames {
     bulkUserOperations = 'BULK_USER_OPERATIONS_QUEUE',
     expireUserNotifications = 'EXPIRE_USER_NOTIFICATIONS_QUEUE',
+    firstConnectedUsers = 'FIRST_CONNECTED_USERS_QUEUE',
     nodeHealthCheck = 'NODE_HEALTH_CHECK_QUEUE',
     nodeUsers = 'NODE_USERS_QUEUE',
     recordNodeUsage = 'RECORD_NODE_USAGE_QUEUE',
@@ -11,6 +12,7 @@ export enum QueueNames {
     stopNode = 'STOP_NODE_QUEUE',
     telegramBotLogger = 'TELEGRAM_BOT_LOGGER_QUEUE',
     updateUsersUsage = 'UPDATE_USERS_USAGE_QUEUE',
+    userActions = 'USER_ACTIONS_QUEUE',
     userJobs = 'USER_JOBS_QUEUE',
     webhookLogger = 'WEBHOOK_LOGGER_QUEUE',
 }

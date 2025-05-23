@@ -19,6 +19,8 @@ export class SubscriptionSettingsEntity implements SubscriptionSettings {
 
     customResponseHeaders: Record<string, string> | null;
 
+    randomizeHosts: boolean;
+
     createdAt: Date;
     updatedAt: Date;
     constructor(config: Partial<SubscriptionSettings>) {

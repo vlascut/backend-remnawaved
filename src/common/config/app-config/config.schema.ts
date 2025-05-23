@@ -89,7 +89,28 @@ export const configSchema = z
                 ),
         ),
         HWID_MAX_DEVICES_ANNOUNCE: z.optional(z.string()),
-        PROVIDER_ID: z.optional(z.string()),
+
+        // COOKIE_AUTH_ENABLED: z
+        //     .string()
+        //     .default('false')
+        //     .transform((val) => val === 'true'),
+        // COOKIE_AUTH_NONCE: z.optional(z.string()),
+
+        BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED: z.string().default('false'),
+        BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD: z
+            .string()
+            .optional()
+            .transform((val) => {
+                if (!val || val === '') return undefined;
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    throw new Error(
+                        'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD must be a valid JSON array',
+                    );
+                }
+            })
+            .pipe(z.array(z.number()).optional()),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -212,6 +233,90 @@ export const configSchema = z
                     message: 'TELEGRAM_BOT_TOKEN is required when TELEGRAM_OAUTH_ENABLED is true',
                     path: ['TELEGRAM_BOT_TOKEN'],
                 });
+            }
+        }
+
+        // if (data.COOKIE_AUTH_ENABLED) {
+        //     if (!data.COOKIE_AUTH_NONCE) {
+        //         ctx.addIssue({
+        //             code: z.ZodIssueCode.custom,
+        //             message: 'COOKIE_AUTH_NONCE is required when COOKIE_AUTH_ENABLED is true',
+        //             path: ['COOKIE_AUTH_NONCE'],
+        //         });
+        //     } else if (!data.COOKIE_AUTH_NONCE) {
+        //         if (!/^[a-zA-Z0-9]+$/.test(data.COOKIE_AUTH_NONCE)) {
+        //             ctx.addIssue({
+        //                 code: z.ZodIssueCode.custom,
+        //                 message: 'COOKIE_AUTH_NONCE can only contain letters and numbers',
+        //                 path: ['COOKIE_AUTH_NONCE'],
+        //             });
+        //         }
+
+        //         if (data.COOKIE_AUTH_NONCE.length > 64) {
+        //             ctx.addIssue({
+        //                 code: z.ZodIssueCode.custom,
+        //                 message: 'COOKIE_AUTH_NONCE must be less than 64 characters',
+        //                 path: ['COOKIE_AUTH_NONCE'],
+        //             });
+        //         }
+
+        //         if (data.COOKIE_AUTH_NONCE.length < 6) {
+        //             ctx.addIssue({
+        //                 code: z.ZodIssueCode.custom,
+        //                 message: 'COOKIE_AUTH_NONCE must be at least 6 characters',
+        //                 path: ['COOKIE_AUTH_NONCE'],
+        //             });
+        //         }
+        //     }
+        // }
+
+        if (data.BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED === 'true') {
+            if (!data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD is required when BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED is true',
+                    path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                });
+            } else if (data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD must not be empty',
+                    path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                });
+            } else {
+                if (data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.length > 5) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message:
+                            'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD must contain at most 5 values',
+                        path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                    });
+                }
+
+                if (
+                    data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.some(
+                        (t) => isNaN(t) || !Number.isInteger(t) || t < 25 || t > 95,
+                    )
+                ) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'All threshold values must be integers between 25 and 95',
+                        path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                    });
+                }
+
+                if (
+                    !data.BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD.every(
+                        (value, index, array) => index === 0 || value > array[index - 1],
+                    )
+                ) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Threshold values must be in strictly ascending order',
+                        path: ['BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD'],
+                    });
+                }
             }
         }
     });

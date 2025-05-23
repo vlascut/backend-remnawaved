@@ -14,10 +14,8 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
-// import { ProxyCheckGuard } from '@common/guards/proxy-check/proxy-check.guard';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
-import { getRealIp } from '@common/middlewares/get-real-ip';
-import { proxyCheckMiddleware } from '@common/middlewares';
+import { proxyCheckMiddleware, getRealIp } from '@common/middlewares';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
@@ -42,7 +40,8 @@ const logger = createLogger({
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss.SSS',
         }),
-        winston.format.ms(),
+        // winston.format.ms(),
+        winston.format.align(),
         nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanedId}`, {
             colors: true,
             prettyPrint: true,
@@ -110,6 +109,16 @@ async function bootstrap(): Promise<void> {
 
     app.use(proxyCheckMiddleware);
 
+    // if (config.getOrThrow<boolean>('COOKIE_AUTH_ENABLED')) {
+    //     app.use(cookieParser());
+    //     app.use(
+    //         checkAuthCookieMiddleware(
+    //             config.getOrThrow<string>('JWT_AUTH_SECRET'),
+    //             config.getOrThrow<string>('COOKIE_AUTH_NONCE'),
+    //         ),
+    //     );
+    // }
+
     app.setGlobalPrefix(ROOT);
 
     await getDocs(app, config);
@@ -122,11 +131,9 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalPipes(new ZodValidationPipe());
 
-    // app.useGlobalGuards(new ProxyCheckGuard({ exclude: [] }));
-
     app.enableShutdownHooks();
 
-    await app.listen(Number(config.getOrThrow<string>('APP_PORT'))); // 127.0.0.1 will not work with docker bridge network.
+    await app.listen(Number(config.getOrThrow<string>('APP_PORT')));
 
     const axiosService = app.get(AxiosService);
     await axiosService.setJwt();

@@ -43,6 +43,9 @@ model Users {
 
   hwidDeviceLimit Int? @map("hwid_device_limit")
 
+  firstConnectedAt       DateTime? @map("first_connected_at")
+  lastTriggeredThreshold Int       @default(0) @map("last_triggered_threshold") // 1-99
+
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
@@ -290,6 +293,7 @@ model SubscriptionSettings {
   limitedUsersRemarks           Json    @map("limited_users_remarks")
   disabledUsersRemarks          Json    @map("disabled_users_remarks")
   customResponseHeaders         Json?   @map("custom_response_headers")
+  randomizeHosts                Boolean @default(false) @map("randomize_hosts")
 
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")

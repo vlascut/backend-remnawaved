@@ -297,8 +297,9 @@ export class MihomoGeneratorService {
                 'public-key': publicKey,
                 'short-id': shortId,
             };
-            node['client-fingerprint'] = clientFingerprint || 'chrome';
         }
+
+        node['client-fingerprint'] = clientFingerprint || 'chrome';
 
         return node;
     }
@@ -332,6 +333,7 @@ export class MihomoGeneratorService {
 
         if (isHttpupgrade) {
             config['v2ray-http-upgrade'] = true;
+            config['v2ray-http-upgrade-fast-open'] = true;
         }
 
         return config;

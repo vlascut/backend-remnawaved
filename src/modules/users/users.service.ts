@@ -15,7 +15,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS, USERS_STATUS, EVENTS } from '@libs/contracts/constants';
 import { GetAllUsersCommand } from '@libs/contracts/commands';
 
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces';
+import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { DeleteManyActiveInboundsByUserUuidCommand } from '@modules/inbounds/commands/delete-many-active-inbounds-by-user-uuid';
 import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
@@ -34,6 +34,7 @@ import { InboundsEntity } from '@modules/inbounds/entities';
 import { BulkUserOperationsQueueService } from '@queue/bulk-user-operations/bulk-user-operations.service';
 import { ResetUserTrafficQueueService } from '@queue/reset-user-traffic/reset-user-traffic.service';
 import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-nodes.service';
+import { UserActionsQueueService } from '@queue/user-actions/user-actions.service';
 
 import {
     CreateUserRequestDto,
@@ -81,6 +82,7 @@ export class UsersService {
         private readonly bulkUserOperationsQueueService: BulkUserOperationsQueueService,
         private readonly startAllNodesQueue: StartAllNodesQueueService,
         private readonly resetUserTrafficQueueService: ResetUserTrafficQueueService,
+        private readonly userActionsQueueService: UserActionsQueueService,
     ) {
         this.shortUuidLength = this.configService.getOrThrow<number>('SHORT_UUID_LENGTH');
     }
@@ -228,6 +230,7 @@ export class UsersService {
                 email: email,
                 hwidDeviceLimit: hwidDeviceLimit,
                 tag: tag,
+                lastTriggeredThreshold: trafficLimitBytes !== undefined ? 0 : undefined,
             });
 
             if (activeUserInbounds) {
@@ -524,6 +527,7 @@ export class UsersService {
 
     public async revokeUserSubscription(
         userUuid: string,
+        shortUuid?: string,
     ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
         try {
             const user = await this.userRepository.getUserByUUID(userUuid);
@@ -535,7 +539,7 @@ export class UsersService {
             }
             const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
                 uuid: user.uuid,
-                shortUuid: this.createNanoId(),
+                shortUuid: shortUuid ?? this.createNanoId(),
                 subscriptionUuid: this.createUuid(),
                 trojanPassword: this.createTrojanPassword(),
                 vlessUuid: this.createUuid(),
@@ -834,11 +838,13 @@ export class UsersService {
         dto: BulkDeleteUsersByStatusRequestDto,
     ): Promise<ICommandResponse<BulkDeleteByStatusResponseModel>> {
         try {
-            const result = await this.userRepository.deleteManyByStatus(dto.status);
+            const affectedUsers = await this.userRepository.countByStatus(dto.status);
+
+            await this.userActionsQueueService.bulkDeleteByStatus(dto.status);
 
             return {
                 isOk: true,
-                response: new BulkDeleteByStatusResponseModel(result),
+                response: new BulkDeleteByStatusResponseModel(affectedUsers),
             };
         } catch (error) {
             this.logger.error(error);
@@ -996,6 +1002,7 @@ export class UsersService {
 
             await this.userRepository.bulkUpdateAllUsers({
                 ...dto,
+                lastTriggeredThreshold: dto.trafficLimitBytes !== undefined ? 0 : undefined,
                 trafficLimitBytes:
                     dto.trafficLimitBytes !== undefined ? BigInt(dto.trafficLimitBytes) : undefined,
                 telegramId:

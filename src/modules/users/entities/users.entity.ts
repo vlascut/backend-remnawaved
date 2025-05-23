@@ -31,6 +31,10 @@ export class UserEntity implements Users {
     public email: string | null;
 
     public hwidDeviceLimit: number | null;
+
+    public firstConnectedAt: Date | null;
+    public lastTriggeredThreshold: number;
+
     public createdAt: Date;
     public updatedAt: Date;
 

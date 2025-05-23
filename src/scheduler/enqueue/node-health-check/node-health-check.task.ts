@@ -1,5 +1,3 @@
-import { StartAllNodesQueueService } from 'src/queue/start-all-nodes/start-all-nodes.service';
-
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { Cron } from '@nestjs/schedule';
@@ -10,6 +8,7 @@ import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes';
 import { NodesEntity } from '@modules/nodes';
 
 import { NodeHealthCheckQueueService } from '@queue/node-health-check/node-health-check.service';
+import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-nodes.service';
 
 import { JOBS_INTERVALS } from '../../intervals';
 

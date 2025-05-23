@@ -4,13 +4,15 @@ import pMap from 'p-map';
 import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS } from '@libs/contracts/constants/events/events';
 
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces/user.event.interface';
+import { UserEvent } from '@integration-modules/notifications/interfaces';
 
+import { TriggerThresholdNotificationCommand } from '@modules/users/commands/trigger-threshold-notification';
 import { UpdateExceededTrafficUsersCommand } from '@modules/users/commands/update-exceeded-users';
 import { UpdateExpiredUsersCommand } from '@modules/users/commands/update-expired-users';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
@@ -32,6 +34,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
         private readonly eventBus: EventBus,
         private readonly eventEmitter: EventEmitter2,
         private readonly startAllNodesQueueService: StartAllNodesQueueService,
+        private readonly configService: ConfigService,
     ) {
         super();
     }
@@ -42,6 +45,8 @@ export class UserJobsQueueProcessor extends WorkerHost {
                 return this.handleFindExpiredUsers(job);
             case UserJobsJobNames.findExceededUsers:
                 return this.handleFindExceededUsers(job);
+            case UserJobsJobNames.findUsersForThresholdNotification:
+                return this.handleFindUsersForThresholdNotification(job);
             default:
                 this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
@@ -168,6 +173,89 @@ export class UserJobsQueueProcessor extends WorkerHost {
         }
     }
 
+    private async handleFindUsersForThresholdNotification(job: Job) {
+        const percentages = this.configService.getOrThrow<number[]>(
+            'BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD',
+        );
+
+        while (true) {
+            try {
+                const usersResponse = await this.triggerThresholdNotifications(percentages);
+
+                if (!usersResponse.isOk || !usersResponse.response) {
+                    this.logger.debug('No users found for threshold notification');
+                    break;
+                }
+
+                if (usersResponse.response.length === 0) {
+                    this.logger.debug('No users found for threshold notification');
+                    break;
+                }
+
+                this.logger.log(
+                    `Job ${job.name} has found ${usersResponse.response.length} users for threshold notification.`,
+                );
+
+                let skipTelegramNotification = false;
+
+                if (usersResponse.response.length >= 500) {
+                    this.logger.warn(
+                        'More than 500 users found for sending threshold notification, skipping Telegram events.',
+                    );
+
+                    // this.eventEmitter.emit(
+                    //     EVENTS.ERRORS.BANDWIDTH_USAGE_THRESHOLD_REACHED_MAX_NOTIFICATIONS,
+                    //     new CustomErrorEvent(
+                    //         EVENTS.ERRORS.BANDWIDTH_USAGE_THRESHOLD_REACHED_MAX_NOTIFICATIONS,
+                    //         {
+                    //             description: `More than 500 users found for sending threshold notifications, skipping Telegram events.`,
+                    //         },
+                    //     ),
+                    // );
+
+                    skipTelegramNotification = true;
+                }
+
+                await pMap(
+                    usersResponse.response,
+                    async (userUuid) => {
+                        try {
+                            const userResponse = await this.getUserByUuid(userUuid.uuid);
+                            if (!userResponse.isOk || !userResponse.response) {
+                                this.logger.debug('User not found');
+                                return;
+                            }
+
+                            const user = userResponse.response;
+
+                            this.eventEmitter.emit(
+                                EVENTS.USER.BANDWIDTH_USAGE_THRESHOLD_REACHED,
+                                new UserEvent(
+                                    user,
+                                    EVENTS.USER.BANDWIDTH_USAGE_THRESHOLD_REACHED,
+                                    skipTelegramNotification,
+                                ),
+                            );
+                        } catch (error) {
+                            this.logger.error(
+                                `Error handling "${UserJobsJobNames.findUsersForThresholdNotification}" job: ${error}`,
+                            );
+                        }
+                    },
+                    { concurrency: 100 },
+                );
+
+                continue;
+            } catch (error) {
+                this.logger.error(
+                    `Error handling "${UserJobsJobNames.findUsersForThresholdNotification}" job: ${error}`,
+                );
+
+                continue;
+            }
+        }
+    }
+
     private async getUserByUuid(
         uuid: string,
     ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
@@ -189,5 +277,14 @@ export class UserJobsQueueProcessor extends WorkerHost {
             UpdateExceededTrafficUsersCommand,
             ICommandResponse<{ uuid: string }[]>
         >(new UpdateExceededTrafficUsersCommand());
+    }
+
+    private async triggerThresholdNotifications(
+        percentages: number[],
+    ): Promise<ICommandResponse<{ uuid: string }[]>> {
+        return this.commandBus.execute<
+            TriggerThresholdNotificationCommand,
+            ICommandResponse<{ uuid: string }[]>
+        >(new TriggerThresholdNotificationCommand(percentages));
     }
 }

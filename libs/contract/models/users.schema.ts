@@ -64,6 +64,15 @@ export const UsersSchema = z.object({
 
     hwidDeviceLimit: z.nullable(z.number().int()),
 
+    firstConnectedAt: z.nullable(
+        z
+            .string()
+            .datetime()
+            .transform((str) => new Date(str)),
+    ),
+
+    lastTriggeredThreshold: z.number().int().default(0),
+
     createdAt: z
         .string()
         .datetime()

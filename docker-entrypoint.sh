@@ -3,7 +3,13 @@
 echo "Starting entrypoint script..."
 
 echo "Migrating database..."
-npm run migrate:deploy
+
+if ! npm run migrate:deploy; then
+    echo "Database migration failed! Exiting container..."
+    exit 1
+fi
+
+echo "Migrations deployed successfully!"
 
 echo "Seeding database..."
 if ! npm run migrate:seed; then

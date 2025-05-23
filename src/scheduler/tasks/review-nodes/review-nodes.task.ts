@@ -6,7 +6,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS } from '@libs/contracts/constants/events/events';
 
-import { NodeEvent } from '@integration-modules/telegram-bot/events/nodes/interfaces';
+import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetEnabledNodesQuery } from '@modules/nodes/queries/get-enabled-nodes/get-enabled-nodes.query';
 import { NodesEntity } from '@modules/nodes/entities/nodes.entity';

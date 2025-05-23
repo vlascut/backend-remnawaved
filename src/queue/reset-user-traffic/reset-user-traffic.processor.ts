@@ -11,7 +11,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { RESET_PERIODS, TResetPeriods } from '@libs/contracts/constants';
 import { EVENTS } from '@libs/contracts/constants/events/events';
 
-import { UserEvent } from '@integration-modules/telegram-bot/events/users/interfaces/user.event.interface';
+import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { BatchResetLimitedUsersTrafficCommand } from '@modules/users/commands/batch-reset-limited-users-traffic';
 import { BatchResetUserTrafficCommand } from '@modules/users/commands/batch-reset-user-traffic';

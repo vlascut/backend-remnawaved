@@ -148,6 +148,7 @@ export class ClashGeneratorService {
             headers: '',
             udp: true,
             alpn: host.alpn,
+            clientFingerprint: host.fingerprint,
         });
 
         switch (host.protocol) {
@@ -180,9 +181,21 @@ export class ClashGeneratorService {
         headers: string;
         udp: boolean;
         alpn?: string;
-        randomUserAgent?: boolean;
+        clientFingerprint?: string;
     }): ProxyNode {
-        const { server, port, remark, tls, sni, alpn, udp, host, path, headers } = params;
+        const {
+            server,
+            port,
+            remark,
+            tls,
+            sni,
+            alpn,
+            udp,
+            host,
+            path,
+            headers,
+            clientFingerprint,
+        } = params;
         let { type, network } = params;
 
         if (type === 'shadowsocks') {
@@ -254,6 +267,8 @@ export class ClashGeneratorService {
             node[`${network}-opts`] = netOpts;
         }
 
+        node['client-fingerprint'] = clientFingerprint || 'chrome';
+
         return node;
     }
 
@@ -286,6 +301,7 @@ export class ClashGeneratorService {
 
         if (isHttpupgrade) {
             config['v2ray-http-upgrade'] = true;
+            config['v2ray-http-upgrade-fast-open'] = true;
         }
 
         return config;

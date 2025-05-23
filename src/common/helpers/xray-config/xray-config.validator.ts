@@ -68,18 +68,29 @@ export class XRayConfig {
             throw new Error("Config doesn't have inbounds.");
         }
 
+        const seenTags = new Set<string>();
         for (const inbound of this.config.inbounds) {
             const network = inbound.streamSettings?.network;
 
-            if (network && !['raw', 'tcp', 'ws', 'xhttp'].includes(network)) {
+            if (network && !['httpupgrade', 'raw', 'tcp', 'ws', 'xhttp'].includes(network)) {
                 throw new Error(
-                    `Invalid network type "${network}" in inbound "${inbound.tag}". Allowed values are: raw, xhttp, ws, tcp`,
+                    `Invalid network type "${network}" in inbound "${inbound.tag}". Allowed values are: httpupgrade, raw, xhttp, ws, tcp`,
                 );
             }
 
-            if (!['shadowsocks', 'trojan', 'vless'].includes(inbound.protocol)) {
+            if (
+                ![
+                    'dokodemo-door',
+                    'http',
+                    'mixed',
+                    'shadowsocks',
+                    'trojan',
+                    'vless',
+                    'wireguard',
+                ].includes(inbound.protocol)
+            ) {
                 throw new Error(
-                    `Invalid protocol in inbound "${inbound.tag}". Allowed values are: shadowsocks, trojan, vless`,
+                    `Invalid protocol in inbound "${inbound.tag}". Allowed values are: shadowsocks, trojan, vless, dokodemo-door, http, mixed, wireguard`,
                 );
             }
 
@@ -91,6 +102,12 @@ export class XRayConfig {
             if (inbound.tag.includes(',')) {
                 throw new Error("Character ',' is not allowed in inbound tag.");
             }
+            if (seenTags.has(inbound.tag)) {
+                throw new Error(
+                    `Duplicate inbound tag "${inbound.tag}" found. All inbound tags must be unique.`,
+                );
+            }
+            seenTags.add(inbound.tag);
         }
     }
 
@@ -203,12 +220,14 @@ export class XRayConfig {
     }
 
     public getAllInbounds(): InboundsWithTagsAndType[] {
-        return this.inbounds.map((inbound) => ({
-            tag: inbound.tag,
-            type: inbound.protocol,
-            network: inbound.streamSettings?.network ?? null,
-            security: inbound.streamSettings?.security ?? null,
-        }));
+        return this.inbounds
+            .filter((inbound) => this.isInboundWithUsers(inbound.protocol))
+            .map((inbound) => ({
+                tag: inbound.tag,
+                type: inbound.protocol,
+                network: inbound.streamSettings?.network ?? null,
+                security: inbound.streamSettings?.security ?? null,
+            }));
     }
 
     public getSortedConfig(): IXrayConfig {
@@ -262,7 +281,11 @@ export class XRayConfig {
             }
         }
 
-        const inboundMap = new Map(this.config.inbounds.map((inbound) => [inbound.tag, inbound]));
+        const inboundMap = new Map(
+            this.config.inbounds
+                .filter((inbound) => this.isInboundWithUsers(inbound.protocol))
+                .map((inbound) => [inbound.tag, inbound]),
+        );
 
         for (const [tag, tagUsers] of usersByTag) {
             const inbound = inboundMap.get(tag);
@@ -282,6 +305,10 @@ export class XRayConfig {
         const publicKeyMap = new Map<string, string>();
 
         for (const inbound of this.config.inbounds) {
+            if (['dokodemo-door', 'http', 'mixed', 'wireguard'].includes(inbound.protocol)) {
+                continue;
+            }
+
             if (inbound.streamSettings?.realitySettings) {
                 if (inbound.streamSettings.realitySettings.privateKey) {
                     try {
@@ -340,5 +367,9 @@ export class XRayConfig {
                 reject(error);
             }
         });
+    }
+
+    private isInboundWithUsers(protocol: string): boolean {
+        return !['dokodemo-door', 'http', 'mixed', 'wireguard'].includes(protocol);
     }
 }

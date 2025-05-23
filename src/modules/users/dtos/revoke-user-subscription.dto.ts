@@ -8,3 +8,7 @@ export class RevokeUserSubscriptionRequestDto extends createZodDto(
 export class RevokeUserSubscriptionResponseDto extends createZodDto(
     RevokeUserSubscriptionCommand.ResponseSchema,
 ) {}
+
+export class RevokeUserSubscriptionBodyDto extends createZodDto(
+    RevokeUserSubscriptionCommand.RequestBodySchema,
+) {}
