@@ -1,3 +1,5 @@
+import { getYearlyStats } from '@prisma/client/sql';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
@@ -95,5 +97,20 @@ export class NodesUsageHistoryRepository
             GROUP BY n.uuid, n.name, DATE_TRUNC('day', h."created_at")
             ORDER BY "date" ASC
         `;
+    }
+
+    public async getYearlyStats(): Promise<
+        {
+            date: Date;
+            bytes: number;
+        }[]
+    > {
+        const result = await this.prisma.tx.$queryRawTyped(getYearlyStats());
+        return result
+            .filter((item) => item.date !== null && item.bytes !== null)
+            .map((item) => ({
+                date: item.date!,
+                bytes: Number(item.bytes!.toString()),
+            }));
     }
 }
