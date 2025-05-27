@@ -22,12 +22,7 @@ export const SubscriptionSettingsSchema = z.object({
     limitedUsersRemarks: z.array(z.string()),
     disabledUsersRemarks: z.array(z.string()),
 
-    customResponseHeaders: z.nullable(
-        z.record(
-            z.string().regex(/^[!#$%&'*+-.^_`|~0-9a-zA-Z]+$/, 'Invalid header name'),
-            z.string(),
-        ),
-    ),
+    customResponseHeaders: z.nullable(z.record(z.string(), z.string())),
 
     randomizeHosts: z.boolean(),
 
