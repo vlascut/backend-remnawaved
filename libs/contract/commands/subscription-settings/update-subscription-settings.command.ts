@@ -37,7 +37,17 @@ export namespace UpdateSubscriptionSettingsCommand {
         limitedUsersRemarks: z.optional(z.array(z.string())),
         disabledUsersRemarks: z.optional(z.array(z.string())),
 
-        customResponseHeaders: z.optional(z.record(z.string(), z.string())),
+        customResponseHeaders: z.optional(
+            z.record(
+                z
+                    .string()
+                    .regex(
+                        /^[a-zA-Z0-9_-]+$/,
+                        'Invalid header name. Only letters(a-z, A-Z), numbers(0-9), underscores(_) and hyphens(-) are allowed.',
+                    ),
+                z.string(),
+            ),
+        ),
 
         randomizeHosts: z.optional(z.boolean()),
     });
