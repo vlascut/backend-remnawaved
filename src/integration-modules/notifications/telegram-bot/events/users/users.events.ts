@@ -14,10 +14,12 @@ import { UserEvent } from '@integration-modules/notifications/interfaces';
 import { TelegramBotLoggerQueueService } from '@queue/notifications/telegram-bot-logger';
 
 import { BOT_NAME } from '../../constants/bot-name.constant';
+import { RequireAdminId } from '../../decorators';
 
 export class UsersEvents {
-    private readonly adminId: string;
+    private readonly adminId: string | undefined;
     private readonly adminThreadId: string | undefined;
+
     constructor(
         @InjectBot(BOT_NAME)
         private readonly _: Bot<Context>,
@@ -25,11 +27,12 @@ export class UsersEvents {
         private readonly telegramBotLoggerQueueService: TelegramBotLoggerQueueService,
         private readonly configService: ConfigService,
     ) {
-        this.adminId = this.configService.getOrThrow<string>('TELEGRAM_NOTIFY_USERS_CHAT_ID');
+        this.adminId = this.configService.get<string>('TELEGRAM_NOTIFY_USERS_CHAT_ID');
         this.adminThreadId = this.configService.get<string>('TELEGRAM_NOTIFY_USERS_THREAD_ID');
     }
 
     @OnEvent(EVENTS.USER.CREATED)
+    @RequireAdminId()
     async onUserCreated(event: UserEvent): Promise<void> {
         const msg = `
 🆕 <b>#created</b>
@@ -42,12 +45,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.MODIFIED)
+    @RequireAdminId()
     async onUserModified(event: UserEvent): Promise<void> {
         const msg = `
 📝 <b>#modified</b>
@@ -60,12 +64,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.REVOKED)
+    @RequireAdminId()
     async onUserRevoked(event: UserEvent): Promise<void> {
         const msg = `
 🔄 <b>#revoked</b>
@@ -78,12 +83,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.TRAFFIC_RESET)
+    @RequireAdminId()
     async onUserTrafficReset(event: UserEvent): Promise<void> {
         const msg = `
 🔄 <b>#traffic_reset</b>
@@ -93,12 +99,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.DELETED)
+    @RequireAdminId()
     async onUserDeleted(event: UserEvent): Promise<void> {
         const msg = `
 🗑️ <b>#deleted</b>
@@ -107,12 +114,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.DISABLED)
+    @RequireAdminId()
     async onUserDisabled(event: UserEvent): Promise<void> {
         const msg = `
 ❌ <b>#disabled</b>
@@ -121,12 +129,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.ENABLED)
+    @RequireAdminId()
     async onUserEnabled(event: UserEvent): Promise<void> {
         const msg = `
 ✅ <b>#enabled</b>
@@ -135,12 +144,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.LIMITED)
+    @RequireAdminId()
     async onUserLimited(event: UserEvent): Promise<void> {
         const msg = `
 ⚠️ <b>#limited</b>
@@ -149,12 +159,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.EXPIRED)
+    @RequireAdminId()
     async onUserExpired(event: UserEvent): Promise<void> {
         const msg = `
 ⏱️ <b>#expired</b>
@@ -163,12 +174,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRES_IN_72_HOURS)
+    @RequireAdminId()
     async onUserExpiresIn72Hours(event: UserEvent): Promise<void> {
         const msg = `
 ⏱️ <b>#expires_in_72_hours</b>
@@ -177,12 +189,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRES_IN_48_HOURS)
+    @RequireAdminId()
     async onUserExpiresIn48Hours(event: UserEvent): Promise<void> {
         const msg = `
 ⏱️ <b>#expires_in_48_hours</b>
@@ -191,12 +204,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRES_IN_24_HOURS)
+    @RequireAdminId()
     async onUserExpiresIn24Hours(event: UserEvent): Promise<void> {
         const msg = `
 ⏱️ <b>#expires_in_24_hours</b>
@@ -205,12 +219,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.EXPIRE_NOTIFY.EXPIRED_24_HOURS_AGO)
+    @RequireAdminId()
     async onUserExpired24HoursAgo(event: UserEvent): Promise<void> {
         const msg = `
 ⏱️ <b>#expired_24_hours_ago</b>
@@ -219,12 +234,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.FIRST_CONNECTED)
+    @RequireAdminId()
     async onUserFirstConnected(event: UserEvent): Promise<void> {
         const msg = `
 🆕 <b>#first_connected</b>
@@ -233,12 +249,13 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }
 
     @OnEvent(EVENTS.USER.BANDWIDTH_USAGE_THRESHOLD_REACHED)
+    @RequireAdminId()
     async onUserThresholdNotification(event: UserEvent): Promise<void> {
         if (event.skipTelegramNotification) {
             return;
@@ -255,7 +272,7 @@ export class UsersEvents {
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
-            chatId: this.adminId,
+            chatId: this.adminId!,
             threadId: this.adminThreadId,
         });
     }

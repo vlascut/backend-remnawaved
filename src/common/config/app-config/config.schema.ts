@@ -164,14 +164,6 @@ export const configSchema = z
                     path: ['TELEGRAM_BOT_TOKEN'],
                 });
             }
-            if (!data.TELEGRAM_NOTIFY_USERS_CHAT_ID) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message:
-                        'TELEGRAM_NOTIFY_USERS_CHAT_ID is required when IS_TELEGRAM_NOTIFICATIONS_ENABLED is true',
-                    path: ['TELEGRAM_NOTIFY_USERS_CHAT_ID'],
-                });
-            }
             if (!data.TELEGRAM_NOTIFY_NODES_CHAT_ID) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
