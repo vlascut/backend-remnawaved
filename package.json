@@ -1,6 +1,6 @@
 {
   "name": "@remnawave/backend",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "description": "Remnawave Panel Backend",
   "private": false,
   "type": "commonjs",
