@@ -45,13 +45,42 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
                 return;
             }
 
-            const response = await this.axios.getSystemStats(nodeAddress, nodePort);
-            switch (response.isOk) {
-                case true:
-                    return this.handleConnectedNode(nodeUuid, isConnected, response.response!);
-                case false:
-                    return this.handleDisconnectedNode(nodeUuid, isConnected, response.message);
+            const attemptsLimit = 2;
+            let attempts = 0;
+
+            let message = '';
+
+            while (attempts < attemptsLimit) {
+                const response = await this.axios.getSystemStats(nodeAddress, nodePort);
+
+                switch (response.isOk) {
+                    case true:
+                        return await this.handleConnectedNode(
+                            nodeUuid,
+                            isConnected,
+                            response.response!,
+                        );
+                    case false:
+                        message = response.message ?? 'Unknown error';
+                        attempts++;
+
+                        this.logger.warn(
+                            `Node ${nodeUuid} health check attempt ${attempts} of ${attemptsLimit}, message: ${message}`,
+                        );
+
+                        continue;
+                    default:
+                        message = 'Unknown error';
+                        this.logger.error(
+                            `Node ${nodeUuid} health check attempt ${attempts} of ${attemptsLimit}, message: ${message}`,
+                        );
+
+                        attempts++;
+                        continue;
+                }
             }
+
+            return await this.handleDisconnectedNode(nodeUuid, isConnected, message);
         } catch (error) {
             this.logger.error(
                 `Error handling "${NodeHealthCheckJobNames.checkNodeHealth}" job: ${error}`,
