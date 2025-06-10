@@ -334,7 +334,7 @@ export class FormatHostsService {
         return remarks.map((remark) => ({
             remark,
             address: '0.0.0.0',
-            port: 0,
+            port: 1,
             protocol: 'trojan',
             path: '',
             host: '',
