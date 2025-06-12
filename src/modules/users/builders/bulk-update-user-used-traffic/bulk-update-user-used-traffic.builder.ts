@@ -16,7 +16,7 @@ export class BulkUpdateUserUsedTrafficBuilder {
                     "lifetime_used_traffic_bytes" = u."lifetime_used_traffic_bytes" + data."inc_used",
                     "online_at"                   = NOW(),
                     "first_connected_at"          = COALESCE(u."first_connected_at", NOW()),
-                    "updated_at"                  = NOW()
+                    "updated_at"                  = NOW(),
                     "last_connected_node_uuid"   = data."last_connected_node_uuid"
             FROM (
                 VALUES ${userUsageList.map((usageHistory) => `(${usageHistory.b}::bigint, '${usageHistory.u}'::uuid, '${usageHistory.n}'::uuid)`).join(',')}
