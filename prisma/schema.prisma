@@ -26,8 +26,11 @@ model Users {
   subLastUserAgent         String?   @map("sub_last_user_agent")
   subLastOpenedAt          DateTime? @map("sub_last_opened_at")
 
-  expireAt           DateTime  @map("expire_at")
-  onlineAt           DateTime? @map("online_at")
+  expireAt DateTime @map("expire_at")
+
+  onlineAt              DateTime? @map("online_at")
+  lastConnectedNodeUuid String?   @map("last_connected_node_uuid") @db.Uuid
+
   subRevokedAt       DateTime? @map("sub_revoked_at")
   lastTrafficResetAt DateTime? @map("last_traffic_reset_at")
 
@@ -53,6 +56,7 @@ model Users {
   activeUserInbounds    ActiveUserInbounds[]
   userTrafficHistory    UserTrafficHistory[]
   hwidUserDevices       HwidUserDevices[]
+  lastConnectedNode     Nodes?                  @relation("UserLastConnectedNode", fields: [lastConnectedNodeUuid], references: [uuid], onDelete: SetNull)
 
   @@index([tag])
   @@map("users")
@@ -138,6 +142,7 @@ model Nodes {
   nodesUserUsageHistory    NodesUserUsageHistory[]
   nodesUsageHistory        NodesUsageHistory[]
   inboundsExclusions       NodeInboundExclusions[]
+  usersWithLastConnection  Users[]                    @relation("UserLastConnectedNode")
 
   @@map("nodes")
 }

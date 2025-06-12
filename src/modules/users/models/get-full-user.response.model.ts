@@ -3,7 +3,6 @@ import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
 import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
 
-import { UserWithActiveInboundsAndLastConnectedNodeEntity } from '../entities/user-with-active-inbounds-and-last-connected-node.entity';
 import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 import { UserWithAiAndLcnRawEntity } from '../entities';
 
@@ -22,7 +21,10 @@ export class GetFullUserResponseModel {
     public readonly trafficLimitStrategy: TResetPeriods;
     public readonly subLastUserAgent: null | string;
     public readonly subLastOpenedAt: Date | null;
+
     public readonly onlineAt: Date | null;
+    public readonly lastConnectedNodeUuid: string | null;
+
     public readonly subRevokedAt: Date | null;
     public readonly lastTrafficResetAt: Date | null;
     public readonly trojanPassword: string;
@@ -48,10 +50,7 @@ export class GetFullUserResponseModel {
         cryptoLink: string;
     };
 
-    constructor(
-        entity: UserWithActiveInboundsAndLastConnectedNodeEntity | UserWithAiAndLcnRawEntity,
-        subPublicDomain: string,
-    ) {
+    constructor(entity: UserWithAiAndLcnRawEntity, subPublicDomain: string) {
         this.uuid = entity.uuid;
         this.username = entity.username;
         this.shortUuid = entity.shortUuid;
