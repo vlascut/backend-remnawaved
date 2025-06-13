@@ -3,8 +3,8 @@ import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
@@ -94,7 +94,10 @@ export class HwidUserDevicesController {
 
         const data = errorHandler(result);
         return {
-            response: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            response: {
+                total: data.length,
+                devices: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            },
         };
     }
 }
