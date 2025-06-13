@@ -51,7 +51,10 @@ export class HwidUserDevicesController {
 
         const data = errorHandler(result);
         return {
-            response: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            response: {
+                total: data.length,
+                device: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            },
         };
     }
 
@@ -74,7 +77,10 @@ export class HwidUserDevicesController {
 
         const data = errorHandler(result);
         return {
-            response: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            response: {
+                total: data.length,
+                device: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            },
         };
     }
 
