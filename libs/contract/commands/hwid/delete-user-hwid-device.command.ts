@@ -22,7 +22,10 @@ export namespace DeleteUserHwidDeviceCommand {
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({
-        response: z.array(HwidUserDeviceSchema),
+        response: z.object({
+            total: z.number(),
+            device: z.array(HwidUserDeviceSchema),
+        }),
     });
 
     export type Response = z.infer<typeof ResponseSchema>;
