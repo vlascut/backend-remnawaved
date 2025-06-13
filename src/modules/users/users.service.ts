@@ -44,12 +44,6 @@ import {
     BulkAllUpdateUsersRequestDto,
 } from './dtos';
 import {
-    UserWithActiveInboundsEntity,
-    UserEntity,
-    UserWithAiAndLcnRawEntity,
-    UserWithActiveInboundsAndLastConnectedNodeEntity,
-} from './entities';
-import {
     DeleteUserResponseModel,
     BulkDeleteByStatusResponseModel,
     BulkOperationResponseModel,
@@ -62,6 +56,7 @@ import {
     IGetUserUsageByRange,
 } from './interfaces';
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
+import { UserWithActiveInboundsEntity, UserEntity, UserWithAiAndLcnRawEntity } from './entities';
 import { UsersRepository } from './repositories/users.repository';
 
 dayjs.extend(utc);
@@ -464,7 +459,7 @@ export class UsersService {
 
     public async getUserByUniqueFields(
         dto: IGetUserByUnique,
-    ): Promise<ICommandResponse<UserWithActiveInboundsAndLastConnectedNodeEntity>> {
+    ): Promise<ICommandResponse<UserWithAiAndLcnRawEntity>> {
         try {
             const result = await this.userRepository.findUniqueByCriteria({
                 username: dto.username || undefined,
@@ -495,7 +490,7 @@ export class UsersService {
 
     public async getUsersByTelegramIdOrEmail(
         dto: IGetUsersByTelegramIdOrEmail,
-    ): Promise<ICommandResponse<UserWithActiveInboundsAndLastConnectedNodeEntity[]>> {
+    ): Promise<ICommandResponse<UserWithAiAndLcnRawEntity[]>> {
         try {
             const result = await this.userRepository.findByCriteriaWithInboundsAndLastConnectedNode(
                 {

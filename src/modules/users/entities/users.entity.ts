@@ -17,7 +17,6 @@ export class UserEntity implements Users {
     public subLastOpenedAt: Date | null;
 
     public expireAt: Date;
-    public onlineAt: Date | null;
     public subRevokedAt: Date | null;
     public lastTrafficResetAt: Date | null;
 
@@ -34,6 +33,9 @@ export class UserEntity implements Users {
 
     public firstConnectedAt: Date | null;
     public lastTriggeredThreshold: number;
+
+    public onlineAt: Date | null;
+    public lastConnectedNodeUuid: string | null;
 
     public createdAt: Date;
     public updatedAt: Date;

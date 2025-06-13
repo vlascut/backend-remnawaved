@@ -25,6 +25,8 @@ const entityToModel = (entity: UserEntity): UserEntity => {
         subLastOpenedAt: entity.subLastOpenedAt,
 
         onlineAt: entity.onlineAt,
+        lastConnectedNodeUuid: entity.lastConnectedNodeUuid,
+
         expireAt: entity.expireAt,
         subRevokedAt: entity.subRevokedAt,
         lastTrafficResetAt: entity.lastTrafficResetAt,

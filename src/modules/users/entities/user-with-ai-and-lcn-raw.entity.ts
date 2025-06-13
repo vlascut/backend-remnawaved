@@ -20,7 +20,10 @@ export class UserWithAiAndLcnRawEntity {
     public subLastOpenedAt: Date;
 
     public expireAt: Date;
-    public onlineAt: Date;
+
+    public onlineAt: Date | null;
+    public lastConnectedNodeUuid: string | null;
+
     public subRevokedAt: Date | null;
     public lastTrafficResetAt: Date | null;
 
@@ -59,10 +62,10 @@ export class UserWithAiAndLcnRawEntity {
             }));
         }
 
-        if (user.lastConnectedNode) {
+        if (user.lastConnectedNode && user.onlineAt) {
             this.lastConnectedNode = {
-                nodeName: user.lastConnectedNode.nodeName,
-                connectedAt: user.lastConnectedNode.connectedAt,
+                nodeName: user.lastConnectedNode.name,
+                connectedAt: user.onlineAt,
             };
         } else {
             this.lastConnectedNode = null;

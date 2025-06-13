@@ -90,7 +90,7 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
         });
 
         let allUsageRecords: NodesUserUsageHistoryEntity[] = [];
-        let userUsageList: { u: string; b: string }[] = [];
+        let userUsageList: { u: string; b: string; n: string }[] = [];
 
         if (users.length > 0) {
             await pMap(
@@ -117,6 +117,7 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
                     userUsageList.push({
                         u: userUuid,
                         b: this.multiplyConsumption(consumptionMultiplier, totalBytes).toString(),
+                        n: nodeUuid,
                     });
                 },
                 { concurrency: 40 },

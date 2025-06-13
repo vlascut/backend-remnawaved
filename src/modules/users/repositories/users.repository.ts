@@ -21,23 +21,18 @@ import {
     UsersWithInboundTagAndExcludedInboundsBuilder,
 } from '../builders';
 import {
-    UserEntity,
-    UserForConfigEntity,
-    UserWithActiveInboundsAndLastConnectedNodeEntity,
-    UserWithActiveInboundsEntity,
-    UserWithAiAndLcnRawEntity,
-} from '../entities';
-import {
     INCLUDE_ACTIVE_USER_INBOUNDS,
+    INCLUDE_ACTIVE_USER_INBOUNDS_AND_LAST_CONNECTED_NODE,
     IUserOnlineStats,
     IUserStats,
     USER_INCLUDE_INBOUNDS,
-    USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
 } from '../interfaces';
 import {
-    ILastConnectedNodeFromBuilder,
-    UsersLastConnectedNodeBuilder,
-} from '../builders/last-connected-node';
+    UserEntity,
+    UserForConfigEntity,
+    UserWithActiveInboundsEntity,
+    UserWithAiAndLcnRawEntity,
+} from '../entities';
 import { TriggerThresholdNotificationsBuilder } from '../builders/trigger-threshold-notifications-builder';
 import { UserConverter } from '../users.converter';
 
@@ -71,7 +66,7 @@ export class UsersRepository implements ICrud<UserEntity> {
     }
 
     public async bulkIncrementUsedTraffic(
-        userUsageList: { u: string; b: string }[],
+        userUsageList: { u: string; b: string; n: string }[],
     ): Promise<{ uuid: string }[]> {
         const { query } = new BulkUpdateUserUsedTrafficBuilder(userUsageList);
         return await this.prisma.tx.$queryRaw<{ uuid: string }[]>(query);
@@ -404,30 +399,13 @@ export class UsersRepository implements ICrud<UserEntity> {
                 take: size,
                 where,
                 orderBy,
-                include: INCLUDE_ACTIVE_USER_INBOUNDS,
+                include: INCLUDE_ACTIVE_USER_INBOUNDS_AND_LAST_CONNECTED_NODE,
             }),
             this.prisma.tx.users.count({ where }),
         ]);
 
-        let histories: ILastConnectedNodeFromBuilder[] = [];
-        if (users.length > 0) {
-            const { query } = new UsersLastConnectedNodeBuilder(users.map((u) => u.uuid));
-            histories = await this.prisma.tx.$queryRaw<ILastConnectedNodeFromBuilder[]>(query);
-        }
-
-        const historyMap = new Map(
-            histories.map((h) => [
-                h.userUuid,
-                { nodeName: h.nodeName, connectedAt: h.connectedAt },
-            ]),
-        );
-
         const result = users.map((user) => {
-            const lastHistory = historyMap.get(user.uuid);
-            return new UserWithAiAndLcnRawEntity({
-                ...user,
-                lastConnectedNode: lastHistory,
-            });
+            return new UserWithAiAndLcnRawEntity(user);
         });
 
         return [result, total];
@@ -558,27 +536,27 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async findUniqueByCriteria(
         dto: Partial<Pick<UserEntity, 'uuid' | 'subscriptionUuid' | 'shortUuid' | 'username'>>,
-    ): Promise<UserWithActiveInboundsAndLastConnectedNodeEntity | null> {
+    ): Promise<UserWithAiAndLcnRawEntity | null> {
         const user = await this.prisma.tx.users.findFirst({
             where: dto,
-            include: USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
+            include: INCLUDE_ACTIVE_USER_INBOUNDS_AND_LAST_CONNECTED_NODE,
         });
 
         if (!user) {
             return null;
         }
 
-        return new UserWithActiveInboundsAndLastConnectedNodeEntity(user);
+        return new UserWithAiAndLcnRawEntity(user);
     }
 
     public async findByCriteriaWithInboundsAndLastConnectedNode(
         dto: Partial<UserEntity>,
-    ): Promise<UserWithActiveInboundsAndLastConnectedNodeEntity[]> {
+    ): Promise<UserWithAiAndLcnRawEntity[]> {
         const bannerList = await this.prisma.tx.users.findMany({
             where: dto,
-            include: USER_INCLUDE_INBOUNDS_AND_LAST_CONNECTED_NODE,
+            include: INCLUDE_ACTIVE_USER_INBOUNDS_AND_LAST_CONNECTED_NODE,
         });
-        return bannerList.map((user) => new UserWithActiveInboundsAndLastConnectedNodeEntity(user));
+        return bannerList.map((user) => new UserWithAiAndLcnRawEntity(user));
     }
 
     public async findFirstByCriteria(dto: Partial<UserEntity>): Promise<null | UserEntity> {

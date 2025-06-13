@@ -22,6 +22,7 @@ export class GetUserResponseModel {
     public readonly subLastUserAgent: null | string;
     public readonly subLastOpenedAt: Date | null;
     public readonly onlineAt: Date | null;
+    public readonly lastConnectedNodeUuid: string | null;
     public readonly subRevokedAt: Date | null;
     public readonly lastTrafficResetAt: Date | null;
     public readonly trojanPassword: string;
