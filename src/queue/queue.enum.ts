@@ -7,6 +7,7 @@ export enum QueueNames {
     recordNodeUsage = 'RECORD_NODE_USAGE_QUEUE',
     recordUserUsage = 'RECORD_USER_USAGE_QUEUE',
     resetUserTraffic = 'RESET_USER_TRAFFIC_QUEUE',
+    service = 'SERVICE_QUEUE',
     startAllNodes = 'START_ALL_NODES_QUEUE',
     startNode = 'START_NODE_QUEUE',
     stopNode = 'STOP_NODE_QUEUE',

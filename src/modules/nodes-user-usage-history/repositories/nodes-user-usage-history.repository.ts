@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
@@ -129,5 +131,35 @@ export class NodesUserUsageHistoryRepository
         const { query } = new GetNodesRealtimeUsageBuilder();
         const result = await this.prisma.tx.$queryRaw<IGetNodesRealtimeUsage[]>(query);
         return result;
+    }
+
+    public async cleanOldUsageRecords(): Promise<number> {
+        const query = Prisma.sql`
+            DELETE FROM nodes_user_usage_history
+            WHERE created_at < NOW() - INTERVAL '14 days'
+        `;
+
+        return await this.prisma.tx.$executeRaw<number>(query);
+    }
+
+    public async vacuumTable(): Promise<void> {
+        const query = Prisma.sql`
+            VACUUM nodes_user_usage_history;
+        `;
+
+        const queryReindex = Prisma.sql`
+            REINDEX TABLE nodes_user_usage_history;
+        `;
+
+        await this.prisma.tx.$executeRaw<void>(query);
+        await this.prisma.tx.$executeRaw<void>(queryReindex);
+    }
+
+    public async truncateTable(): Promise<void> {
+        const query = Prisma.sql`
+            TRUNCATE nodes_user_usage_history;
+        `;
+
+        await this.prisma.tx.$executeRaw<void>(query);
     }
 }

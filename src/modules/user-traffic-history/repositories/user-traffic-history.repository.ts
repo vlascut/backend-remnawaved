@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
@@ -59,5 +61,13 @@ export class UserTrafficHistoryRepository implements ICrudWithId<UserTrafficHist
     public async deleteById(id: bigint | number): Promise<boolean> {
         const result = await this.prisma.tx.userTrafficHistory.delete({ where: { id } });
         return !!result;
+    }
+
+    public async truncateTable(): Promise<void> {
+        const query = Prisma.sql`
+            TRUNCATE TABLE user_traffic_history;
+        `;
+
+        await this.prisma.tx.$executeRaw<void>(query);
     }
 }
