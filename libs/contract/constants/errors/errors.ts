@@ -528,4 +528,14 @@ export const ERRORS = {
         message: 'Bulk delete by status error',
         httpCode: 500,
     },
+    CLEAN_OLD_USAGE_RECORDS_ERROR: {
+        code: 'A107',
+        message: 'Clean old usage records error',
+        httpCode: 500,
+    },
+    VACUUM_TABLE_ERROR: {
+        code: 'A108',
+        message: 'Vacuum table error',
+        httpCode: 500,
+    },
 } as const;

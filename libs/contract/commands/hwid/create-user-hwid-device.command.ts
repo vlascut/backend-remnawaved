@@ -28,7 +28,7 @@ export namespace CreateUserHwidDeviceCommand {
     export const ResponseSchema = z.object({
         response: z.object({
             total: z.number(),
-            device: z.array(HwidUserDeviceSchema),
+            devices: z.array(HwidUserDeviceSchema),
         }),
     });
 

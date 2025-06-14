@@ -96,6 +96,8 @@ export const configSchema = z
         //     .transform((val) => val === 'true'),
         // COOKIE_AUTH_NONCE: z.optional(z.string()),
 
+        SERVICE_CLEAN_USAGE_HISTORY: z.string().default('false'),
+
         BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED: z.string().default('false'),
         BANDWIDTH_USAGE_NOTIFICATIONS_THRESHOLD: z
             .string()

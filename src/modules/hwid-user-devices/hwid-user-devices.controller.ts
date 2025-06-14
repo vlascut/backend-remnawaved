@@ -53,7 +53,7 @@ export class HwidUserDevicesController {
         return {
             response: {
                 total: data.length,
-                device: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+                devices: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
             },
         };
     }
@@ -79,7 +79,7 @@ export class HwidUserDevicesController {
         return {
             response: {
                 total: data.length,
-                device: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+                devices: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
             },
         };
     }
