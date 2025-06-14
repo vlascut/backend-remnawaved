@@ -40,7 +40,7 @@ export class ServiceQueueProcessor extends WorkerHost {
         try {
             await this.updateUsersUsageQueueService.queue.pause();
 
-            this.logger.warn('Resetting tables...');
+            this.logger.log('Resetting tables...');
 
             await this.truncateUserTrafficHistory();
 
@@ -48,7 +48,7 @@ export class ServiceQueueProcessor extends WorkerHost {
 
             await this.vacuumTable();
 
-            this.logger.warn('Tables resetted');
+            this.logger.log('Tables resetted');
 
             // const response = await this.delteOldRecords();
 

@@ -148,7 +148,7 @@ export class NodesUserUsageHistoryRepository
         `;
 
         const queryReindex = Prisma.sql`
-            REINDEX TABLE user_traffic_history;
+            REINDEX TABLE nodes_user_usage_history;
         `;
 
         await this.prisma.tx.$executeRaw<void>(query);
