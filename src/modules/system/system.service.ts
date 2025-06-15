@@ -1,4 +1,5 @@
 import * as si from 'systeminformation';
+import pm2 from 'pm2';
 
 import { ERRORS } from '@contract/constants';
 
@@ -23,6 +24,7 @@ import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import {
     GetBandwidthStatsResponseModel,
     GetNodesStatisticsResponseModel,
+    GetRemnawaveHealthResponseModel,
     IBaseStat,
 } from './models';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
@@ -137,6 +139,56 @@ export class SystemService {
             return {
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
+        }
+    }
+
+    public async getRemnawaveHealth(): Promise<ICommandResponse<GetRemnawaveHealthResponseModel>> {
+        try {
+            const list = await new Promise<pm2.ProcessDescription[]>((resolve, reject) => {
+                pm2.list((err, processes) => {
+                    if (err) {
+                        this.logger.error('Error getting PM2 processes:', err);
+                        reject(err);
+                    } else {
+                        resolve(processes);
+                    }
+                });
+            });
+
+            const instanceType: Record<string, string> = {
+                'remnawave-api': 'REST API',
+                'remnawave-scheduler': 'Scheduler',
+                'remnawave-jobs': 'Jobs',
+            };
+
+            const stats = new Map<string, { memory: string; cpu: string; name: string }>();
+
+            for (const process of list) {
+                if (process.pm2_env) {
+                    if ('INSTANCE_ID' in process.pm2_env) {
+                        stats.set(`${process.name}-${process.pm2_env.INSTANCE_ID}`, {
+                            memory: prettyBytesUtil(process.monit?.memory || 0),
+                            cpu: process.monit?.cpu?.toString() || '0',
+                            name: `${instanceType[process.name || 'unknown'] || process.name}-${process.pm2_env.INSTANCE_ID || '0'}`,
+                        });
+                    }
+                }
+            }
+
+            return {
+                isOk: true,
+                response: new GetRemnawaveHealthResponseModel({
+                    pm2Stats: Array.from(stats.values()),
+                }),
+            };
+        } catch (error) {
+            this.logger.error('Error getting system stats:', error);
+            return {
+                isOk: true,
+                response: new GetRemnawaveHealthResponseModel({
+                    pm2Stats: [],
+                }),
             };
         }
     }
