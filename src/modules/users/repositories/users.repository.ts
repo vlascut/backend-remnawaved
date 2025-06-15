@@ -619,11 +619,13 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async getUserOnlineStats(): Promise<IUserOnlineStats> {
         const now = dayjs().utc();
+        const oneMinuteAgo = now.subtract(1, 'minute').toDate();
         const oneDayAgo = now.subtract(1, 'day').toDate();
         const oneWeekAgo = now.subtract(1, 'week').toDate();
 
         const [result] = await this.prisma.tx.$queryRaw<[IUserOnlineStats]>`
             SELECT 
+                COUNT(CASE WHEN "online_at" >= ${oneMinuteAgo} THEN 1 END) as "onlineNow",
                 COUNT(CASE WHEN "online_at" >= ${oneDayAgo} THEN 1 END) as "lastDay",
                 COUNT(CASE WHEN "online_at" >= ${oneWeekAgo} THEN 1 END) as "lastWeek",
                 COUNT(CASE WHEN "online_at" IS NULL THEN 1 END) as "neverOnline"
@@ -631,6 +633,7 @@ export class UsersRepository implements ICrud<UserEntity> {
         `;
 
         return {
+            onlineNow: Number(result.onlineNow),
             lastDay: Number(result.lastDay),
             lastWeek: Number(result.lastWeek),
             neverOnline: Number(result.neverOnline),

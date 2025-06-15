@@ -25,6 +25,9 @@ interface IGetStatsResponseData {
         totalTrafficBytes: bigint;
         totalUsers: number;
     };
+    nodes: {
+        totalOnline: number;
+    };
 }
 
 export class GetStatsResponseModel {
@@ -52,6 +55,9 @@ export class GetStatsResponseModel {
         neverOnline: number;
         onlineNow: number;
     };
+    nodes: {
+        totalOnline: number;
+    };
 
     constructor(data: IGetStatsResponseData) {
         this.cpu = data.cpu;
@@ -63,5 +69,6 @@ export class GetStatsResponseModel {
             totalTrafficBytes: data.users.totalTrafficBytes.toString(),
         };
         this.onlineStats = data.onlineStats;
+        this.nodes = data.nodes;
     }
 }

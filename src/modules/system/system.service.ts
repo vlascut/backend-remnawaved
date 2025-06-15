@@ -67,9 +67,9 @@ export class SystemService {
                     uptime: time.uptime,
                     timestamp: Date.now(),
                     users: userStats.response.statusCounts,
-                    onlineStats: {
-                        ...userStats.response.onlineStats,
-                        onlineNow: onlineUsers.response?.usersOnline || 0,
+                    onlineStats: userStats.response.onlineStats,
+                    nodes: {
+                        totalOnline: onlineUsers.response?.usersOnline || 0,
                     },
                 }),
             };
