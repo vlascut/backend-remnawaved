@@ -10,6 +10,7 @@ import { RolesGuard } from '@common/guards/roles';
 import {
     GetBandwidthStatsCommand,
     GetNodesStatisticsCommand,
+    GetRemnawaveHealthCommand,
     GetStatsCommand,
 } from '@libs/contracts/commands';
 import { SYSTEM_CONTROLLER } from '@libs/contracts/api';
@@ -19,6 +20,7 @@ import {
     GetBandwidthStatsRequestQueryDto,
     GetBandwidthStatsResponseDto,
     GetNodesStatisticsResponseDto,
+    GetRemnawaveHealthResponseDto,
     GetStatsResponseDto,
 } from './dtos';
 import { SystemService } from './system.service';
@@ -81,6 +83,24 @@ export class SystemController {
     })
     async getNodesStatistics(): Promise<GetNodesStatisticsResponseDto> {
         const result = await this.systemService.getNodesStatistics();
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiResponse({
+        status: 200,
+        description: 'Returns Remnawave health',
+        type: GetRemnawaveHealthResponseDto,
+    })
+    @Endpoint({
+        command: GetRemnawaveHealthCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getRemnawaveHealth(): Promise<GetRemnawaveHealthResponseDto> {
+        const result = await this.systemService.getRemnawaveHealth();
 
         const data = errorHandler(result);
         return {

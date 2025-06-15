@@ -1,4 +1,5 @@
 import * as si from 'systeminformation';
+import pm2 from 'pm2';
 
 import { ERRORS } from '@contract/constants';
 
@@ -17,11 +18,13 @@ import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
 
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
+import { CountOnlineUsersQuery } from '@modules/nodes/queries/count-online-users';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 
 import {
     GetBandwidthStatsResponseModel,
     GetNodesStatisticsResponseModel,
+    GetRemnawaveHealthResponseModel,
     IBaseStat,
 } from './models';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
@@ -38,6 +41,7 @@ export class SystemService {
     public async getStats(): Promise<ICommandResponse<any>> {
         try {
             const userStats = await this.getShortUserStats();
+            const onlineUsers = await this.getOnlineUsers();
 
             if (!userStats.isOk || !userStats.response) {
                 return {
@@ -66,6 +70,9 @@ export class SystemService {
                     timestamp: Date.now(),
                     users: userStats.response.statusCounts,
                     onlineStats: userStats.response.onlineStats,
+                    nodes: {
+                        totalOnline: onlineUsers.response?.usersOnline || 0,
+                    },
                 }),
             };
         } catch (error) {
@@ -136,10 +143,67 @@ export class SystemService {
         }
     }
 
+    public async getRemnawaveHealth(): Promise<ICommandResponse<GetRemnawaveHealthResponseModel>> {
+        try {
+            const list = await new Promise<pm2.ProcessDescription[]>((resolve, reject) => {
+                pm2.list((err, processes) => {
+                    if (err) {
+                        this.logger.error('Error getting PM2 processes:', err);
+                        reject(err);
+                    } else {
+                        resolve(processes);
+                    }
+                });
+            });
+
+            const instanceType: Record<string, string> = {
+                'remnawave-api': 'REST API',
+                'remnawave-scheduler': 'Scheduler',
+                'remnawave-jobs': 'Jobs',
+            };
+
+            const stats = new Map<string, { memory: string; cpu: string; name: string }>();
+
+            for (const process of list) {
+                if (process.pm2_env) {
+                    if ('INSTANCE_ID' in process.pm2_env) {
+                        stats.set(`${process.name}-${process.pm2_env.INSTANCE_ID}`, {
+                            memory: prettyBytesUtil(process.monit?.memory || 0),
+                            cpu: process.monit?.cpu?.toString() || '0',
+                            name: `${instanceType[process.name || 'unknown'] || process.name}-${process.pm2_env.INSTANCE_ID || '0'}`,
+                        });
+                    }
+                }
+            }
+
+            return {
+                isOk: true,
+                response: new GetRemnawaveHealthResponseModel({
+                    pm2Stats: Array.from(stats.values()),
+                }),
+            };
+        } catch (error) {
+            this.logger.error('Error getting system stats:', error);
+            return {
+                isOk: true,
+                response: new GetRemnawaveHealthResponseModel({
+                    pm2Stats: [],
+                }),
+            };
+        }
+    }
+
     private async getShortUserStats(): Promise<ICommandResponse<ShortUserStats>> {
         return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<ShortUserStats>>(
             new GetShortUserStatsQuery(),
         );
+    }
+
+    private async getOnlineUsers(): Promise<ICommandResponse<{ usersOnline: number }>> {
+        return this.queryBus.execute<
+            CountOnlineUsersQuery,
+            ICommandResponse<{ usersOnline: number }>
+        >(new CountOnlineUsersQuery());
     }
 
     private async getLastSevenDaysNodesUsage(): Promise<ICommandResponse<IGet7DaysStats[]>> {

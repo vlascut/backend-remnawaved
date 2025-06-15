@@ -6,4 +6,5 @@ export const SYSTEM_ROUTES = {
         BANDWIDTH_STATS: 'stats/bandwidth',
         NODES_STATS: 'stats/nodes',
     },
+    HEALTH: 'health',
 } as const;

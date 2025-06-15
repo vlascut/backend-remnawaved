@@ -49,6 +49,9 @@ export namespace GetStatsCommand {
                 neverOnline: z.number(),
                 onlineNow: z.number(),
             }),
+            nodes: z.object({
+                totalOnline: z.number(),
+            }),
         }),
     });
 
