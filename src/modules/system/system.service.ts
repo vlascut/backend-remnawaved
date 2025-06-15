@@ -17,6 +17,7 @@ import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
 
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
+import { CountOnlineUsersQuery } from '@modules/nodes/queries/count-online-users';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 
 import {
@@ -38,6 +39,7 @@ export class SystemService {
     public async getStats(): Promise<ICommandResponse<any>> {
         try {
             const userStats = await this.getShortUserStats();
+            const onlineUsers = await this.getOnlineUsers();
 
             if (!userStats.isOk || !userStats.response) {
                 return {
@@ -65,7 +67,10 @@ export class SystemService {
                     uptime: time.uptime,
                     timestamp: Date.now(),
                     users: userStats.response.statusCounts,
-                    onlineStats: userStats.response.onlineStats,
+                    onlineStats: {
+                        ...userStats.response.onlineStats,
+                        onlineNow: onlineUsers.response?.usersOnline || 0,
+                    },
                 }),
             };
         } catch (error) {
@@ -140,6 +145,13 @@ export class SystemService {
         return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<ShortUserStats>>(
             new GetShortUserStatsQuery(),
         );
+    }
+
+    private async getOnlineUsers(): Promise<ICommandResponse<{ usersOnline: number }>> {
+        return this.queryBus.execute<
+            CountOnlineUsersQuery,
+            ICommandResponse<{ usersOnline: number }>
+        >(new CountOnlineUsersQuery());
     }
 
     private async getLastSevenDaysNodesUsage(): Promise<ICommandResponse<IGet7DaysStats[]>> {

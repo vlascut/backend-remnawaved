@@ -4,7 +4,6 @@ export interface IUserOnlineStats {
     lastDay: number;
     lastWeek: number;
     neverOnline: number;
-    onlineNow: number;
 }
 
 export interface IUserStats {

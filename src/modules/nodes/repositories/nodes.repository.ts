@@ -137,4 +137,17 @@ export class NodesRepository implements ICrud<NodesEntity> {
 
         return true;
     }
+
+    public async countOnlineUsers(): Promise<number> {
+        const result = await this.prisma.tx.nodes.aggregate({
+            where: {
+                isConnected: true,
+            },
+            _sum: {
+                usersOnline: true,
+            },
+        });
+
+        return result._sum.usersOnline || 0;
+    }
 }
