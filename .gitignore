@@ -56,3 +56,6 @@ openapi.json
 .clinic
 
 .wip
+
+
+prisma/generated/types.ts

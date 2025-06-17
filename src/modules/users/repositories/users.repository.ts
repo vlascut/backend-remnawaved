@@ -15,7 +15,6 @@ import { InboundsEntity } from '@modules/inbounds/entities';
 
 import {
     BatchResetLimitedUsersUsageBuilder,
-    BatchResetUsersUsageBuilder,
     BulkDeleteByStatusBuilder,
     BulkUpdateUserUsedTrafficBuilder,
     UsersWithInboundTagAndExcludedInboundsBuilder,
@@ -619,18 +618,28 @@ export class UsersRepository implements ICrud<UserEntity> {
 
     public async getUserOnlineStats(): Promise<IUserOnlineStats> {
         const now = dayjs().utc();
-        const oneMinuteAgo = now.subtract(1, 'minute').toDate();
-        const oneDayAgo = now.subtract(1, 'day').toDate();
-        const oneWeekAgo = now.subtract(1, 'week').toDate();
 
-        const [result] = await this.prisma.tx.$queryRaw<[IUserOnlineStats]>`
-            SELECT 
-                COUNT(CASE WHEN "online_at" >= ${oneMinuteAgo} THEN 1 END) as "onlineNow",
-                COUNT(CASE WHEN "online_at" >= ${oneDayAgo} THEN 1 END) as "lastDay",
-                COUNT(CASE WHEN "online_at" >= ${oneWeekAgo} THEN 1 END) as "lastWeek",
-                COUNT(CASE WHEN "online_at" IS NULL THEN 1 END) as "neverOnline"
-            FROM users
-        `;
+        const result = await this.prisma.tx.$kysely
+            .selectFrom('users')
+            .select((eb) => [
+                eb.fn
+                    .count('users.uuid')
+                    .filterWhere('users.onlineAt', '>=', now.subtract(1, 'minute').toDate())
+                    .as('onlineNow'),
+                eb.fn
+                    .count('users.uuid')
+                    .filterWhere('users.onlineAt', '>=', now.subtract(1, 'day').toDate())
+                    .as('lastDay'),
+                eb.fn
+                    .count('users.uuid')
+                    .filterWhere('users.onlineAt', '>=', now.subtract(1, 'week').toDate())
+                    .as('lastWeek'),
+                eb.fn
+                    .count('users.uuid')
+                    .filterWhere('users.onlineAt', 'is', null)
+                    .as('neverOnline'),
+            ])
+            .executeTakeFirstOrThrow();
 
         return {
             onlineNow: Number(result.onlineNow),
@@ -640,11 +649,36 @@ export class UsersRepository implements ICrud<UserEntity> {
         };
     }
 
-    public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
-        const { query } = new BatchResetUsersUsageBuilder(strategy);
-        await this.prisma.tx.$executeRaw<void>(query);
+    // public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
+    //     const { query } = new BatchResetUsersUsageBuilder(strategy);
+    //     await this.prisma.tx.$executeRaw<void>(query);
 
-        return;
+    //     return;
+    // }
+
+    public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
+        await this.prisma.tx.$kysely
+            .with('usersToReset', (db) =>
+                db
+                    .selectFrom('users')
+                    .select(['uuid', 'usedTrafficBytes'])
+                    .where('trafficLimitStrategy', '=', strategy.toUpperCase())
+                    .where('status', '!=', USERS_STATUS.LIMITED.toUpperCase()),
+            )
+            .with('insertHistory', (db) =>
+                db
+                    .insertInto('userTrafficHistory')
+                    .columns(['userUuid', 'usedBytes'])
+                    .expression(db.selectFrom('usersToReset').select(['uuid', 'usedTrafficBytes'])),
+            )
+            .updateTable('users')
+            .set({
+                usedTrafficBytes: 0,
+                lastTrafficResetAt: new Date(),
+                lastTriggeredThreshold: 0,
+            })
+            .where('uuid', 'in', (eb) => eb.selectFrom('usersToReset').select('uuid'))
+            .execute();
     }
 
     public async resetLimitedUsersTraffic(strategy: TResetPeriods): Promise<{ uuid: string }[]> {
