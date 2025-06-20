@@ -166,7 +166,7 @@ export class UsersService {
             let isNeedToBeAddedToNode =
                 user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
 
-            const isNeedToBeRemovedFromNode = status === USERS_STATUS.DISABLED;
+            let isNeedToBeRemovedFromNode = status === USERS_STATUS.DISABLED;
 
             if (trafficLimitBytes !== undefined) {
                 if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes >= 0) {
@@ -228,18 +228,24 @@ export class UsersService {
                 if (hasChanges) {
                     await this.userRepository.removeUserFromInternalSquads(result.uuid);
 
-                    const squadsResult = await this.userRepository.addUserToInternalSquads(
-                        result.uuid,
-                        newActiveInternalSquadsUuids,
-                    );
+                    if (newActiveInternalSquadsUuids.length === 0) {
+                        isNeedToBeRemovedFromNode = true;
+                    }
 
-                    isNeedToBeAddedToNode = true;
+                    if (newActiveInternalSquadsUuids.length > 0) {
+                        const squadsResult = await this.userRepository.addUserToInternalSquads(
+                            result.uuid,
+                            newActiveInternalSquadsUuids,
+                        );
 
-                    if (!squadsResult) {
-                        return {
-                            isOk: false,
-                            ...ERRORS.UPDATE_USER_WITH_INBOUNDS_ERROR,
-                        };
+                        if (!squadsResult) {
+                            return {
+                                isOk: false,
+                                ...ERRORS.UPDATE_USER_WITH_INBOUNDS_ERROR,
+                            };
+                        }
+
+                        isNeedToBeAddedToNode = true;
                     }
                 }
             }

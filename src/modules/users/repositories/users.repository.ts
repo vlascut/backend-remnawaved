@@ -920,6 +920,10 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         internalSquadUuid: string[],
     ): Promise<boolean> {
         // TODO: check this
+        if (internalSquadUuid.length === 0) {
+            return true;
+        }
+
         const result = await this.prisma.tx.$kysely
             .insertInto('internalSquadMembers')
             .columns(['userUuid', 'internalSquadUuid'])
@@ -1073,7 +1077,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
 
     public async getUserWithResolvedInbounds(
         userUuid: string,
-    ): Promise<UserWithResolvedInboundEntity> {
+    ): Promise<UserWithResolvedInboundEntity | null> {
         // TODO: check later
         const result = await this.prisma.tx.$kysely
             .selectFrom('users')
@@ -1117,7 +1121,11 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                     .as('inbounds'),
             ])
             .where('users.uuid', '=', getKyselyUuid(userUuid))
-            .executeTakeFirstOrThrow();
+            .executeTakeFirst();
+
+        if (!result) {
+            return null;
+        }
 
         return new UserWithResolvedInboundEntity(result);
     }
