@@ -35,11 +35,6 @@ export class ServiceEvents {
 🌊 <b>#panel_started</b>
 ➖➖➖➖➖➖➖➖➖
 ✅ Remnawave v${pkg.version} is up and running.
-
-🦋 Join community: @remnawave
-📚 Documentation: https://remna.st
-
-⭐ <a href="https://github.com/remnawave/panel">Leave a star on GitHub</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,

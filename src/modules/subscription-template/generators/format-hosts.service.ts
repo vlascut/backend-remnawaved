@@ -79,8 +79,8 @@ export class FormatHostsService {
         if (hosts.length === 0 && user.activeUserInbounds.length > 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
-                    '→ Remnawave',
-                    '→ Did you forget to add hosts?',
+                    '→ Enterlance VPN',
+                    '→ У профиля не указаны хосты',
                     '→ No hosts found',
                 ]),
             );
@@ -91,8 +91,8 @@ export class FormatHostsService {
         if (user.activeUserInbounds.length === 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
-                    '→ Remnawave',
-                    '→ User has no active inbounds',
+                    '→ Enterlance VPN',
+                    '→ У профиля не указаны сервера',
                     '→ No active inbounds found',
                 ]),
             );
