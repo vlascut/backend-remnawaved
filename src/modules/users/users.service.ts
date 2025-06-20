@@ -70,57 +70,86 @@ export class UsersService {
     }
 
     public async createUser(dto: CreateUserRequestDto): Promise<ICommandResponse<UserEntity>> {
-        const user = await this.createUserTransactional(dto);
+        try {
+            const user = await this.createUserTransactional(dto);
 
-        if (!user.isOk || !user.response) {
+            if (!user.isOk || !user.response) {
+                return user;
+            }
+
+            this.eventBus.publish(new AddUserToNodeEvent(user.response.uuid));
+            this.eventEmitter.emit(
+                EVENTS.USER.CREATED,
+                new UserEvent(user.response, EVENTS.USER.CREATED),
+            );
             return user;
-        }
+        } catch (error) {
+            this.logger.error(error);
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2002' &&
+                error.meta?.modelName === 'Users' &&
+                Array.isArray(error.meta.target)
+            ) {
+                const fields = error.meta.target as string[];
+                if (fields.includes('username')) {
+                    return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
+                }
+                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
+                    return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
+                }
+                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
+                    return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
+                }
+            }
 
-        this.eventBus.publish(new AddUserToNodeEvent(user.response.uuid));
-        this.eventEmitter.emit(
-            EVENTS.USER.CREATED,
-            new UserEvent(user.response, EVENTS.USER.CREATED),
-        );
-        return user;
+            return { isOk: false, ...ERRORS.CREATE_USER_ERROR };
+        }
     }
 
     public async updateUser(dto: UpdateUserRequestDto): Promise<ICommandResponse<UserEntity>> {
-        const user = await this.updateUserTransactional(dto);
+        try {
+            const user = await this.updateUserTransactional(dto);
 
-        if (!user.isOk || !user.response) {
-            if (user.code === 'A025') {
+            if (!user.isOk || !user.response) {
+                if (user.code === 'A025') {
+                    return {
+                        isOk: false,
+                        ...ERRORS.USER_NOT_FOUND,
+                    };
+                }
+
                 return {
                     isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
+                    ...ERRORS.UPDATE_USER_ERROR,
                 };
             }
 
+            if (
+                user.response.user.status === USERS_STATUS.ACTIVE &&
+                user.response.isNeedToBeAddedToNode
+            ) {
+                this.eventBus.publish(new AddUserToNodeEvent(user.response.user.uuid));
+            }
+
+            if (user.response.isNeedToBeRemovedFromNode) {
+                this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user.uuid));
+            }
+
+            this.eventEmitter.emit(
+                EVENTS.USER.MODIFIED,
+                new UserEvent(user.response.user, EVENTS.USER.MODIFIED),
+            );
+
             return {
-                isOk: false,
-                ...ERRORS.UPDATE_USER_ERROR,
+                isOk: true,
+                response: user.response.user,
             };
+        } catch (error) {
+            this.logger.error(error);
+
+            return { isOk: false, ...ERRORS.UPDATE_USER_ERROR };
         }
-
-        if (
-            user.response.user.status === USERS_STATUS.ACTIVE &&
-            user.response.isNeedToBeAddedToNode
-        ) {
-            this.eventBus.publish(new AddUserToNodeEvent(user.response.user.uuid));
-        }
-
-        if (user.response.isNeedToBeRemovedFromNode) {
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user.uuid));
-        }
-
-        this.eventEmitter.emit(
-            EVENTS.USER.MODIFIED,
-            new UserEvent(user.response.user, EVENTS.USER.MODIFIED),
-        );
-
-        return {
-            isOk: true,
-            response: user.response.user,
-        };
     }
 
     @Transactional()
@@ -155,10 +184,7 @@ export class UsersService {
             );
 
             if (!user) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
+                throw new Error(ERRORS.USER_NOT_FOUND.message);
             }
 
             let newStatus = status;
@@ -233,17 +259,10 @@ export class UsersService {
                     }
 
                     if (newActiveInternalSquadsUuids.length > 0) {
-                        const squadsResult = await this.userRepository.addUserToInternalSquads(
+                        await this.userRepository.addUserToInternalSquads(
                             result.uuid,
                             newActiveInternalSquadsUuids,
                         );
-
-                        if (!squadsResult) {
-                            return {
-                                isOk: false,
-                                ...ERRORS.UPDATE_USER_WITH_INBOUNDS_ERROR,
-                            };
-                        }
 
                         isNeedToBeAddedToNode = true;
                     }
@@ -259,10 +278,7 @@ export class UsersService {
             );
 
             if (!userWithInbounds) {
-                return {
-                    isOk: false,
-                    ...ERRORS.CANT_GET_CREATED_USER_WITH_INBOUNDS,
-                };
+                throw new Error(ERRORS.CANT_GET_CREATED_USER_WITH_INBOUNDS.message);
             }
 
             return {
@@ -274,26 +290,7 @@ export class UsersService {
                 },
             };
         } catch (error) {
-            this.logger.error(error);
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2002' &&
-                error.meta?.modelName === 'Users' &&
-                Array.isArray(error.meta.target)
-            ) {
-                const fields = error.meta.target as string[];
-                if (fields.includes('username')) {
-                    return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
-                }
-                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
-                }
-                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
-                }
-            }
-
-            return { isOk: false, ...ERRORS.UPDATE_USER_ERROR };
+            throw error;
         }
     }
 
@@ -380,26 +377,7 @@ export class UsersService {
                 response: userWithInbounds,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2002' &&
-                error.meta?.modelName === 'Users' &&
-                Array.isArray(error.meta.target)
-            ) {
-                const fields = error.meta.target as string[];
-                if (fields.includes('username')) {
-                    return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
-                }
-                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
-                }
-                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
-                }
-            }
-
-            return { isOk: false, ...ERRORS.CREATE_USER_ERROR };
+            throw error;
         }
     }
 
