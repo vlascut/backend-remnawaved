@@ -22,13 +22,18 @@ import {
     BulkUpdateUserUsedTrafficBuilder,
 } from '../builders';
 import {
+    IGetUserAccessibleNodes,
+    IGetUserAccessibleNodesResponse,
+    IUserOnlineStats,
+    IUserStats,
+} from '../interfaces';
+import {
     BaseUserEntity,
     UserForConfigEntity,
     UserEntity,
     UserWithResolvedInboundEntity,
 } from '../entities';
 import { TriggerThresholdNotificationsBuilder } from '../builders/trigger-threshold-notifications-builder';
-import { IUserOnlineStats, IUserStats } from '../interfaces';
 import { UserConverter } from '../users.converter';
 
 dayjs.extend(utc);
@@ -193,107 +198,6 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         return result;
     }
 
-    // public async getAllUsersV2({
-    //     start,
-    //     size,
-    //     filters,
-    //     filterModes,
-    //     sorting,
-    // }: GetAllUsersCommand.RequestQuery): Promise<[UserWithAiAndLcnRawEntity[], number]> {
-    //     const where = filters?.reduce((acc, filter) => {
-    //         const mode = filterModes?.[filter.id] || 'contains';
-
-    //         if (
-    //             filter.id === 'expireAt' ||
-    //             filter.id === 'createdAt' ||
-    //             filter.id === 'lastTrafficResetAt' ||
-    //             filter.id === 'subLastOpenedAt' ||
-    //             filter.id === 'onlineAt'
-    //         ) {
-    //             return {
-    //                 ...acc,
-    //                 [filter.id]: {
-    //                     equals: new Date(filter.value as string),
-    //                 },
-    //             };
-    //         }
-
-    //         if (filter.id === 'telegramId') {
-    //             try {
-    //                 const numValue = BigInt(filter.value as string);
-    //                 return {
-    //                     ...acc,
-    //                     [filter.id]: {
-    //                         equals: numValue,
-    //                     },
-    //                 };
-    //             } catch {
-    //                 return {
-    //                     ...acc,
-    //                     [filter.id]: {
-    //                         equals: null,
-    //                     },
-    //                 };
-    //             }
-    //         }
-
-    //         return {
-    //             ...acc,
-    //             [filter.id]: {
-    //                 [mode]: filter.value,
-    //                 mode: 'insensitive' as const,
-    //             },
-    //         };
-    //     }, {});
-
-    //     let orderBy = sorting?.reduce((acc, sort) => {
-    //         const dateFields = [
-    //             'lastTrafficResetAt',
-    //             'subLastOpenedAt',
-    //             'subRevokedAt',
-    //             'onlineAt',
-    //         ];
-
-    //         if (dateFields.includes(sort.id)) {
-    //             return {
-    //                 ...acc,
-    //                 [sort.id]: {
-    //                     sort: sort.desc ? 'desc' : 'asc',
-    //                     nulls: 'last',
-    //                 },
-    //             };
-    //         }
-
-    //         return {
-    //             ...acc,
-    //             [sort.id]: sort.desc ? 'desc' : 'asc',
-    //         };
-    //     }, {});
-
-    //     if (orderBy === undefined || Object.keys(orderBy).length === 0) {
-    //         orderBy = {
-    //             createdAt: 'desc',
-    //         };
-    //     }
-
-    //     const [users, total] = await Promise.all([
-    //         this.prisma.tx.users.findMany({
-    //             skip: start,
-    //             take: size,
-    //             where,
-    //             orderBy,
-    //             include: INCLUDE_ACTIVE_USER_INBOUNDS_AND_LAST_CONNECTED_NODE,
-    //         }),
-    //         this.prisma.tx.users.count({ where }),
-    //     ]);
-
-    //     const result = users.map((user) => {
-    //         return new UserWithAiAndLcnRawEntity(user);
-    //     });
-
-    //     return [result, total];
-    // }
-
     public async getAllUsersV2({
         start,
         size,
@@ -358,35 +262,25 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             }
         }
 
-        const dateFields = ['lastTrafficResetAt', 'subLastOpenedAt', 'subRevokedAt', 'onlineAt'];
-
         let sortBuilder = whereBuilder;
+
         if (sorting?.length) {
             for (const sort of sorting) {
-                if (dateFields.includes(sort.id)) {
-                    sortBuilder = sortBuilder.orderBy(sql.ref(sort.id), (ob) => {
-                        const orderBy = sort.desc ? ob.desc() : ob.asc();
-                        return orderBy.nullsLast();
-                    });
-
-                    // sortBuilder = sortBuilder.orderBy(sql.ref(sort.id), (ob) =>
-                    //     ob.collate('nocase').asc().nullsLast(),
-                    // );
-
-                    // sortBuilder = sortBuilder.orderBy(sql.ref(sort.id), dir); // no "nulls last" support yet
-                }
+                sortBuilder = sortBuilder.orderBy(sql.ref(sort.id), (ob) => {
+                    const orderBy = sort.desc ? ob.desc() : ob.asc();
+                    return orderBy.nullsLast();
+                });
             }
         } else {
             sortBuilder = sortBuilder.orderBy('createdAt', 'desc');
         }
 
-        const users = await sortBuilder
+        const query = sortBuilder
             .selectAll()
             .offset(start)
             .limit(size)
             .select((eb) => this.includeActiveInternalSquads(eb))
-            .select((eb) => this.includeLastConnectedNode(eb))
-            .execute();
+            .select((eb) => this.includeLastConnectedNode(eb));
 
         const { count } = await this.prisma.tx.$kysely
             .selectFrom('users')
@@ -443,6 +337,8 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                 return countBuilder;
             })
             .executeTakeFirstOrThrow();
+
+        const users = await query.execute();
 
         const result = users.map((u) => new UserEntity(u));
         return [result, Number(count)];
@@ -1128,6 +1024,80 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         }
 
         return new UserWithResolvedInboundEntity(result);
+    }
+
+    public async getUserAccessibleNodes(
+        userUuid: string,
+    ): Promise<IGetUserAccessibleNodesResponse> {
+        const flatResults = await this.prisma.tx.$kysely
+            .selectFrom('nodes as n')
+            .innerJoin('configProfiles as cp', 'n.activeConfigProfileUuid', 'cp.uuid')
+            .innerJoin('configProfileInbounds as cpi', 'cpi.profileUuid', 'cp.uuid')
+            .innerJoin('configProfileInboundsToNodes as cpin', (join) =>
+                join
+                    .onRef('cpin.configProfileInboundUuid', '=', 'cpi.uuid')
+                    .onRef('cpin.nodeUuid', '=', 'n.uuid'),
+            )
+            .innerJoin('internalSquadInbounds as isi', 'isi.inboundUuid', 'cpi.uuid')
+            .innerJoin('internalSquads as sq', 'sq.uuid', 'isi.internalSquadUuid')
+            .innerJoin('internalSquadMembers as ism', (join) =>
+                join
+                    .onRef('ism.internalSquadUuid', '=', 'sq.uuid')
+                    .on('ism.userUuid', '=', getKyselyUuid(userUuid)),
+            )
+            .select([
+                'n.uuid as nodeUuid',
+                'n.name as nodeName',
+                'n.countryCode',
+                'cp.uuid as configProfileUuid',
+                'cp.name as configProfileName',
+                'sq.uuid as squadUuid',
+                'sq.name as squadName',
+                'cpi.tag as inboundTag',
+            ])
+            .execute();
+
+        const nodesMap = new Map<string, IGetUserAccessibleNodes>();
+
+        flatResults.forEach((row) => {
+            if (!nodesMap.has(row.nodeUuid)) {
+                nodesMap.set(row.nodeUuid, {
+                    uuid: row.nodeUuid,
+                    nodeName: row.nodeName,
+                    countryCode: row.countryCode,
+                    configProfileUuid: row.configProfileUuid,
+                    configProfileName: row.configProfileName,
+                    activeSquads: new Map(),
+                });
+            }
+
+            const node = nodesMap.get(row.nodeUuid);
+
+            if (node) {
+                if (!node.activeSquads.has(row.squadUuid)) {
+                    node.activeSquads.set(row.squadUuid, {
+                        squadName: row.squadName,
+                        activeInbounds: [],
+                    });
+                }
+
+                const squad = node.activeSquads.get(row.squadUuid);
+
+                if (squad) {
+                    squad.activeInbounds.push(row.inboundTag);
+                }
+            }
+        });
+
+        const result: IGetUserAccessibleNodesResponse = {
+            userUuid,
+            activeNodes: Array.from(nodesMap.values()).map((node) => ({
+                ...node,
+                activeSquads: Array.from(node.activeSquads.values()),
+            })),
+        };
+
+        return result;
     }
 
     private includeActiveInternalSquads(eb: ExpressionBuilder<DB, 'users'>) {

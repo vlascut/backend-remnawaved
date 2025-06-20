@@ -29,18 +29,19 @@ import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-node
 import { UserActionsQueueService } from '@queue/user-actions/user-actions.service';
 
 import {
+    DeleteUserResponseModel,
+    BulkDeleteByStatusResponseModel,
+    BulkOperationResponseModel,
+    BulkAllResponseModel,
+    GetUserAccessibleNodesResponseModel,
+} from './models';
+import {
     CreateUserRequestDto,
     UpdateUserRequestDto,
     BulkDeleteUsersByStatusRequestDto,
     BulkUpdateUsersRequestDto,
     BulkAllUpdateUsersRequestDto,
 } from './dtos';
-import {
-    DeleteUserResponseModel,
-    BulkDeleteByStatusResponseModel,
-    BulkOperationResponseModel,
-    BulkAllResponseModel,
-} from './models';
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
 import { IGetUserByUnique, IGetUsersByTelegramIdOrEmail, IGetUserUsageByRange } from './interfaces';
 import { UsersRepository } from './repositories/users.repository';
@@ -1004,6 +1005,32 @@ export class UsersService {
         } catch (error) {
             this.logger.error(error);
             return { isOk: false, ...ERRORS.GET_ALL_TAGS_ERROR };
+        }
+    }
+
+    public async getUserAccessibleNodes(
+        userUuid: string,
+    ): Promise<ICommandResponse<GetUserAccessibleNodesResponseModel>> {
+        try {
+            const result = await this.userRepository.getUserAccessibleNodes(userUuid);
+
+            if (!result) {
+                return {
+                    isOk: true,
+                    response: new GetUserAccessibleNodesResponseModel({
+                        userUuid,
+                        activeNodes: [],
+                    }),
+                };
+            }
+
+            return {
+                isOk: true,
+                response: new GetUserAccessibleNodesResponseModel(result),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_USER_ACCESSIBLE_NODES_ERROR };
         }
     }
 

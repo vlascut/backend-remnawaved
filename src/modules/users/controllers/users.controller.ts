@@ -23,6 +23,7 @@ import {
     EnableUserCommand,
     GetAllTagsCommand,
     GetAllUsersCommand,
+    GetUserAccessibleNodesCommand,
     GetUserByEmailCommand,
     GetUserByShortUuidCommand,
     GetUserByTagCommand,
@@ -48,6 +49,8 @@ import {
     GetAllTagsResponseDto,
     GetAllUsersQueryDto,
     GetAllUsersResponseDto,
+    GetUserAccessibleNodesRequestDto,
+    GetUserAccessibleNodesResponseDto,
     GetUserByShortUuidRequestDto,
     GetUserByShortUuidResponseDto,
     GetUserByTagRequestDto,
@@ -209,6 +212,29 @@ export class UsersController {
             response: new GetAllTagsResponseModel({
                 tags: data,
             }),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: GetUserAccessibleNodesResponseDto,
+        description: 'User accessible nodes fetched successfully',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @Endpoint({
+        command: GetUserAccessibleNodesCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getUserAccessibleNodes(
+        @Param() paramData: GetUserAccessibleNodesRequestDto,
+    ): Promise<GetUserAccessibleNodesResponseDto> {
+        const result = await this.usersService.getUserAccessibleNodes(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
         };
     }
 

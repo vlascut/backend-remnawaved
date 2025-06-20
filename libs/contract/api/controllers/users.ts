@@ -8,6 +8,7 @@ export const USERS_ROUTES = {
     GET: '',
     DELETE: (uuid: string) => `${uuid}`,
     GET_BY_UUID: (uuid: string) => `${uuid}`,
+    ACCESSIBLE_NODES: (uuid: string) => `${uuid}/accessible-nodes`,
     ACTIONS: {
         ENABLE: (uuid: string) => `${uuid}/${USERS_ACTIONS_ROUTE}/enable`,
         DISABLE: (uuid: string) => `${uuid}/${USERS_ACTIONS_ROUTE}/disable`,

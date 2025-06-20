@@ -35,7 +35,7 @@ export class PrismaService extends PrismaClient {
             kyselyExtension({
                 kysely: (driver) => {
                     return new Kysely<DB>({
-                        log: ['query'],
+                        // log: ['query'],
                         dialect: {
                             createDriver: () => driver,
                             createAdapter: () => new PostgresAdapter(),

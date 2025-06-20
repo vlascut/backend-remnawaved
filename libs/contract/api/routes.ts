@@ -69,6 +69,8 @@ export const REST_API = {
 
         GET_BY_UUID: (uuid: string) =>
             `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY_UUID(uuid)}`,
+        ACCESSIBLE_NODES: (uuid: string) =>
+            `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.ACCESSIBLE_NODES(uuid)}`,
 
         ACTIONS: {
             DISABLE: (uuid: string) =>

@@ -619,4 +619,9 @@ export const ERRORS = {
         message: 'Config profile inbound not found in specified profile',
         httpCode: 404,
     },
+    GET_USER_ACCESSIBLE_NODES_ERROR: {
+        code: 'A125',
+        message: 'Get user accessible nodes error',
+        httpCode: 500,
+    },
 } as const;
