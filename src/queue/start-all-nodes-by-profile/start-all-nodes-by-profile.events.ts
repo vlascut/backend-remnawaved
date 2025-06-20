@@ -16,7 +16,9 @@ export class StartAllNodesByProfileQueueEvents implements OnModuleInit {
     constructor(private readonly startAllNodesByProfileQueue: StartAllNodesByProfileQueueService) {}
 
     async onModuleInit() {
-        this.queueEvents = new QueueEvents(QueueNames.startAllNodesByProfile);
+        this.queueEvents = new QueueEvents(QueueNames.startAllNodesByProfile, {
+            connection: this.startAllNodesByProfileQueue.queue.opts.connection,
+        });
 
         this.queueEvents.on('deduplicated', async (event) => {
             const { jobId, deduplicationId } = event;
