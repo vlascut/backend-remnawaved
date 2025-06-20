@@ -240,14 +240,26 @@ export class XRayConfig {
                 type: inbound.protocol,
                 network: inbound.streamSettings?.network ?? null,
                 security: inbound.streamSettings?.security ?? null,
-                port: inbound.port.toString().includes(',')
-                    ? Number(inbound.port.toString().split(',')[0])
-                    : Number(inbound.port),
+                port: this.getPort(inbound.port),
             }));
     }
 
     public getSortedConfig(): IXrayConfig {
         return this.sortObjectByKeys<IXrayConfig>(this.config);
+    }
+
+    private getPort(port: number | string | undefined): number | null {
+        if (!port) {
+            return null;
+        }
+        if (typeof port === 'string') {
+            if (port.includes(',')) {
+                return Number(port.split(',')[0]);
+            }
+            return Number(port);
+        }
+
+        return port;
     }
 
     private addUsersToInbound(inbound: Inbound, users: UserForConfigEntity[]): void {

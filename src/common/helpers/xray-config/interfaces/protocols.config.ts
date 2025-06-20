@@ -5,7 +5,7 @@ import { FallbackObject } from './routing.config';
 export interface InboundObject {
     allocate?: unknown;
     listen?: string;
-    port: number | string;
+    port: number | string | undefined;
     protocol: 'shadowsocks' | 'trojan' | 'vless';
     settings?: InboundSettings;
     sniffing?: unknown;
