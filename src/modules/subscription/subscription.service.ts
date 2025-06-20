@@ -709,7 +709,7 @@ export class SubscriptionService {
             'content-disposition': `attachment; filename=${user.username}`,
             'support-url': settings.supportLink,
             'profile-title': `base64:${Buffer.from(
-                TemplateEngine.formatWithUser(settings.profileTitle, user, this.subPublicDomain),
+            `${TemplateEngine.formatWithUser(settings.profileTitle, user, this.subPublicDomain)} - #${user.shortUuid}`,
             ).toString('base64')}`,
             'profile-update-interval': settings.profileUpdateInterval.toString(),
             'subscription-userinfo': Object.entries(getSubscriptionUserInfo(user))
