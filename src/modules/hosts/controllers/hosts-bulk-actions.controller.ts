@@ -3,9 +3,9 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { RolesGuard } from '@common/guards/roles/roles.guard';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import {
     BulkDeleteHostsCommand,
@@ -109,7 +109,11 @@ export class HostsBulkActionsController {
     async setInboundToHosts(
         @Body() body: SetInboundToManyHostsRequestDto,
     ): Promise<SetInboundToManyHostsResponseDto> {
-        const result = await this.hostsService.setInboundToHosts(body.uuids, body.inboundUuid);
+        const result = await this.hostsService.setInboundToHosts(
+            body.uuids,
+            body.configProfileUuid,
+            body.configProfileInboundUuid,
+        );
 
         const data = errorHandler(result);
         return {

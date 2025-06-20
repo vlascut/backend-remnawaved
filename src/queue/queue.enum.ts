@@ -9,6 +9,7 @@ export enum QueueNames {
     resetUserTraffic = 'RESET_USER_TRAFFIC_QUEUE',
     service = 'SERVICE_QUEUE',
     startAllNodes = 'START_ALL_NODES_QUEUE',
+    startAllNodesByProfile = 'START_ALL_NODES_BY_PROFILE_QUEUE',
     startNode = 'START_NODE_QUEUE',
     stopNode = 'STOP_NODE_QUEUE',
     telegramBotLogger = 'TELEGRAM_BOT_LOGGER_QUEUE',

@@ -1,4 +1,4 @@
-import { UserWithActiveInboundsEntity } from '../../users/entities/user-with-active-inbounds.entity';
+import { UserEntity } from '@modules/users/entities';
 
 interface SubscriptionUserInfo {
     download: number;
@@ -7,7 +7,7 @@ interface SubscriptionUserInfo {
     upload: number;
 }
 
-export function getSubscriptionUserInfo(user: UserWithActiveInboundsEntity): SubscriptionUserInfo {
+export function getSubscriptionUserInfo(user: UserEntity): SubscriptionUserInfo {
     return {
         upload: 0,
         download: Number(user.usedTrafficBytes),

@@ -15,11 +15,19 @@ export namespace CreateHostCommand {
     );
 
     export const RequestSchema = z.object({
-        inboundUuid: z
+        configProfileUuid: z
+            .string({
+                invalid_type_error: 'Config Profile UUID must be a string',
+            })
+            .uuid('Config Profile UUID must be a valid UUID')
+            .optional(),
+        configProfileInboundUuid: z
             .string({
                 invalid_type_error: 'Inbound UUID must be a string',
             })
-            .uuid('Inbound UUID must be a valid UUID'),
+            .uuid('Inbound UUID must be a valid UUID')
+            .optional(),
+
         remark: z
             .string({
                 invalid_type_error: 'Remark must be a string',

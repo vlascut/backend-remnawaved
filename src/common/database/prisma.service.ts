@@ -7,7 +7,7 @@ import {
 } from 'kysely';
 import kyselyExtension from 'prisma-extension-kysely';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+// import { PrismaPg } from '@prisma/adapter-pg';
 
 import { DB } from 'prisma/generated/types';
 
@@ -18,10 +18,10 @@ import { Injectable } from '@nestjs/common';
 export class PrismaService extends PrismaClient {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private constructor(config: ConfigService) {
-        const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+        // const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
         super({
             // log: ['query'],
-            adapter,
+            // adapter,
         });
         // init with config
     }
@@ -35,7 +35,7 @@ export class PrismaService extends PrismaClient {
             kyselyExtension({
                 kysely: (driver) => {
                     return new Kysely<DB>({
-                        // log: ['query'],
+                        log: ['query'],
                         dialect: {
                             createDriver: () => driver,
                             createAdapter: () => new PostgresAdapter(),

@@ -1,8 +1,8 @@
 import { Nodes } from '@prisma/client';
 
-import { InboundsEntity } from '@modules/inbounds/entities';
+import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
 
-import { INodeWithExcludedInbounds } from '../interfaces';
+import { INodesWithResolvedInbounds } from '../repositories/nodes.repository';
 
 export class NodesEntity implements Nodes {
     public uuid: string;
@@ -39,22 +39,19 @@ export class NodesEntity implements Nodes {
     public createdAt: Date;
     public updatedAt: Date;
 
-    public excludedInbounds: InboundsEntity[];
+    public activeConfigProfileUuid: string | null;
+    public activeInbounds: ConfigProfileInboundEntity[];
 
-    constructor(node: Partial<INodeWithExcludedInbounds> & Partial<Nodes>) {
-        const { inboundsExclusions, ...nodeData } = node;
+    constructor(node: Partial<INodesWithResolvedInbounds & Nodes>) {
+        Object.assign(this, node);
 
-        if (inboundsExclusions) {
-            this.excludedInbounds = inboundsExclusions.map((item) => ({
-                uuid: item.inbound.uuid,
-                tag: item.inbound.tag,
-                type: item.inbound.type,
-                network: item.inbound.network,
-                security: item.inbound.security,
-            }));
+        if (node.configProfileInboundsToNodes) {
+            this.activeInbounds = node.configProfileInboundsToNodes.map(
+                (value) => new ConfigProfileInboundEntity(value.configProfileInbounds),
+            );
+        } else {
+            this.activeInbounds = [];
         }
-
-        Object.assign(this, nodeData);
 
         return this;
     }

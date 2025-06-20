@@ -39,6 +39,8 @@ const entityToModel = (entity: NodesEntity): Nodes => {
         viewPosition: entity.viewPosition,
         countryCode: entity.countryCode,
         consumptionMultiplier: entity.consumptionMultiplier,
+
+        activeConfigProfileUuid: entity.activeConfigProfileUuid,
     };
 };
 

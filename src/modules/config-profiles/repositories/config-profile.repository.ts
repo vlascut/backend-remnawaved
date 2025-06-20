@@ -1,0 +1,261 @@
+import { jsonArrayFrom } from 'kysely/helpers/postgres';
+import { ExpressionBuilder } from 'kysely';
+import { Prisma } from '@prisma/client';
+
+import { DB } from 'prisma/generated/types';
+
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { Injectable } from '@nestjs/common';
+
+import { ICrud } from '@common/types/crud-port';
+import { getKyselyUuid } from '@common/helpers';
+
+import { ConfigProfileWithInboundsAndNodesEntity } from '../entities/config-profile-with-inbounds-and-nodes.entity';
+import { ConfigProfileInboundEntity } from '../entities/config-profile-inbound.entity';
+import { ConfigProfileEntity } from '../entities/config-profile.entity';
+import { ConfigProfileConverter } from '../config-profile.converter';
+
+@Injectable()
+export class ConfigProfileRepository implements ICrud<ConfigProfileEntity> {
+    constructor(
+        private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly configProfileConverter: ConfigProfileConverter,
+    ) {}
+
+    public async create(entity: ConfigProfileEntity): Promise<ConfigProfileEntity> {
+        const model = this.configProfileConverter.fromEntityToPrismaModel(entity);
+        const result = await this.prisma.tx.configProfiles.create({
+            data: {
+                ...model,
+                config: model.config as Prisma.InputJsonValue,
+            },
+        });
+
+        return this.configProfileConverter.fromPrismaModelToEntity(result);
+    }
+
+    public async findByUUID(uuid: string): Promise<ConfigProfileEntity | null> {
+        const result = await this.prisma.tx.configProfiles.findUnique({
+            where: { uuid },
+        });
+        if (!result) {
+            return null;
+        }
+        return this.configProfileConverter.fromPrismaModelToEntity(result);
+    }
+
+    public async update({
+        uuid,
+        ...data
+    }: Partial<ConfigProfileEntity>): Promise<ConfigProfileEntity> {
+        const result = await this.prisma.tx.configProfiles.update({
+            where: {
+                uuid,
+            },
+            data: {
+                ...data,
+                config: data.config as Prisma.InputJsonValue,
+            },
+        });
+
+        return this.configProfileConverter.fromPrismaModelToEntity(result);
+    }
+
+    public async findByCriteria(dto: Partial<ConfigProfileEntity>): Promise<ConfigProfileEntity[]> {
+        const configProfileList = await this.prisma.tx.configProfiles.findMany({
+            where: dto,
+        });
+        return this.configProfileConverter.fromPrismaModelsToEntities(configProfileList);
+    }
+
+    public async findFirstByCriteria(
+        dto: Partial<ConfigProfileEntity>,
+    ): Promise<ConfigProfileEntity | null> {
+        const result = await this.prisma.tx.configProfiles.findFirst({
+            where: dto,
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return this.configProfileConverter.fromPrismaModelToEntity(result);
+    }
+
+    public async deleteByUUID(uuid: string): Promise<boolean> {
+        const result = await this.prisma.tx.configProfiles.delete({ where: { uuid } });
+        return !!result;
+    }
+
+    public async getTotalConfigProfiles(): Promise<number> {
+        return await this.prisma.tx.configProfiles.count();
+    }
+
+    public async getAllConfigProfiles(): Promise<ConfigProfileWithInboundsAndNodesEntity[]> {
+        const result = await this.prisma.tx.$kysely
+            .selectFrom('configProfiles')
+            .selectAll('configProfiles')
+            .orderBy('configProfiles.createdAt', 'asc')
+            .select((eb) => [
+                // inbounds
+                this.includeInbounds(eb),
+                // nodes
+                this.includeNodes(eb),
+            ])
+            .execute();
+
+        return result.map((item) => new ConfigProfileWithInboundsAndNodesEntity(item));
+    }
+
+    public async getConfigProfileByUUID(
+        uuid: string,
+    ): Promise<ConfigProfileWithInboundsAndNodesEntity | null> {
+        const result = await this.prisma.tx.$kysely
+            .selectFrom('configProfiles')
+            .selectAll('configProfiles')
+            .orderBy('configProfiles.createdAt', 'asc')
+            .where('configProfiles.uuid', '=', getKyselyUuid(uuid))
+            .select((eb) => [
+                // inbounds
+                this.includeInbounds(eb),
+                // nodes
+                this.includeNodes(eb),
+            ])
+            .executeTakeFirst();
+
+        if (!result) {
+            return null;
+        }
+
+        return new ConfigProfileWithInboundsAndNodesEntity(result);
+    }
+
+    public async createManyConfigProfileInbounds(inbounds: ConfigProfileInboundEntity[]): Promise<{
+        count: number;
+    }> {
+        const result = await this.prisma.tx.configProfileInbounds.createMany({
+            data: inbounds.map((inbound) => ({
+                ...inbound,
+                rawInbound: inbound.rawInbound as Prisma.InputJsonValue,
+            })),
+        });
+
+        return {
+            count: result.count,
+        };
+    }
+
+    public async deleteManyConfigProfileInboundsByUUIDs(uuids: string[]): Promise<{
+        count: number;
+    }> {
+        const result = await this.prisma.tx.configProfileInbounds.deleteMany({
+            where: { uuid: { in: uuids } },
+        });
+
+        return {
+            count: result.count,
+        };
+    }
+
+    public async updateConfigProfileInbound(
+        inbound: ConfigProfileInboundEntity,
+    ): Promise<ConfigProfileInboundEntity> {
+        const result = await this.prisma.tx.configProfileInbounds.update({
+            where: { uuid: inbound.uuid },
+            data: {
+                ...inbound,
+                rawInbound: inbound.rawInbound as Prisma.InputJsonValue,
+            },
+        });
+
+        return new ConfigProfileInboundEntity(result);
+    }
+
+    public async getInboundsByProfileUuid(
+        profileUuid: string,
+    ): Promise<ConfigProfileInboundEntity[]> {
+        const result = await this.prisma.tx.configProfileInbounds.findMany({
+            where: { profileUuid },
+        });
+
+        return result.map((item) => new ConfigProfileInboundEntity(item));
+    }
+
+    public async getAllInbounds(): Promise<ConfigProfileInboundEntity[]> {
+        // const groupedByNodes = await this.prisma.tx.$kysely
+        //     .selectFrom('nodes')
+        //     .leftJoin(
+        //         'configProfileInbounds',
+        //         'nodes.activeConfigProfileUuid',
+        //         'configProfileInbounds.profileUuid',
+        //     )
+        //     .select(['nodes.uuid as nodeUuid', 'nodes.name as nodeName'])
+        //     .select((eb) => [
+        //         jsonArrayFrom(
+        //             eb
+        //                 .selectFrom('configProfileInbounds')
+        //                 .selectAll('configProfileInbounds')
+        //                 .whereRef(
+        //                     'configProfileInbounds.profileUuid',
+        //                     '=',
+        //                     'nodes.activeConfigProfileUuid',
+        //                 ),
+        //         ).as('inbounds'),
+        //     ])
+        //     .groupBy(['nodes.uuid', 'nodes.name'])
+        //     .execute();
+
+        // console.log(groupedByNodes);
+
+        // const groupByProfile = await this.prisma.tx.$kysely
+        //     .selectFrom('configProfiles')
+        //     .leftJoin(
+        //         'configProfileInbounds',
+        //         'configProfiles.uuid',
+        //         'configProfileInbounds.profileUuid',
+        //     )
+        //     .select(['configProfiles.uuid as profileUuid', 'configProfiles.name as profileName'])
+        //     .select((eb) => [
+        //         jsonArrayFrom(
+        //             eb
+        //                 .selectFrom('configProfileInbounds')
+        //                 .selectAll('configProfileInbounds')
+        //                 .whereRef('configProfileInbounds.profileUuid', '=', 'configProfiles.uuid'),
+        //         ).as('inbounds'),
+        //     ])
+        //     .groupBy(['configProfiles.uuid', 'configProfiles.name'])
+        //     .execute();
+
+        // console.log(groupByProfile);
+
+        const result = await this.prisma.tx.configProfileInbounds.findMany();
+
+        return result.map((item) => new ConfigProfileInboundEntity(item));
+    }
+
+    /* 
+
+    Kysely helpers
+
+    */
+
+    private includeInbounds(eb: ExpressionBuilder<DB, 'configProfiles'>) {
+        return jsonArrayFrom(
+            eb
+                .selectFrom('configProfileInbounds')
+                .selectAll('configProfileInbounds')
+                .whereRef('configProfileInbounds.profileUuid', '=', 'configProfiles.uuid'),
+        ).as('inbounds');
+    }
+
+    private includeNodes(eb: ExpressionBuilder<DB, 'configProfiles'>) {
+        return jsonArrayFrom(
+            eb
+                .selectFrom('nodes')
+                .select(['uuid', 'name', 'countryCode'])
+                .orderBy('nodes.viewPosition', 'asc')
+                .whereRef('nodes.activeConfigProfileUuid', '=', 'configProfiles.uuid'),
+        ).as('nodes');
+    }
+}

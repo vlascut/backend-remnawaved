@@ -10,6 +10,7 @@ import { BasicAuthMiddleware } from '@common/middlewares';
 import { useBullBoard } from '@common/utils/startup-app';
 import { BULLBOARD_ROOT } from '@libs/contracts/api';
 
+import { StartAllNodesByProfileQueueModule } from './start-all-nodes-by-profile/start-all-nodes-by-profile.module';
 import { ExpireUserNotificationsQueueModule } from './expire-user-notifications/expire-user-notifications.module';
 import { FirstConnectedUsersQueueModule } from './first-connected-users/first-connected-users.module';
 import { BulkUserOperationsQueueModule } from './bulk-user-operations/bulk-user-operations.module';
@@ -28,7 +29,9 @@ import { UserJobsQueueModule } from './user-jobs/user-jobs.module';
 import { ServiceQueueModule } from './service/service.module';
 
 const queueModules = [
+    StartAllNodesByProfileQueueModule,
     StartAllNodesQueueModule,
+
     StartNodeQueueModule,
     StopNodeQueueModule,
     NodeHealthCheckQueueModule,

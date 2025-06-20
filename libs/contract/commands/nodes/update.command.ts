@@ -30,11 +30,6 @@ export namespace UpdateNodeCommand {
                 .min(1, 'Traffic reset day must be greater than 0')
                 .max(31, 'Traffic reset day must be less than 31'),
         ),
-        excludedInbounds: z.optional(
-            z.array(z.string().uuid(), {
-                invalid_type_error: 'Excluded inbounds must be an array of UUIDs',
-            }),
-        ),
         countryCode: z.optional(
             z.string().max(2, 'Country code must be 2 characters').toUpperCase(),
         ),
@@ -43,6 +38,12 @@ export namespace UpdateNodeCommand {
                 .number()
                 .min(0.1, 'Consumption multiplier must be greater than 0')
                 .transform((n) => Number(n.toFixed(1))),
+        ),
+        activeConfigProfileUuid: z.optional(z.string().uuid()),
+        activeInbounds: z.optional(
+            z.array(z.string().uuid(), {
+                invalid_type_error: 'Active inbounds must be an array of UUIDs',
+            }),
         ),
     });
 

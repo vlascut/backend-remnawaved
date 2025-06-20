@@ -33,13 +33,6 @@ export namespace CreateUserCommand {
             .optional()
             .default(USERS_STATUS.ACTIVE)
             .describe('Optional. User account status. Defaults to ACTIVE.'),
-        subscriptionUuid: z
-            .string({
-                invalid_type_error: 'Subscription UUID must be a string',
-            })
-            .uuid('Invalid subscription UUID format')
-            .optional()
-            .describe('Optional. UUID for user subscription. Must be a valid UUID format.'),
         shortUuid: z
             .string({
                 invalid_type_error: 'Short UUID must be a string',
@@ -92,12 +85,6 @@ export namespace CreateUserCommand {
                     }
                 }),
         ),
-        activeUserInbounds: z
-            .array(z.string().uuid(), {
-                invalid_type_error: 'Enabled inbounds must be an array',
-            })
-            .optional()
-            .describe('Optional. Array of UUIDs representing enabled inbound connections.'),
         expireAt: z
             .string({
                 required_error: 'Expiration date is required',
@@ -159,11 +146,12 @@ export namespace CreateUserCommand {
                     'Optional. Maximum number of hardware devices allowed. Must be a positive integer.',
                 ),
         ),
-
-        activateAllInbounds: z
-            .boolean()
+        activeInternalSquads: z
+            .array(z.string().uuid(), {
+                invalid_type_error: 'Enabled internal squads must be an array',
+            })
             .optional()
-            .describe('Optional. Whether to enable all available inbound connections. Boolean.'),
+            .describe('Optional. Array of UUIDs representing enabled internal squads.'),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

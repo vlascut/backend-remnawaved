@@ -12,8 +12,6 @@ export const USERS_ROUTES = {
         ENABLE: (uuid: string) => `${uuid}/${USERS_ACTIONS_ROUTE}/enable`,
         DISABLE: (uuid: string) => `${uuid}/${USERS_ACTIONS_ROUTE}/disable`,
         RESET_TRAFFIC: (uuid: string) => `${uuid}/${USERS_ACTIONS_ROUTE}/reset-traffic`,
-        ACTIVATE_ALL_INBOUNDS: (uuid: string) =>
-            `${uuid}/${USERS_ACTIONS_ROUTE}/activate-all-inbounds`,
         REVOKE_SUBSCRIPTION: (uuid: string) => `${uuid}/${USERS_ACTIONS_ROUTE}/revoke`,
     },
     GET_BY: {
@@ -31,7 +29,7 @@ export const USERS_ROUTES = {
         RESET_TRAFFIC: 'bulk/reset-traffic',
         REVOKE_SUBSCRIPTION: 'bulk/revoke-subscription',
         DELETE: 'bulk/delete',
-        UPDATE_INBOUNDS: 'bulk/update-inbounds',
+        UPDATE_SQUADS: 'bulk/update-squads',
         ALL: {
             UPDATE: 'bulk/all/update',
             RESET_TRAFFIC: 'bulk/all/reset-traffic',

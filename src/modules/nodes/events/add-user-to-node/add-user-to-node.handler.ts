@@ -1,4 +1,4 @@
-import { IEventHandler } from '@nestjs/cqrs';
+import { IEventHandler, QueryBus } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
@@ -8,6 +8,8 @@ import {
 } from '@remnawave/node-contract/build/commands';
 
 import { getVlessFlowFromDbInbound } from '@common/utils/flow/get-vless-flow';
+
+import { GetUserWithResolvedInboundsQuery } from '@modules/users/queries/get-user-with-resolved-inbounds';
 
 import { NodeUsersQueueService } from '@queue/node-users/node-users.service';
 
@@ -21,10 +23,24 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
     constructor(
         private readonly nodesRepository: NodesRepository,
         private readonly nodeUsersQueue: NodeUsersQueueService,
+        private readonly queryBus: QueryBus,
     ) {}
     async handle(event: AddUserToNodeEvent) {
         try {
-            const userEntity = event.user;
+            const userEntity = await this.queryBus.execute(
+                new GetUserWithResolvedInboundsQuery(event.userUuid),
+            );
+
+            if (!userEntity.isOk || !userEntity.response) {
+                return;
+            }
+
+            const { username, trojanPassword, vlessUuid, ssPassword, inbounds } =
+                userEntity.response;
+
+            if (inbounds.length === 0) {
+                return;
+            }
 
             const nodes = await this.nodesRepository.findConnectedNodes();
 
@@ -32,28 +48,24 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
                 return;
             }
 
-            if (userEntity.activeUserInbounds.length === 0) {
-                return;
-            }
-
             const userData: AddUserToNodeCommandSdk.Request = {
-                data: userEntity.activeUserInbounds.map((inbound) => {
+                data: inbounds.map((inbound) => {
                     const inboundType = inbound.type;
 
                     switch (inboundType) {
                         case 'trojan':
                             return {
                                 type: inboundType,
-                                username: userEntity.username,
-                                password: userEntity.trojanPassword,
+                                username: username,
+                                password: trojanPassword,
                                 level: 0,
                                 tag: inbound.tag,
                             };
                         case 'vless':
                             return {
                                 type: inboundType,
-                                username: userEntity.username,
-                                uuid: userEntity.vlessUuid,
+                                username: username,
+                                uuid: vlessUuid,
                                 flow: getVlessFlowFromDbInbound(inbound),
                                 level: 0,
                                 tag: inbound.tag,
@@ -61,8 +73,8 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
                         case 'shadowsocks':
                             return {
                                 type: inboundType,
-                                username: userEntity.username,
-                                password: userEntity.ssPassword,
+                                username: username,
+                                password: ssPassword,
                                 level: 0,
                                 tag: inbound.tag,
                                 cipherType: CipherType.CHACHA20_POLY1305,
@@ -75,11 +87,17 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
             };
 
             for (const node of nodes) {
-                const excludedTags = new Set(node.excludedInbounds.map((inbound) => inbound.tag));
+                // TODO: check later
+
+                if (node.activeInbounds.length === 0 || !node.activeConfigProfileUuid) {
+                    continue;
+                }
+
+                const activeTags = new Set(node.activeInbounds.map((inbound) => inbound.tag));
 
                 const filteredData = {
                     ...userData,
-                    data: userData.data.filter((item) => !excludedTags.has(item.tag)),
+                    data: userData.data.filter((item) => activeTags.has(item.tag)),
                 };
 
                 if (filteredData.data.length === 0) {

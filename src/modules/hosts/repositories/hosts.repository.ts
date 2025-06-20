@@ -7,9 +7,10 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { ICrud } from '@common/types/crud-port';
+import { getKyselyUuid } from '@common/helpers';
 import { TSecurityLayers } from '@libs/contracts/constants';
 
-import { HostWithInboundTagEntity } from '../entities/host-with-inbound-tag.entity';
+import { HostWithRawInbound } from '../entities/host-with-inbound-tag.entity';
 import { HostsEntity } from '../entities/hosts.entity';
 import { HostsConverter } from '../hosts.converter';
 
@@ -100,10 +101,17 @@ export class HostsRepository implements ICrud<HostsEntity> {
         return !!result;
     }
 
-    public async setInboundToManyHosts(uuids: string[], inboundUuid: string): Promise<boolean> {
+    public async setInboundToManyHosts(
+        uuids: string[],
+        configProfileUuid: string,
+        configProfileInboundUuid: string,
+    ): Promise<boolean> {
         const result = await this.prisma.tx.hosts.updateMany({
             where: { uuid: { in: uuids } },
-            data: { inboundUuid },
+            data: {
+                configProfileUuid,
+                configProfileInboundUuid,
+            },
         });
         return !!result;
     }
@@ -115,35 +123,44 @@ export class HostsRepository implements ICrud<HostsEntity> {
         });
         return !!result;
     }
-    public async findActiveHostsByUserUuid(userUuid: string): Promise<HostWithInboundTagEntity[]> {
-        const list = await this.prisma.tx.hosts.findMany({
-            where: {
-                isDisabled: false,
-                inboundTag: {
-                    activeUserInbounds: {
-                        some: {
-                            userUuid,
-                        },
-                    },
-                },
-            },
-            include: {
-                inboundTag: true,
-            },
-            orderBy: {
-                viewPosition: 'asc',
-            },
-        });
 
-        return list.map(
-            (host) =>
-                new HostWithInboundTagEntity({
-                    ...host,
-                    securityLayer: host.securityLayer as TSecurityLayers,
-                    xHttpExtraParams: host.xHttpExtraParams as object,
+    public async findActiveHostsByUserUuid(userUuid: string): Promise<HostWithRawInbound[]> {
+        const hosts = await this.prisma.tx.$kysely
+            .selectFrom('hosts')
+            .innerJoin(
+                'internalSquadInbounds',
+                'internalSquadInbounds.inboundUuid',
+                'hosts.configProfileInboundUuid',
+            )
+            .innerJoin(
+                'internalSquadMembers',
+                'internalSquadMembers.internalSquadUuid',
+                'internalSquadInbounds.internalSquadUuid',
+            )
+
+            .innerJoin(
+                'configProfileInbounds',
+                'configProfileInbounds.uuid',
+                'hosts.configProfileInboundUuid',
+            )
+
+            .where('hosts.isDisabled', '=', false)
+            .where('internalSquadMembers.userUuid', '=', getKyselyUuid(userUuid))
+            .selectAll('hosts')
+            .select(['configProfileInbounds.rawInbound', 'configProfileInbounds.tag'])
+            .orderBy('hosts.viewPosition', 'asc')
+            .execute();
+
+        return hosts.map(
+            (h) =>
+                new HostWithRawInbound({
+                    ...h,
+                    securityLayer: h.securityLayer as TSecurityLayers,
+                    xHttpExtraParams: h.xhttpExtraParams,
                 }),
         );
     }
+
     public async reorderMany(dto: IReorderHost[]): Promise<boolean> {
         await this.prisma.withTransaction(async () => {
             for (const { uuid, viewPosition } of dto) {

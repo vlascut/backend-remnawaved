@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { TemplateKeys } from '@libs/contracts/constants/templates/template-keys';
 import { USER_STATUSES_TEMPLATE } from '@libs/contracts/constants';
 
-import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
+import { UserEntity } from '@modules/users/entities';
 
 import { prettyBytesUtil } from '../bytes';
 
@@ -25,11 +25,7 @@ export class TemplateEngine {
         return hasReplacement ? result : template;
     }
 
-    static formatWithUser(
-        template: string,
-        user: UserWithActiveInboundsEntity,
-        subPublicDomain: string,
-    ): string {
+    static formatWithUser(template: string, user: UserEntity, subPublicDomain: string): string {
         return this.replace(template, {
             DAYS_LEFT: dayjs(user.expireAt).diff(dayjs(), 'day'),
             TRAFFIC_USED: prettyBytesUtil(user.usedTrafficBytes, true, 3),

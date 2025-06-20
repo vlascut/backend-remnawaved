@@ -4,7 +4,6 @@ import { HostsEntity } from '../entities/hosts.entity';
 
 export class UpdateHostResponseModel {
     public uuid: string;
-    public inboundUuid: string;
     public viewPosition: number;
     public remark: string;
     public address: string;
@@ -14,14 +13,16 @@ export class UpdateHostResponseModel {
     public host: null | string;
     public alpn: null | string;
     public fingerprint: null | string;
-    public allowInsecure: boolean;
     public isDisabled: boolean;
     public securityLayer: TSecurityLayers;
     public xHttpExtraParams: null | object;
 
+    public configProfileUuid: string | null;
+    public configProfileInboundUuid: string | null;
+
     constructor(data: HostsEntity) {
         this.uuid = data.uuid;
-        this.inboundUuid = data.inboundUuid;
+
         this.viewPosition = data.viewPosition;
         this.remark = data.remark;
         this.address = data.address;
@@ -31,9 +32,12 @@ export class UpdateHostResponseModel {
         this.host = data.host;
         this.alpn = data.alpn;
         this.fingerprint = data.fingerprint;
-        this.allowInsecure = data.allowInsecure;
+
         this.isDisabled = data.isDisabled;
         this.securityLayer = data.securityLayer;
         this.xHttpExtraParams = data.xHttpExtraParams;
+
+        this.configProfileUuid = data.configProfileUuid;
+        this.configProfileInboundUuid = data.configProfileInboundUuid;
     }
 }

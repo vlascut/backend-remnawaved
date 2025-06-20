@@ -14,10 +14,9 @@ import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { TriggerThresholdNotificationCommand } from '@modules/users/commands/trigger-threshold-notification';
 import { UpdateExceededTrafficUsersCommand } from '@modules/users/commands/update-exceeded-users';
+import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 import { UpdateExpiredUsersCommand } from '@modules/users/commands/update-expired-users';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
-import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
-import { UserWithActiveInboundsEntity } from '@modules/users/entities';
 
 import { StartAllNodesQueueService } from '@queue/start-all-nodes';
 
@@ -86,7 +85,17 @@ export class UserJobsQueueProcessor extends WorkerHost {
 
             await pMap(usersResponse.response, async (userUuid) => {
                 try {
-                    const userResponse = await this.getUserByUuid(userUuid.uuid);
+                    const userResponse = await this.queryBus.execute(
+                        new GetUserByUniqueFieldQuery(
+                            {
+                                uuid: userUuid.uuid,
+                            },
+                            {
+                                activeInternalSquads: true,
+                                lastConnectedNode: true,
+                            },
+                        ),
+                    );
                     if (!userResponse.isOk || !userResponse.response) {
                         return;
                     }
@@ -99,7 +108,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
                     );
 
                     // TODO: find a better way to do this. If previous user status was limited, this event will throw warning.
-                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user));
+                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
                 } catch (error) {
                     this.logger.error(
                         `Error handling "${UserJobsJobNames.findExpiredUsers}" job: ${error}`,
@@ -146,7 +155,12 @@ export class UserJobsQueueProcessor extends WorkerHost {
 
             await pMap(usersResponse.response, async (userUuid) => {
                 try {
-                    const userResponse = await this.getUserByUuid(userUuid.uuid);
+                    const userResponse = await this.queryBus.execute(
+                        new GetUserByUniqueFieldQuery({
+                            uuid: userUuid.uuid,
+                        }),
+                    );
+
                     if (!userResponse.isOk || !userResponse.response) {
                         this.logger.debug('User not found');
                         return;
@@ -159,7 +173,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
                         new UserEvent(user, EVENTS.USER.LIMITED),
                     );
 
-                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user));
+                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
                 } catch (error) {
                     this.logger.error(
                         `Error handling "${UserJobsJobNames.findExceededUsers}" job: ${error}`,
@@ -220,7 +234,12 @@ export class UserJobsQueueProcessor extends WorkerHost {
                     usersResponse.response,
                     async (userUuid) => {
                         try {
-                            const userResponse = await this.getUserByUuid(userUuid.uuid);
+                            const userResponse = await this.queryBus.execute(
+                                new GetUserByUniqueFieldQuery({
+                                    uuid: userUuid.uuid,
+                                }),
+                            );
+
                             if (!userResponse.isOk || !userResponse.response) {
                                 this.logger.debug('User not found');
                                 return;
@@ -254,15 +273,6 @@ export class UserJobsQueueProcessor extends WorkerHost {
                 continue;
             }
         }
-    }
-
-    private async getUserByUuid(
-        uuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        return this.queryBus.execute<
-            GetUserByUuidQuery,
-            ICommandResponse<UserWithActiveInboundsEntity>
-        >(new GetUserByUuidQuery(uuid));
     }
 
     private async updateExpiredUsers(): Promise<ICommandResponse<{ uuid: string }[]>> {

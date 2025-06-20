@@ -5,14 +5,16 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["queryCompiler", "driverAdapters"]
+  provider = "prisma-client-js"
+  // previewFeatures = ["queryCompiler", "driverAdapters"]
 }
 
 generator kysely {
   provider           = "prisma-kysely"
   camelCase          = true
-  bigIntTypeOverride = "number"
+  bigIntTypeOverride = "bigint"
+  jsonTypeOverride   = "object"
+  enumFileName       = "kyselyEnums"
 }
 
 datasource db {
@@ -21,17 +23,22 @@ datasource db {
 }
 
 model Users {
-  uuid                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  subscriptionUuid         String    @unique @default(dbgenerated("gen_random_uuid()")) @map("subscription_uuid") @db.Uuid
-  shortUuid                String    @unique @map("short_uuid")
-  username                 String    @unique @map("username")
-  status                   String    @default("ACTIVE") @map("status") // ENUM: active, disabled, limimted, expired
-  usedTrafficBytes         BigInt    @default(0) @map("used_traffic_bytes")
-  lifetimeUsedTrafficBytes BigInt    @default(0) @map("lifetime_used_traffic_bytes")
-  trafficLimitBytes        BigInt    @default(0) @map("traffic_limit_bytes")
-  trafficLimitStrategy     String    @default("NO_RESET") @map("traffic_limit_strategy") // ENUM: no_reset, day, week, month, year
-  subLastUserAgent         String?   @map("sub_last_user_agent")
-  subLastOpenedAt          DateTime? @map("sub_last_opened_at")
+  uuid      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shortUuid String @unique @map("short_uuid")
+  username  String @unique @map("username")
+
+  /// @kyselyType('ACTIVE' | 'DISABLED' | 'LIMITED' | 'EXPIRED')
+  status String @default("ACTIVE") @map("status") // ENUM: active, disabled, limimted, expired
+
+  usedTrafficBytes         BigInt @default(0) @map("used_traffic_bytes")
+  lifetimeUsedTrafficBytes BigInt @default(0) @map("lifetime_used_traffic_bytes")
+  trafficLimitBytes        BigInt @default(0) @map("traffic_limit_bytes")
+
+  /// @kyselyType('NO_RESET' | 'DAY' | 'WEEK' | 'MONTH')
+  trafficLimitStrategy String @default("NO_RESET") @map("traffic_limit_strategy") // ENUM: no_reset, day, week, month, year
+
+  subLastUserAgent String?   @map("sub_last_user_agent")
+  subLastOpenedAt  DateTime? @map("sub_last_opened_at")
 
   expireAt DateTime @map("expire_at")
 
@@ -60,10 +67,11 @@ model Users {
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   nodesUserUsageHistory NodesUserUsageHistory[]
-  activeUserInbounds    ActiveUserInbounds[]
   userTrafficHistory    UserTrafficHistory[]
   hwidUserDevices       HwidUserDevices[]
   lastConnectedNode     Nodes?                  @relation("UserLastConnectedNode", fields: [lastConnectedNodeUuid], references: [uuid], onDelete: SetNull)
+
+  activeInternalSquads InternalSquadMembers[]
 
   @@index([tag])
   @@map("users")
@@ -114,6 +122,8 @@ model Nodes {
   address String @unique @map("address")
   port    Int?   @map("port")
 
+  activeConfigProfileUuid String? @map("active_config_profile_uuid") @db.Uuid
+
   isConnected  Boolean @default(false) @map("is_connected")
   isConnecting Boolean @default(false) @map("is_connecting")
   isDisabled   Boolean @default(false) @map("is_disabled")
@@ -148,21 +158,12 @@ model Nodes {
   nodesTrafficUsageHistory NodesTrafficUsageHistory[]
   nodesUserUsageHistory    NodesUserUsageHistory[]
   nodesUsageHistory        NodesUsageHistory[]
-  inboundsExclusions       NodeInboundExclusions[]
   usersWithLastConnection  Users[]                    @relation("UserLastConnectedNode")
 
+  activeConfigProfile          ConfigProfiles?                @relation(fields: [activeConfigProfileUuid], references: [uuid], onDelete: SetNull)
+  configProfileInboundsToNodes ConfigProfileInboundsToNodes[]
+
   @@map("nodes")
-}
-
-model NodeInboundExclusions {
-  nodeUuid    String @map("node_uuid") @db.Uuid
-  inboundUuid String @map("inbound_uuid") @db.Uuid
-
-  node    Nodes    @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
-  inbound Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
-
-  @@id([nodeUuid, inboundUuid])
-  @@map("node_inbound_exclusions")
 }
 
 model NodesTrafficUsageHistory {
@@ -222,31 +223,8 @@ model UserTrafficHistory {
   @@map("user_traffic_history")
 }
 
-model XrayConfig {
-  uuid      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  config    Json?    @map("config")
-  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
-
-  @@map("xray_config")
-}
-
-model Inbounds {
-  uuid     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tag      String  @unique @map("tag")
-  type     String  @map("type")
-  network  String? @map("network")
-  security String? @map("security")
-
-  hosts              Hosts[]
-  activeUserInbounds ActiveUserInbounds[]
-  nodeExclusions     NodeInboundExclusions[]
-
-  @@map("inbounds")
-}
-
 model Hosts {
   uuid             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  inboundUuid      String  @map("inbound_uuid") @db.Uuid
   viewPosition     Int     @default(autoincrement()) @map("view_position")
   remark           String  @unique @map("remark")
   address          String  @map("address")
@@ -257,25 +235,16 @@ model Hosts {
   alpn             String? @map("alpn") // ENUM: h2, http/1.1, h2,http/1.1 
   fingerprint      String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
   securityLayer    String  @default("DEFAULT") @map("security_layer") // ENUM: DEFAULT, TLS, NONE
-  allowInsecure    Boolean @default(false) @map("allowinsecure")
   xHttpExtraParams Json?   @map("xhttp_extra_params")
   isDisabled       Boolean @default(false) @map("is_disabled")
 
-  inboundTag Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
+  configProfileUuid        String? @map("config_profile_uuid") @db.Uuid
+  configProfileInboundUuid String? @map("config_profile_inbound_uuid") @db.Uuid
+
+  configProfileInbounds ConfigProfileInbounds? @relation(fields: [configProfileInboundUuid], references: [uuid], onDelete: SetNull)
+  configProfiles        ConfigProfiles?        @relation(fields: [configProfileUuid], references: [uuid], onDelete: SetNull)
 
   @@map("hosts")
-}
-
-model ActiveUserInbounds {
-  userUuid    String @map("user_uuid") @db.Uuid
-  inboundUuid String @map("inbound_uuid") @db.Uuid
-
-  user    Users    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
-  inbound Inbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
-
-  @@id([userUuid, inboundUuid])
-  @@index([userUuid])
-  @@map("active_user_inbounds")
 }
 
 model SubscriptionTemplate {
@@ -329,4 +298,89 @@ model HwidUserDevices {
 
   @@id([hwid, userUuid])
   @@map("hwid_user_devices")
+}
+
+model InternalSquads {
+  uuid String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String @unique @map("name")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  internalSquadMembers  InternalSquadMembers[]
+  internalSquadInbounds InternalSquadInbounds[]
+
+  @@map("internal_squads")
+}
+
+model InternalSquadMembers {
+  internalSquadUuid String @map("internal_squad_uuid") @db.Uuid
+  userUuid          String @map("user_uuid") @db.Uuid
+
+  internalSquad InternalSquads @relation(fields: [internalSquadUuid], references: [uuid], onDelete: Cascade)
+  user          Users          @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@id([internalSquadUuid, userUuid])
+  @@index([internalSquadUuid])
+  @@index([userUuid])
+  @@map("internal_squad_members")
+}
+
+model InternalSquadInbounds {
+  internalSquadUuid String @map("internal_squad_uuid") @db.Uuid
+  inboundUuid       String @map("inbound_uuid") @db.Uuid
+
+  internalSquad InternalSquads        @relation(fields: [internalSquadUuid], references: [uuid], onDelete: Cascade)
+  inbound       ConfigProfileInbounds @relation(fields: [inboundUuid], references: [uuid], onDelete: Cascade)
+
+  @@id([internalSquadUuid, inboundUuid])
+  @@map("internal_squad_inbounds")
+}
+
+model ConfigProfiles {
+  uuid   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name   String @unique @map("name")
+  config Json   @map("config")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  nodes                 Nodes[]
+  configProfileInbounds ConfigProfileInbounds[]
+  hosts                 Hosts[]
+
+  @@map("config_profiles")
+}
+
+model ConfigProfileInbounds {
+  uuid        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileUuid String @map("profile_uuid") @db.Uuid
+
+  tag      String  @map("tag")
+  type     String  @map("type")
+  network  String? @map("network")
+  security String? @map("security")
+  port     Int?    @map("port")
+
+  rawInbound Json? @map("raw_inbound")
+
+  profile ConfigProfiles @relation(fields: [profileUuid], references: [uuid], onDelete: Cascade)
+
+  hosts                        Hosts[]
+  configProfileInboundsToNodes ConfigProfileInboundsToNodes[]
+  internalSquadInbounds        InternalSquadInbounds[]
+
+  @@unique([tag])
+  @@map("config_profile_inbounds")
+}
+
+model ConfigProfileInboundsToNodes {
+  configProfileInboundUuid String @map("config_profile_inbound_uuid") @db.Uuid
+  nodeUuid                 String @map("node_uuid") @db.Uuid
+
+  configProfileInbounds ConfigProfileInbounds @relation(fields: [configProfileInboundUuid], references: [uuid], onDelete: Cascade)
+  node                  Nodes                 @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
+
+  @@id([configProfileInboundUuid, nodeUuid])
+  @@map("config_profile_inbounds_to_nodes")
 }

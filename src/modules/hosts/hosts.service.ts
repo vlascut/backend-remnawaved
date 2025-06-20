@@ -1,10 +1,12 @@
 import { Prisma } from '@prisma/client';
 
 import { Injectable, Logger } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
+import { GetConfigProfileByUuidQuery } from '@modules/config-profiles/queries/get-config-profile-by-uuid';
 import { ReorderHostRequestDto } from '@modules/hosts/dtos/reorder-hosts.dto';
 
 import { DeleteHostResponseModel } from './models/delete-host.response.model';
@@ -16,7 +18,10 @@ import { UpdateHostRequestDto } from './dtos';
 @Injectable()
 export class HostsService {
     private readonly logger = new Logger(HostsService.name);
-    constructor(private readonly hostsRepository: HostsRepository) {}
+    constructor(
+        private readonly hostsRepository: HostsRepository,
+        private readonly queryBus: QueryBus,
+    ) {}
 
     public async createHost(dto: CreateHostRequestDto): Promise<ICommandResponse<HostsEntity>> {
         try {
@@ -235,10 +240,39 @@ export class HostsService {
 
     public async setInboundToHosts(
         uuids: string[],
-        inboundUuid: string,
+        configProfileUuid: string,
+        configProfileInboundUuid: string,
     ): Promise<ICommandResponse<HostsEntity[]>> {
         try {
-            await this.hostsRepository.setInboundToManyHosts(uuids, inboundUuid);
+            // TODO: check this
+
+            const configProfile = await this.queryBus.execute(
+                new GetConfigProfileByUuidQuery(configProfileUuid),
+            );
+
+            if (!configProfile.isOk || !configProfile.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_NOT_FOUND,
+                };
+            }
+
+            const configProfileInbound = configProfile.response.inbounds.find(
+                (inbound) => inbound.uuid === configProfileInboundUuid,
+            );
+
+            if (!configProfileInbound) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                };
+            }
+
+            await this.hostsRepository.setInboundToManyHosts(
+                uuids,
+                configProfileUuid,
+                configProfileInboundUuid,
+            );
 
             const result = await this.getAllHosts();
 

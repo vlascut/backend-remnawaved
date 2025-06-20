@@ -14,14 +14,15 @@ import {
 } from '@common/helpers/xray-config/interfaces/transport.config';
 import { RawObject } from '@common/helpers/xray-config/interfaces/transport.config';
 import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
-import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
+import { resolveInboundAndPublicKey } from '@common/helpers/xray-config';
 import { ICommandResponse } from '@common/types/command-response.type';
+import { InboundObject } from '@common/helpers/xray-config/interfaces';
 import { SECURITY_LAYERS, USERS_STATUS } from '@libs/contracts/constants';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
-import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { HostWithInboundTagEntity } from '@modules/hosts/entities/host-with-inbound-tag.entity';
+import { HostWithRawInbound } from '@modules/hosts/entities/host-with-inbound-tag.entity';
+import { UserEntity } from '@modules/users/entities';
 
 import { IFormattedHost } from './interfaces/formatted-hosts.interface';
 
@@ -39,9 +40,8 @@ export class FormatHostsService {
     }
 
     public async generateFormattedHosts(
-        config: XRayConfig,
-        hosts: HostWithInboundTagEntity[],
-        user: UserWithActiveInboundsEntity,
+        hosts: HostWithRawInbound[],
+        user: UserEntity,
     ): Promise<IFormattedHost[]> {
         const formattedHosts: IFormattedHost[] = [];
 
@@ -76,7 +76,19 @@ export class FormatHostsService {
             }
         }
 
-        if (hosts.length === 0 && user.activeUserInbounds.length > 0) {
+        if (hosts.length === 0 && user.activeInternalSquads.length > 0) {
+            formattedHosts.push(
+                ...this.createFallbackHosts([
+                    '→ Remnawave',
+                    '→ Did you forget to add internal squads?',
+                    '→ No internal squads found',
+                ]),
+            );
+
+            return formattedHosts;
+        }
+
+        if (hosts.length === 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
                     '→ Remnawave',
@@ -88,32 +100,16 @@ export class FormatHostsService {
             return formattedHosts;
         }
 
-        if (user.activeUserInbounds.length === 0) {
-            formattedHosts.push(
-                ...this.createFallbackHosts([
-                    '→ Remnawave',
-                    '→ User has no active inbounds',
-                    '→ No active inbounds found',
-                ]),
-            );
-
-            return formattedHosts;
-        }
-
-        const publicKeyMap = await config.resolveInboundAndPublicKey();
+        const publicKeyMap = await resolveInboundAndPublicKey(hosts.map((host) => host.rawInbound));
 
         for (const inputHost of hosts) {
-            const inbound = config.getInbound(inputHost.inboundTag.tag);
-
-            if (!inbound) {
-                continue;
-            }
-
             const remark = TemplateEngine.formatWithUser(
                 inputHost.remark,
                 user,
                 this.subPublicDomain,
             );
+
+            const inbound = inputHost.rawInbound as InboundObject;
 
             let address = inputHost.address;
 

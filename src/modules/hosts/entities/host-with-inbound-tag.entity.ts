@@ -1,11 +1,13 @@
-import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
 import { HostsEntity } from './hosts.entity';
 
-export class HostWithInboundTagEntity extends HostsEntity {
-    public inboundTag: InboundsEntity;
+export class HostWithRawInbound extends HostsEntity {
+    public rawInbound: object | null;
+    public tag: string;
 
-    constructor(data: HostWithInboundTagEntity) {
+    constructor(data: HostWithRawInbound) {
         super(data);
-        this.inboundTag = data.inboundTag;
+
+        this.rawInbound = data.rawInbound;
+        this.tag = data.tag;
     }
 }

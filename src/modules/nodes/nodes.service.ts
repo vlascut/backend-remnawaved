@@ -5,14 +5,14 @@ import { ERRORS, EVENTS } from '@contract/constants';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { QueryBus } from '@nestjs/cqrs';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { toNano } from '@common/utils/nano';
 
 import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
-import { ResetNodeInboundExclusionsByNodeUuidCommand } from '@modules/inbounds/commands/reset-node-inbound-exclusions-by-node-uuid';
+import { GetConfigProfileByUuidQuery } from '@modules/config-profiles/queries/get-config-profile-by-uuid';
 
 import { StartNodeQueueService } from '@queue/start-node/start-node.service';
 import { StopNodeQueueService } from '@queue/stop-node/stop-node.service';
@@ -29,15 +29,15 @@ export class NodesService {
     constructor(
         private readonly nodesRepository: NodesRepository,
         private readonly eventEmitter: EventEmitter2,
-        private readonly commandBus: CommandBus,
         private readonly startAllNodesQueue: StartAllNodesQueueService,
         private readonly startNodeQueue: StartNodeQueueService,
         private readonly stopNodeQueue: StopNodeQueueService,
+        private readonly queryBus: QueryBus,
     ) {}
 
     public async createNode(body: CreateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
         try {
-            const { excludedInbounds, ...nodeData } = body;
+            const { activeInbounds, ...nodeData } = body;
 
             const nodeEntity = new NodesEntity({
                 ...nodeData,
@@ -56,11 +56,28 @@ export class NodesService {
             });
             const result = await this.nodesRepository.create(nodeEntity);
 
-            if (excludedInbounds) {
-                await this.resetNodeInboundExclusions({
-                    nodeUuid: result.uuid,
-                    excludedInbounds: excludedInbounds,
-                });
+            if (activeInbounds && result.activeConfigProfileUuid) {
+                const configProfile = await this.queryBus.execute(
+                    new GetConfigProfileByUuidQuery(result.activeConfigProfileUuid),
+                );
+
+                if (configProfile.isOk && configProfile.response) {
+                    const inbounds = configProfile.response.inbounds;
+
+                    const areAllInboundsFromConfigProfile = activeInbounds.every(
+                        (activeInboundUuid) =>
+                            inbounds.some((inbound) => inbound.uuid === activeInboundUuid),
+                    );
+
+                    if (areAllInboundsFromConfigProfile) {
+                        await this.nodesRepository.addInboundsToNode(result.uuid, activeInbounds);
+                    } else {
+                        return {
+                            isOk: false,
+                            ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                        };
+                    }
+                }
             }
 
             const node = await this.nodesRepository.findByUUID(result.uuid);
@@ -228,7 +245,7 @@ export class NodesService {
 
     public async updateNode(body: UpdateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
         try {
-            const { excludedInbounds, ...nodeData } = body;
+            const { activeInbounds, ...nodeData } = body;
 
             const node = await this.nodesRepository.findByUUID(body.uuid);
             if (!node) {
@@ -238,11 +255,34 @@ export class NodesService {
                 };
             }
 
-            if (excludedInbounds) {
-                await this.resetNodeInboundExclusions({
-                    nodeUuid: node.uuid,
-                    excludedInbounds: excludedInbounds,
-                });
+            if (activeInbounds) {
+                if (nodeData.activeConfigProfileUuid) {
+                    const configProfile = await this.queryBus.execute(
+                        new GetConfigProfileByUuidQuery(nodeData.activeConfigProfileUuid),
+                    );
+
+                    if (configProfile.isOk && configProfile.response) {
+                        const inbounds = configProfile.response.inbounds;
+
+                        const areAllInboundsFromConfigProfile = activeInbounds.every(
+                            (activeInboundUuid) =>
+                                inbounds.some((inbound) => inbound.uuid === activeInboundUuid),
+                        );
+
+                        if (areAllInboundsFromConfigProfile) {
+                            await this.nodesRepository.removeInboundsFromNode(node.uuid);
+
+                            await this.nodesRepository.addInboundsToNode(node.uuid, activeInbounds);
+                        } else {
+                            return {
+                                isOk: false,
+                                ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                            };
+                        }
+                    }
+                } else {
+                    await this.nodesRepository.removeInboundsFromNode(node.uuid);
+                }
             }
 
             const result = await this.nodesRepository.update({
@@ -375,15 +415,6 @@ export class NodesService {
                 ...ERRORS.ENABLE_NODE_ERROR,
             };
         }
-    }
-
-    private async resetNodeInboundExclusions(
-        dto: ResetNodeInboundExclusionsByNodeUuidCommand,
-    ): Promise<ICommandResponse<number>> {
-        return this.commandBus.execute<
-            ResetNodeInboundExclusionsByNodeUuidCommand,
-            ICommandResponse<number>
-        >(new ResetNodeInboundExclusionsByNodeUuidCommand(dto.nodeUuid, dto.excludedInbounds));
     }
 
     public async reorderNodes(

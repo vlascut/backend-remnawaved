@@ -5,13 +5,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { QueryBus } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
-import { ICommandResponse } from '@common/types/command-response.type';
 import { EVENTS } from '@libs/contracts/constants';
 
 import { UserEvent } from '@integration-modules/notifications/interfaces';
 
-import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid/get-user-by-uuid.query';
+import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 
 import { FirstConnectedUsersJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
@@ -45,7 +43,17 @@ export class FirstConnectedUsersQueueProcessor extends WorkerHost {
         try {
             const userUuids = job.data;
 
-            const user = await this.getUserByUuid(userUuids.uuid);
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        uuid: userUuids.uuid,
+                    },
+                    {
+                        activeInternalSquads: true,
+                        lastConnectedNode: true,
+                    },
+                ),
+            );
 
             if (!user.isOk || !user.response) {
                 return { isOk: false };
@@ -60,14 +68,5 @@ export class FirstConnectedUsersQueueProcessor extends WorkerHost {
                 `Error handling "${FirstConnectedUsersJobNames.handleFirstConnectedUsers}" job: ${error}`,
             );
         }
-    }
-
-    private async getUserByUuid(
-        uuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        return this.queryBus.execute<
-            GetUserByUuidQuery,
-            ICommandResponse<UserWithActiveInboundsEntity>
-        >(new GetUserByUuidQuery(uuid));
     }
 }

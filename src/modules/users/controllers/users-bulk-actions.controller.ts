@@ -16,7 +16,7 @@ import {
     BulkResetTrafficUsersCommand,
     BulkRevokeUsersSubscriptionCommand,
     BulkUpdateUsersCommand,
-    BulkUpdateUsersInboundsCommand,
+    BulkUpdateUsersSquadsCommand,
 } from '@libs/contracts/commands';
 import { USERS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
@@ -33,8 +33,8 @@ import {
     BulkResetTrafficUsersResponseDto,
     BulkRevokeUsersSubscriptionRequestDto,
     BulkRevokeUsersSubscriptionResponseDto,
-    BulkUpdateUsersInboundsRequestDto,
-    BulkUpdateUsersInboundsResponseDto,
+    BulkUpdateUsersSquadsRequestDto,
+    BulkUpdateUsersSquadsResponseDto,
     BulkUpdateUsersRequestDto,
     BulkUpdateUsersResponseDto,
 } from '../dtos';
@@ -156,20 +156,20 @@ export class UsersBulkActionsController {
     }
 
     @ApiOkResponse({
-        type: BulkUpdateUsersInboundsResponseDto,
+        type: BulkUpdateUsersSquadsResponseDto,
         description: 'Users inbounds updated successfully',
     })
     @Endpoint({
-        command: BulkUpdateUsersInboundsCommand,
+        command: BulkUpdateUsersSquadsCommand,
         httpCode: HttpStatus.OK,
-        apiBody: BulkUpdateUsersInboundsRequestDto,
+        apiBody: BulkUpdateUsersSquadsRequestDto,
     })
     async bulkUpdateUsersInbounds(
-        @Body() body: BulkUpdateUsersInboundsRequestDto,
-    ): Promise<BulkUpdateUsersInboundsResponseDto> {
-        const result = await this.usersService.bulkAddInboundsToUsers(
+        @Body() body: BulkUpdateUsersSquadsRequestDto,
+    ): Promise<BulkUpdateUsersSquadsResponseDto> {
+        const result = await this.usersService.bulkUpdateUsersInternalSquads(
             body.uuids,
-            body.activeUserInbounds,
+            body.activeInternalSquads,
         );
 
         const data = errorHandler(result);

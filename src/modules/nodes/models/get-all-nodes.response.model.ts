@@ -1,6 +1,6 @@
 import { fromNanoToNumber } from '@common/utils/nano';
 
-import { InboundsEntity } from '@modules/inbounds/entities';
+import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
 
 import { NodesEntity } from '../entities';
 
@@ -35,7 +35,8 @@ export class GetAllNodesResponseModel {
     public createdAt: Date;
     public updatedAt: Date;
 
-    public excludedInbounds: InboundsEntity[];
+    public activeConfigProfileUuid: string | null;
+    public activeInbounds: ConfigProfileInboundEntity[];
 
     constructor(data: NodesEntity) {
         this.uuid = data.uuid;
@@ -68,6 +69,7 @@ export class GetAllNodesResponseModel {
         this.viewPosition = data.viewPosition;
         this.countryCode = data.countryCode;
 
-        this.excludedInbounds = data.excludedInbounds;
+        this.activeConfigProfileUuid = data.activeConfigProfileUuid;
+        this.activeInbounds = data.activeInbounds;
     }
 }

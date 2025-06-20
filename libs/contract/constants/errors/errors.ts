@@ -538,4 +538,85 @@ export const ERRORS = {
         message: 'Vacuum table error',
         httpCode: 500,
     },
+    GET_CONFIG_PROFILES_ERROR: {
+        code: 'A109',
+        message: 'Get config profiles error',
+        httpCode: 500,
+    },
+    GET_CONFIG_PROFILE_BY_UUID_ERROR: {
+        code: 'A110',
+        message: 'Get config profile by UUID error',
+        httpCode: 500,
+    },
+    CONFIG_PROFILE_NOT_FOUND: {
+        code: 'A111',
+        message: 'Config profile not found',
+        httpCode: 404,
+    },
+    CREATE_CONFIG_PROFILE_ERROR: {
+        code: 'A112',
+        message: 'Create config profile error',
+        httpCode: 500,
+    },
+    INBOUNDS_WITH_SAME_TAG_ALREADY_EXISTS: {
+        code: 'A113',
+        message: 'Inbounds with same tag already exists in database. Inbound tags must be unique.',
+        httpCode: 409,
+    },
+    CONFIG_PROFILE_NAME_ALREADY_EXISTS: {
+        code: 'A114',
+        message:
+            'Config profile name already exists in database. Config profile names must be unique.',
+        httpCode: 409,
+    },
+    GET_INBOUNDS_BY_PROFILE_UUID_ERROR: {
+        code: 'A115',
+        message: 'Get inbounds by profile UUID error',
+        httpCode: 500,
+    },
+    GET_INTERNAL_SQUADS_ERROR: {
+        code: 'A116',
+        message: 'Get internal squads error',
+        httpCode: 500,
+    },
+    GET_INTERNAL_SQUAD_BY_UUID_ERROR: {
+        code: 'A117',
+        message: 'Get internal squad by UUID error',
+        httpCode: 500,
+    },
+    INTERNAL_SQUAD_NOT_FOUND: {
+        code: 'A118',
+        message: 'Internal squad not found',
+        httpCode: 404,
+    },
+    CREATE_INTERNAL_SQUAD_ERROR: {
+        code: 'A119',
+        message: 'Create internal squad error',
+        httpCode: 500,
+    },
+    INTERNAL_SQUAD_NAME_ALREADY_EXISTS: {
+        code: 'A120',
+        message: 'Internal squad name already exists',
+        httpCode: 409,
+    },
+    UPDATE_INTERNAL_SQUAD_ERROR: {
+        code: 'A121',
+        message: 'Update internal squad error',
+        httpCode: 500,
+    },
+    DELETE_INTERNAL_SQUAD_ERROR: {
+        code: 'A122',
+        message: 'Delete internal squad error',
+        httpCode: 500,
+    },
+    CREATE_USER_WITH_INTERNAL_SQUAD_ERROR: {
+        code: 'A123',
+        message: 'Create user with internal squad error',
+        httpCode: 500,
+    },
+    CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE: {
+        code: 'A124',
+        message: 'Config profile inbound not found in specified profile',
+        httpCode: 404,
+    },
 } as const;

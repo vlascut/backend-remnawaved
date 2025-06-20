@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 
 import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
 
-import { InboundsWithTagsAndType } from '@modules/inbounds/interfaces/inbounds-with-tags-and-type.interface';
 import { UserForConfigEntity } from '@modules/users/entities/users-for-config';
 
 import {
@@ -16,6 +15,15 @@ import {
     TrojanSettings,
     VLessSettings,
 } from './interfaces';
+
+interface InboundsWithTagsAndType {
+    tag: string;
+    type: string;
+    network: string | null;
+    security: string | null;
+    port: number | null;
+    rawInbound: object | null;
+}
 
 export class XRayConfig {
     private config: IXrayConfig;
@@ -142,6 +150,10 @@ export class XRayConfig {
         );
     }
 
+    public leaveInbounds(tags: string[]): void {
+        this.config.inbounds = this.config.inbounds.filter((inbound) => tags.includes(inbound.tag));
+    }
+
     private getInbounds(): Inbound[] {
         return this.inbounds;
     }
@@ -224,9 +236,13 @@ export class XRayConfig {
             .filter((inbound) => this.isInboundWithUsers(inbound.protocol))
             .map((inbound) => ({
                 tag: inbound.tag,
+                rawInbound: inbound as unknown as object,
                 type: inbound.protocol,
                 network: inbound.streamSettings?.network ?? null,
                 security: inbound.streamSettings?.security ?? null,
+                port: inbound.port.toString().includes(',')
+                    ? Number(inbound.port.toString().split(',')[0])
+                    : Number(inbound.port),
             }));
     }
 
