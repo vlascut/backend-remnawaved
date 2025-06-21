@@ -146,6 +146,8 @@ model Nodes {
   trafficUsedBytes        BigInt? @default(0) @map("traffic_used_bytes")
   notifyPercent           Int?    @default(0) @map("notify_percent")
 
+  providerUuid String? @map("provider_uuid") @db.Uuid
+
   viewPosition Int    @default(autoincrement()) @map("view_position")
   countryCode  String @default("XX") @map("country_code")
 
@@ -156,13 +158,15 @@ model Nodes {
   createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
   updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
-  nodesTrafficUsageHistory NodesTrafficUsageHistory[]
-  nodesUserUsageHistory    NodesUserUsageHistory[]
-  nodesUsageHistory        NodesUsageHistory[]
-  usersWithLastConnection  Users[]                    @relation("UserLastConnectedNode")
-
-  activeConfigProfile          ConfigProfiles?                @relation(fields: [activeConfigProfileUuid], references: [uuid], onDelete: SetNull)
+  nodesTrafficUsageHistory     NodesTrafficUsageHistory[]
+  nodesUserUsageHistory        NodesUserUsageHistory[]
+  nodesUsageHistory            NodesUsageHistory[]
+  usersWithLastConnection      Users[]                        @relation("UserLastConnectedNode")
   configProfileInboundsToNodes ConfigProfileInboundsToNodes[]
+  infraBillingNodes            InfraBillingNodes[]
+
+  activeConfigProfile ConfigProfiles? @relation(fields: [activeConfigProfileUuid], references: [uuid], onDelete: SetNull)
+  provider            InfraProviders? @relation(fields: [providerUuid], references: [uuid], onDelete: SetNull)
 
   @@map("nodes")
 }
@@ -384,4 +388,49 @@ model ConfigProfileInboundsToNodes {
 
   @@id([configProfileInboundUuid, nodeUuid])
   @@map("config_profile_inbounds_to_nodes")
+}
+
+model InfraProviders {
+  uuid        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String  @unique @map("name")
+  faviconLink String? @map("favicon_link")
+  loginUrl    String? @map("login_url")
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  infraBillingNodes   InfraBillingNodes[]
+  infraBillingHistory InfraBillingHistory[]
+  nodes               Nodes[]
+
+  @@map("infra_providers")
+}
+
+model InfraBillingNodes {
+  uuid          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nodeUuid      String   @map("node_uuid") @db.Uuid
+  providerUuid  String   @map("provider_uuid") @db.Uuid
+  nextBillingAt DateTime @map("next_billing_at")
+
+  provider InfraProviders @relation(fields: [providerUuid], references: [uuid], onDelete: Cascade)
+  node     Nodes          @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
+
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
+
+  @@unique([nodeUuid, providerUuid])
+  @@index([nextBillingAt])
+  @@map("infra_billing_nodes")
+}
+
+model InfraBillingHistory {
+  uuid         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  providerUuid String @map("provider_uuid") @db.Uuid
+
+  amount   Float    @map("amount")
+  billedAt DateTime @map("billed_at")
+
+  provider InfraProviders @relation(fields: [providerUuid], references: [uuid], onDelete: Cascade)
+
+  @@map("infra_billing_history")
 }

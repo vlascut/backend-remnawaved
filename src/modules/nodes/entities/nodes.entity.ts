@@ -1,6 +1,7 @@
 import { Nodes } from '@prisma/client';
 
 import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
+import { InfraProviderEntity } from '@modules/infra-billing/entities';
 
 import { INodesWithResolvedInbounds } from '../repositories/nodes.repository';
 
@@ -42,6 +43,9 @@ export class NodesEntity implements Nodes {
     public activeConfigProfileUuid: string | null;
     public activeInbounds: ConfigProfileInboundEntity[];
 
+    public providerUuid: string | null;
+    public provider: InfraProviderEntity | null;
+
     constructor(node: Partial<INodesWithResolvedInbounds & Nodes>) {
         Object.assign(this, node);
 
@@ -51,6 +55,10 @@ export class NodesEntity implements Nodes {
             );
         } else {
             this.activeInbounds = [];
+        }
+
+        if (node.provider) {
+            this.provider = new InfraProviderEntity(node.provider);
         }
 
         return this;

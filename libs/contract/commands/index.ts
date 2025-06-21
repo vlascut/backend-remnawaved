@@ -3,6 +3,7 @@ export * from './auth';
 export * from './config-profiles';
 export * from './hosts';
 export * from './hwid';
+export * from './infra-billing';
 export * from './internal-squads';
 export * from './keygen';
 export * from './nodes';

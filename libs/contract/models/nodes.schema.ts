@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { ConfigProfileInboundsSchema } from './config-profile-inbounds.schema';
+import { PartialInfraProviderSchema } from './infra-provider.schema';
 
 export const NodesSchema = z.object({
     uuid: z.string().uuid(),
@@ -47,4 +48,7 @@ export const NodesSchema = z.object({
 
     activeConfigProfileUuid: z.nullable(z.string().uuid()),
     activeInbounds: z.nullable(z.array(ConfigProfileInboundsSchema)),
+
+    providerUuid: z.nullable(z.string().uuid()),
+    provider: z.nullable(PartialInfraProviderSchema),
 });

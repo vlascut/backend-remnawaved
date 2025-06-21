@@ -13,6 +13,7 @@ import { RemnawaveServiceModule } from './remnawave-service/remnawave-service.mo
 import { HwidUserDevicesModule } from './hwid-user-devices/hwid-user-devices.module';
 import { ConfigProfileModule } from './config-profiles/config-profile.module';
 import { InternalSquadModule } from './internal-squads/internal-squad.module';
+import { InfraBillingModule } from './infra-billing/infra-billing.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { ApiTokensModule } from './api-tokens/api-tokens.module';
 import { KeygenModule } from './keygen/keygen.module';
@@ -40,6 +41,7 @@ import { AuthModule } from './auth/auth.module';
         NodesUserUsageHistoryModule,
         HwidUserDevicesModule,
         NodesUsageHistoryModule,
+        InfraBillingModule,
         ConditionalModule.registerWhen(SystemModule, () => isRestApi()),
         ConditionalModule.registerWhen(SubscriptionTemplateModule, () => isRestApi()),
         ConditionalModule.registerWhen(SubscriptionSettingsModule, () => isRestApi()),

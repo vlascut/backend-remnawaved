@@ -624,4 +624,74 @@ export const ERRORS = {
         message: 'Get user accessible nodes error',
         httpCode: 500,
     },
+    GET_INFRA_PROVIDERS_ERROR: {
+        code: 'A126',
+        message: 'Get infra providers error',
+        httpCode: 500,
+    },
+    GET_INFRA_PROVIDER_BY_UUID_ERROR: {
+        code: 'A127',
+        message: 'Get infra provider by UUID error',
+        httpCode: 500,
+    },
+    INFRA_PROVIDER_NOT_FOUND: {
+        code: 'A128',
+        message: 'Infra provider not found',
+        httpCode: 404,
+    },
+    DELETE_INFRA_PROVIDER_BY_UUID_ERROR: {
+        code: 'A129',
+        message: 'Delete infra provider by UUID error',
+        httpCode: 500,
+    },
+    CREATE_INFRA_PROVIDER_ERROR: {
+        code: 'A130',
+        message: 'Create infra provider error',
+        httpCode: 500,
+    },
+    UPDATE_INFRA_PROVIDER_ERROR: {
+        code: 'A131',
+        message: 'Update infra provider error',
+        httpCode: 500,
+    },
+    CREATE_INFRA_BILLING_HISTORY_RECORD_ERROR: {
+        code: 'A132',
+        message: 'Create infra billing history record error',
+        httpCode: 500,
+    },
+    GET_INFRA_BILLING_HISTORY_RECORDS_ERROR: {
+        code: 'A133',
+        message: 'Get infra billing history records error',
+        httpCode: 500,
+    },
+    DELETE_INFRA_BILLING_HISTORY_RECORD_BY_UUID_ERROR: {
+        code: 'A134',
+        message: 'Delete infra billing history record by UUID error',
+        httpCode: 500,
+    },
+    GET_BILLING_NODES_ERROR: {
+        code: 'A135',
+        message: 'Get billing nodes error',
+        httpCode: 500,
+    },
+    UPDATE_INFRA_BILLING_NODE_ERROR: {
+        code: 'A136',
+        message: 'Update infra billing node error',
+        httpCode: 500,
+    },
+    CREATE_INFRA_BILLING_NODE_ERROR: {
+        code: 'A137',
+        message: 'Create infra billing node error',
+        httpCode: 500,
+    },
+    DELETE_INFRA_BILLING_NODE_BY_UUID_ERROR: {
+        code: 'A138',
+        message: 'Delete infra billing node by UUID error',
+        httpCode: 500,
+    },
+    GET_BILLING_NODES_FOR_NOTIFICATIONS_ERROR: {
+        code: 'A139',
+        message: 'Get billing nodes for notifications error',
+        httpCode: 500,
+    },
 } as const;

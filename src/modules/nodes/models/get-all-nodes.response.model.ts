@@ -1,6 +1,7 @@
 import { fromNanoToNumber } from '@common/utils/nano';
 
 import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
+import { InfraProviderEntity } from '@modules/infra-billing/entities';
 
 import { NodesEntity } from '../entities';
 
@@ -38,6 +39,9 @@ export class GetAllNodesResponseModel {
     public activeConfigProfileUuid: string | null;
     public activeInbounds: ConfigProfileInboundEntity[];
 
+    public providerUuid: string | null;
+    public provider: InfraProviderEntity | null;
+
     constructor(data: NodesEntity) {
         this.uuid = data.uuid;
         this.name = data.name;
@@ -71,5 +75,8 @@ export class GetAllNodesResponseModel {
 
         this.activeConfigProfileUuid = data.activeConfigProfileUuid;
         this.activeInbounds = data.activeInbounds;
+
+        this.providerUuid = data.providerUuid;
+        this.provider = data.provider;
     }
 }

@@ -52,6 +52,7 @@ export namespace CreateNodeCommand {
                 invalid_type_error: 'Active inbounds must be an array of UUIDs',
             }),
         ),
+        providerUuid: z.optional(z.nullable(z.string().uuid())),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

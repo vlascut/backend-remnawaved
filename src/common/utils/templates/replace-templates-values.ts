@@ -36,6 +36,7 @@ export class TemplateEngine {
             EMAIL: user.email || '',
             TELEGRAM_ID: user.telegramId?.toString() || '',
             SUBSCRIPTION_URL: `https://${subPublicDomain}/${user.shortUuid}`,
+            TAG: user.tag || '',
         });
     }
 }

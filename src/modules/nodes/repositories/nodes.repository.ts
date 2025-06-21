@@ -18,6 +18,7 @@ export type INodesWithResolvedInbounds = Prisma.NodesGetPayload<{
                 configProfileInbounds: true;
             };
         };
+        provider: true;
     };
 }>;
 
@@ -27,6 +28,7 @@ const INCLUDE_RESOLVED_INBOUNDS = {
             configProfileInbounds: true,
         },
     },
+    provider: true,
 } as const;
 
 @Injectable()
@@ -90,16 +92,32 @@ export class NodesRepository implements ICrud<NodesEntity> {
     }
 
     public async update({ uuid, ...data }: Partial<NodesEntity>): Promise<NodesEntity> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { provider, activeInbounds, ...prismaData } = data;
+
         const result = await this.prisma.tx.nodes.update({
-            where: {
-                uuid,
-            },
-            data,
+            where: { uuid },
+            data: prismaData,
             include: INCLUDE_RESOLVED_INBOUNDS,
         });
 
         return new NodesEntity(result);
     }
+
+    // public async update({ uuid, ...data }: Partial<NodesEntity>): Promise<NodesEntity> {
+
+    //     const result = await this.prisma.tx.nodes.update({
+    //         where: {
+    //             uuid,
+    //         },
+    //         data: {
+    //             ...data,
+    //         },
+    //         include: INCLUDE_RESOLVED_INBOUNDS,
+    //     });
+
+    //     return new NodesEntity(result);
+    // }
 
     public async findByCriteria(dto: Partial<NodesEntity>): Promise<NodesEntity[]> {
         const nodesList = await this.prisma.tx.nodes.findMany({

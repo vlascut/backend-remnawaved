@@ -17,8 +17,8 @@ export namespace CreateConfigProfileCommand {
     export const RequestSchema = z.object({
         name: z
             .string()
-            .min(6, 'Name must be at least 6 characters')
-            .max(16, 'Name must be less than 16 characters')
+            .min(2, 'Name must be at least 2 characters')
+            .max(20, 'Name must be less than 20 characters')
             .regex(
                 /^[A-Za-z0-9_-]+$/,
                 'Name can only contain letters, numbers, underscores and dashes',
