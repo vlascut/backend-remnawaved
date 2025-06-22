@@ -25,7 +25,7 @@ export namespace GetInfraBillingHistoryRecordsCommand {
             .number()
             .min(1, 'Size (limit) must be greater than 0')
             .max(500, 'Size (limit) must be less than 500')
-            .describe('Number of users to return, no more than 500')
+            .describe('Number of billing records to return, no more than 500')
             .default(50),
     });
 

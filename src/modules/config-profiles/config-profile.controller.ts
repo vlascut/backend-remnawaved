@@ -65,9 +65,6 @@ export class ConfigProfileController {
         };
     }
 
-    @ApiNotFoundResponse({
-        description: 'Config profile not found',
-    })
     @ApiOkResponse({
         type: GetAllInboundsResponseDto,
         description: 'Inbounds retrieved successfully',

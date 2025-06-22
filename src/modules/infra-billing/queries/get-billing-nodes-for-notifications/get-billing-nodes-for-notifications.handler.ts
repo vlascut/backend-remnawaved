@@ -39,7 +39,7 @@ export class GetBillingNodesForNotificationsHandler
             this.logger.error(error);
             return {
                 isOk: false,
-                ...ERRORS.GET_CONFIG_PROFILE_BY_UUID_ERROR,
+                ...ERRORS.GET_BILLING_NODES_FOR_NOTIFICATIONS_ERROR,
             };
         }
     }

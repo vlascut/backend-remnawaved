@@ -835,8 +835,10 @@ async function syncInbounds() {
 
         const inboundsToAdd = configInbounds.filter((configInbound) => {
             if (!existingInbounds) {
-                return false;
+                return true;
+                // TODO: need additional checks
             }
+
             const existingInbound = existingInbounds.find((ei) => ei.tag === configInbound.tag);
             return !existingInbound || existingInbound.type !== configInbound.type;
         });

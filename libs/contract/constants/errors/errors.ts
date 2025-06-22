@@ -709,4 +709,9 @@ export const ERRORS = {
         message: 'Remove users from internal squad error',
         httpCode: 500,
     },
+    DELETE_CONFIG_PROFILE_BY_UUID_ERROR: {
+        code: 'A143',
+        message: 'Delete config profile by UUID error',
+        httpCode: 500,
+    },
 } as const;

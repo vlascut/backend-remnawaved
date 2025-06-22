@@ -111,7 +111,7 @@ export class ConfigProfileService {
             this.logger.error(error);
             return {
                 isOk: false,
-                ...ERRORS.GET_CONFIG_PROFILE_BY_UUID_ERROR,
+                ...ERRORS.DELETE_CONFIG_PROFILE_BY_UUID_ERROR,
             };
         }
     }
@@ -309,7 +309,8 @@ export class ConfigProfileService {
 
             const inboundsToAdd = newInbounds.filter((configInbound) => {
                 if (!existingInbounds) {
-                    return false;
+                    // TODO: need additional checks
+                    return true;
                 }
                 const existingInbound = existingInbounds.find((ei) => ei.tag === configInbound.tag);
                 return !existingInbound || existingInbound.type !== configInbound.type;

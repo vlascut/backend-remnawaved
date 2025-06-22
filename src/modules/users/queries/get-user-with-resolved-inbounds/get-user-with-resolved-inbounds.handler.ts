@@ -14,7 +14,7 @@ export class GetUserWithResolvedInboundsHandler
     implements
         IQueryHandler<
             GetUserWithResolvedInboundsQuery,
-            ICommandResponse<UserWithResolvedInboundEntity[]>
+            ICommandResponse<UserWithResolvedInboundEntity>
         >
 {
     private readonly logger = new Logger(GetUserWithResolvedInboundsHandler.name);

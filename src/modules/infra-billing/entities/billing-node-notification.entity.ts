@@ -1,5 +1,13 @@
 import { TBillingNodeNotificationType } from '../interfaces';
 
+interface IInfraBillingNodeNotification {
+    nodeName: string;
+    providerName: string;
+    loginUrl: string | null;
+    nextBillingAt: Date;
+    notificationType?: TBillingNodeNotificationType;
+}
+
 export class InfraBillingNodeNotificationEntity {
     public readonly nodeName: string;
     public readonly providerName: string;
@@ -7,7 +15,7 @@ export class InfraBillingNodeNotificationEntity {
     public readonly nextBillingAt: Date;
     public readonly notificationType?: TBillingNodeNotificationType;
 
-    constructor(billingNode: InfraBillingNodeNotificationEntity) {
+    constructor(billingNode: IInfraBillingNodeNotification) {
         this.nodeName = billingNode.nodeName;
         this.providerName = billingNode.providerName;
         this.loginUrl = billingNode.loginUrl;

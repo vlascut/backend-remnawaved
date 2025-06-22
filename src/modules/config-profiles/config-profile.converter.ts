@@ -10,7 +10,7 @@ const modelToEntity = (model: ConfigProfiles): ConfigProfileEntity => {
     return new ConfigProfileEntity(model);
 };
 
-const entityToModel = (entity: ConfigProfileEntity): ConfigProfileEntity => {
+const entityToModel = (entity: ConfigProfileEntity): ConfigProfiles => {
     return {
         uuid: entity.uuid,
         name: entity.name,

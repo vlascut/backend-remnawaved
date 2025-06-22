@@ -157,14 +157,14 @@ export class UsersBulkActionsController {
 
     @ApiOkResponse({
         type: BulkUpdateUsersSquadsResponseDto,
-        description: 'Users inbounds updated successfully',
+        description: 'Internal squads updated successfully',
     })
     @Endpoint({
         command: BulkUpdateUsersSquadsCommand,
         httpCode: HttpStatus.OK,
         apiBody: BulkUpdateUsersSquadsRequestDto,
     })
-    async bulkUpdateUsersInbounds(
+    async bulkUpdateUsersInternalSquads(
         @Body() body: BulkUpdateUsersSquadsRequestDto,
     ): Promise<BulkUpdateUsersSquadsResponseDto> {
         const result = await this.usersService.bulkUpdateUsersInternalSquads(

@@ -47,7 +47,7 @@
     "noFallthroughCasesInSwitch": false,
     "useDefineForClassFields": true,
     "typeRoots": [
-      "types.d.ts"
+      "./@types"
     ],
   }
 }

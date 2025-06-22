@@ -5,7 +5,7 @@ export * from './delete-bill-record-by-uuid.command';
 export * from './delete-billing-node-by-uuid.command';
 export * from './delete-infra-provider-by-uuid.command';
 export * from './get-bill-records.command';
-export * from './get-blling-nodes.command';
+export * from './get-billing-nodes.command';
 export * from './get-infra-provider-by-uuid.command';
 export * from './get-infra-providers.command';
 export * from './update-billing-node.command';

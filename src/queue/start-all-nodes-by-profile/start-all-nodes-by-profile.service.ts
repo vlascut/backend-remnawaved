@@ -14,7 +14,7 @@ export class StartAllNodesByProfileQueueService
     implements OnApplicationBootstrap
 {
     protected readonly logger: Logger = new Logger(
-        _.upperFirst(_.camelCase(QueueNames.startAllNodes)),
+        _.upperFirst(_.camelCase(QueueNames.startAllNodesByProfile)),
     );
 
     private _queue: Queue;

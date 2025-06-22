@@ -10,7 +10,7 @@ const modelToEntity = (model: InternalSquads): InternalSquadEntity => {
     return new InternalSquadEntity(model);
 };
 
-const entityToModel = (entity: InternalSquadEntity): InternalSquadEntity => {
+const entityToModel = (entity: InternalSquadEntity): InternalSquads => {
     return {
         uuid: entity.uuid,
         name: entity.name,

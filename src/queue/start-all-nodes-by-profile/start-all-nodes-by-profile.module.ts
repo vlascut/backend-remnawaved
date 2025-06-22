@@ -22,7 +22,7 @@ const services = [StartAllNodesByProfileQueueService];
 const queues = [BullModule.registerQueue({ name: QueueNames.startAllNodesByProfile })];
 
 const bullBoard = [
-    BullBoardModule.forFeature({ name: QueueNames.startAllNodes, adapter: BullMQAdapter }),
+    BullBoardModule.forFeature({ name: QueueNames.startAllNodesByProfile, adapter: BullMQAdapter }),
 ];
 
 const providers = useQueueProcessor() ? processors : [];

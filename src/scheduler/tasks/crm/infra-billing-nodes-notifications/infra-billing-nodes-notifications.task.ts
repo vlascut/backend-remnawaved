@@ -15,14 +15,11 @@ import { JOBS_INTERVALS } from '../../../intervals';
 export class InfraBillingNodesNotificationsTask {
     private static readonly CRON_NAME = 'infraBillingNodesNotifications';
     private readonly logger = new Logger(InfraBillingNodesNotificationsTask.name);
-    private notifiedNodes: Map<string, boolean>;
 
     constructor(
         private readonly queryBus: QueryBus,
         private readonly eventEmitter: EventEmitter2,
-    ) {
-        this.notifiedNodes = new Map();
-    }
+    ) {}
 
     @Cron(JOBS_INTERVALS.CRM.INFRA_BILLING_NODES_NOTIFICATIONS, {
         name: InfraBillingNodesNotificationsTask.CRON_NAME,
