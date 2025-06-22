@@ -237,6 +237,13 @@ export const REST_API = {
             `${ROOT}/${CONTROLLERS.INTERNAL_SQUADS_CONTROLLER}/${CONTROLLERS.INTERNAL_SQUADS_ROUTES.DELETE(
                 uuid,
             )}`,
+
+        BULK_ACTIONS: {
+            ADD_USERS: (uuid: string) =>
+                `${ROOT}/${CONTROLLERS.INTERNAL_SQUADS_CONTROLLER}/${CONTROLLERS.INTERNAL_SQUADS_ROUTES.BULK_ACTIONS.ADD_USERS(uuid)}`,
+            REMOVE_USERS: (uuid: string) =>
+                `${ROOT}/${CONTROLLERS.INTERNAL_SQUADS_CONTROLLER}/${CONTROLLERS.INTERNAL_SQUADS_ROUTES.BULK_ACTIONS.REMOVE_USERS(uuid)}`,
+        },
     },
 
     INFRA_BILLING: {

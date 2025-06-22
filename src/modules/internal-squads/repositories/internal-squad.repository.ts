@@ -247,4 +247,40 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
             affectedCount: result.count,
         };
     }
+
+    public async addUsersToInternalSquad(internalSquadUuid: string): Promise<{
+        affectedCount: number;
+    }> {
+        const result = await this.prisma.tx.$kysely
+            .insertInto('internalSquadMembers')
+            .columns(['internalSquadUuid', 'userUuid'])
+            .expression((eb) =>
+                eb
+                    .selectFrom('users')
+                    .select([
+                        eb.val(getKyselyUuid(internalSquadUuid)).as('internalSquadUuid'),
+                        'uuid as userUuid',
+                    ]),
+            )
+            .onConflict((oc) => oc.doNothing())
+            .clearReturning()
+            .executeTakeFirstOrThrow();
+
+        return {
+            affectedCount: Number(result.numInsertedOrUpdatedRows),
+        };
+    }
+
+    public async removeUsersFromInternalSquad(internalSquadUuid: string): Promise<{
+        affectedCount: number;
+    }> {
+        const result = await this.prisma.tx.$kysely
+            .deleteFrom('internalSquadMembers')
+            .where('internalSquadUuid', '=', getKyselyUuid(internalSquadUuid))
+            .executeTakeFirst();
+
+        return {
+            affectedCount: Number(result.numDeletedRows),
+        };
+    }
 }

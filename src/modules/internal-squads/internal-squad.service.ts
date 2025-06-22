@@ -7,9 +7,11 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants/errors';
 
 import { StartAllNodesByProfileQueueService } from '@queue/start-all-nodes-by-profile';
+import { InternalSquadActionsQueueService } from '@queue/internal-squad-actions';
 
 import { GetInternalSquadByUuidResponseModel } from './models/get-internal-squad-by-uuid.response.model';
 import { DeleteInternalSquadResponseModel } from './models/delete-internal-squad-by-uuid.response.model';
+import { EventSentInternalSquadResponseModel } from './models/event-sent-internal-squad.response.model';
 import { GetInternalSquadsResponseModel } from './models/get-internal-squads.response.model';
 import { InternalSquadRepository } from './repositories/internal-squad.repository';
 import { InternalSquadEntity } from './entities/internal-squad.entity';
@@ -21,6 +23,7 @@ export class InternalSquadService {
     constructor(
         private readonly internalSquadRepository: InternalSquadRepository,
         private readonly startAllNodesByProfileQueueService: StartAllNodesByProfileQueueService,
+        private readonly internalSquadActionsQueueService: InternalSquadActionsQueueService,
     ) {}
 
     public async getInternalSquads(): Promise<ICommandResponse<GetInternalSquadsResponseModel>> {
@@ -40,7 +43,7 @@ export class InternalSquadService {
         }
     }
 
-    public async getInternalSquadsByUuid(
+    public async getInternalSquadByUuid(
         uuid: string,
     ): Promise<ICommandResponse<GetInternalSquadByUuidResponseModel>> {
         try {
@@ -82,7 +85,7 @@ export class InternalSquadService {
                 await this.internalSquadRepository.createInbounds(inbounds, internalSquad.uuid);
             }
 
-            return await this.getInternalSquadsByUuid(internalSquad.uuid);
+            return await this.getInternalSquadByUuid(internalSquad.uuid);
         } catch (error) {
             if (
                 error instanceof PrismaClientKnownRequestError &&
@@ -125,7 +128,7 @@ export class InternalSquadService {
                 await this.internalSquadRepository.createInbounds(inbounds, internalSquad.uuid);
             }
 
-            const result = await this.getInternalSquadsByUuid(internalSquad.uuid);
+            const result = await this.getInternalSquadByUuid(internalSquad.uuid);
 
             const includedProfiles = new Set<string>();
 
@@ -187,6 +190,66 @@ export class InternalSquadService {
             return {
                 isOk: false,
                 ...ERRORS.DELETE_INTERNAL_SQUAD_ERROR,
+            };
+        }
+    }
+
+    public async addUsersToInternalSquad(
+        uuid: string,
+    ): Promise<ICommandResponse<EventSentInternalSquadResponseModel>> {
+        try {
+            const internalSquad = await this.internalSquadRepository.getInternalSquadsByUuid(uuid);
+
+            if (!internalSquad) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SQUAD_NOT_FOUND,
+                };
+            }
+
+            await this.internalSquadActionsQueueService.addUsersToInternalSquad({
+                internalSquadUuid: uuid,
+            });
+
+            return {
+                isOk: true,
+                response: new EventSentInternalSquadResponseModel(true),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.ADD_USERS_TO_INTERNAL_SQUAD_ERROR,
+            };
+        }
+    }
+
+    public async removeUsersFromInternalSquad(
+        uuid: string,
+    ): Promise<ICommandResponse<EventSentInternalSquadResponseModel>> {
+        try {
+            const internalSquad = await this.internalSquadRepository.getInternalSquadsByUuid(uuid);
+
+            if (!internalSquad) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SQUAD_NOT_FOUND,
+                };
+            }
+
+            await this.internalSquadActionsQueueService.removeUsersFromInternalSquad({
+                internalSquadUuid: uuid,
+            });
+
+            return {
+                isOk: true,
+                response: new EventSentInternalSquadResponseModel(true),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.REMOVE_USERS_FROM_INTERNAL_SQUAD_ERROR,
             };
         }
     }

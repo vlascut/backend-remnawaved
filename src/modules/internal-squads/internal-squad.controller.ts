@@ -15,8 +15,10 @@ import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
+    AddUsersToInternalSquadCommand,
     CreateInternalSquadCommand,
     DeleteInternalSquadCommand,
+    DeleteUsersFromInternalSquadCommand,
     GetInternalSquadByUuidCommand,
     GetInternalSquadsCommand,
     UpdateInternalSquadCommand,
@@ -25,11 +27,13 @@ import { INTERNAL_SQUADS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
+    AddUsersToInternalSquadResponseDto,
     CreateInternalSquadRequestDto,
     CreateInternalSquadResponseDto,
     DeleteInternalSquadResponseDto,
     GetInternalSquadByUuidResponseDto,
     GetInternalSquadsResponseDto,
+    RemoveUsersFromInternalSquadResponseDto,
     UpdateInternalSquadRequestDto,
     UpdateInternalSquadResponseDto,
 } from './dtos';
@@ -72,7 +76,7 @@ export class InternalSquadController {
     async getInternalSquadByUuid(
         @Param('uuid') uuid: string,
     ): Promise<GetInternalSquadByUuidResponseDto> {
-        const result = await this.internalSquadService.getInternalSquadsByUuid(uuid);
+        const result = await this.internalSquadService.getInternalSquadByUuid(uuid);
 
         const data = errorHandler(result);
         return {
@@ -85,7 +89,7 @@ export class InternalSquadController {
     })
     @ApiCreatedResponse({
         type: CreateInternalSquadResponseDto,
-        description: 'Internal squad name must be unique.',
+        description: 'Internal squad created successfully',
     })
     @Endpoint({
         command: CreateInternalSquadCommand,
@@ -113,7 +117,7 @@ export class InternalSquadController {
     })
     @ApiOkResponse({
         type: UpdateInternalSquadResponseDto,
-        description: 'Internal squad name must be unique.',
+        description: 'Internal squad updated successfully',
     })
     @Endpoint({
         command: UpdateInternalSquadCommand,
@@ -149,6 +153,50 @@ export class InternalSquadController {
         @Param('uuid') uuid: string,
     ): Promise<DeleteInternalSquadResponseDto> {
         const result = await this.internalSquadService.deleteInternalSquad(uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'Internal squad not found',
+    })
+    @ApiOkResponse({
+        type: AddUsersToInternalSquadResponseDto,
+        description: 'Task added to internal job queue',
+    })
+    @Endpoint({
+        command: AddUsersToInternalSquadCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async addUsersToInternalSquad(
+        @Param('uuid') uuid: string,
+    ): Promise<AddUsersToInternalSquadResponseDto> {
+        const result = await this.internalSquadService.addUsersToInternalSquad(uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'Internal squad not found',
+    })
+    @ApiOkResponse({
+        type: RemoveUsersFromInternalSquadResponseDto,
+        description: 'Task added to internal job queue',
+    })
+    @Endpoint({
+        command: DeleteUsersFromInternalSquadCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async removeUsersFromInternalSquad(
+        @Param('uuid') uuid: string,
+    ): Promise<RemoveUsersFromInternalSquadResponseDto> {
+        const result = await this.internalSquadService.removeUsersFromInternalSquad(uuid);
 
         const data = errorHandler(result);
         return {

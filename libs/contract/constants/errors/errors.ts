@@ -694,4 +694,19 @@ export const ERRORS = {
         message: 'Get billing nodes for notifications error',
         httpCode: 500,
     },
+    ADD_USERS_TO_INTERNAL_SQUAD_ERROR: {
+        code: 'A140',
+        message: 'Add users to internal squad error',
+        httpCode: 500,
+    },
+    INTERNAL_SQUAD_BULK_ACTIONS_ERROR: {
+        code: 'A141',
+        message: 'Internal squad bulk actions error',
+        httpCode: 500,
+    },
+    REMOVE_USERS_FROM_INTERNAL_SQUAD_ERROR: {
+        code: 'A142',
+        message: 'Remove users from internal squad error',
+        httpCode: 500,
+    },
 } as const;
