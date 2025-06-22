@@ -17,6 +17,8 @@ export const HostsSchema = z.object({
     securityLayer: z.nativeEnum(SECURITY_LAYERS).default(SECURITY_LAYERS.DEFAULT),
     xHttpExtraParams: z.nullable(z.unknown()),
 
-    configProfileUuid: z.string().uuid().nullable(),
-    configProfileInboundUuid: z.string().uuid().nullable(),
+    inbound: z.object({
+        configProfileUuid: z.string().uuid().nullable(),
+        configProfileInboundUuid: z.string().uuid().nullable(),
+    }),
 });

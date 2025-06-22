@@ -37,7 +37,7 @@ export class NodesService {
 
     public async createNode(body: CreateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
         try {
-            const { activeInbounds, ...nodeData } = body;
+            const { configProfile, ...nodeData } = body;
 
             const nodeEntity = new NodesEntity({
                 ...nodeData,
@@ -53,24 +53,29 @@ export class NodesService {
                 consumptionMultiplier: nodeData.consumptionMultiplier
                     ? toNano(nodeData.consumptionMultiplier)
                     : undefined,
+                activeConfigProfileUuid: configProfile.activeConfigProfileUuid,
             });
+
             const result = await this.nodesRepository.create(nodeEntity);
 
-            if (activeInbounds && result.activeConfigProfileUuid) {
-                const configProfile = await this.queryBus.execute(
-                    new GetConfigProfileByUuidQuery(result.activeConfigProfileUuid),
+            if (configProfile) {
+                const configProfileResponse = await this.queryBus.execute(
+                    new GetConfigProfileByUuidQuery(configProfile.activeConfigProfileUuid),
                 );
 
-                if (configProfile.isOk && configProfile.response) {
-                    const inbounds = configProfile.response.inbounds;
+                if (configProfileResponse.isOk && configProfileResponse.response) {
+                    const inbounds = configProfileResponse.response.inbounds;
 
-                    const areAllInboundsFromConfigProfile = activeInbounds.every(
+                    const areAllInboundsFromConfigProfile = configProfile.activeInbounds.every(
                         (activeInboundUuid) =>
                             inbounds.some((inbound) => inbound.uuid === activeInboundUuid),
                     );
 
                     if (areAllInboundsFromConfigProfile) {
-                        await this.nodesRepository.addInboundsToNode(result.uuid, activeInbounds);
+                        await this.nodesRepository.addInboundsToNode(
+                            result.uuid,
+                            configProfile.activeInbounds,
+                        );
                     } else {
                         return {
                             isOk: false,
@@ -245,7 +250,7 @@ export class NodesService {
 
     public async updateNode(body: UpdateNodeRequestDto): Promise<ICommandResponse<NodesEntity>> {
         try {
-            const { activeInbounds, ...nodeData } = body;
+            const { configProfile, ...nodeData } = body;
 
             const node = await this.nodesRepository.findByUUID(body.uuid);
             if (!node) {
@@ -255,33 +260,32 @@ export class NodesService {
                 };
             }
 
-            if (activeInbounds) {
-                if (nodeData.activeConfigProfileUuid) {
-                    const configProfile = await this.queryBus.execute(
-                        new GetConfigProfileByUuidQuery(nodeData.activeConfigProfileUuid),
+            if (configProfile) {
+                const configProfileResponse = await this.queryBus.execute(
+                    new GetConfigProfileByUuidQuery(configProfile.activeConfigProfileUuid),
+                );
+
+                if (configProfileResponse.isOk && configProfileResponse.response) {
+                    const inbounds = configProfileResponse.response.inbounds;
+
+                    const areAllInboundsFromConfigProfile = configProfile.activeInbounds.every(
+                        (activeInboundUuid) =>
+                            inbounds.some((inbound) => inbound.uuid === activeInboundUuid),
                     );
 
-                    if (configProfile.isOk && configProfile.response) {
-                        const inbounds = configProfile.response.inbounds;
+                    if (areAllInboundsFromConfigProfile) {
+                        await this.nodesRepository.removeInboundsFromNode(node.uuid);
 
-                        const areAllInboundsFromConfigProfile = activeInbounds.every(
-                            (activeInboundUuid) =>
-                                inbounds.some((inbound) => inbound.uuid === activeInboundUuid),
+                        await this.nodesRepository.addInboundsToNode(
+                            node.uuid,
+                            configProfile.activeInbounds,
                         );
-
-                        if (areAllInboundsFromConfigProfile) {
-                            await this.nodesRepository.removeInboundsFromNode(node.uuid);
-
-                            await this.nodesRepository.addInboundsToNode(node.uuid, activeInbounds);
-                        } else {
-                            return {
-                                isOk: false,
-                                ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
-                            };
-                        }
+                    } else {
+                        return {
+                            isOk: false,
+                            ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                        };
                     }
-                } else {
-                    await this.nodesRepository.removeInboundsFromNode(node.uuid);
                 }
             }
 
@@ -294,6 +298,7 @@ export class NodesService {
                 consumptionMultiplier: nodeData.consumptionMultiplier
                     ? toNano(nodeData.consumptionMultiplier)
                     : undefined,
+                activeConfigProfileUuid: configProfile?.activeConfigProfileUuid,
             });
 
             if (!result) {

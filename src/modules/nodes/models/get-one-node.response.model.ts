@@ -37,9 +37,10 @@ export class GetOneNodeResponseModel {
     public createdAt: Date;
     public updatedAt: Date;
 
-    public activeConfigProfileUuid: string | null;
-    public activeInbounds: ConfigProfileInboundEntity[];
-
+    public configProfile: {
+        activeConfigProfileUuid: string | null;
+        activeInbounds: ConfigProfileInboundEntity[];
+    };
     public providerUuid: string | null;
     public provider: InfraProviderEntity | null;
 
@@ -75,8 +76,10 @@ export class GetOneNodeResponseModel {
         this.viewPosition = data.viewPosition;
         this.countryCode = data.countryCode;
 
-        this.activeConfigProfileUuid = data.activeConfigProfileUuid;
-        this.activeInbounds = data.activeInbounds;
+        this.configProfile = {
+            activeConfigProfileUuid: data.activeConfigProfileUuid,
+            activeInbounds: data.activeInbounds,
+        };
 
         this.providerUuid = data.providerUuid;
         this.provider = data.provider;

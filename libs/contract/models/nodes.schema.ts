@@ -46,8 +46,10 @@ export const NodesSchema = z.object({
         .datetime()
         .transform((str) => new Date(str)),
 
-    activeConfigProfileUuid: z.nullable(z.string().uuid()),
-    activeInbounds: z.nullable(z.array(ConfigProfileInboundsSchema)),
+    configProfile: z.object({
+        activeConfigProfileUuid: z.nullable(z.string().uuid()),
+        activeInbounds: z.array(ConfigProfileInboundsSchema),
+    }),
 
     providerUuid: z.nullable(z.string().uuid()),
     provider: z.nullable(PartialInfraProviderSchema),

@@ -39,12 +39,15 @@ export namespace UpdateNodeCommand {
                 .min(0.1, 'Consumption multiplier must be greater than 0')
                 .transform((n) => Number(n.toFixed(1))),
         ),
-        activeConfigProfileUuid: z.optional(z.string().uuid()),
-        activeInbounds: z.optional(
-            z.array(z.string().uuid(), {
-                invalid_type_error: 'Active inbounds must be an array of UUIDs',
-            }),
-        ),
+        configProfile: z
+            .object({
+                activeConfigProfileUuid: z.string().uuid(),
+                activeInbounds: z.array(z.string().uuid(), {
+                    invalid_type_error: 'Must be an array of UUIDs',
+                }),
+            })
+            .optional(),
+
         providerUuid: z.optional(z.nullable(z.string().uuid())),
     });
 

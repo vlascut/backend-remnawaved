@@ -18,8 +18,10 @@ export class CreateHostResponseModel {
     public securityLayer: TSecurityLayers;
     public xHttpExtraParams: null | object;
 
-    public configProfileUuid: string | null;
-    public configProfileInboundUuid: string | null;
+    public inbound: {
+        configProfileUuid: string | null;
+        configProfileInboundUuid: string | null;
+    };
 
     constructor(data: HostsEntity) {
         this.uuid = data.uuid;
@@ -38,7 +40,9 @@ export class CreateHostResponseModel {
         this.securityLayer = data.securityLayer;
         this.xHttpExtraParams = data.xHttpExtraParams;
 
-        this.configProfileUuid = data.configProfileUuid;
-        this.configProfileInboundUuid = data.configProfileInboundUuid;
+        this.inbound = {
+            configProfileUuid: data.configProfileUuid,
+            configProfileInboundUuid: data.configProfileInboundUuid,
+        };
     }
 }

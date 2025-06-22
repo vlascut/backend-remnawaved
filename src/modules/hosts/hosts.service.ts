@@ -34,10 +34,36 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            const { inbound: inboundObj, ...rest } = dto;
+
+            const configProfile = await this.queryBus.execute(
+                new GetConfigProfileByUuidQuery(inboundObj.configProfileUuid),
+            );
+
+            if (!configProfile.isOk || !configProfile.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_NOT_FOUND,
+                };
+            }
+
+            const configProfileInbound = configProfile.response.inbounds.find(
+                (inbound) => inbound.uuid === inboundObj.configProfileInboundUuid,
+            );
+
+            if (!configProfileInbound) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                };
+            }
+
             const hostEntity = new HostsEntity({
-                ...dto,
+                ...rest,
                 address: dto.address.trim(),
                 xHttpExtraParams,
+                configProfileUuid: configProfile.response.uuid,
+                configProfileInboundUuid: configProfileInbound.uuid,
             });
 
             const result = await this.hostsRepository.create(hostEntity);
@@ -66,6 +92,8 @@ export class HostsService {
 
     public async updateHost(dto: UpdateHostRequestDto): Promise<ICommandResponse<HostsEntity>> {
         try {
+            const { inbound: inboundObj, ...rest } = dto;
+
             const host = await this.hostsRepository.findByUUID(dto.uuid);
             if (!host) {
                 return {
@@ -83,10 +111,41 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            let configProfileUuid: string | undefined;
+            let configProfileInboundUuid: string | undefined;
+            if (inboundObj) {
+                const configProfile = await this.queryBus.execute(
+                    new GetConfigProfileByUuidQuery(inboundObj.configProfileUuid),
+                );
+
+                if (!configProfile.isOk || !configProfile.response) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.CONFIG_PROFILE_NOT_FOUND,
+                    };
+                }
+
+                const configProfileInbound = configProfile.response.inbounds.find(
+                    (inbound) => inbound.uuid === inboundObj.configProfileInboundUuid,
+                );
+
+                if (!configProfileInbound) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                    };
+                }
+
+                configProfileUuid = configProfile.response.uuid;
+                configProfileInboundUuid = configProfileInbound.uuid;
+            }
+
             const result = await this.hostsRepository.update({
-                ...dto,
+                ...rest,
                 address: dto.address ? dto.address.trim() : undefined,
                 xHttpExtraParams,
+                configProfileUuid,
+                configProfileInboundUuid,
             });
 
             return {
@@ -244,8 +303,6 @@ export class HostsService {
         configProfileInboundUuid: string,
     ): Promise<ICommandResponse<HostsEntity[]>> {
         try {
-            // TODO: check this
-
             const configProfile = await this.queryBus.execute(
                 new GetConfigProfileByUuidQuery(configProfileUuid),
             );

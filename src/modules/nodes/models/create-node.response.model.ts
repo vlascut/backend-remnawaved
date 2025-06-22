@@ -36,11 +36,13 @@ export class CreateNodeResponseModel {
     public createdAt: Date;
     public updatedAt: Date;
 
-    public activeConfigProfileUuid: string | null;
-    public activeInbounds: ConfigProfileInboundEntity[];
-
     public providerUuid: string | null;
     public provider: InfraProviderEntity | null;
+
+    public configProfile: {
+        activeConfigProfileUuid: string | null;
+        activeInbounds: ConfigProfileInboundEntity[];
+    };
 
     constructor(data: NodesEntity) {
         this.uuid = data.uuid;
@@ -71,10 +73,12 @@ export class CreateNodeResponseModel {
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
 
-        this.activeConfigProfileUuid = data.activeConfigProfileUuid;
-        this.activeInbounds = data.activeInbounds;
-
         this.providerUuid = data.providerUuid;
         this.provider = data.provider;
+
+        this.configProfile = {
+            activeConfigProfileUuid: data.activeConfigProfileUuid,
+            activeInbounds: data.activeInbounds,
+        };
     }
 }

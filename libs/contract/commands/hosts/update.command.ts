@@ -17,17 +17,11 @@ export namespace UpdateHostCommand {
     export const RequestSchema = HostsSchema.pick({
         uuid: true,
     }).extend({
-        configProfileUuid: z
-            .string({
-                invalid_type_error: 'Config Profile UUID must be a string',
+        inbound: z
+            .object({
+                configProfileUuid: z.string().uuid(),
+                configProfileInboundUuid: z.string().uuid(),
             })
-            .uuid('Config Profile UUID must be a valid UUID')
-            .optional(),
-        configProfileInboundUuid: z
-            .string({
-                invalid_type_error: 'Inbound UUID must be a string',
-            })
-            .uuid('Inbound UUID must be a valid UUID')
             .optional(),
         remark: z
             .string({
@@ -53,7 +47,6 @@ export namespace UpdateHostCommand {
         host: z.optional(z.string()),
         alpn: z.optional(z.nativeEnum(ALPN).nullable()),
         fingerprint: z.optional(z.nativeEnum(FINGERPRINTS).nullable()),
-        allowInsecure: z.optional(z.boolean()),
         isDisabled: z.optional(z.boolean()),
         securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS)),
         xHttpExtraParams: z.optional(z.nullable(z.unknown())),
