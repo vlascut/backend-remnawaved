@@ -332,7 +332,7 @@ export class SubscriptionService {
                 user.response,
             );
 
-            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts, false);
 
             const ssConfLinks = await this.generateSsConfLinks(
                 user.response.shortUuid,
@@ -443,7 +443,10 @@ export class SubscriptionService {
                         user,
                     );
 
-                    const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+                    const xrayLinks = this.xrayGeneratorService.generateLinks(
+                        formattedHosts,
+                        false,
+                    );
 
                     const ssConfLinks = await this.generateSsConfLinks(
                         user.shortUuid,

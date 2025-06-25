@@ -53,6 +53,7 @@ export class RenderTemplatesService {
                     sub: await this.xrayGeneratorService.generateConfig(
                         formattedHosts,
                         configParams.BASE64,
+                        /^Happ\//.test(userAgent),
                     ),
                     contentType: configParams.CONTENT_TYPE,
                 };

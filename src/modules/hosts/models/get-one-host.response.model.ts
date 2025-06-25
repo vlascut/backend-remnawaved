@@ -22,6 +22,8 @@ export class GetOneHostResponseModel {
         configProfileInboundUuid: string | null;
     };
 
+    public serverDescription: null | string;
+
     constructor(data: HostsEntity) {
         this.uuid = data.uuid;
 
@@ -43,5 +45,7 @@ export class GetOneHostResponseModel {
             configProfileUuid: data.configProfileUuid,
             configProfileInboundUuid: data.configProfileInboundUuid,
         };
+
+        this.serverDescription = data.serverDescription;
     }
 }

@@ -21,4 +21,6 @@ export const HostsSchema = z.object({
         configProfileUuid: z.string().uuid().nullable(),
         configProfileInboundUuid: z.string().uuid().nullable(),
     }),
+
+    serverDescription: z.string().nullable(),
 });

@@ -127,6 +127,7 @@ export class FormatHostsService {
             let additionalParams: IFormattedHost['additionalParams'] | undefined;
             let headerType: string | undefined;
             let xHttpExtraParams: null | object | undefined;
+            let serverDescription: string | undefined;
 
             switch (network) {
                 case 'xhttp': {
@@ -243,6 +244,10 @@ export class FormatHostsService {
                 }
             }
 
+            if (inputHost.serverDescription !== undefined && inputHost.serverDescription !== null) {
+                serverDescription = Buffer.from(inputHost.serverDescription).toString('base64');
+            }
+
             const protocol = inbound.protocol;
             const path = inputHost.path || pathFromConfig || '';
 
@@ -307,6 +312,7 @@ export class FormatHostsService {
                 },
                 additionalParams,
                 xHttpExtraParams,
+                serverDescription,
             });
         }
 

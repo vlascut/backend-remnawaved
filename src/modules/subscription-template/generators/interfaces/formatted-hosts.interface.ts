@@ -26,4 +26,5 @@ export interface IFormattedHost {
         heartbeatPeriod?: number;
     };
     xHttpExtraParams?: null | object;
+    serverDescription?: string;
 }

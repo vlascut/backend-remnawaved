@@ -34,6 +34,15 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            let serverDescription: null | string | undefined;
+            if (dto.serverDescription !== undefined && dto.serverDescription !== null) {
+                serverDescription = dto.serverDescription;
+            } else if (dto.serverDescription === null) {
+                serverDescription = null;
+            } else {
+                serverDescription = undefined;
+            }
+
             const { inbound: inboundObj, ...rest } = dto;
 
             const configProfile = await this.queryBus.execute(
@@ -64,6 +73,7 @@ export class HostsService {
                 xHttpExtraParams,
                 configProfileUuid: configProfile.response.uuid,
                 configProfileInboundUuid: configProfileInbound.uuid,
+                serverDescription,
             });
 
             const result = await this.hostsRepository.create(hostEntity);
@@ -111,6 +121,15 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            let serverDescription: null | string | undefined;
+            if (dto.serverDescription !== undefined && dto.serverDescription !== null) {
+                serverDescription = dto.serverDescription;
+            } else if (dto.serverDescription === null) {
+                serverDescription = null;
+            } else {
+                serverDescription = undefined;
+            }
+
             let configProfileUuid: string | undefined;
             let configProfileInboundUuid: string | undefined;
             if (inboundObj) {
@@ -146,6 +165,7 @@ export class HostsService {
                 xHttpExtraParams,
                 configProfileUuid,
                 configProfileInboundUuid,
+                serverDescription,
             });
 
             return {

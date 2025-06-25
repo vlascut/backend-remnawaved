@@ -26,6 +26,7 @@ const entityToModel = (entity: HostsEntity): Hosts => {
         securityLayer: entity.securityLayer,
         isDisabled: entity.isDisabled,
         xHttpExtraParams: entity.xHttpExtraParams,
+        serverDescription: entity.serverDescription,
 
         configProfileUuid: entity.configProfileUuid,
         configProfileInboundUuid: entity.configProfileInboundUuid,

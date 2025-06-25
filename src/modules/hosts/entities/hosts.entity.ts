@@ -16,6 +16,7 @@ export class HostsEntity implements Hosts {
     securityLayer: TSecurityLayers;
     xHttpExtraParams: null | object;
     isDisabled: boolean;
+    serverDescription: null | string;
 
     configProfileUuid: string | null;
     configProfileInboundUuid: string | null;

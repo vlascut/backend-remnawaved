@@ -46,6 +46,14 @@ export namespace CreateHostCommand {
         isDisabled: z.optional(z.boolean().default(false)),
         securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS).default(SECURITY_LAYERS.DEFAULT)),
         xHttpExtraParams: z.optional(z.nullable(z.unknown())),
+        serverDescription: z.optional(
+            z
+                .string()
+                .max(30, {
+                    message: 'Server description must be less than 30 characters',
+                })
+                .nullable(),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

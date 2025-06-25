@@ -44,9 +44,13 @@ export class XrayGeneratorService {
 
     constructor() {}
 
-    public async generateConfig(hosts: IFormattedHost[], isBase64: boolean): Promise<string> {
+    public async generateConfig(
+        hosts: IFormattedHost[],
+        isBase64: boolean,
+        isHapp: boolean,
+    ): Promise<string> {
         try {
-            const links = this.generateLinks(hosts);
+            const links = this.generateLinks(hosts, isHapp);
 
             const linksString = links.join('\n');
             if (isBase64) {
@@ -60,7 +64,7 @@ export class XrayGeneratorService {
         }
     }
 
-    public generateLinks(hosts: IFormattedHost[]): string[] {
+    public generateLinks(hosts: IFormattedHost[], isHapp: boolean): string[] {
         const links: string[] = [];
 
         for (const host of hosts) {
@@ -69,8 +73,13 @@ export class XrayGeneratorService {
             }
 
             const link = this.generateLink(host);
+
             if (link) {
-                links.push(link);
+                if (isHapp && host.serverDescription) {
+                    links.push(link + `?serverDescription=${host.serverDescription}`);
+                } else {
+                    links.push(link);
+                }
             }
         }
 
