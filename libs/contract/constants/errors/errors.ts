@@ -538,4 +538,180 @@ export const ERRORS = {
         message: 'Vacuum table error',
         httpCode: 500,
     },
+    GET_CONFIG_PROFILES_ERROR: {
+        code: 'A109',
+        message: 'Get config profiles error',
+        httpCode: 500,
+    },
+    GET_CONFIG_PROFILE_BY_UUID_ERROR: {
+        code: 'A110',
+        message: 'Get config profile by UUID error',
+        httpCode: 500,
+    },
+    CONFIG_PROFILE_NOT_FOUND: {
+        code: 'A111',
+        message: 'Config profile not found',
+        httpCode: 404,
+    },
+    CREATE_CONFIG_PROFILE_ERROR: {
+        code: 'A112',
+        message: 'Create config profile error',
+        httpCode: 500,
+    },
+    INBOUNDS_WITH_SAME_TAG_ALREADY_EXISTS: {
+        code: 'A113',
+        message: 'Inbounds with same tag already exists in database. Inbound tags must be unique.',
+        httpCode: 409,
+    },
+    CONFIG_PROFILE_NAME_ALREADY_EXISTS: {
+        code: 'A114',
+        message:
+            'Config profile name already exists in database. Config profile names must be unique.',
+        httpCode: 409,
+    },
+    GET_INBOUNDS_BY_PROFILE_UUID_ERROR: {
+        code: 'A115',
+        message: 'Get inbounds by profile UUID error',
+        httpCode: 500,
+    },
+    GET_INTERNAL_SQUADS_ERROR: {
+        code: 'A116',
+        message: 'Get internal squads error',
+        httpCode: 500,
+    },
+    GET_INTERNAL_SQUAD_BY_UUID_ERROR: {
+        code: 'A117',
+        message: 'Get internal squad by UUID error',
+        httpCode: 500,
+    },
+    INTERNAL_SQUAD_NOT_FOUND: {
+        code: 'A118',
+        message: 'Internal squad not found',
+        httpCode: 404,
+    },
+    CREATE_INTERNAL_SQUAD_ERROR: {
+        code: 'A119',
+        message: 'Create internal squad error',
+        httpCode: 500,
+    },
+    INTERNAL_SQUAD_NAME_ALREADY_EXISTS: {
+        code: 'A120',
+        message: 'Internal squad name already exists',
+        httpCode: 409,
+    },
+    UPDATE_INTERNAL_SQUAD_ERROR: {
+        code: 'A121',
+        message: 'Update internal squad error',
+        httpCode: 500,
+    },
+    DELETE_INTERNAL_SQUAD_ERROR: {
+        code: 'A122',
+        message: 'Delete internal squad error',
+        httpCode: 500,
+    },
+    CREATE_USER_WITH_INTERNAL_SQUAD_ERROR: {
+        code: 'A123',
+        message: 'Create user with internal squad error',
+        httpCode: 500,
+    },
+    CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE: {
+        code: 'A124',
+        message: 'Config profile inbound not found in specified profile',
+        httpCode: 404,
+    },
+    GET_USER_ACCESSIBLE_NODES_ERROR: {
+        code: 'A125',
+        message: 'Get user accessible nodes error',
+        httpCode: 500,
+    },
+    GET_INFRA_PROVIDERS_ERROR: {
+        code: 'A126',
+        message: 'Get infra providers error',
+        httpCode: 500,
+    },
+    GET_INFRA_PROVIDER_BY_UUID_ERROR: {
+        code: 'A127',
+        message: 'Get infra provider by UUID error',
+        httpCode: 500,
+    },
+    INFRA_PROVIDER_NOT_FOUND: {
+        code: 'A128',
+        message: 'Infra provider not found',
+        httpCode: 404,
+    },
+    DELETE_INFRA_PROVIDER_BY_UUID_ERROR: {
+        code: 'A129',
+        message: 'Delete infra provider by UUID error',
+        httpCode: 500,
+    },
+    CREATE_INFRA_PROVIDER_ERROR: {
+        code: 'A130',
+        message: 'Create infra provider error',
+        httpCode: 500,
+    },
+    UPDATE_INFRA_PROVIDER_ERROR: {
+        code: 'A131',
+        message: 'Update infra provider error',
+        httpCode: 500,
+    },
+    CREATE_INFRA_BILLING_HISTORY_RECORD_ERROR: {
+        code: 'A132',
+        message: 'Create infra billing history record error',
+        httpCode: 500,
+    },
+    GET_INFRA_BILLING_HISTORY_RECORDS_ERROR: {
+        code: 'A133',
+        message: 'Get infra billing history records error',
+        httpCode: 500,
+    },
+    DELETE_INFRA_BILLING_HISTORY_RECORD_BY_UUID_ERROR: {
+        code: 'A134',
+        message: 'Delete infra billing history record by UUID error',
+        httpCode: 500,
+    },
+    GET_BILLING_NODES_ERROR: {
+        code: 'A135',
+        message: 'Get billing nodes error',
+        httpCode: 500,
+    },
+    UPDATE_INFRA_BILLING_NODE_ERROR: {
+        code: 'A136',
+        message: 'Update infra billing node error',
+        httpCode: 500,
+    },
+    CREATE_INFRA_BILLING_NODE_ERROR: {
+        code: 'A137',
+        message: 'Create infra billing node error',
+        httpCode: 500,
+    },
+    DELETE_INFRA_BILLING_NODE_BY_UUID_ERROR: {
+        code: 'A138',
+        message: 'Delete infra billing node by UUID error',
+        httpCode: 500,
+    },
+    GET_BILLING_NODES_FOR_NOTIFICATIONS_ERROR: {
+        code: 'A139',
+        message: 'Get billing nodes for notifications error',
+        httpCode: 500,
+    },
+    ADD_USERS_TO_INTERNAL_SQUAD_ERROR: {
+        code: 'A140',
+        message: 'Add users to internal squad error',
+        httpCode: 500,
+    },
+    INTERNAL_SQUAD_BULK_ACTIONS_ERROR: {
+        code: 'A141',
+        message: 'Internal squad bulk actions error',
+        httpCode: 500,
+    },
+    REMOVE_USERS_FROM_INTERNAL_SQUAD_ERROR: {
+        code: 'A142',
+        message: 'Remove users from internal squad error',
+        httpCode: 500,
+    },
+    DELETE_CONFIG_PROFILE_BY_UUID_ERROR: {
+        code: 'A143',
+        message: 'Delete config profile by UUID error',
+        httpCode: 500,
+    },
 } as const;

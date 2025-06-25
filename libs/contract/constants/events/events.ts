@@ -37,13 +37,25 @@ export const EVENTS = {
         BANDWIDTH_USAGE_THRESHOLD_REACHED_MAX_NOTIFICATIONS:
             'errors.bandwidth_usage_threshold_reached_max_notifications',
     },
+    CRM: {
+        INFRA_BILLING_NODE_PAYMENT_IN_7_DAYS: 'crm.infra_billing_node_payment_in_7_days',
+        INFRA_BILLING_NODE_PAYMENT_IN_48HRS: 'crm.infra_billing_node_payment_in_48hrs',
+        INFRA_BILLING_NODE_PAYMENT_IN_24HRS: 'crm.infra_billing_node_payment_in_24hrs',
+        INFRA_BILLING_NODE_PAYMENT_DUE_TODAY: 'crm.infra_billing_node_payment_due_today',
+
+        INFRA_BILLING_NODE_PAYMENT_OVERDUE_24HRS: 'crm.infra_billing_node_payment_overdue_24hrs',
+        INFRA_BILLING_NODE_PAYMENT_OVERDUE_48HRS: 'crm.infra_billing_node_payment_overdue_48hrs',
+        INFRA_BILLING_NODE_PAYMENT_OVERDUE_7_DAYS: 'crm.infra_billing_node_payment_overdue_7_days',
+    },
     CATCH_ALL_USER_EVENTS: 'user.*',
     CATCH_ALL_NODE_EVENTS: 'node.*',
     CATCH_ALL_SERVICE_EVENTS: 'service.*',
     CATCH_ALL_ERRORS_EVENTS: 'errors.*',
+    CATCH_ALL_CRM_EVENTS: 'crm.*',
 } as const;
 
 export type TNodeEvents = (typeof EVENTS.NODE)[keyof typeof EVENTS.NODE];
 export type TUserEvents = (typeof EVENTS.USER)[keyof typeof EVENTS.USER];
 export type TServiceEvents = (typeof EVENTS.SERVICE)[keyof typeof EVENTS.SERVICE];
 export type TErrorsEvents = (typeof EVENTS.ERRORS)[keyof typeof EVENTS.ERRORS];
+export type TCRMEvents = (typeof EVENTS.CRM)[keyof typeof EVENTS.CRM];

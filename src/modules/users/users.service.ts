@@ -17,19 +17,11 @@ import { GetAllUsersCommand } from '@libs/contracts/commands';
 
 import { UserEvent } from '@integration-modules/notifications/interfaces';
 
-import { DeleteManyActiveInboundsByUserUuidCommand } from '@modules/inbounds/commands/delete-many-active-inbounds-by-user-uuid';
-import { GetUserLastConnectedNodeQuery } from '@modules/nodes-user-usage-history/queries/get-user-last-connected-node';
-import { RemoveInboundsFromUsersByUuidsCommand } from '@modules/inbounds/commands/remove-inbounds-from-users-by-uuids';
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
-import { CreateManyUserActiveInboundsCommand } from '@modules/inbounds/commands/create-many-user-active-inbounds';
-import { AddInboundsToUsersByUuidsCommand } from '@modules/inbounds/commands/add-inbounds-to-users-by-uuids';
 import { GetUserUsageByRangeQuery } from '@modules/nodes-user-usage-history/queries/get-user-usage-by-range';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
-import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
-import { GetAllInboundsQuery } from '@modules/inbounds/queries/get-all-inbounds';
 import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
 import { UserTrafficHistoryEntity } from '@modules/user-traffic-history';
-import { InboundsEntity } from '@modules/inbounds/entities';
 
 import { BulkUserOperationsQueueService } from '@queue/bulk-user-operations/bulk-user-operations.service';
 import { ResetUserTrafficQueueService } from '@queue/reset-user-traffic/reset-user-traffic.service';
@@ -37,27 +29,23 @@ import { StartAllNodesQueueService } from '@queue/start-all-nodes/start-all-node
 import { UserActionsQueueService } from '@queue/user-actions/user-actions.service';
 
 import {
+    DeleteUserResponseModel,
+    BulkDeleteByStatusResponseModel,
+    BulkOperationResponseModel,
+    BulkAllResponseModel,
+    GetUserAccessibleNodesResponseModel,
+} from './models';
+import {
     CreateUserRequestDto,
     UpdateUserRequestDto,
     BulkDeleteUsersByStatusRequestDto,
     BulkUpdateUsersRequestDto,
     BulkAllUpdateUsersRequestDto,
 } from './dtos';
-import {
-    DeleteUserResponseModel,
-    BulkDeleteByStatusResponseModel,
-    BulkOperationResponseModel,
-    BulkAllResponseModel,
-} from './models';
-import {
-    IGetUserWithLastConnectedNode,
-    IGetUserByUnique,
-    IGetUsersByTelegramIdOrEmail,
-    IGetUserUsageByRange,
-} from './interfaces';
 import { UpdateStatusAndTrafficAndResetAtCommand } from './commands/update-status-and-traffic-and-reset-at';
-import { UserWithActiveInboundsEntity, UserEntity, UserWithAiAndLcnRawEntity } from './entities';
+import { IGetUserByUnique, IGetUsersByTelegramIdOrEmail, IGetUserUsageByRange } from './interfaces';
 import { UsersRepository } from './repositories/users.repository';
+import { BaseUserEntity, UserEntity } from './entities';
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -82,67 +70,87 @@ export class UsersService {
         this.shortUuidLength = this.configService.getOrThrow<number>('SHORT_UUID_LENGTH');
     }
 
-    public async createUser(
-        dto: CreateUserRequestDto,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        const user = await this.createUserTransactional(dto);
+    public async createUser(dto: CreateUserRequestDto): Promise<ICommandResponse<UserEntity>> {
+        try {
+            const user = await this.createUserTransactional(dto);
 
-        if (!user.isOk || !user.response) {
+            if (!user.isOk || !user.response) {
+                return user;
+            }
+
+            this.eventBus.publish(new AddUserToNodeEvent(user.response.uuid));
+            this.eventEmitter.emit(
+                EVENTS.USER.CREATED,
+                new UserEvent(user.response, EVENTS.USER.CREATED),
+            );
             return user;
-        }
+        } catch (error) {
+            this.logger.error(error);
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2002' &&
+                error.meta?.modelName === 'Users' &&
+                Array.isArray(error.meta.target)
+            ) {
+                const fields = error.meta.target as string[];
+                if (fields.includes('username')) {
+                    return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
+                }
+                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
+                    return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
+                }
+                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
+                    return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
+                }
+            }
 
-        this.eventBus.publish(new AddUserToNodeEvent(user.response));
-        this.eventEmitter.emit(
-            EVENTS.USER.CREATED,
-            new UserEvent(user.response, EVENTS.USER.CREATED),
-        );
-        return user;
+            return { isOk: false, ...ERRORS.CREATE_USER_ERROR };
+        }
     }
 
-    public async updateUser(
-        dto: UpdateUserRequestDto,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
-        const user = await this.updateUserTransactional(dto);
+    public async updateUser(dto: UpdateUserRequestDto): Promise<ICommandResponse<UserEntity>> {
+        try {
+            const user = await this.updateUserTransactional(dto);
 
-        if (!user.isOk || !user.response) {
-            if (user.code === 'A025') {
+            if (!user.isOk || !user.response) {
+                if (user.code === 'A025') {
+                    return {
+                        isOk: false,
+                        ...ERRORS.USER_NOT_FOUND,
+                    };
+                }
+
                 return {
                     isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
+                    ...ERRORS.UPDATE_USER_ERROR,
                 };
             }
 
+            if (
+                user.response.user.status === USERS_STATUS.ACTIVE &&
+                user.response.isNeedToBeAddedToNode
+            ) {
+                this.eventBus.publish(new AddUserToNodeEvent(user.response.user.uuid));
+            }
+
+            if (user.response.isNeedToBeRemovedFromNode) {
+                this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user.uuid));
+            }
+
+            this.eventEmitter.emit(
+                EVENTS.USER.MODIFIED,
+                new UserEvent(user.response.user, EVENTS.USER.MODIFIED),
+            );
+
             return {
-                isOk: false,
-                ...ERRORS.UPDATE_USER_ERROR,
+                isOk: true,
+                response: user.response.user,
             };
+        } catch (error) {
+            this.logger.error(error);
+
+            return { isOk: false, ...ERRORS.UPDATE_USER_ERROR };
         }
-
-        if (
-            user.response.user.status === USERS_STATUS.ACTIVE &&
-            user.response.isNeedToBeAddedToNode
-        ) {
-            this.eventBus.publish(new AddUserToNodeEvent(user.response.user));
-        }
-
-        if (user.response.isNeedToBeRemovedFromNode) {
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user));
-        }
-
-        this.eventEmitter.emit(
-            EVENTS.USER.MODIFIED,
-            new UserEvent(user.response.user, EVENTS.USER.MODIFIED),
-        );
-
-        const lastConnectedNode = await this.getUserLastConnectedNode(user.response.user.uuid);
-
-        return {
-            isOk: true,
-            response: {
-                user: user.response.user,
-                lastConnectedNode: lastConnectedNode.response || null,
-            },
-        };
     }
 
     @Transactional()
@@ -150,7 +158,7 @@ export class UsersService {
         ICommandResponse<{
             isNeedToBeAddedToNode: boolean;
             isNeedToBeRemovedFromNode: boolean;
-            user: UserWithActiveInboundsEntity;
+            user: UserEntity;
         }>
     > {
         try {
@@ -160,20 +168,24 @@ export class UsersService {
                 trafficLimitBytes,
                 trafficLimitStrategy,
                 status,
-                activeUserInbounds,
                 description,
                 telegramId,
                 email,
                 hwidDeviceLimit,
                 tag,
+                activeInternalSquads,
             } = dto;
 
-            const user = await this.userRepository.getUserByUUID(uuid);
+            const user = await this.userRepository.findUniqueByCriteria(
+                { uuid: uuid },
+                {
+                    activeInternalSquads: true,
+                    lastConnectedNode: false,
+                },
+            );
+
             if (!user) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
+                throw new Error(ERRORS.USER_NOT_FOUND.message);
             }
 
             let newStatus = status;
@@ -181,7 +193,7 @@ export class UsersService {
             let isNeedToBeAddedToNode =
                 user.status !== USERS_STATUS.ACTIVE && status === USERS_STATUS.ACTIVE;
 
-            const isNeedToBeRemovedFromNode = status === USERS_STATUS.DISABLED;
+            let isNeedToBeRemovedFromNode = status === USERS_STATUS.DISABLED;
 
             if (trafficLimitBytes !== undefined) {
                 if (user.status === USERS_STATUS.LIMITED && trafficLimitBytes >= 0) {
@@ -228,46 +240,46 @@ export class UsersService {
                 lastTriggeredThreshold: trafficLimitBytes !== undefined ? 0 : undefined,
             });
 
-            if (activeUserInbounds) {
-                const newInboundUuids = activeUserInbounds;
+            if (activeInternalSquads) {
+                const newActiveInternalSquadsUuids = activeInternalSquads;
 
-                const currentInboundUuids =
-                    user.activeUserInbounds?.map((inbound) => inbound.uuid) || [];
+                const currentInternalSquadsUuids =
+                    user.activeInternalSquads.map((squad) => squad.uuid) || [];
 
                 const hasChanges =
-                    newInboundUuids.length !== currentInboundUuids.length ||
-                    !newInboundUuids.every((uuid) => currentInboundUuids.includes(uuid));
+                    newActiveInternalSquadsUuids.length !== currentInternalSquadsUuids.length ||
+                    !newActiveInternalSquadsUuids.every((uuid) =>
+                        currentInternalSquadsUuids.includes(uuid),
+                    );
 
                 if (hasChanges) {
-                    await this.deleteManyActiveInboubdsByUserUuid({
-                        userUuid: result.uuid,
-                    });
+                    await this.userRepository.removeUserFromInternalSquads(result.uuid);
 
-                    const inboundResult = await this.createManyUserActiveInbounds({
-                        userUuid: result.uuid,
-                        inboundUuids: newInboundUuids,
-                    });
+                    if (newActiveInternalSquadsUuids.length === 0) {
+                        isNeedToBeRemovedFromNode = true;
+                    }
 
-                    isNeedToBeAddedToNode = true;
+                    if (newActiveInternalSquadsUuids.length > 0) {
+                        await this.userRepository.addUserToInternalSquads(
+                            result.uuid,
+                            newActiveInternalSquadsUuids,
+                        );
 
-                    if (!inboundResult.isOk) {
-                        return {
-                            isOk: false,
-                            ...ERRORS.UPDATE_USER_WITH_INBOUNDS_ERROR,
-                        };
+                        isNeedToBeAddedToNode = true;
                     }
                 }
             }
 
-            const userWithInbounds = await this.userRepository.getUserWithActiveInbounds(
-                result.uuid,
+            const userWithInbounds = await this.userRepository.findUniqueByCriteria(
+                { uuid: result.uuid },
+                {
+                    activeInternalSquads: true,
+                    lastConnectedNode: true,
+                },
             );
 
             if (!userWithInbounds) {
-                return {
-                    isOk: false,
-                    ...ERRORS.CANT_GET_CREATED_USER_WITH_INBOUNDS,
-                };
+                throw new Error(ERRORS.CANT_GET_CREATED_USER_WITH_INBOUNDS.message);
             }
 
             return {
@@ -279,37 +291,17 @@ export class UsersService {
                 },
             };
         } catch (error) {
-            this.logger.error(error);
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2002' &&
-                error.meta?.modelName === 'Users' &&
-                Array.isArray(error.meta.target)
-            ) {
-                const fields = error.meta.target as string[];
-                if (fields.includes('username')) {
-                    return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
-                }
-                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
-                }
-                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
-                }
-            }
-
-            return { isOk: false, ...ERRORS.UPDATE_USER_ERROR };
+            throw error;
         }
     }
 
     @Transactional()
     public async createUserTransactional(
         dto: CreateUserRequestDto,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
+    ): Promise<ICommandResponse<UserEntity>> {
         try {
             const {
                 username,
-                subscriptionUuid,
                 expireAt,
                 trafficLimitBytes,
                 trafficLimitStrategy,
@@ -318,20 +310,18 @@ export class UsersService {
                 trojanPassword,
                 vlessUuid,
                 ssPassword,
-                activeUserInbounds,
                 createdAt,
                 lastTrafficResetAt,
                 description,
-                activateAllInbounds,
                 telegramId,
                 email,
                 hwidDeviceLimit,
                 tag,
+                activeInternalSquads,
             } = dto;
 
-            const userEntity = new UserEntity({
+            const userEntity = new BaseUserEntity({
                 username,
-                subscriptionUuid: subscriptionUuid || this.createUuid(),
                 shortUuid: shortUuid || this.createNanoId(),
                 trojanPassword: trojanPassword || this.createTrojanPassword(),
                 vlessUuid: vlessUuid || this.createUuid(),
@@ -352,49 +342,28 @@ export class UsersService {
 
             const result = await this.userRepository.create(userEntity);
 
-            if (activeUserInbounds) {
-                const inboundResult = await this.createManyUserActiveInbounds({
-                    userUuid: result.uuid,
-                    inboundUuids: activeUserInbounds,
-                });
-                if (!inboundResult.isOk) {
+            if (activeInternalSquads && activeInternalSquads.length > 0) {
+                const squadsResult = await this.userRepository.addUserToInternalSquads(
+                    result.uuid,
+                    activeInternalSquads,
+                );
+
+                if (!squadsResult) {
                     return {
                         isOk: false,
-                        ...ERRORS.CREATE_USER_WITH_INBOUNDS_ERROR,
+                        ...ERRORS.CREATE_USER_WITH_INTERNAL_SQUAD_ERROR,
                     };
                 }
             }
 
-            if (
-                activateAllInbounds === true &&
-                (!activeUserInbounds || activeUserInbounds.length === 0)
-            ) {
-                const allInbounds = await this.getAllInbounds();
-
-                if (!allInbounds.isOk || !allInbounds.response) {
-                    return {
-                        isOk: false,
-                        ...ERRORS.GET_ALL_INBOUNDS_ERROR,
-                    };
-                }
-
-                const inboundUuids = allInbounds.response.map((inbound) => inbound.uuid);
-
-                const inboundResult = await this.createManyUserActiveInbounds({
-                    userUuid: result.uuid,
-                    inboundUuids: inboundUuids,
-                });
-
-                if (!inboundResult.isOk) {
-                    return {
-                        isOk: false,
-                        ...ERRORS.CREATE_USER_WITH_INBOUNDS_ERROR,
-                    };
-                }
-            }
-
-            const userWithInbounds = await this.userRepository.getUserWithActiveInbounds(
-                result.uuid,
+            const userWithInbounds = await this.userRepository.findUniqueByCriteria(
+                {
+                    uuid: result.uuid,
+                },
+                {
+                    activeInternalSquads: true,
+                    lastConnectedNode: true,
+                },
             );
 
             if (!userWithInbounds) {
@@ -409,33 +378,14 @@ export class UsersService {
                 response: userWithInbounds,
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2002' &&
-                error.meta?.modelName === 'Users' &&
-                Array.isArray(error.meta.target)
-            ) {
-                const fields = error.meta.target as string[];
-                if (fields.includes('username')) {
-                    return { isOk: false, ...ERRORS.USER_USERNAME_ALREADY_EXISTS };
-                }
-                if (fields.includes('shortUuid') || fields.includes('short_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SHORT_UUID_ALREADY_EXISTS };
-                }
-                if (fields.includes('subscriptionUuid') || fields.includes('subscription_uuid')) {
-                    return { isOk: false, ...ERRORS.USER_SUBSCRIPTION_UUID_ALREADY_EXISTS };
-                }
-            }
-
-            return { isOk: false, ...ERRORS.CREATE_USER_ERROR };
+            throw error;
         }
     }
 
     public async getAllUsers(dto: GetAllUsersCommand.RequestQuery): Promise<
         ICommandResponse<{
             total: number;
-            users: UserWithAiAndLcnRawEntity[];
+            users: UserEntity[];
         }>
     > {
         try {
@@ -459,11 +409,10 @@ export class UsersService {
 
     public async getUserByUniqueFields(
         dto: IGetUserByUnique,
-    ): Promise<ICommandResponse<UserWithAiAndLcnRawEntity>> {
+    ): Promise<ICommandResponse<UserEntity>> {
         try {
             const result = await this.userRepository.findUniqueByCriteria({
                 username: dto.username || undefined,
-                subscriptionUuid: dto.subscriptionUuid || undefined,
                 shortUuid: dto.shortUuid || undefined,
                 uuid: dto.uuid || undefined,
             });
@@ -488,17 +437,15 @@ export class UsersService {
         }
     }
 
-    public async getUsersByTelegramIdOrEmail(
+    public async getUsersByNonUniqueFields(
         dto: IGetUsersByTelegramIdOrEmail,
-    ): Promise<ICommandResponse<UserWithAiAndLcnRawEntity[]>> {
+    ): Promise<ICommandResponse<UserEntity[]>> {
         try {
-            const result = await this.userRepository.findByCriteriaWithInboundsAndLastConnectedNode(
-                {
-                    email: dto.email || undefined,
-                    telegramId: dto.telegramId ? BigInt(dto.telegramId) : undefined,
-                    tag: dto.tag || undefined,
-                },
-            );
+            const result = await this.userRepository.findByNonUniqueCriteria({
+                email: dto.email || undefined,
+                telegramId: dto.telegramId ? BigInt(dto.telegramId) : undefined,
+                tag: dto.tag || undefined,
+            });
 
             if (!result || result.length === 0) {
                 return {
@@ -523,27 +470,42 @@ export class UsersService {
     public async revokeUserSubscription(
         userUuid: string,
         shortUuid?: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    ): Promise<ICommandResponse<UserEntity>> {
         try {
-            const user = await this.userRepository.getUserByUUID(userUuid);
+            const user = await this.userRepository.getPartialUserByUniqueFields(
+                { uuid: userUuid },
+                ['uuid'],
+            );
+
             if (!user) {
                 return {
                     isOk: false,
                     ...ERRORS.USER_NOT_FOUND,
                 };
             }
-            const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
+            const updateResult = await this.userRepository.revokeUserSubscription({
                 uuid: user.uuid,
                 shortUuid: shortUuid ?? this.createNanoId(),
-                subscriptionUuid: this.createUuid(),
                 trojanPassword: this.createTrojanPassword(),
                 vlessUuid: this.createUuid(),
                 ssPassword: this.createTrojanPassword(),
                 subRevokedAt: new Date(),
             });
 
-            if (updatedUser.status === USERS_STATUS.ACTIVE) {
-                await this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
+            if (!updateResult) {
+                return {
+                    isOk: false,
+                    ...ERRORS.REVOKE_USER_SUBSCRIPTION_ERROR,
+                };
+            }
+
+            const updatedUser = await this.userRepository.findUniqueByCriteria({ uuid: user.uuid });
+
+            if (!updatedUser) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
             }
 
             this.eventEmitter.emit(
@@ -551,14 +513,9 @@ export class UsersService {
                 new UserEvent(updatedUser, EVENTS.USER.REVOKED),
             );
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
-
             return {
                 isOk: true,
-                response: {
-                    user: updatedUser,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: updatedUser,
             };
         } catch (error) {
             this.logger.error(error);
@@ -569,80 +526,16 @@ export class UsersService {
         }
     }
 
-    public async activateAllInbounds(
-        userUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
-        try {
-            const user = await this.userRepository.getUserByUUID(userUuid);
-            if (!user) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
-            }
-
-            const allInbounds = await this.getAllInbounds();
-
-            if (!allInbounds.isOk || !allInbounds.response) {
-                return {
-                    isOk: false,
-                    ...ERRORS.GET_ALL_INBOUNDS_ERROR,
-                };
-            }
-
-            const inboundUuids = allInbounds.response.map((inbound) => inbound.uuid);
-
-            const inboundResult = await this.createManyUserActiveInbounds({
-                userUuid: user.uuid,
-                inboundUuids: inboundUuids,
-            });
-
-            if (!inboundResult.isOk) {
-                return {
-                    isOk: false,
-                    ...ERRORS.ACTIVATE_ALL_INBOUNDS_ERROR,
-                };
-            }
-
-            const updatedUser = await this.userRepository.getUserByUUID(user.uuid);
-
-            if (!updatedUser) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_NOT_FOUND,
-                };
-            }
-
-            if (updatedUser.status === USERS_STATUS.ACTIVE) {
-                await this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
-            }
-
-            this.eventEmitter.emit(
-                EVENTS.USER.MODIFIED,
-                new UserEvent(updatedUser, EVENTS.USER.MODIFIED),
-            );
-
-            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
-
-            return {
-                isOk: true,
-                response: {
-                    user: updatedUser,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
-            };
-        } catch (error) {
-            this.logger.error(error);
-            return {
-                isOk: false,
-                ...ERRORS.ACTIVATE_ALL_INBOUNDS_ERROR,
-            };
-        }
-    }
-
     public async deleteUser(userUuid: string): Promise<ICommandResponse<DeleteUserResponseModel>> {
         try {
-            const user = await this.userRepository.getUserByUUID(userUuid);
+            const user = await this.userRepository.findUniqueByCriteria(
+                { uuid: userUuid },
+                {
+                    activeInternalSquads: true,
+                    lastConnectedNode: true,
+                },
+            );
+
             if (!user) {
                 return {
                     isOk: false,
@@ -651,7 +544,7 @@ export class UsersService {
             }
             const result = await this.userRepository.deleteByUUID(user.uuid);
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user));
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
             this.eventEmitter.emit(EVENTS.USER.DELETED, new UserEvent(user, EVENTS.USER.DELETED));
             return {
                 isOk: true,
@@ -663,11 +556,13 @@ export class UsersService {
         }
     }
 
-    public async disableUser(
-        userUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    public async disableUser(userUuid: string): Promise<ICommandResponse<UserEntity>> {
         try {
-            const user = await this.userRepository.getUserByUUID(userUuid);
+            const user = await this.userRepository.getPartialUserByUniqueFields(
+                { uuid: userUuid },
+                ['uuid', 'status'],
+            );
+
             if (!user) {
                 return {
                     isOk: false,
@@ -682,25 +577,26 @@ export class UsersService {
                 };
             }
 
-            const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
-                uuid: user.uuid,
-                status: USERS_STATUS.DISABLED,
-            });
+            await this.userRepository.updateUserStatus(user.uuid, USERS_STATUS.DISABLED);
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user));
+            const updatedUser = await this.userRepository.findUniqueByCriteria({ uuid: user.uuid });
+
+            if (!updatedUser) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
             this.eventEmitter.emit(
                 EVENTS.USER.DISABLED,
                 new UserEvent(updatedUser, EVENTS.USER.DISABLED),
             );
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
-
             return {
                 isOk: true,
-                response: {
-                    user: updatedUser,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: updatedUser,
             };
         } catch (error) {
             this.logger.error(error);
@@ -711,11 +607,13 @@ export class UsersService {
         }
     }
 
-    public async enableUser(
-        userUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    public async enableUser(userUuid: string): Promise<ICommandResponse<UserEntity>> {
         try {
-            const user = await this.userRepository.getUserByUUID(userUuid);
+            const user = await this.userRepository.getPartialUserByUniqueFields(
+                { uuid: userUuid },
+                ['uuid', 'status'],
+            );
+
             if (!user) {
                 return {
                     isOk: false,
@@ -730,26 +628,27 @@ export class UsersService {
                 };
             }
 
-            const updatedUser = await this.userRepository.updateUserWithActiveInbounds({
-                uuid: user.uuid,
-                status: USERS_STATUS.ACTIVE,
-            });
+            await this.userRepository.updateUserStatus(user.uuid, USERS_STATUS.ACTIVE);
 
-            this.eventBus.publish(new AddUserToNodeEvent(updatedUser));
+            const updatedUser = await this.userRepository.findUniqueByCriteria({ uuid: user.uuid });
+
+            if (!updatedUser) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            this.eventBus.publish(new AddUserToNodeEvent(user.uuid));
 
             this.eventEmitter.emit(
                 EVENTS.USER.ENABLED,
                 new UserEvent(updatedUser, EVENTS.USER.ENABLED),
             );
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(updatedUser.uuid);
-
             return {
                 isOk: true,
-                response: {
-                    user: updatedUser,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: updatedUser,
             };
         } catch (error) {
             this.logger.error(error);
@@ -761,11 +660,13 @@ export class UsersService {
     }
 
     @Transactional()
-    public async resetUserTraffic(
-        userUuid: string,
-    ): Promise<ICommandResponse<IGetUserWithLastConnectedNode>> {
+    public async resetUserTraffic(userUuid: string): Promise<ICommandResponse<UserEntity>> {
         try {
-            const user = await this.userRepository.getUserByUUID(userUuid);
+            const user = await this.userRepository.getPartialUserByUniqueFields(
+                { uuid: userUuid },
+                ['uuid', 'status', 'usedTrafficBytes'],
+            );
+
             if (!user) {
                 return {
                     isOk: false,
@@ -774,14 +675,9 @@ export class UsersService {
             }
 
             let status = undefined;
-
             if (user.status === USERS_STATUS.LIMITED) {
                 status = USERS_STATUS.ACTIVE;
-                this.eventEmitter.emit(
-                    EVENTS.USER.ENABLED,
-                    new UserEvent(user, EVENTS.USER.ENABLED),
-                );
-                this.eventBus.publish(new AddUserToNodeEvent(user));
+                this.eventBus.publish(new AddUserToNodeEvent(user.uuid));
             }
 
             await this.updateUserStatusAndTrafficAndResetAt({
@@ -798,7 +694,14 @@ export class UsersService {
                 }),
             });
 
-            const newUser = await this.userRepository.getUserByUUID(userUuid);
+            const newUser = await this.userRepository.findUniqueByCriteria(
+                { uuid: userUuid },
+                {
+                    activeInternalSquads: true,
+                    lastConnectedNode: true,
+                },
+            );
+
             if (!newUser) {
                 return {
                     isOk: false,
@@ -806,7 +709,12 @@ export class UsersService {
                 };
             }
 
-            const lastConnectedNode = await this.getUserLastConnectedNode(newUser.uuid);
+            if (user.status === USERS_STATUS.LIMITED) {
+                this.eventEmitter.emit(
+                    EVENTS.USER.ENABLED,
+                    new UserEvent(newUser, EVENTS.USER.ENABLED),
+                );
+            }
 
             this.eventEmitter.emit(
                 EVENTS.USER.TRAFFIC_RESET,
@@ -815,10 +723,7 @@ export class UsersService {
 
             return {
                 isOk: true,
-                response: {
-                    user: newUser,
-                    lastConnectedNode: lastConnectedNode.response || null,
-                },
+                response: newUser,
             };
         } catch (error) {
             this.logger.error(error);
@@ -953,9 +858,9 @@ export class UsersService {
         }
     }
 
-    public async bulkAddInboundsToUsers(
+    public async bulkUpdateUsersInternalSquads(
         usersUuids: string[],
-        inboundUuids: string[],
+        internalSquadsUuids: string[],
     ): Promise<ICommandResponse<BulkOperationResponseModel>> {
         try {
             const usersLength = usersUuids.length;
@@ -963,12 +868,16 @@ export class UsersService {
 
             for (let i = 0; i < usersLength; i += batchLength) {
                 const batchUsersUuids = usersUuids.slice(i, i + batchLength);
-                await this.removeInboundsFromUsers(batchUsersUuids);
-                await this.addInboundsToUsers(batchUsersUuids, inboundUuids);
+                await this.userRepository.removeUsersFromInternalSquads(batchUsersUuids);
+                await this.userRepository.addUsersToInternalSquads(
+                    batchUsersUuids,
+                    internalSquadsUuids,
+                );
             }
 
+            // TODO: finish later
             await this.startAllNodesQueue.startAllNodesWithoutDeduplication({
-                emitter: 'bulkAddInboundsToUsers',
+                emitter: 'bulkUpdateUsersInternalSquads',
             });
 
             return {
@@ -1099,6 +1008,32 @@ export class UsersService {
         }
     }
 
+    public async getUserAccessibleNodes(
+        userUuid: string,
+    ): Promise<ICommandResponse<GetUserAccessibleNodesResponseModel>> {
+        try {
+            const result = await this.userRepository.getUserAccessibleNodes(userUuid);
+
+            if (!result) {
+                return {
+                    isOk: true,
+                    response: new GetUserAccessibleNodesResponseModel({
+                        userUuid,
+                        activeNodes: [],
+                    }),
+                };
+            }
+
+            return {
+                isOk: true,
+                response: new GetUserAccessibleNodesResponseModel(result),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_USER_ACCESSIBLE_NODES_ERROR };
+        }
+    }
+
     private createUuid(): string {
         return randomUUID();
     }
@@ -1124,24 +1059,6 @@ export class UsersService {
         return nanoid();
     }
 
-    private async createManyUserActiveInbounds(
-        dto: CreateManyUserActiveInboundsCommand,
-    ): Promise<ICommandResponse<number>> {
-        return this.commandBus.execute<
-            CreateManyUserActiveInboundsCommand,
-            ICommandResponse<number>
-        >(new CreateManyUserActiveInboundsCommand(dto.userUuid, dto.inboundUuids));
-    }
-
-    private async deleteManyActiveInboubdsByUserUuid(
-        dto: DeleteManyActiveInboundsByUserUuidCommand,
-    ): Promise<ICommandResponse<number>> {
-        return this.commandBus.execute<
-            DeleteManyActiveInboundsByUserUuidCommand,
-            ICommandResponse<number>
-        >(new DeleteManyActiveInboundsByUserUuidCommand(dto.userUuid));
-    }
-
     private async updateUserStatusAndTrafficAndResetAt(
         dto: UpdateStatusAndTrafficAndResetAtCommand,
     ): Promise<ICommandResponse<void>> {
@@ -1156,37 +1073,6 @@ export class UsersService {
     ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<CreateUserTrafficHistoryCommand, ICommandResponse<void>>(
             new CreateUserTrafficHistoryCommand(dto.userTrafficHistory),
-        );
-    }
-
-    private async getAllInbounds(): Promise<ICommandResponse<InboundsEntity[]>> {
-        return this.queryBus.execute<GetAllInboundsQuery, ICommandResponse<InboundsEntity[]>>(
-            new GetAllInboundsQuery(),
-        );
-    }
-
-    private async getUserLastConnectedNode(
-        userUuid: string,
-    ): Promise<ICommandResponse<ILastConnectedNode | null>> {
-        return this.queryBus.execute<
-            GetUserLastConnectedNodeQuery,
-            ICommandResponse<ILastConnectedNode | null>
-        >(new GetUserLastConnectedNodeQuery(userUuid));
-    }
-
-    private async removeInboundsFromUsers(userUuids: string[]): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<
-            RemoveInboundsFromUsersByUuidsCommand,
-            ICommandResponse<void>
-        >(new RemoveInboundsFromUsersByUuidsCommand(userUuids));
-    }
-
-    private async addInboundsToUsers(
-        userUuids: string[],
-        inboundUuids: string[],
-    ): Promise<ICommandResponse<void>> {
-        return this.commandBus.execute<AddInboundsToUsersByUuidsCommand, ICommandResponse<void>>(
-            new AddInboundsToUsersByUuidsCommand(userUuids, inboundUuids),
         );
     }
 

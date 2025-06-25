@@ -40,11 +40,6 @@ export namespace UpdateUserCommand {
                 }
             })
             .optional(),
-        activeUserInbounds: z
-            .array(z.string().uuid(), {
-                invalid_type_error: 'Enabled inbounds must be an array of UUIDs',
-            })
-            .optional(),
         expireAt: z
             .string()
             .datetime({ local: true, offset: true, message: 'Invalid date format' })
@@ -70,6 +65,11 @@ export namespace UpdateUserCommand {
         hwidDeviceLimit: z.optional(
             z.number().int().min(0, 'Device limit must be non-negative').nullable(),
         ),
+        activeInternalSquads: z
+            .array(z.string().uuid(), {
+                invalid_type_error: 'Enabled internal squads must be an array of UUIDs',
+            })
+            .optional(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

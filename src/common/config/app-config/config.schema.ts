@@ -36,6 +36,12 @@ export const configSchema = z
             .transform((val) => (val === '' ? undefined : val))
             .optional(),
 
+        TELEGRAM_NOTIFY_CRM_CHAT_ID: z.string().optional(),
+        TELEGRAM_NOTIFY_CRM_THREAD_ID: z
+            .string()
+            .transform((val) => (val === '' ? undefined : val))
+            .optional(),
+
         TELEGRAM_OAUTH_ENABLED: z.string().default('false'),
         TELEGRAM_OAUTH_ADMIN_IDS: z
             .string()

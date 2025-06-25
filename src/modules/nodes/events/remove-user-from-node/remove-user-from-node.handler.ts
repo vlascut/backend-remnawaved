@@ -1,8 +1,10 @@
-import { IEventHandler } from '@nestjs/cqrs';
+import { IEventHandler, QueryBus } from '@nestjs/cqrs';
 import { EventsHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
 import { RemoveUserCommand as RemoveUserFromNodeCommandSdk } from '@remnawave/node-contract/build/commands';
+
+import { GetUserWithResolvedInboundsQuery } from '@modules/users/queries/get-user-with-resolved-inbounds/get-user-with-resolved-inbounds.query';
 
 import { NodeUsersQueueService } from '@queue/node-users/node-users.service';
 
@@ -16,12 +18,23 @@ export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNo
     constructor(
         private readonly nodesRepository: NodesRepository,
         private readonly nodeUsersQueue: NodeUsersQueueService,
+        private readonly queryBus: QueryBus,
     ) {}
     async handle(event: RemoveUserFromNodeEvent) {
         try {
-            const userEntity = event.user;
+            // TODO: need refactor
 
-            if (userEntity.activeUserInbounds.length === 0) {
+            const userEntity = await this.queryBus.execute(
+                new GetUserWithResolvedInboundsQuery(event.userUuid),
+            );
+
+            if (!userEntity.isOk || !userEntity.response) {
+                return;
+            }
+
+            const { username, inbounds } = userEntity.response;
+
+            if (inbounds.length === 0) {
                 return;
             }
 
@@ -32,7 +45,7 @@ export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNo
             }
 
             const userData: RemoveUserFromNodeCommandSdk.Request = {
-                username: userEntity.username,
+                username,
             };
 
             await this.nodeUsersQueue.removeUserFromNodeBulk(

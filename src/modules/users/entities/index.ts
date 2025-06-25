@@ -1,4 +1,4 @@
-export * from './user-with-active-inbounds.entity';
-export * from './user-with-ai-and-lcn-raw.entity';
+export * from './base-users.entity';
+export * from './user-with-resolved-inbound.entity';
+export * from './user.entity';
 export * from './users-for-config';
-export * from './users.entity';

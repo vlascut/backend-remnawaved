@@ -5,15 +5,12 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
-import { ICommandResponse } from '@common/types/command-response.type';
-import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { AxiosService } from '@common/axios/axios.service';
 import { EVENTS } from '@libs/contracts/constants';
 
 import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetPreparedConfigWithUsersQuery } from '@modules/users/queries/get-prepared-config-with-users';
-import { InboundsEntity } from '@modules/inbounds/entities/inbounds.entity';
 import { NodesRepository } from '@modules/nodes';
 
 import { StartNodeJobNames } from './enums';
@@ -49,6 +46,11 @@ export class StartNodeQueueProcessor extends WorkerHost {
                 return;
             }
 
+            if (!nodeEntity.activeConfigProfileUuid || !nodeEntity.activeInbounds) {
+                this.logger.error(`Node ${nodeUuid} has no active config profile or inbounds`);
+                return;
+            }
+
             await this.nodesRepository.update({
                 uuid: nodeEntity.uuid,
                 isConnecting: true,
@@ -75,7 +77,12 @@ export class StartNodeQueueProcessor extends WorkerHost {
             }
 
             const startTime = Date.now();
-            const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
+            const config = await this.queryBus.execute(
+                new GetPreparedConfigWithUsersQuery(
+                    nodeEntity.activeConfigProfileUuid,
+                    nodeEntity.activeInbounds,
+                ),
+            );
 
             this.logger.log(`Generated config for node in ${Date.now() - startTime}ms`);
 
@@ -135,14 +142,5 @@ export class StartNodeQueueProcessor extends WorkerHost {
         } catch (error) {
             this.logger.error(`Error handling "${StartNodeJobNames.startNode}" job: ${error}`);
         }
-    }
-
-    private getConfigForNode(
-        excludedInbounds: InboundsEntity[],
-    ): Promise<ICommandResponse<IXrayConfig>> {
-        return this.queryBus.execute<
-            GetPreparedConfigWithUsersQuery,
-            ICommandResponse<IXrayConfig>
-        >(new GetPreparedConfigWithUsersQuery(excludedInbounds));
     }
 }

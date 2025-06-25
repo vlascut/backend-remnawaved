@@ -12,6 +12,7 @@ import {
     ServiceEvent,
     CustomErrorEvent,
     NodeEvent,
+    CrmEvent,
 } from '@integration-modules/notifications/interfaces';
 
 import { WebhookLoggerQueueService } from '@queue/notifications/webhook-logger/webhook-logger.service';
@@ -83,6 +84,26 @@ export class WebhookEvents {
 
     @OnEvent(EVENTS.CATCH_ALL_ERRORS_EVENTS)
     async onCatchAllErrorsEvents(event: CustomErrorEvent): Promise<void> {
+        try {
+            const payload = {
+                event: event.eventName,
+                timestamp: dayjs().toISOString(),
+                data: instanceToPlain(event.data),
+            };
+
+            const { json } = serialize(payload);
+
+            await this.webhookLoggerQueueService.sendWebhook({
+                payload: JSON.stringify(json),
+                timestamp: payload.timestamp,
+            });
+        } catch (error) {
+            this.logger.error(`Error sending webhook event: ${error}`);
+        }
+    }
+
+    @OnEvent(EVENTS.CATCH_ALL_CRM_EVENTS)
+    async onCatchAllCrmEvents(event: CrmEvent): Promise<void> {
         try {
             const payload = {
                 event: event.eventName,

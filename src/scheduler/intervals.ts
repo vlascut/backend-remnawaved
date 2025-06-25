@@ -35,4 +35,7 @@ export const JOBS_INTERVALS = {
     SERVICE: {
         CLEAN_OLD_USAGE_RECORDS: EVERY_WEEK_AT_MONDAY_00_30,
     },
+    CRM: {
+        INFRA_BILLING_NODES_NOTIFICATIONS: CronExpression.EVERY_DAY_AT_5PM,
+    },
 } as const;

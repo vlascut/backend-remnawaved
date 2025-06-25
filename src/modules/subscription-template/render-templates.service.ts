@@ -30,7 +30,7 @@ export class RenderTemplatesService {
         contentType: string;
         sub: string;
     }> {
-        const { userAgent, user, hosts, config, isOutlineConfig, encodedTag } = params;
+        const { userAgent, user, hosts, isOutlineConfig, encodedTag } = params;
 
         const configType =
             params.needJsonSubscription && this.isJsonSubscriptionAllowed(userAgent)
@@ -38,11 +38,7 @@ export class RenderTemplatesService {
                 : this.parseUserAgentType(userAgent);
 
         const configParams = SUBSCRIPTION_CONFIG_TYPES[configType];
-        const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-            config,
-            hosts,
-            user,
-        );
+        const formattedHosts = await this.formatHostsService.generateFormattedHosts(hosts, user);
 
         if (isOutlineConfig) {
             return {
@@ -57,6 +53,7 @@ export class RenderTemplatesService {
                     sub: await this.xrayGeneratorService.generateConfig(
                         formattedHosts,
                         configParams.BASE64,
+                        /^Happ\//.test(userAgent),
                     ),
                     contentType: configParams.CONTENT_TYPE,
                 };
@@ -111,13 +108,9 @@ export class RenderTemplatesService {
         contentType: string;
         sub: string;
     }> {
-        const { userAgent, user, hosts, config, clientType } = params;
+        const { userAgent, user, hosts, clientType } = params;
 
-        const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-            config,
-            hosts,
-            user,
-        );
+        const formattedHosts = await this.formatHostsService.generateFormattedHosts(hosts, user);
 
         switch (clientType) {
             case 'MIHOMO':

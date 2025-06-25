@@ -16,7 +16,8 @@ export namespace SetInboundToManyHostsCommand {
 
     export const RequestSchema = z.object({
         uuids: z.array(z.string().uuid()),
-        inboundUuid: z.string().uuid(),
+        configProfileUuid: z.string().uuid(),
+        configProfileInboundUuid: z.string().uuid(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

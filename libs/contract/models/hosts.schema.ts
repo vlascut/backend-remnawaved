@@ -4,7 +4,6 @@ import { SECURITY_LAYERS } from '../constants/hosts';
 
 export const HostsSchema = z.object({
     uuid: z.string().uuid(),
-    inboundUuid: z.string().uuid(),
     viewPosition: z.number().int(),
     remark: z.string(),
     address: z.string(),
@@ -14,8 +13,14 @@ export const HostsSchema = z.object({
     host: z.string().nullable(),
     alpn: z.string().nullable(),
     fingerprint: z.string().nullable(),
-    allowInsecure: z.boolean().default(false),
     isDisabled: z.boolean().default(false),
     securityLayer: z.nativeEnum(SECURITY_LAYERS).default(SECURITY_LAYERS.DEFAULT),
     xHttpExtraParams: z.nullable(z.unknown()),
+
+    inbound: z.object({
+        configProfileUuid: z.string().uuid().nullable(),
+        configProfileInboundUuid: z.string().uuid().nullable(),
+    }),
+
+    serverDescription: z.string().nullable(),
 });

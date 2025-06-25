@@ -1,6 +1,6 @@
 import { InboundObject } from '@common/helpers/xray-config/interfaces/protocols.config';
 
-import { InboundsEntity } from '@modules/inbounds/entities';
+import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
 
 export const getVlessFlow = (inbound: InboundObject) => {
     if (
@@ -14,7 +14,7 @@ export const getVlessFlow = (inbound: InboundObject) => {
     return '';
 };
 
-export const getVlessFlowFromDbInbound = (inbound: InboundsEntity) => {
+export const getVlessFlowFromDbInbound = (inbound: ConfigProfileInboundEntity) => {
     if (
         (inbound.network === 'tcp' || inbound.network === 'raw') &&
         (inbound.security === 'reality' || inbound.security === 'tls')

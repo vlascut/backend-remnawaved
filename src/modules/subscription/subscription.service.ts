@@ -10,7 +10,6 @@ import { TemplateEngine } from '@common/utils/templates/replace-templates-values
 import { prettyBytesUtil } from '@common/utils/bytes/pretty-bytes.util';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { HwidHeaders } from '@common/utils/extract-hwid-headers';
-import { XRayConfig } from '@common/helpers/xray-config';
 import { createHappCryptoLink } from '@common/utils';
 import {
     ERRORS,
@@ -31,8 +30,9 @@ import { RenderTemplatesService } from '@modules/subscription-template/render-te
 import { CountUsersDevicesQuery } from '@modules/hwid-user-devices/queries/count-users-devices';
 import { GetUsersWithPaginationQuery } from '@modules/users/queries/get-users-with-pagination';
 import { CheckHwidExistsQuery } from '@modules/hwid-user-devices/queries/check-hwid-exists';
+import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 import { IFormattedHost } from '@modules/subscription-template/generators/interfaces';
-import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
+import { UserEntity } from '@modules/users/entities/user.entity';
 
 import {
     SubscriptionNotFoundResponse,
@@ -40,11 +40,8 @@ import {
     SubscriptionWithConfigResponse,
 } from './models';
 import { UpdateSubLastOpenedAndUserAgentCommand } from '../users/commands/update-sub-last-opened-and-user-agent';
-import { UserWithActiveInboundsEntity } from '../users/entities/user-with-active-inbounds.entity';
-import { HostWithInboundTagEntity } from '../hosts/entities/host-with-inbound-tag.entity';
-import { GetValidatedConfigQuery } from '../xray-config/queries/get-validated-config';
+import { HostWithRawInbound } from '../hosts/entities/host-with-inbound-tag.entity';
 import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
-import { GetUserByShortUuidQuery } from '../users/queries/get-user-by-short-uuid';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
 import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
 import { GetAllSubscriptionsQueryDto } from './dto';
@@ -80,7 +77,17 @@ export class SubscriptionService {
         SubscriptionNotFoundResponse | SubscriptionRawResponse | SubscriptionWithConfigResponse
     > {
         try {
-            const user = await this.getUserByShortUuid({ shortUuid });
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        shortUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
             if (!user.isOk || !user.response) {
                 return new SubscriptionNotFoundResponse();
             }
@@ -169,11 +176,6 @@ export class SubscriptionService {
                 hosts.response = _.shuffle(hosts.response);
             }
 
-            const config = await this.getValidatedConfig();
-            if (!config) {
-                return new SubscriptionNotFoundResponse();
-            }
-
             await this.updateSubLastOpenedAndUserAgent({
                 userUuid: user.response.uuid,
                 subLastOpenedAt: new Date(),
@@ -190,7 +192,7 @@ export class SubscriptionService {
                     userAgent,
                     user: user.response,
                     hosts: hosts.response,
-                    config,
+
                     clientType: clientOverride,
                 });
             } else {
@@ -203,7 +205,6 @@ export class SubscriptionService {
                 subscription = await this.renderTemplatesService.generateSubscription({
                     userAgent: userAgent,
                     user: user.response,
-                    config,
                     hosts: hosts.response,
                     isOutlineConfig: false,
                     needJsonSubscription: isServeJson,
@@ -235,7 +236,18 @@ export class SubscriptionService {
         SubscriptionNotFoundResponse | SubscriptionRawResponse | SubscriptionWithConfigResponse
     > {
         try {
-            const user = await this.getUserByShortUuid({ shortUuid });
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        shortUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
+
             if (!user.isOk || !user.response) {
                 return new SubscriptionNotFoundResponse();
             }
@@ -262,11 +274,6 @@ export class SubscriptionService {
                 return new SubscriptionNotFoundResponse();
             }
 
-            const config = await this.getValidatedConfig();
-            if (!config) {
-                return new SubscriptionNotFoundResponse();
-            }
-
             await this.updateSubLastOpenedAndUserAgent({
                 userUuid: user.response.uuid,
                 subLastOpenedAt: new Date(),
@@ -276,7 +283,6 @@ export class SubscriptionService {
             const subscription = await this.renderTemplatesService.generateSubscription({
                 userAgent: userAgent,
                 user: user.response,
-                config,
                 hosts: hosts.response,
                 isOutlineConfig,
                 encodedTag,
@@ -301,7 +307,17 @@ export class SubscriptionService {
         settingEntity?: SubscriptionSettingsEntity,
     ): Promise<ICommandResponse<SubscriptionRawResponse>> {
         try {
-            const user = await this.getUserByShortUuid({ shortUuid });
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        shortUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
             if (!user.isOk || !user.response) {
                 return {
                     isOk: false,
@@ -309,23 +325,14 @@ export class SubscriptionService {
                 };
             }
 
-            const config = await this.getValidatedConfig();
-            if (!config) {
-                return {
-                    isOk: false,
-                    ...ERRORS.INTERNAL_SERVER_ERROR,
-                };
-            }
-
             const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
 
             const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-                config,
                 hosts.response || [],
                 user.response,
             );
 
-            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts, false);
 
             const ssConfLinks = await this.generateSsConfLinks(
                 user.response.shortUuid,
@@ -362,7 +369,7 @@ export class SubscriptionService {
     }
 
     private async getUserInfo(
-        user: UserWithActiveInboundsEntity,
+        user: UserEntity,
         links: string[],
         ssConfLinks: Record<string, string>,
         settingEntity: SubscriptionSettingsEntity,
@@ -414,14 +421,6 @@ export class SubscriptionService {
             const users = usersResponse.response.users;
             const total = usersResponse.response.total;
 
-            const config = await this.getValidatedConfig();
-            if (!config) {
-                return {
-                    isOk: false,
-                    ...ERRORS.INTERNAL_SERVER_ERROR,
-                };
-            }
-
             const settingsResponse = await this.getSubscriptionSettings();
 
             if (!settingsResponse.isOk || !settingsResponse.response) {
@@ -440,12 +439,14 @@ export class SubscriptionService {
                 async (user) => {
                     const hosts = await this.getHostsByUserUuid({ userUuid: user.uuid });
                     const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-                        config,
                         hosts.response || [],
                         user,
                     );
 
-                    const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts);
+                    const xrayLinks = this.xrayGeneratorService.generateLinks(
+                        formattedHosts,
+                        false,
+                    );
 
                     const ssConfLinks = await this.generateSsConfLinks(
                         user.shortUuid,
@@ -479,7 +480,17 @@ export class SubscriptionService {
         username: string,
     ): Promise<ICommandResponse<SubscriptionRawResponse>> {
         try {
-            const user = await this.getUserByUsername({ username });
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        username,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
 
             if (!user.isOk || !user.response) {
                 return {
@@ -532,7 +543,7 @@ export class SubscriptionService {
     }
 
     private async getUserProfileHeadersInfo(
-        user: UserWithActiveInboundsEntity,
+        user: UserEntity,
         isHapp: boolean,
         settings: SubscriptionSettingsEntity,
     ): Promise<ISubscriptionHeaders> {
@@ -571,45 +582,20 @@ export class SubscriptionService {
         return headers;
     }
 
-    private async getUserByShortUuid(
-        dto: GetUserByShortUuidQuery,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        return this.queryBus.execute<
-            GetUserByShortUuidQuery,
-            ICommandResponse<UserWithActiveInboundsEntity>
-        >(new GetUserByShortUuidQuery(dto.shortUuid));
-    }
-
-    private async getUserByUsername(
-        dto: GetUserByUsernameQuery,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        return this.queryBus.execute<
-            GetUserByUsernameQuery,
-            ICommandResponse<UserWithActiveInboundsEntity>
-        >(new GetUserByUsernameQuery(dto.username));
-    }
-
     private async getUsersWithPagination(
         dto: GetUsersWithPaginationQuery,
-    ): Promise<ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>> {
+    ): Promise<ICommandResponse<{ users: UserEntity[]; total: number }>> {
         return this.queryBus.execute<
             GetUsersWithPaginationQuery,
-            ICommandResponse<{ users: UserWithActiveInboundsEntity[]; total: number }>
+            ICommandResponse<{ users: UserEntity[]; total: number }>
         >(new GetUsersWithPaginationQuery(dto.start, dto.size));
     }
 
     private async getHostsByUserUuid(
         dto: GetHostsForUserQuery,
-    ): Promise<ICommandResponse<HostWithInboundTagEntity[]>> {
-        return this.queryBus.execute<
-            GetHostsForUserQuery,
-            ICommandResponse<HostWithInboundTagEntity[]>
-        >(new GetHostsForUserQuery(dto.userUuid));
-    }
-
-    private async getValidatedConfig(): Promise<null | XRayConfig> {
-        return this.queryBus.execute<GetValidatedConfigQuery, null | XRayConfig>(
-            new GetValidatedConfigQuery(),
+    ): Promise<ICommandResponse<HostWithRawInbound[]>> {
+        return this.queryBus.execute<GetHostsForUserQuery, ICommandResponse<HostWithRawInbound[]>>(
+            new GetHostsForUserQuery(dto.userUuid),
         );
     }
 
@@ -661,7 +647,7 @@ export class SubscriptionService {
     }
 
     private async checkHwidDeviceLimit(
-        user: UserWithActiveInboundsEntity,
+        user: UserEntity,
         hwidHeaders: HwidHeaders | null,
     ): Promise<
         ICommandResponse<{
@@ -779,7 +765,7 @@ export class SubscriptionService {
     }
 
     private async checkAndUpsertHwidUserDevice(
-        user: UserWithActiveInboundsEntity,
+        user: UserEntity,
         hwidHeaders: HwidHeaders | null,
     ): Promise<void> {
         try {

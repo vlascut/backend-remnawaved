@@ -1,13 +1,10 @@
-import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
-
-import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
-import { HostWithInboundTagEntity } from '@modules/hosts/entities/host-with-inbound-tag.entity';
+import { HostWithRawInbound } from '@modules/hosts/entities/host-with-inbound-tag.entity';
+import { UserEntity } from '@modules/users/entities/user.entity';
 
 export interface IGenerateSubscription {
     userAgent: string;
-    user: UserWithActiveInboundsEntity;
-    hosts: HostWithInboundTagEntity[];
-    config: XRayConfig;
+    user: UserEntity;
+    hosts: HostWithRawInbound[];
     isOutlineConfig: boolean;
     encodedTag?: string;
     needJsonSubscription?: boolean;

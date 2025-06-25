@@ -1,27 +1,34 @@
+import { Prisma } from '@prisma/client';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { getKyselyUuid } from '@common/helpers/kysely/get-kysely-uuid';
 import { ICrud } from '@common/types/crud-port';
 
 import { NodesEntity } from '../entities/nodes.entity';
 import { NodesConverter } from '../nodes.converter';
 import { IReorderNode } from '../interfaces';
 
-const ADD_EXCLUSIONS_SELECT = {
-    inboundsExclusions: {
+export type INodesWithResolvedInbounds = Prisma.NodesGetPayload<{
+    include: {
+        configProfileInboundsToNodes: {
+            select: {
+                configProfileInbounds: true;
+            };
+        };
+        provider: true;
+    };
+}>;
+
+const INCLUDE_RESOLVED_INBOUNDS = {
+    configProfileInboundsToNodes: {
         select: {
-            inbound: {
-                select: {
-                    uuid: true,
-                    tag: true,
-                    type: true,
-                    network: true,
-                    security: true,
-                },
-            },
+            configProfileInbounds: true,
         },
     },
+    provider: true,
 } as const;
 
 @Injectable()
@@ -35,7 +42,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
         const model = this.nodesConverter.fromEntityToPrismaModel(entity);
         const result = await this.prisma.tx.nodes.create({
             data: model,
-            include: ADD_EXCLUSIONS_SELECT,
+            include: INCLUDE_RESOLVED_INBOUNDS,
         });
 
         return new NodesEntity(result);
@@ -48,8 +55,11 @@ export class NodesRepository implements ICrud<NodesEntity> {
                 isXrayRunning: true,
                 isNodeOnline: true,
                 isDisabled: false,
+                activeConfigProfileUuid: {
+                    not: null,
+                },
             },
-            include: ADD_EXCLUSIONS_SELECT,
+            include: INCLUDE_RESOLVED_INBOUNDS,
         });
 
         return nodesList.map((value) => new NodesEntity(value));
@@ -57,7 +67,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
 
     public async findAllNodes(): Promise<NodesEntity[]> {
         const nodesList = await this.prisma.tx.nodes.findMany({
-            include: ADD_EXCLUSIONS_SELECT,
+            include: INCLUDE_RESOLVED_INBOUNDS,
         });
 
         return nodesList.map((value) => new NodesEntity(value));
@@ -73,7 +83,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
     public async findByUUID(uuid: string): Promise<NodesEntity | null> {
         const result = await this.prisma.tx.nodes.findUnique({
             where: { uuid },
-            include: ADD_EXCLUSIONS_SELECT,
+            include: INCLUDE_RESOLVED_INBOUNDS,
         });
         if (!result) {
             return null;
@@ -82,16 +92,32 @@ export class NodesRepository implements ICrud<NodesEntity> {
     }
 
     public async update({ uuid, ...data }: Partial<NodesEntity>): Promise<NodesEntity> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { provider, activeInbounds, ...prismaData } = data;
+
         const result = await this.prisma.tx.nodes.update({
-            where: {
-                uuid,
-            },
-            data,
-            include: ADD_EXCLUSIONS_SELECT,
+            where: { uuid },
+            data: prismaData,
+            include: INCLUDE_RESOLVED_INBOUNDS,
         });
 
         return new NodesEntity(result);
     }
+
+    // public async update({ uuid, ...data }: Partial<NodesEntity>): Promise<NodesEntity> {
+
+    //     const result = await this.prisma.tx.nodes.update({
+    //         where: {
+    //             uuid,
+    //         },
+    //         data: {
+    //             ...data,
+    //         },
+    //         include: INCLUDE_RESOLVED_INBOUNDS,
+    //     });
+
+    //     return new NodesEntity(result);
+    // }
 
     public async findByCriteria(dto: Partial<NodesEntity>): Promise<NodesEntity[]> {
         const nodesList = await this.prisma.tx.nodes.findMany({
@@ -99,7 +125,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
             orderBy: {
                 viewPosition: 'asc',
             },
-            include: ADD_EXCLUSIONS_SELECT,
+            include: INCLUDE_RESOLVED_INBOUNDS,
         });
         return nodesList.map((value) => new NodesEntity(value));
     }
@@ -107,7 +133,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
     public async findFirstByCriteria(dto: Partial<NodesEntity>): Promise<NodesEntity | null> {
         const result = await this.prisma.tx.nodes.findFirst({
             where: dto,
-            include: ADD_EXCLUSIONS_SELECT,
+            include: INCLUDE_RESOLVED_INBOUNDS,
         });
 
         if (!result) {
@@ -149,5 +175,28 @@ export class NodesRepository implements ICrud<NodesEntity> {
         });
 
         return result._sum.usersOnline || 0;
+    }
+
+    public async removeInboundsFromNode(nodeUuid: string): Promise<boolean> {
+        const result = await this.prisma.tx.$kysely
+            .deleteFrom('configProfileInboundsToNodes')
+            .where('nodeUuid', '=', getKyselyUuid(nodeUuid))
+            .executeTakeFirst();
+
+        return !!result;
+    }
+
+    public async addInboundsToNode(nodeUuid: string, inboundsUuids: string[]): Promise<boolean> {
+        const result = await this.prisma.tx.$kysely
+            .insertInto('configProfileInboundsToNodes')
+            .values(
+                inboundsUuids.map((uuid) => ({
+                    nodeUuid: getKyselyUuid(nodeUuid),
+                    configProfileInboundUuid: getKyselyUuid(uuid),
+                })),
+            )
+            .executeTakeFirst();
+
+        return !!result;
     }
 }

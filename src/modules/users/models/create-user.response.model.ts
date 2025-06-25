@@ -1,10 +1,9 @@
 import { createHappCryptoLink } from '@common/utils';
 import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
 
-import { ILastConnectedNode } from '@modules/nodes-user-usage-history/interfaces';
+import { InternalSquadEntity } from '@modules/internal-squads/entities';
 
-import { UserWithActiveInboundsEntity } from '../entities/user-with-active-inbounds.entity';
-import { InboundsEntity } from '../../inbounds/entities/inbounds.entity';
+import { ILastConnectedNode, UserEntity } from '../entities';
 
 export class CreateUserResponseModel {
     public readonly uuid: string;
@@ -14,7 +13,6 @@ export class CreateUserResponseModel {
     public readonly expireAt: Date;
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
-    public readonly subscriptionUuid: string;
     public readonly usedTrafficBytes: number;
     public readonly lifetimeUsedTrafficBytes: number;
     public readonly trafficLimitBytes: number;
@@ -24,7 +22,6 @@ export class CreateUserResponseModel {
     public readonly onlineAt: Date | null;
     public readonly subRevokedAt: Date | null;
     public readonly lastTrafficResetAt: Date | null;
-    public readonly activeUserInbounds: InboundsEntity[];
     public readonly trojanPassword: string;
     public readonly vlessUuid: string;
     public readonly ssPassword: string;
@@ -40,13 +37,14 @@ export class CreateUserResponseModel {
 
     public readonly subscriptionUrl: string;
 
+    public readonly activeInternalSquads: Omit<InternalSquadEntity, 'createdAt' | 'updatedAt'>[];
+    public readonly lastConnectedNode: ILastConnectedNode | null;
+
     public readonly happ: {
         cryptoLink: string;
     };
 
-    public readonly lastConnectedNode: ILastConnectedNode | null;
-
-    constructor(entity: UserWithActiveInboundsEntity, subPublicDomain: string) {
+    constructor(entity: UserEntity, subPublicDomain: string) {
         this.uuid = entity.uuid;
         this.username = entity.username;
         this.shortUuid = entity.shortUuid;
@@ -54,7 +52,6 @@ export class CreateUserResponseModel {
         this.expireAt = entity.expireAt;
         this.createdAt = entity.createdAt;
         this.updatedAt = entity.updatedAt;
-        this.subscriptionUuid = entity.subscriptionUuid;
         this.usedTrafficBytes = Number(entity.usedTrafficBytes);
         this.lifetimeUsedTrafficBytes = Number(entity.lifetimeUsedTrafficBytes);
         this.trafficLimitBytes = Number(entity.trafficLimitBytes);
@@ -64,7 +61,6 @@ export class CreateUserResponseModel {
         this.onlineAt = entity.onlineAt;
         this.subRevokedAt = entity.subRevokedAt;
         this.lastTrafficResetAt = entity.lastTrafficResetAt;
-        this.activeUserInbounds = entity.activeUserInbounds;
         this.trojanPassword = entity.trojanPassword;
         this.vlessUuid = entity.vlessUuid;
         this.ssPassword = entity.ssPassword;
@@ -80,7 +76,9 @@ export class CreateUserResponseModel {
         this.lastTriggeredThreshold = entity.lastTriggeredThreshold;
 
         this.subscriptionUrl = `https://${subPublicDomain}/${entity.shortUuid}`;
-        this.lastConnectedNode = null;
+
+        this.activeInternalSquads = entity.activeInternalSquads;
+        this.lastConnectedNode = entity.lastConnectedNode;
 
         this.happ = {
             cryptoLink: createHappCryptoLink(this.subscriptionUrl),

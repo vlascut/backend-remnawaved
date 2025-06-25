@@ -4,16 +4,15 @@ import { Injectable } from '@nestjs/common';
 
 import { UniversalConverter } from '@common/converter/universalConverter';
 
-import { UserEntity } from './entities/users.entity';
+import { BaseUserEntity } from './entities/base-users.entity';
 
-const modelToEntity = (model: Users): UserEntity => {
-    return new UserEntity(model);
+const modelToEntity = (model: Users): BaseUserEntity => {
+    return new BaseUserEntity(model);
 };
 
-const entityToModel = (entity: UserEntity): UserEntity => {
+const entityToModel = (entity: BaseUserEntity): BaseUserEntity => {
     return {
         uuid: entity.uuid,
-        subscriptionUuid: entity.subscriptionUuid,
         shortUuid: entity.shortUuid,
         username: entity.username,
         status: entity.status,
@@ -51,7 +50,7 @@ const entityToModel = (entity: UserEntity): UserEntity => {
     };
 };
 @Injectable()
-export class UserConverter extends UniversalConverter<UserEntity, Users> {
+export class UserConverter extends UniversalConverter<BaseUserEntity, Users> {
     constructor() {
         super(modelToEntity, entityToModel);
     }

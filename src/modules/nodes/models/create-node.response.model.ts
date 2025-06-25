@@ -1,6 +1,7 @@
 import { fromNanoToNumber } from '@common/utils/nano';
 
-import { InboundsEntity } from '@modules/inbounds/entities';
+import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
+import { InfraProviderEntity } from '@modules/infra-billing/entities';
 
 import { NodesEntity } from '../entities/nodes.entity';
 
@@ -35,7 +36,13 @@ export class CreateNodeResponseModel {
     public createdAt: Date;
     public updatedAt: Date;
 
-    public excludedInbounds: InboundsEntity[];
+    public providerUuid: string | null;
+    public provider: InfraProviderEntity | null;
+
+    public configProfile: {
+        activeConfigProfileUuid: string | null;
+        activeInbounds: ConfigProfileInboundEntity[];
+    };
 
     constructor(data: NodesEntity) {
         this.uuid = data.uuid;
@@ -65,6 +72,13 @@ export class CreateNodeResponseModel {
         this.countryCode = data.countryCode;
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
-        this.excludedInbounds = data.excludedInbounds;
+
+        this.providerUuid = data.providerUuid;
+        this.provider = data.provider;
+
+        this.configProfile = {
+            activeConfigProfileUuid: data.activeConfigProfileUuid,
+            activeInbounds: data.activeInbounds,
+        };
     }
 }

@@ -13,7 +13,7 @@ import { EVENTS, TUserEvents } from '@libs/contracts/constants';
 import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetUsersByExpireAtQuery } from '@modules/users/queries/get-users-by-expire-at/get-users-by-expire-at.query';
-import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
+import { UserEntity } from '@modules/users/entities/user.entity';
 
 import { ExpireUserNotificationsJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
@@ -106,10 +106,9 @@ export class ExpireUserNotificationsQueueProcessor extends WorkerHost {
     private async getUsersByExpireAt(
         start: Date,
         end: Date,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
-        return this.queryBus.execute<
-            GetUsersByExpireAtQuery,
-            ICommandResponse<UserWithActiveInboundsEntity[]>
-        >(new GetUsersByExpireAtQuery(start, end));
+    ): Promise<ICommandResponse<UserEntity[]>> {
+        return this.queryBus.execute<GetUsersByExpireAtQuery, ICommandResponse<UserEntity[]>>(
+            new GetUsersByExpireAtQuery(start, end),
+        );
     }
 }

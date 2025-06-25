@@ -12,10 +12,9 @@ import { fromNanoToNumber } from '@common/utils/nano';
 import { AxiosService } from '@common/axios';
 
 import { BulkUpsertUserHistoryEntryCommand } from '@modules/nodes-user-usage-history/commands/bulk-upsert-user-history-entry';
+import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 import { NodesUserUsageHistoryEntity } from '@modules/nodes-user-usage-history/entities';
-import { GetUserByUsernameQuery } from '@modules/users/queries/get-user-by-username';
 import { UpdateNodeCommand } from '@modules/nodes/commands/update-node';
-import { UserWithActiveInboundsEntity } from '@modules/users/entities';
 import { NodesEntity } from '@modules/nodes';
 
 import { UpdateUsersUsageQueueService } from '@queue/update-users-usage/update-users-usage.service';
@@ -103,7 +102,18 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
             await pMap(
                 users,
                 async (xrayUser) => {
-                    const userResponse = await this.getUserByUsername(xrayUser.username);
+                    const userResponse = await this.queryBus.execute(
+                        new GetUserByUniqueFieldQuery(
+                            {
+                                username: xrayUser.username,
+                            },
+                            {
+                                activeInternalSquads: false,
+                                lastConnectedNode: false,
+                            },
+                        ),
+                    );
+
                     if (!userResponse.isOk || !userResponse.response) {
                         return;
                     }
@@ -149,15 +159,6 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
         users = [];
 
         return;
-    }
-
-    private async getUserByUsername(
-        username: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        return this.queryBus.execute<
-            GetUserByUsernameQuery,
-            ICommandResponse<UserWithActiveInboundsEntity>
-        >(new GetUserByUsernameQuery(username));
     }
 
     private async reportBulkUserUsageHistory(

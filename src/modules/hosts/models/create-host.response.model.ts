@@ -4,7 +4,7 @@ import { HostsEntity } from '../entities/hosts.entity';
 
 export class CreateHostResponseModel {
     public uuid: string;
-    public inboundUuid: string;
+
     public viewPosition: number;
     public remark: string;
     public address: string;
@@ -14,14 +14,20 @@ export class CreateHostResponseModel {
     public host: null | string;
     public alpn: null | string;
     public fingerprint: null | string;
-    public allowInsecure: boolean;
     public isDisabled: boolean;
     public securityLayer: TSecurityLayers;
     public xHttpExtraParams: null | object;
 
+    public serverDescription: null | string;
+
+    public inbound: {
+        configProfileUuid: string | null;
+        configProfileInboundUuid: string | null;
+    };
+
     constructor(data: HostsEntity) {
         this.uuid = data.uuid;
-        this.inboundUuid = data.inboundUuid;
+
         this.viewPosition = data.viewPosition;
         this.remark = data.remark;
         this.address = data.address;
@@ -31,9 +37,14 @@ export class CreateHostResponseModel {
         this.host = data.host;
         this.alpn = data.alpn;
         this.fingerprint = data.fingerprint;
-        this.allowInsecure = data.allowInsecure;
+
         this.isDisabled = data.isDisabled;
         this.securityLayer = data.securityLayer;
         this.xHttpExtraParams = data.xHttpExtraParams;
+        this.serverDescription = data.serverDescription;
+        this.inbound = {
+            configProfileUuid: data.configProfileUuid,
+            configProfileInboundUuid: data.configProfileInboundUuid,
+        };
     }
 }
