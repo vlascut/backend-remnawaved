@@ -23,8 +23,13 @@ RUN npm cache clean --force
 
 RUN npm prune --omit=dev
 
-FROM node:22
+FROM node:22-alpine
 WORKDIR /opt/app
+
+# Install jemalloc
+RUN apk add --no-cache jemalloc
+
+ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 
 COPY --from=backend-build /opt/app/dist ./dist
 COPY --from=frontend /opt/frontend/frontend_temp/dist ./frontend
