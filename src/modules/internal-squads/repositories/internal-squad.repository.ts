@@ -283,4 +283,16 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
             affectedCount: Number(result.numDeletedRows),
         };
     }
+
+    public async getConfigProfilesBySquadUuid(internalSquadUuid: string): Promise<string[]> {
+        const configProfileUuids = await this.prisma.tx.$kysely
+            .selectFrom('internalSquadInbounds as isi')
+            .innerJoin('configProfileInbounds as cpi', 'cpi.uuid', 'isi.inboundUuid')
+            .select('cpi.profileUuid')
+            .distinct()
+            .where('isi.internalSquadUuid', '=', getKyselyUuid(internalSquadUuid))
+            .execute();
+
+        return configProfileUuids.map((row) => row.profileUuid);
+    }
 }

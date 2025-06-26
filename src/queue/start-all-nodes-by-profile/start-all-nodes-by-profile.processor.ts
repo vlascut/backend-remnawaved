@@ -166,7 +166,9 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
 
             await pMap(nodes, mapper, { concurrency: this.CONCURRENCY });
 
-            this.logger.log(`Started all nodes in ${Date.now() - startTime}ms`);
+            this.logger.log(
+                `Started all nodes with profile ${payload.profileUuid} in ${Date.now() - startTime}ms`,
+            );
         } catch (error) {
             this.logger.error(
                 `Error handling "${StartAllNodesByProfileJobNames.startAllNodesByProfile}" job: ${error}`,
