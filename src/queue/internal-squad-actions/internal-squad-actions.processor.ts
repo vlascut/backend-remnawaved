@@ -1,7 +1,7 @@
 import { Job } from 'bullmq';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
 import { GetAffectedConfigProfilesBySquadUuidQuery } from '@modules/internal-squads/queries/get-affected-config-profiles-by-squad-uuid/get-affected-config-profiles-by-squad-uuid.query';
@@ -20,6 +20,7 @@ export class InternalSquadActionsQueueProcessor extends WorkerHost {
 
     constructor(
         private readonly commandBus: CommandBus,
+        private readonly queryBus: QueryBus,
         private readonly startAllNodesByProfileQueueService: StartAllNodesByProfileQueueService,
     ) {
         super();
@@ -76,7 +77,7 @@ export class InternalSquadActionsQueueProcessor extends WorkerHost {
 
     private async restartNodesByConfigProfiles(internalSquadUuid: string): Promise<boolean> {
         try {
-            const configProfiles = await this.commandBus.execute(
+            const configProfiles = await this.queryBus.execute(
                 new GetAffectedConfigProfilesBySquadUuidQuery(internalSquadUuid),
             );
 
