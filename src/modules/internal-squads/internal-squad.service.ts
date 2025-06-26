@@ -122,6 +122,10 @@ export class InternalSquadService {
                 };
             }
 
+            const currentProfiles = await this.internalSquadRepository.getConfigProfilesBySquadUuid(
+                internalSquad.uuid,
+            );
+
             await this.internalSquadRepository.cleanInbounds(internalSquad.uuid);
 
             if (inbounds.length > 0) {
@@ -136,12 +140,16 @@ export class InternalSquadService {
                 includedProfiles.add(inbound.profileUuid);
             }
 
-            for (const profileUuid of includedProfiles) {
+            for (const profileUuid of currentProfiles) {
+                includedProfiles.add(profileUuid);
+            }
+
+            includedProfiles.forEach(async (profileUuid) => {
                 await this.startAllNodesByProfileQueueService.startAllNodesByProfile({
                     profileUuid,
                     emitter: 'updateInternalSquad',
                 });
-            }
+            });
 
             return result;
         } catch (error) {
