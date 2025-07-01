@@ -877,7 +877,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             .set({
                 subRevokedAt: dto.subRevokedAt,
                 trojanPassword: dto.trojanPassword,
-                vlessUuid: dto.vlessUuid,
+                vlessUuid: getKyselyUuid(dto.vlessUuid),
                 ssPassword: dto.ssPassword,
                 shortUuid: dto.shortUuid,
             })
