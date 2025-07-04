@@ -53,3 +53,11 @@ export function useQueueProcessor(): boolean {
 export function useBullBoard(): boolean {
     return isRestApi();
 }
+
+/**
+ * Determines if frontend should be disabled
+ * @returns {boolean} True if frontend should be disabled
+ */
+export function disableFrontend(): boolean {
+    return process.env.DISABLE_FRONTEND === 'true';
+}
