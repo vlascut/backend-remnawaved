@@ -65,7 +65,7 @@ import { QueueModule } from '@queue/queue.module';
                             configService.getOrThrow<string>('SCALAR_PATH'),
                         ],
                         serveStaticOptions: {
-                            dotfiles: 'deny',
+                            dotfiles: 'ignore',
                         },
                     },
                 ],
