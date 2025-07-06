@@ -3,7 +3,10 @@ WORKDIR /opt/frontend
 
 RUN apk add --no-cache curl unzip ca-certificates \
     && curl -L https://github.com/remnawave/frontend/releases/download/dev-build/remnawave-frontend.zip -o frontend.zip \
-    && unzip frontend.zip -d frontend_temp
+    && unzip frontend.zip -d frontend_temp \
+    && curl -L https://remnawave.github.io/xray-monaco-editor/wasm_exec.js -o frontend_temp/wasm_exec.js \
+    && curl -L https://remnawave.github.io/xray-monaco-editor/xray.schema.json -o frontend_temp/xray.schema.json \
+    && curl -L https://remnawave.github.io/xray-monaco-editor/main.wasm -o frontend_temp/main.wasm
 
 FROM node:22 AS backend-build
 WORKDIR /opt/app
