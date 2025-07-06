@@ -1,3 +1,4 @@
+import { createKeyv } from '@keyv/redis';
 import { ClsModule } from 'nestjs-cls';
 import { join } from 'node:path';
 
@@ -6,6 +7,7 @@ import { ConditionalModule, ConfigModule, ConfigService } from '@nestjs/config';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 
 import { disableFrontend } from '@common/utils/startup-app/is-development';
@@ -72,6 +74,28 @@ import { QueueModule } from '@queue/queue.module';
         ),
 
         QueueModule,
+        CacheModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            isGlobal: true,
+            useFactory: async (configService: ConfigService) => {
+                return {
+                    stores: [
+                        createKeyv(
+                            {
+                                url: `redis://${configService.getOrThrow<string>('REDIS_HOST')}:${configService.getOrThrow<number>('REDIS_PORT')}`,
+                                database: configService.getOrThrow<number>('REDIS_DB'),
+                                password: configService.get<string | undefined>('REDIS_PASSWORD'),
+                            },
+                            {
+                                namespace: 'rmnwv',
+                                keyPrefixSeparator: ':',
+                            },
+                        ),
+                    ],
+                };
+            },
+        }),
     ],
 })
 export class AppModule {}

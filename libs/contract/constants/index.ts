@@ -1,6 +1,7 @@
 export * from './endpoint-details';
 export * from './errors';
 export * from './events';
+export * from './headers';
 export * from './hosts';
 export * from './metrics';
 export * from './nodes';
