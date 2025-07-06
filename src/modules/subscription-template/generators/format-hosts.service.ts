@@ -204,7 +204,15 @@ export class FormatHostsService {
                     const tlsSettings = inbound.streamSettings?.tlsSettings;
                     sniFromConfig = tlsSettings?.serverName;
                     fingerprintFromConfig = tlsSettings?.fingerprint;
-                    alpnFromConfig = tlsSettings?.alpn?.join(',');
+                    if (tlsSettings?.alpn) {
+                        if (Array.isArray(tlsSettings?.alpn)) {
+                            alpnFromConfig = tlsSettings?.alpn?.join(',');
+                        } else if (typeof tlsSettings?.alpn === 'string') {
+                            alpnFromConfig = tlsSettings?.alpn;
+                        }
+                    } else {
+                        alpnFromConfig = undefined;
+                    }
                     break;
                 case 'reality':
                     tlsFromConfig = 'reality';
