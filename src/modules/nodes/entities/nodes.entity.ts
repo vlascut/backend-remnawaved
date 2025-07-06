@@ -19,6 +19,7 @@ export class NodesEntity implements Nodes {
     public lastStatusMessage: null | string;
 
     public xrayVersion: null | string;
+    public nodeVersion: null | string;
     public xrayUptime: string;
 
     public usersOnline: null | number;

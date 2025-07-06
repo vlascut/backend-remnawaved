@@ -73,7 +73,7 @@
     "@peculiar/x509": "^1.12.3",
     "@prisma/adapter-pg": "^6.9.0",
     "@prisma/client": "6.9.0",
-    "@remnawave/node-contract": "0.5.1",
+    "@remnawave/node-contract": "0.5.2",
     "@remnawave/xtls-sdk": "^0.3.0",
     "@scalar/nestjs-api-reference": "^0.5.3",
     "@supercharge/request-ip": "^1.2.0",

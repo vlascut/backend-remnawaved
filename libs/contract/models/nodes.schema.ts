@@ -21,6 +21,7 @@ export const NodesSchema = z.object({
     ),
     lastStatusMessage: z.nullable(z.string()),
     xrayVersion: z.nullable(z.string()),
+    nodeVersion: z.nullable(z.string()),
     xrayUptime: z.string(),
     isTrafficTrackingActive: z.boolean(),
     trafficResetDay: z.nullable(z.number().int()),

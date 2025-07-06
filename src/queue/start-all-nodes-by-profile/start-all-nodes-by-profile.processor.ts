@@ -149,6 +149,7 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
                             uuid: node.uuid,
                             isXrayRunning: nodeResponse.isStarted,
                             xrayVersion: nodeResponse.version,
+                            nodeVersion: nodeResponse.nodeInformation?.version || null,
                             isNodeOnline: true,
                             isConnected: nodeResponse.isStarted,
                             lastStatusMessage: nodeResponse.error ?? null,

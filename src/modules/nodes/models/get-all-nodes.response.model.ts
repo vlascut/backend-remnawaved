@@ -18,6 +18,7 @@ export class GetAllNodesResponseModel {
     public lastStatusChange: Date | null;
     public lastStatusMessage: null | string;
     public xrayVersion: null | string;
+    public nodeVersion: null | string;
     public xrayUptime: string;
     public isTrafficTrackingActive: boolean;
     public trafficResetDay: null | number;
@@ -57,6 +58,7 @@ export class GetAllNodesResponseModel {
         this.lastStatusChange = data.lastStatusChange;
         this.lastStatusMessage = data.lastStatusMessage;
         this.xrayVersion = data.xrayVersion;
+        this.nodeVersion = data.nodeVersion;
         this.xrayUptime = data.xrayUptime;
         this.isTrafficTrackingActive = data.isTrafficTrackingActive;
         this.trafficResetDay = data.trafficResetDay;
