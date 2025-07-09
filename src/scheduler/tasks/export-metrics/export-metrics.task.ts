@@ -108,6 +108,7 @@ export class ExportMetricsTask {
                         node_uuid: node.uuid,
                         node_name: node.name,
                         node_country_emoji: resolveCountryEmoji(node.countryCode),
+                        provider_name: node.provider?.name || 'unknown',
                     },
                     node.usersOnline ?? 0,
                 );
@@ -117,6 +118,7 @@ export class ExportMetricsTask {
                         node_uuid: node.uuid,
                         node_name: node.name,
                         node_country_emoji: resolveCountryEmoji(node.countryCode),
+                        provider_name: node.provider?.name || 'unknown',
                     },
                     node.isConnected ? 1 : 0,
                 );

@@ -14,6 +14,8 @@ import { configSchema, Env } from '@common/config/app-config';
 import { PrismaModule } from '@common/database';
 import { AxiosModule } from '@common/axios';
 
+import { MessagingModules } from '@integration-modules/messaging-modules';
+
 import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 
 @Module({
@@ -48,6 +50,7 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 
         RemnawaveModules,
         QueueModule,
+        MessagingModules,
     ],
     controllers: [],
 })
