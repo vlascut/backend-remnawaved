@@ -714,4 +714,14 @@ export const ERRORS = {
         message: 'Delete config profile by UUID error',
         httpCode: 500,
     },
+    RESERVED_INTERNAL_SQUAD_NAME: {
+        code: 'A144',
+        message: 'This name is reserved by Remnawave. Please use a different name.',
+        httpCode: 400,
+    },
+    RESERVED_CONFIG_PROFILE_NAME: {
+        code: 'A145',
+        message: 'This name is reserved by Remnawave. Please use a different name.',
+        httpCode: 400,
+    },
 } as const;

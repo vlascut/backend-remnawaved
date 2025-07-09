@@ -122,6 +122,13 @@ export class ConfigProfileService {
         config: object,
     ): Promise<ICommandResponse<GetConfigProfileByUuidResponseModel>> {
         try {
+            if (name === 'Default-Profile') {
+                return {
+                    isOk: false,
+                    ...ERRORS.RESERVED_CONFIG_PROFILE_NAME,
+                };
+            }
+
             const validatedConfig = new XRayConfig(config);
             const sortedConfig = validatedConfig.getSortedConfig();
 

@@ -75,6 +75,13 @@ export class InternalSquadService {
         inbounds: string[],
     ): Promise<ICommandResponse<GetInternalSquadByUuidResponseModel>> {
         try {
+            if (name === 'Default-Squad') {
+                return {
+                    isOk: false,
+                    ...ERRORS.RESERVED_INTERNAL_SQUAD_NAME,
+                };
+            }
+
             const internalSquad = await this.internalSquadRepository.create(
                 new InternalSquadEntity({
                     name,

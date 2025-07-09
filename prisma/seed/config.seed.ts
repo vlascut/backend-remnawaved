@@ -671,11 +671,43 @@ async function seedDefaultConfigProfile() {
         process.exit(1);
     }
 
+    await syncInbounds();
+
+    const existingInternalSquad = await prisma.internalSquads.findFirst();
+
+    // workaround for created squad from migration
+    if (existingInternalSquad && existingInternalSquad.name === 'Default-Squad') {
+        const configProfileInbounds = await prisma.configProfileInbounds.findMany({
+            where: {
+                profileUuid: config.uuid,
+            },
+        });
+
+        if (configProfileInbounds.length === 0) {
+            consola.info('🔐 No config profile inbounds found!');
+            return;
+        }
+
+        const internalSquadInbounds = await prisma.internalSquadInbounds.createMany({
+            data: configProfileInbounds.map((inbound) => ({
+                inboundUuid: inbound.uuid,
+                internalSquadUuid: existingInternalSquad.uuid,
+            })),
+        });
+
+        if (!internalSquadInbounds) {
+            consola.error('🔐 Failed to create default internal squad inbounds!');
+            process.exit(1);
+        }
+
+        return;
+    }
+
     consola.success('🔐 Default config profile seeded!');
 }
 
 async function seedDefaultInternalSquad() {
-    const existingConfig = await prisma.internalSquads.findFirst();
+    const existingInternalSquad = await prisma.internalSquads.findFirst();
     const existingConfigProfile = await prisma.configProfiles.findFirst();
 
     if (!existingConfigProfile) {
@@ -683,8 +715,8 @@ async function seedDefaultInternalSquad() {
         process.exit(1);
     }
 
-    if (existingConfig) {
-        consola.info('Default internal subscription already seeded!');
+    if (existingInternalSquad) {
+        consola.info('🤔 Default internal squad already exists!');
         return;
     }
 
