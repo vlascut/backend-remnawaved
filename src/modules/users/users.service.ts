@@ -336,7 +336,7 @@ export class UsersService {
                 createdAt: createdAt ? new Date(createdAt) : undefined,
                 lastTrafficResetAt: lastTrafficResetAt ? new Date(lastTrafficResetAt) : undefined,
                 description: description || undefined,
-                hwidDeviceLimit: hwidDeviceLimit || null,
+                hwidDeviceLimit: hwidDeviceLimit,
                 tag: tag,
             });
 
