@@ -143,7 +143,7 @@ export class ConfigProfileService {
                         network: inbound.network,
                         security: inbound.security,
                         port: inbound.port,
-                        rawInbound: inbound as unknown as object,
+                        rawInbound: inbound.rawInbound as unknown as object,
                     }),
             );
 
