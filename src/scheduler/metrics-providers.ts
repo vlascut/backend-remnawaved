@@ -43,4 +43,64 @@ export const METRIC_PROVIDERS = [
         help: 'Outbound download bytes, updated every 30 seconds',
         labelNames: ['node_uuid', 'node_name', 'node_country_emoji', 'tag', 'provider_name'],
     }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_HEAP_USED_BYTES,
+        help: 'Process heap size used from Node.js in bytes.',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_HEAP_TOTAL_BYTES,
+        help: 'Process total heap size from Node.js in bytes.',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_HEAP_USAGE_PERCENT,
+        help: 'Heap usage percentage from Node.js.',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_ACTIVE_HANDLERS,
+        help: 'Process active handlers.',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_ACTIVE_REQUESTS,
+        help: 'Process active requests.',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_CPU_USAGE_PERCENT,
+        help: 'Process CPU usage percentage.',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_MEMORY_USAGE_BYTES,
+        help: 'Process memory usage in bytes.',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_EVENT_LOOP_LATENCY_P50,
+        help: 'The 50th percentile of the recorded event loop delays. Milliseconds',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_EVENT_LOOP_LATENCY_P95,
+        help: 'The 95th percentile of the recorded event loop delays. Milliseconds',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_HTTP_REQ_RATE,
+        help: 'HTTPS requests per minute, req/min',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_HTTP_REQ_LATENCY_P95,
+        help: 'HTTP request latency p95, in milliseconds',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
+    makeGaugeProvider({
+        name: METRIC_NAMES.NODEJS_HTTP_REQ_LATENCY_P50,
+        help: 'HTTP request latency p50, in milliseconds',
+        labelNames: ['instance_id', 'instance_name'],
+    }),
 ];
