@@ -42,7 +42,8 @@
     "migrate:seed:dev": "npm run build:seed && prisma db seed",
     "docs:serve": "compodoc -p tsconfig.json -s",
     "generate:openapi": "nest start gen-doc",
-    "new:queue": "hygen new queue"
+    "new:queue": "hygen new queue",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@arthurfiorette/prisma-kysely": "^2.1.0",
@@ -158,6 +159,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.32.1"
-  },
-  "postinstall": "patch-package"
+  }
 }
