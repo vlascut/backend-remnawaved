@@ -105,6 +105,7 @@
     "nestjs-cls": "^6.0.1",
     "nestjs-zod": "4.3.1",
     "p-map": "^7.0.3",
+    "parse-prometheus-text-format": "^1.1.1",
     "passport": "0.7.0",
     "passport-http": "^0.3.0",
     "passport-jwt": "4.0.1",

@@ -1,9 +1,13 @@
+import parsePrometheusTextFormat from 'parse-prometheus-text-format';
+import axios, { AxiosError } from 'axios';
 import * as si from 'systeminformation';
+import { groupBy } from 'lodash';
 import pm2 from 'pm2';
 
 import { ERRORS } from '@contract/constants';
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { QueryBus } from '@nestjs/cqrs';
 
 import {
@@ -24,10 +28,12 @@ import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
 import {
     GetBandwidthStatsResponseModel,
     GetNodesStatisticsResponseModel,
+    GetNodesStatsResponseModel,
     GetRemnawaveHealthResponseModel,
     IBaseStat,
 } from './models';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
+import { InboundStats, Metric, NodeMetrics, OutboundStats } from './interfaces';
 import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
 import { ShortUserStats } from '../users/interfaces/user-stats.interface';
@@ -36,7 +42,10 @@ import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 @Injectable()
 export class SystemService {
     private readonly logger = new Logger(SystemService.name);
-    constructor(private readonly queryBus: QueryBus) {}
+    constructor(
+        private readonly queryBus: QueryBus,
+        private readonly configService: ConfigService,
+    ) {}
 
     public async getStats(): Promise<ICommandResponse<any>> {
         try {
@@ -193,6 +202,54 @@ export class SystemService {
         }
     }
 
+    public async getNodesMetrics(): Promise<ICommandResponse<GetNodesStatsResponseModel>> {
+        try {
+            const metricPort = this.configService.getOrThrow<string>('METRICS_PORT');
+            const username = this.configService.getOrThrow<string>('METRICS_USER');
+            const password = this.configService.getOrThrow<string>('METRICS_PASS');
+            const metricsText = await axios.get(`http://127.0.0.1:${metricPort}/metrics`, {
+                auth: {
+                    username,
+                    password,
+                },
+            });
+
+            const parsed = parsePrometheusTextFormat(metricsText.data);
+
+            const nodeMetrics = this.groupMetricsByNodesLodash(parsed);
+
+            return {
+                isOk: true,
+                response: new GetNodesStatsResponseModel({
+                    nodes: nodeMetrics,
+                }),
+            };
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                this.logger.error(
+                    'Error in Axios Get Nodes Metrics Request:',
+                    JSON.stringify(error.message),
+                );
+
+                return {
+                    isOk: true,
+                    response: new GetNodesStatsResponseModel({
+                        nodes: [],
+                    }),
+                };
+            }
+
+            this.logger.error('Error getting nodes metrics:', error);
+
+            return {
+                isOk: true,
+                response: new GetNodesStatsResponseModel({
+                    nodes: [],
+                }),
+            };
+        }
+    }
+
     private async getShortUserStats(): Promise<ICommandResponse<ShortUserStats>> {
         return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<ShortUserStats>>(
             new GetShortUserStatsQuery(),
@@ -273,5 +330,81 @@ export class SystemService {
     private async getCurrentYearUsage(tz: string): Promise<IBaseStat> {
         const ranges = getCalendarYearRanges(tz);
         return this.getUsageComparison(ranges);
+    }
+
+    private groupMetricsByNodesLodash(metrics: Metric[]): NodeMetrics[] {
+        const allMetrics = metrics.flatMap((metric) =>
+            metric.metrics.map((m) => ({
+                metricName: metric.name,
+                ...m,
+            })),
+        );
+
+        const groupedByNode = groupBy(allMetrics, 'labels.node_uuid');
+
+        return Object.entries(groupedByNode)
+            .map(([nodeUuid, nodeMetrics]) => {
+                const firstMetric = nodeMetrics[0];
+                const { node_name, node_country_emoji, provider_name } = firstMetric.labels;
+
+                const onlineUsersMetric = nodeMetrics.find(
+                    (m) => m.metricName === 'remnawave_node_online_users',
+                );
+                const usersOnline = onlineUsersMetric ? parseFloat(onlineUsersMetric.value) : 0;
+
+                const inboundUpload = groupBy(
+                    nodeMetrics.filter(
+                        (m) => m.metricName === 'remnawave_node_inbound_upload_bytes',
+                    ),
+                    'labels.tag',
+                );
+                const inboundDownload = groupBy(
+                    nodeMetrics.filter(
+                        (m) => m.metricName === 'remnawave_node_inbound_download_bytes',
+                    ),
+                    'labels.tag',
+                );
+                const outboundUpload = groupBy(
+                    nodeMetrics.filter(
+                        (m) => m.metricName === 'remnawave_node_outbound_upload_bytes',
+                    ),
+                    'labels.tag',
+                );
+                const outboundDownload = groupBy(
+                    nodeMetrics.filter(
+                        (m) => m.metricName === 'remnawave_node_outbound_download_bytes',
+                    ),
+                    'labels.tag',
+                );
+
+                const inboundsStats: InboundStats[] = Object.keys({
+                    ...inboundUpload,
+                    ...inboundDownload,
+                }).map((tag) => ({
+                    tag,
+                    upload: prettyBytesUtil(parseFloat(inboundUpload[tag]?.[0]?.value || '0')),
+                    download: prettyBytesUtil(parseFloat(inboundDownload[tag]?.[0]?.value || '0')),
+                }));
+
+                const outboundsStats: OutboundStats[] = Object.keys({
+                    ...outboundUpload,
+                    ...outboundDownload,
+                }).map((tag) => ({
+                    tag,
+                    upload: prettyBytesUtil(parseFloat(outboundUpload[tag]?.[0]?.value || '0')),
+                    download: prettyBytesUtil(parseFloat(outboundDownload[tag]?.[0]?.value || '0')),
+                }));
+
+                return {
+                    nodeUuid,
+                    nodeName: node_name,
+                    countryEmoji: node_country_emoji,
+                    providerName: provider_name,
+                    usersOnline,
+                    inboundsStats,
+                    outboundsStats,
+                };
+            })
+            .filter((node) => node.inboundsStats.length > 0 || node.outboundsStats.length > 0);
     }
 }

@@ -9,6 +9,7 @@ import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
     GetBandwidthStatsCommand,
+    GetNodesMetricsCommand,
     GetNodesStatisticsCommand,
     GetRemnawaveHealthCommand,
     GetStatsCommand,
@@ -19,6 +20,7 @@ import { ROLE } from '@libs/contracts/constants';
 import {
     GetBandwidthStatsRequestQueryDto,
     GetBandwidthStatsResponseDto,
+    GetNodesMetricsResponseDto,
     GetNodesStatisticsResponseDto,
     GetRemnawaveHealthResponseDto,
     GetStatsResponseDto,
@@ -101,6 +103,24 @@ export class SystemController {
     })
     async getRemnawaveHealth(): Promise<GetRemnawaveHealthResponseDto> {
         const result = await this.systemService.getRemnawaveHealth();
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiResponse({
+        status: 200,
+        description: 'Returns nodes metrics from Prometheus metrics endpoint',
+        type: GetNodesMetricsResponseDto,
+    })
+    @Endpoint({
+        command: GetNodesMetricsCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getNodesMetrics(): Promise<GetNodesMetricsResponseDto> {
+        const result = await this.systemService.getNodesMetrics();
 
         const data = errorHandler(result);
         return {
