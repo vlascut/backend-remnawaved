@@ -1,0 +1,132 @@
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.d.ts b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.d.ts
+index 0ae3c57..740fb07 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.d.ts
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.d.ts
+@@ -1,11 +1,16 @@
+ import { ChannelConfig } from '@nestjstools/messaging';
+ export declare class RedisChannelConfig extends ChannelConfig {
+-    readonly connection: Connection;
++    readonly connectionOptions: ConnectionOptions;
+     readonly queue: string;
+-    constructor({ name, connection, queue, enableConsumer, avoidErrorsForNotExistedHandlers, middlewares, normalizer, }: RedisChannelConfig);
++    constructor({ name, connectionOptions, queue, enableConsumer, avoidErrorsForNotExistedHandlers, middlewares, normalizer, }: RedisChannelConfig);
+ }
+-interface Connection {
+-    host: string;
+-    port: number;
++interface ConnectionOptions {
++    redis: {
++        host: string;
++        port: number;
++        password?: string;
++        db?: number;
++    };
++    prefix?: string;
+ }
+ export {};
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js
+index 8503542..e1431af 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js
+@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.RedisChannelConfig = void 0;
+ const messaging_1 = require("@nestjstools/messaging");
+ class RedisChannelConfig extends messaging_1.ChannelConfig {
+-    constructor({ name, connection, queue, enableConsumer, avoidErrorsForNotExistedHandlers, middlewares, normalizer, }) {
++    constructor({ name, connectionOptions, queue, enableConsumer, avoidErrorsForNotExistedHandlers, middlewares, normalizer, }) {
+         super(name, avoidErrorsForNotExistedHandlers, middlewares, enableConsumer, normalizer);
+-        this.connection = connection;
++        this.connectionOptions = connectionOptions;
+         this.queue = queue;
+     }
+ }
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js.map b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js.map
+index 2a931a4..ce66a03 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js.map
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel-config.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"redis.channel-config.js","sourceRoot":"","sources":["../../src/channel/redis.channel-config.ts"],"names":[],"mappings":";;;AAAA,sDAAuD;AAEvD,MAAa,kBAAmB,SAAQ,yBAAa;IAInD,YAAY,EACE,IAAI,EACJ,UAAU,EACV,KAAK,EACL,cAAc,EACd,gCAAgC,EAChC,WAAW,EACX,UAAU,GACS;QAC/B,KAAK,CAAC,IAAI,EAAE,gCAAgC,EAAE,WAAW,EAAE,cAAc,EAAE,UAAU,CAAC,CAAA;QACtF,IAAI,CAAC,UAAU,GAAG,UAAU,CAAC;QAC7B,IAAI,CAAC,KAAK,GAAG,KAAK,CAAC;IACrB,CAAC;CACF;AAjBD,gDAiBC"}
+\ No newline at end of file
++{"version":3,"file":"redis.channel-config.js","sourceRoot":"","sources":["../../src/channel/redis.channel-config.ts"],"names":[],"mappings":";;;AAAA,sDAAuD;AAEvD,MAAa,kBAAmB,SAAQ,yBAAa;IAInD,YAAY,EACV,IAAI,EACJ,iBAAiB,EACjB,KAAK,EACL,cAAc,EACd,gCAAgC,EAChC,WAAW,EACX,UAAU,GACS;QACnB,KAAK,CACH,IAAI,EACJ,gCAAgC,EAChC,WAAW,EACX,cAAc,EACd,UAAU,CACX,CAAC;QACF,IAAI,CAAC,iBAAiB,GAAG,iBAAiB,CAAC;QAC3C,IAAI,CAAC,KAAK,GAAG,KAAK,CAAC;IACrB,CAAC;CACF;AAvBD,gDAuBC"}
+\ No newline at end of file
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js
+index 1cb0d72..70847e5 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js
+@@ -6,7 +6,10 @@ const bullmq_1 = require("bullmq");
+ class RedisChannel extends messaging_1.Channel {
+     constructor(config) {
+         super(config);
+-        this.queue = new bullmq_1.Queue(config.queue, { connection: config.connection });
++        this.queue = new bullmq_1.Queue(config.queue, {
++            connection: config.connectionOptions.redis,
++            prefix: config.connectionOptions.prefix,
++        });
+     }
+ }
+ exports.RedisChannel = RedisChannel;
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js.map b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js.map
+index 7be959b..c3337a9 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js.map
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/channel/redis.channel.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"redis.channel.js","sourceRoot":"","sources":["../../src/channel/redis.channel.ts"],"names":[],"mappings":";;;AAAA,sDAAiD;AAEjD,mCAA+B;AAE/B,MAAa,YAAa,SAAQ,mBAA2B;IAI3D,YAAY,MAA0B;QACpC,KAAK,CAAC,MAAM,CAAC,CAAC;QACd,IAAI,CAAC,KAAK,GAAG,IAAI,cAAK,CAAC,MAAM,CAAC,KAAK,EAAE,EAAE,UAAU,EAAE,MAAM,CAAC,UAAU,EAAE,CAAC,CAAC;IAC1E,CAAC;CACF;AARD,oCAQC"}
+\ No newline at end of file
++{"version":3,"file":"redis.channel.js","sourceRoot":"","sources":["../../src/channel/redis.channel.ts"],"names":[],"mappings":";;;AAAA,sDAAiD;AAEjD,mCAA+B;AAE/B,MAAa,YAAa,SAAQ,mBAA2B;IAI3D,YAAY,MAA0B;QACpC,KAAK,CAAC,MAAM,CAAC,CAAC;QACd,IAAI,CAAC,KAAK,GAAG,IAAI,cAAK,CAAC,MAAM,CAAC,KAAK,EAAE;YACnC,UAAU,EAAE,MAAM,CAAC,iBAAiB,CAAC,KAAK;YAC1C,MAAM,EAAE,MAAM,CAAC,iBAAiB,CAAC,MAAM;SACxC,CAAC,CAAC;IACL,CAAC;CACF;AAXD,oCAWC"}
+\ No newline at end of file
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js b/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js
+index ce35652..da3c467 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js
+@@ -21,7 +21,10 @@ let RedisMessagingConsumer = class RedisMessagingConsumer {
+         this.channel = channel;
+         this.worker = new bullmq_1.Worker(channel.config.queue, async (job) => {
+             dispatcher.dispatch(new messaging_1.ConsumerMessage(job.data, job.name));
+-        }, { connection: channel.config.connection });
++        }, {
++            connection: channel.config.connectionOptions.redis,
++            prefix: channel.config.connectionOptions.prefix,
++        });
+         return Promise.resolve();
+     }
+     onError(errored, channel) {
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js.map b/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js.map
+index 426c965..9860cf3 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js.map
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/consumer/redis-messaging.consumer.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"redis-messaging.consumer.js","sourceRoot":"","sources":["../../src/consumer/redis-messaging.consumer.ts"],"names":[],"mappings":";;;;;;;;;AAAA,sDAA6E;AAE7E,2CAAmE;AACnE,sDAAyD;AAEzD,4DAAwD;AACxD,mCAAgC;AAIzB,IAAM,sBAAsB,GAA5B,MAAM,sBAAsB;IAA5B;QACG,YAAO,GAAkB,SAAS,CAAC;QACnC,WAAM,GAAY,SAAS,CAAC;IA0BtC,CAAC;IAxBC,KAAK,CAAC,OAAO,CAAC,UAAqC,EAAE,OAAqB;QACxE,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;QAEvB,IAAI,CAAC,MAAM,GAAG,IAAI,eAAM,CACtB,OAAO,CAAC,MAAM,CAAC,KAAK,EACpB,KAAK,EAAE,GAAG,EAAE,EAAE;YACZ,UAAU,CAAC,QAAQ,CAAC,IAAI,2BAAe,CAAC,GAAG,CAAC,IAAI,EAAE,GAAG,CAAC,IAAI,CAAC,CAAC,CAAC;QAC/D,CAAC,EACD,EAAE,UAAU,EAAE,OAAO,CAAC,MAAM,CAAC,UAAU,EAAE,CAC1C,CAAC;QAEF,OAAO,OAAO,CAAC,OAAO,EAAE,CAAC;IAC3B,CAAC;IAED,OAAO,CAAC,OAAuC,EAAE,OAAqB;QACpE,OAAO,OAAO,CAAC,OAAO,EAAE,CAAC;IAC3B,CAAC;IAED,KAAK,CAAC,qBAAqB,CAAC,MAAe;QACzC,IAAI,IAAI,CAAC,OAAO,EAAE,CAAC;YACjB,MAAM,IAAI,CAAC,MAAM,CAAC,KAAK,EAAE,CAAC;YAC1B,MAAM,IAAI,CAAC,OAAO,CAAC,KAAK,CAAC,KAAK,EAAE,CAAC;QACnC,CAAC;IACH,CAAC;CACF,CAAA;AA5BY,wDAAsB;iCAAtB,sBAAsB;IAFlC,IAAA,mBAAU,GAAE;IACZ,IAAA,2BAAe,EAAC,4BAAY,CAAC;GACjB,sBAAsB,CA4BlC"}
+\ No newline at end of file
++{"version":3,"file":"redis-messaging.consumer.js","sourceRoot":"","sources":["../../src/consumer/redis-messaging.consumer.ts"],"names":[],"mappings":";;;;;;;;;AAAA,sDAA6E;AAE7E,2CAAmE;AACnE,sDAAyD;AAEzD,4DAAwD;AACxD,mCAAgC;AAIzB,IAAM,sBAAsB,GAA5B,MAAM,sBAAsB;IAA5B;QAGG,YAAO,GAAkB,SAAS,CAAC;QACnC,WAAM,GAAY,SAAS,CAAC;IAmCtC,CAAC;IAjCC,KAAK,CAAC,OAAO,CACX,UAAqC,EACrC,OAAqB;QAErB,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;QAEvB,IAAI,CAAC,MAAM,GAAG,IAAI,eAAM,CACtB,OAAO,CAAC,MAAM,CAAC,KAAK,EACpB,KAAK,EAAE,GAAG,EAAE,EAAE;YACZ,UAAU,CAAC,QAAQ,CAAC,IAAI,2BAAe,CAAC,GAAG,CAAC,IAAI,EAAE,GAAG,CAAC,IAAI,CAAC,CAAC,CAAC;QAC/D,CAAC,EACD;YACE,UAAU,EAAE,OAAO,CAAC,MAAM,CAAC,iBAAiB,CAAC,KAAK;YAClD,MAAM,EAAE,OAAO,CAAC,MAAM,CAAC,iBAAiB,CAAC,MAAM;SAChD,CACF,CAAC;QAEF,OAAO,OAAO,CAAC,OAAO,EAAE,CAAC;IAC3B,CAAC;IAED,OAAO,CACL,OAAuC,EACvC,OAAqB;QAErB,OAAO,OAAO,CAAC,OAAO,EAAE,CAAC;IAC3B,CAAC;IAED,KAAK,CAAC,qBAAqB,CAAC,MAAe;QACzC,IAAI,IAAI,CAAC,OAAO,EAAE,CAAC;YACjB,MAAM,IAAI,CAAC,MAAM,CAAC,KAAK,EAAE,CAAC;YAC1B,MAAM,IAAI,CAAC,OAAO,CAAC,KAAK,CAAC,KAAK,EAAE,CAAC;QACnC,CAAC;IACH,CAAC;CACF,CAAA;AAvCY,wDAAsB;iCAAtB,sBAAsB;IAFlC,IAAA,mBAAU,GAAE;IACZ,IAAA,2BAAe,EAAC,4BAAY,CAAC;GACjB,sBAAsB,CAuClC"}
+\ No newline at end of file
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.d.ts b/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.d.ts
+index 51a88d4..68bbc8c 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.d.ts
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.d.ts
+@@ -1,6 +1,6 @@
+ import { RedisChannel } from '../channel/redis.channel';
+-import { IMessageBusFactory } from "@nestjstools/messaging";
+-import { IMessageBus } from "@nestjstools/messaging";
++import { IMessageBusFactory } from '@nestjstools/messaging';
++import { IMessageBus } from '@nestjstools/messaging';
+ export declare class RedisMessageBusFactory implements IMessageBusFactory<RedisChannel> {
+     create(channel: RedisChannel): IMessageBus;
+ }
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.js.map b/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.js.map
+index d3bea71..4122617 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.js.map
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message-bus-factory.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"redis-message-bus-factory.js","sourceRoot":"","sources":["../../src/message-bus/redis-message-bus-factory.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAA4C;AAC5C,2DAAsD;AACtD,4DAAwD;AAExD,sDAAyD;AAKlD,IAAM,sBAAsB,GAA5B,MAAM,sBAAsB;IAEjC,MAAM,CAAC,OAAqB;QAC1B,OAAO,IAAI,mCAAe,CAAC,OAAO,CAAC,CAAC;IACtC,CAAC;CACF,CAAA;AALY,wDAAsB;iCAAtB,sBAAsB;IAFlC,IAAA,mBAAU,GAAE;IACZ,IAAA,6BAAiB,EAAC,4BAAY,CAAC;GACnB,sBAAsB,CAKlC"}
+\ No newline at end of file
++{"version":3,"file":"redis-message-bus-factory.js","sourceRoot":"","sources":["../../src/message-bus/redis-message-bus-factory.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAA4C;AAC5C,2DAAsD;AACtD,4DAAwD;AAExD,sDAA2D;AAKpD,IAAM,sBAAsB,GAA5B,MAAM,sBAAsB;IAGjC,MAAM,CAAC,OAAqB;QAC1B,OAAO,IAAI,mCAAe,CAAC,OAAO,CAAC,CAAC;IACtC,CAAC;CACF,CAAA;AANY,wDAAsB;iCAAtB,sBAAsB;IAFlC,IAAA,mBAAU,GAAE;IACZ,IAAA,6BAAiB,EAAC,4BAAY,CAAC;GACnB,sBAAsB,CAMlC"}
+\ No newline at end of file
+diff --git a/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message.bus.js.map b/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message.bus.js.map
+index 49e1c58..786aee8 100644
+--- a/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message.bus.js.map
++++ b/node_modules/@nestjstools/messaging-redis-extension/lib/message-bus/redis-message.bus.js.map
+@@ -1 +1 @@
+-{"version":3,"file":"redis-message.bus.js","sourceRoot":"","sources":["../../src/message-bus/redis-message.bus.ts"],"names":[],"mappings":";;;;;;;;;;;;AAEA,2CAA4C;AAC5C,4DAAwD;AAGjD,IAAM,eAAe,GAArB,MAAM,eAAe;IAC1B,YACmB,YAA0B;QAA1B,iBAAY,GAAZ,YAAY,CAAc;IAE7C,CAAC;IAED,KAAK,CAAC,QAAQ,CAAC,OAAuB;QACpC,IAAI,CAAC,YAAY,CAAC,KAAK,CAAC,GAAG,CAAC,OAAO,CAAC,iBAAiB,EAAE,OAAO,CAAC,OAAO,CAAC,CAAC;IAC1E,CAAC;CACF,CAAA;AATY,0CAAe;0BAAf,eAAe;IAD3B,IAAA,mBAAU,GAAE;qCAGsB,4BAAY;GAFlC,eAAe,CAS3B"}
+\ No newline at end of file
++{"version":3,"file":"redis-message.bus.js","sourceRoot":"","sources":["../../src/message-bus/redis-message.bus.ts"],"names":[],"mappings":";;;;;;;;;;;;AAEA,2CAA4C;AAC5C,4DAAwD;AAGjD,IAAM,eAAe,GAArB,MAAM,eAAe;IAC1B,YAA6B,YAA0B;QAA1B,iBAAY,GAAZ,YAAY,CAAc;IAAG,CAAC;IAE3D,KAAK,CAAC,QAAQ,CAAC,OAAuB;QACpC,IAAI,CAAC,YAAY,CAAC,KAAK,CAAC,GAAG,CAAC,OAAO,CAAC,iBAAiB,EAAE,OAAO,CAAC,OAAO,CAAC,CAAC;IAC1E,CAAC;CACF,CAAA;AANY,0CAAe;0BAAf,eAAe;IAD3B,IAAA,mBAAU,GAAE;qCAEgC,4BAAY;GAD5C,eAAe,CAM3B"}
+\ No newline at end of file
