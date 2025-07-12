@@ -6,6 +6,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { getKyselyUuid } from '@common/helpers/kysely';
+import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 
 import { InfraProviderConverter } from '../converters';
@@ -15,6 +16,7 @@ import { InfraProviderEntity } from '../entities';
 export class InfraProviderRepository implements ICrud<InfraProviderEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly infraProviderConverter: InfraProviderConverter,
     ) {}
 
@@ -81,7 +83,7 @@ export class InfraProviderRepository implements ICrud<InfraProviderEntity> {
     }
 
     public async getFullInfraProviders(): Promise<InfraProviderEntity[]> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('infraProviders as ip')
             .leftJoin('infraBillingHistory as ibh', 'ibh.providerUuid', 'ip.uuid')
             .select([
@@ -123,7 +125,7 @@ export class InfraProviderRepository implements ICrud<InfraProviderEntity> {
     }
 
     public async getFullInfraProvidersByUuid(uuid: string): Promise<InfraProviderEntity | null> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('infraProviders as ip')
             .where('ip.uuid', '=', getKyselyUuid(uuid))
             .leftJoin('infraBillingHistory as ibh', 'ibh.providerUuid', 'ip.uuid')

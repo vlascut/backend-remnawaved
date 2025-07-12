@@ -5,6 +5,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { getKyselyUuid } from '@common/helpers/kysely/get-kysely-uuid';
+import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 
 import { NodesEntity } from '../entities/nodes.entity';
@@ -35,6 +36,7 @@ const INCLUDE_RESOLVED_INBOUNDS = {
 export class NodesRepository implements ICrud<NodesEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly nodesConverter: NodesConverter,
     ) {}
 
@@ -178,7 +180,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
     }
 
     public async removeInboundsFromNode(nodeUuid: string): Promise<boolean> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .deleteFrom('configProfileInboundsToNodes')
             .where('nodeUuid', '=', getKyselyUuid(nodeUuid))
             .executeTakeFirst();
@@ -187,7 +189,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
     }
 
     public async addInboundsToNode(nodeUuid: string, inboundsUuids: string[]): Promise<boolean> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .insertInto('configProfileInboundsToNodes')
             .values(
                 inboundsUuids.map((uuid) => ({

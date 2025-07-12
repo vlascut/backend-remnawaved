@@ -4,6 +4,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 
 import {
@@ -18,6 +19,7 @@ import { InfraBillingNodeConverter } from '../converters';
 export class InfraBillingNodeRepository implements ICrud<InfraBillingNodeEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly infraBillingNodeConverter: InfraBillingNodeConverter,
     ) {}
 
@@ -112,7 +114,7 @@ export class InfraBillingNodeRepository implements ICrud<InfraBillingNodeEntity>
     }
 
     public async getAvailableBillingNodes(): Promise<InfraAvailableBillingNodeEntity[]> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('nodes as n')
             .leftJoin('infraBillingNodes as ibn', 'ibn.nodeUuid', 'n.uuid')
             .select(['n.uuid', 'n.name', 'n.countryCode'])
@@ -134,21 +136,21 @@ export class InfraBillingNodeRepository implements ICrud<InfraBillingNodeEntity>
         const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
         const [upcomingNodes, currentMonthPayments, totalSpent] = await Promise.all([
-            this.prisma.tx.$kysely
+            this.qb.kysely
                 .selectFrom('infraBillingNodes')
                 .select((eb) => eb.fn.count('uuid').as('count'))
                 .where('nextBillingAt', '>=', today)
                 .where('nextBillingAt', '<', startOfNextMonth)
                 .executeTakeFirst(),
 
-            this.prisma.tx.$kysely
+            this.qb.kysely
                 .selectFrom('infraBillingHistory')
                 .select(() => sql<number>`coalesce(round(sum(amount)::numeric, 2), 0)`.as('amount'))
                 .where('billedAt', '>=', startOfMonth)
                 .where('billedAt', '<', startOfNextMonth)
                 .executeTakeFirst(),
 
-            this.prisma.tx.$kysely
+            this.qb.kysely
                 .selectFrom('infraBillingHistory')
                 .select(() => sql<number>`coalesce(round(sum(amount)::numeric, 2), 0)`.as('amount'))
                 .executeTakeFirst(),
@@ -174,7 +176,7 @@ export class InfraBillingNodeRepository implements ICrud<InfraBillingNodeEntity>
         const fromDate = config.from();
         const toDate = config.to();
 
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('infraBillingNodes as ibn')
             .innerJoin('nodes as n', 'n.uuid', 'ibn.nodeUuid')
             .innerJoin('infraProviders as ip', 'ip.uuid', 'ibn.providerUuid')

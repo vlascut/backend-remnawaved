@@ -4,6 +4,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 import { getKyselyUuid } from '@common/helpers';
 
@@ -15,6 +16,7 @@ import { InternalSquadWithInfoEntity } from '../entities';
 export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly internalSquadConverter: InternalSquadConverter,
     ) {}
 
@@ -78,7 +80,7 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
     }
 
     public async getInternalSquads(): Promise<InternalSquadWithInfoEntity[]> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('internalSquads')
             .select((eb) => [
                 'internalSquads.uuid',
@@ -160,7 +162,7 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
     public async getInternalSquadsByUuid(
         uuid: string,
     ): Promise<InternalSquadWithInfoEntity | null> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('internalSquads')
             .where('internalSquads.uuid', '=', getKyselyUuid(uuid))
             .select((eb) => [
@@ -251,7 +253,7 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
     public async addUsersToInternalSquad(internalSquadUuid: string): Promise<{
         affectedCount: number;
     }> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .insertInto('internalSquadMembers')
             .columns(['internalSquadUuid', 'userUuid'])
             .expression((eb) =>
@@ -274,7 +276,7 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
     public async removeUsersFromInternalSquad(internalSquadUuid: string): Promise<{
         affectedCount: number;
     }> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .deleteFrom('internalSquadMembers')
             .where('internalSquadUuid', '=', getKyselyUuid(internalSquadUuid))
             .executeTakeFirst();
@@ -285,7 +287,7 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
     }
 
     public async getConfigProfilesBySquadUuid(internalSquadUuid: string): Promise<string[]> {
-        const configProfileUuids = await this.prisma.tx.$kysely
+        const configProfileUuids = await this.qb.kysely
             .selectFrom('internalSquadInbounds as isi')
             .innerJoin('configProfileInbounds as cpi', 'cpi.uuid', 'isi.inboundUuid')
             .select('cpi.profileUuid')

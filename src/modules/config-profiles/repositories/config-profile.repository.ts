@@ -8,6 +8,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 import { getKyselyUuid } from '@common/helpers';
 
@@ -20,6 +21,7 @@ import { ConfigProfileConverter } from '../config-profile.converter';
 export class ConfigProfileRepository implements ICrud<ConfigProfileEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly configProfileConverter: ConfigProfileConverter,
     ) {}
 
@@ -93,7 +95,7 @@ export class ConfigProfileRepository implements ICrud<ConfigProfileEntity> {
     }
 
     public async getAllConfigProfiles(): Promise<ConfigProfileWithInboundsAndNodesEntity[]> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('configProfiles')
             .selectAll('configProfiles')
             .orderBy('configProfiles.createdAt', 'asc')
@@ -111,7 +113,7 @@ export class ConfigProfileRepository implements ICrud<ConfigProfileEntity> {
     public async getConfigProfileByUUID(
         uuid: string,
     ): Promise<ConfigProfileWithInboundsAndNodesEntity | null> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('configProfiles')
             .selectAll('configProfiles')
             .orderBy('configProfiles.createdAt', 'asc')
@@ -183,7 +185,7 @@ export class ConfigProfileRepository implements ICrud<ConfigProfileEntity> {
     }
 
     public async getAllInbounds(): Promise<ConfigProfileInboundEntity[]> {
-        // const groupedByNodes = await this.prisma.tx.$kysely
+        // const groupedByNodes = await this.qb.kysely
         //     .selectFrom('nodes')
         //     .leftJoin(
         //         'configProfileInbounds',
@@ -208,7 +210,7 @@ export class ConfigProfileRepository implements ICrud<ConfigProfileEntity> {
 
         // console.log(groupedByNodes);
 
-        // const groupByProfile = await this.prisma.tx.$kysely
+        // const groupByProfile = await this.qb.kysely
         //     .selectFrom('configProfiles')
         //     .leftJoin(
         //         'configProfileInbounds',

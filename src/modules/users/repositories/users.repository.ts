@@ -1,5 +1,5 @@
 import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
-import { ExpressionBuilder, SelectExpression, sql } from 'kysely';
+import { SelectExpression, sql, ExpressionBuilder } from 'kysely';
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
@@ -10,6 +10,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { TxKyselyService } from '@common/database/tx-kysely.service';
 import { getKyselyUuid } from '@common/helpers/kysely';
 import { ICrud } from '@common/types/crud-port';
 import { GetAllUsersCommand } from '@libs/contracts/commands';
@@ -42,6 +43,7 @@ dayjs.extend(utc);
 export class UsersRepository implements ICrud<BaseUserEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly userConverter: UserConverter,
     ) {}
 
@@ -112,7 +114,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
     }
 
     public async findExceededTrafficUsers(): Promise<UserEntity[]> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('users')
             .selectAll()
             .select((eb) => [
@@ -160,7 +162,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
 
     public async findUsersByExpireAt(start: Date, end: Date): Promise<UserEntity[]> {
         // TODO: check this
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('users')
             .selectAll()
             .select((eb) => this.includeActiveInternalSquads(eb))
@@ -205,7 +207,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         filterModes,
         sorting,
     }: GetAllUsersCommand.RequestQuery): Promise<[UserEntity[], number]> {
-        const qb = this.prisma.tx.$kysely.selectFrom('users');
+        const qb = this.qb.kysely.selectFrom('users');
 
         let isFiltersEmpty = true;
 
@@ -282,7 +284,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             .select((eb) => this.includeActiveInternalSquads(eb))
             .select((eb) => this.includeLastConnectedNode(eb));
 
-        const { count } = await this.prisma.tx.$kysely
+        const { count } = await this.qb.kysely
             .selectFrom('users')
             .select((eb) => eb.fn.countAll().as('count'))
             .$if(!isFiltersEmpty, (qb) => {
@@ -349,7 +351,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         size,
     }: GetAllUsersCommand.RequestQuery): Promise<[UserEntity[], number]> {
         const [users, total] = await Promise.all([
-            this.prisma.tx.$kysely
+            this.qb.kysely
                 .selectFrom('users')
                 .selectAll()
                 .select((eb) => this.includeActiveInternalSquads(eb))
@@ -358,7 +360,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                 .limit(size)
                 .orderBy('createdAt', 'desc')
                 .execute(),
-            this.prisma.tx.$kysely
+            this.qb.kysely
                 .selectFrom('users')
                 .select((eb) => eb.fn.countAll().as('count'))
                 .executeTakeFirstOrThrow(),
@@ -391,7 +393,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
     }
 
     public async updateUserStatus(uuid: string, status: TUsersStatus): Promise<boolean> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .updateTable('users')
             .set({ status })
             .where('uuid', '=', getKyselyUuid(uuid))
@@ -419,7 +421,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         },
     ): Promise<UserEntity | null> {
         // TODO: check this
-        const user = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('users')
             .selectAll()
             .$if(includeOptions.activeInternalSquads, (qb) =>
@@ -439,11 +441,11 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             })
             .executeTakeFirst();
 
-        if (!user) {
+        if (!result) {
             return null;
         }
 
-        return new UserEntity(user);
+        return new UserEntity(result);
     }
 
     public async findByNonUniqueCriteria(
@@ -457,7 +459,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         },
     ): Promise<UserEntity[]> {
         // TODO: check this
-        const user = await this.prisma.tx.$kysely
+        const user = await this.qb.kysely
             .selectFrom('users')
             .selectAll()
             // .select((eb) => [
@@ -545,7 +547,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
     public async getUserOnlineStats(): Promise<IUserOnlineStats> {
         const now = dayjs().utc();
 
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('users')
             .select((eb) => [
                 eb.fn
@@ -577,13 +579,13 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
 
     // public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
     //     const { query } = new BatchResetUsersUsageBuilder(strategy);
-    //     await this.prisma.tx.$executeRaw<void>(query);
+    //     await this.prisma.tx.tx.$executeRaw<void>(query);
 
     //     return;
     // }
 
     public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
-        await this.prisma.tx.$kysely
+        await this.qb.kysely
             .with('usersToReset', (db) =>
                 db
                     .selectFrom('users')
@@ -632,7 +634,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         let hasMoreData = true;
 
         while (hasMoreData) {
-            const builder = this.prisma.tx.$kysely
+            const builder = this.qb.kysely
                 .selectFrom('internalSquadMembers')
                 .innerJoin('users', (join) =>
                     join
@@ -782,7 +784,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
 
     public async removeUsersFromInternalSquads(usersUuids: string[]): Promise<void> {
         // TODO: check this
-        await this.prisma.tx.$kysely
+        await this.qb.kysely
             .deleteFrom('internalSquadMembers')
             .where(
                 'userUuid',
@@ -797,7 +799,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         internalSquadsUuids: string[],
     ): Promise<void> {
         // TODO: check this
-        await this.prisma.tx.$kysely
+        await this.qb.kysely
             .insertInto('internalSquadMembers')
             .columns(['userUuid', 'internalSquadUuid'])
             .values(
@@ -815,12 +817,11 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         userUuid: string,
         internalSquadUuid: string[],
     ): Promise<boolean> {
-        // TODO: check this
         if (internalSquadUuid.length === 0) {
             return true;
         }
 
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .insertInto('internalSquadMembers')
             .columns(['userUuid', 'internalSquadUuid'])
             .values(
@@ -837,7 +838,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
     }
 
     public async removeUserFromInternalSquads(userUuid: string): Promise<void> {
-        await this.prisma.tx.$kysely
+        await this.qb.kysely
             .deleteFrom('internalSquadMembers')
             .where('userUuid', '=', getKyselyUuid(userUuid))
             .clearReturning()
@@ -849,7 +850,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         select: T[],
     ) {
         // TODO: check this
-        const user = await this.prisma.tx.$kysely
+        const user = await this.qb.kysely
             .selectFrom('users')
             .select(select)
             .where((eb) => {
@@ -872,7 +873,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             'uuid' | 'trojanPassword' | 'vlessUuid' | 'ssPassword' | 'subRevokedAt' | 'shortUuid'
         >,
     ): Promise<boolean> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .updateTable('users')
             .set({
                 subRevokedAt: dto.subRevokedAt,
@@ -891,7 +892,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
     //     userUuid: string,
     // ): Promise<UserWithResolvedInboundEntity> {
     //     // TODO: check later
-    //     const result = await this.prisma.tx.$kysely
+    //     const result = await this.prisma.tx.tx.$kysely
     //         .selectFrom('internalSquadMembers')
     //         .innerJoin(
     //             'internalSquads',
@@ -975,7 +976,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         userUuid: string,
     ): Promise<UserWithResolvedInboundEntity | null> {
         // TODO: check later
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('users')
             .select((eb) => [
                 'users.uuid as userUuid',
@@ -1029,7 +1030,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
     public async getUserAccessibleNodes(
         userUuid: string,
     ): Promise<IGetUserAccessibleNodesResponse> {
-        const flatResults = await this.prisma.tx.$kysely
+        const flatResults = await this.qb.kysely
             .selectFrom('nodes as n')
             .innerJoin('configProfiles as cp', 'n.activeConfigProfileUuid', 'cp.uuid')
             .innerJoin('configProfileInbounds as cpi', 'cpi.profileUuid', 'cp.uuid')

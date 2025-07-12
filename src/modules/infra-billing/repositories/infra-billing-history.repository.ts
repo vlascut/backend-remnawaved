@@ -4,6 +4,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 
 import { InfraBillingHistoryEntity } from '../entities/infra-billing-history.entity';
@@ -13,6 +14,7 @@ import { InfraBillingHistoryConverter } from '../converters';
 export class InfraBillingHistoryRepository implements ICrud<InfraBillingHistoryEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly infraBillingHistoryConverter: InfraBillingHistoryConverter,
     ) {}
 
@@ -85,7 +87,7 @@ export class InfraBillingHistoryRepository implements ICrud<InfraBillingHistoryE
         start: number,
         size: number,
     ): Promise<InfraBillingHistoryEntity[]> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('infraBillingHistory as ibh')
             .innerJoin('infraProviders as ip', 'ip.uuid', 'ibh.providerUuid')
             .select([
@@ -110,7 +112,7 @@ export class InfraBillingHistoryRepository implements ICrud<InfraBillingHistoryE
     }
 
     public async getInfraBillingHistoryRecordsCount(): Promise<number> {
-        const result = await this.prisma.tx.$kysely
+        const result = await this.qb.kysely
             .selectFrom('infraBillingHistory')
             .select((eb) => [eb.fn.count<bigint>('infraBillingHistory.uuid').as('count')])
             .executeTakeFirst();

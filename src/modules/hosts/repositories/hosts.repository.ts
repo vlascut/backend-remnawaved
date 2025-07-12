@@ -6,6 +6,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 import { getKyselyUuid } from '@common/helpers';
 import { TSecurityLayers } from '@libs/contracts/constants';
@@ -18,6 +19,7 @@ import { HostsConverter } from '../hosts.converter';
 export class HostsRepository implements ICrud<HostsEntity> {
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
+        private readonly qb: TxKyselyService,
         private readonly hostsConverter: HostsConverter,
     ) {}
 
@@ -125,7 +127,7 @@ export class HostsRepository implements ICrud<HostsEntity> {
     }
 
     public async findActiveHostsByUserUuid(userUuid: string): Promise<HostWithRawInbound[]> {
-        // const hosts = await this.prisma.tx.$kysely
+        // const hosts = await this.qb.kysely
         //     .selectFrom('hosts')
         //     .innerJoin(
         //         'internalSquadInbounds',
@@ -153,7 +155,7 @@ export class HostsRepository implements ICrud<HostsEntity> {
 
         // TODO: remove later
 
-        const hosts = await this.prisma.tx.$kysely
+        const hosts = await this.qb.kysely
             .selectFrom('hosts')
             .distinct()
             .innerJoin(
