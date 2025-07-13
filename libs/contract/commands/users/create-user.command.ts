@@ -129,12 +129,10 @@ export namespace CreateUserCommand {
             ),
 
         telegramId: z
-            .optional(z.number().int())
+            .optional(z.number().int().nullable())
             .describe('Optional. Telegram user ID for notifications. Must be an integer.'),
         email: z
-            .string()
-            .email('Invalid email format')
-            .optional()
+            .optional(z.string().email('Invalid email format').nullable())
             .describe('Optional. User email address. Must be a valid email format.'),
 
         hwidDeviceLimit: z.optional(
