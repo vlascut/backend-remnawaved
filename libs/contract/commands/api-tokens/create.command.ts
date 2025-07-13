@@ -16,7 +16,6 @@ export namespace CreateApiTokenCommand {
 
     export const RequestSchema = z.object({
         tokenName: z.string(),
-        tokenDescription: z.string().nullable(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

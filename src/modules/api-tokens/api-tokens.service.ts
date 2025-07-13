@@ -28,7 +28,7 @@ export class ApiTokensService {
     ) {}
 
     public async create(body: ICreateApiTokenRequest): Promise<ICommandResponse<ApiTokenEntity>> {
-        const { tokenName, tokenDescription } = body;
+        const { tokenName } = body;
 
         try {
             const uuid = randomUUID();
@@ -47,7 +47,6 @@ export class ApiTokensService {
             const apiTokenEntity = new ApiTokenEntity({
                 uuid,
                 tokenName,
-                tokenDescription,
                 token: token.response,
             });
 

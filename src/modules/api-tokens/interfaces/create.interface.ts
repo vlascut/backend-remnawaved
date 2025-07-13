@@ -1,5 +1,4 @@
 export interface ICreateApiTokenRequest {
-    tokenDescription: null | string;
     tokenName: string;
 }
 
