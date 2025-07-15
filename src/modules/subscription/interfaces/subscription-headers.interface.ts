@@ -4,6 +4,7 @@ export interface ISubscriptionHeaders {
     'profile-update-interval': string;
     'profile-web-page-url'?: string;
     'subscription-userinfo': string;
+    'subscription-refill-date'?: string;
     'support-url': string;
     announce?: string;
     routing?: string;

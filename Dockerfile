@@ -13,7 +13,7 @@ WORKDIR /opt/app
 
 COPY package*.json ./
 COPY prisma ./prisma
-COPY patches ./patches
+
 
 RUN npm ci
 

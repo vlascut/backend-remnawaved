@@ -40,10 +40,10 @@ import {
     SubscriptionWithConfigResponse,
 } from './models';
 import { UpdateSubLastOpenedAndUserAgentCommand } from '../users/commands/update-sub-last-opened-and-user-agent';
+import { getSubscriptionRefillDate, getSubscriptionUserInfo } from './utils/get-user-info.headers';
 import { HostWithRawInbound } from '../hosts/entities/host-with-inbound-tag.entity';
 import { ISubscriptionHeaders } from './interfaces/subscription-headers.interface';
 import { GetHostsForUserQuery } from '../hosts/queries/get-hosts-for-user';
-import { getSubscriptionUserInfo } from './utils/get-user-info.headers';
 import { GetAllSubscriptionsQueryDto } from './dto';
 
 @Injectable()
@@ -571,6 +571,11 @@ export class SubscriptionService {
 
         if (settings.isProfileWebpageUrlEnabled && !this.hwidDeviceLimitEnabled) {
             headers['profile-web-page-url'] = `https://${this.subPublicDomain}/${user.shortUuid}`;
+        }
+
+        const refillDate = getSubscriptionRefillDate(user.trafficLimitStrategy);
+        if (refillDate) {
+            headers['subscription-refill-date'] = refillDate;
         }
 
         if (settings.customResponseHeaders) {

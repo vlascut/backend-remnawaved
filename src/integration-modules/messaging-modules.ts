@@ -27,15 +27,13 @@ import { MessagingBuses, MessagingChannels, MessagingQueues } from '@libs/contra
                     new RedisChannelConfig({
                         name: MessagingChannels.EVENT,
                         queue: MessagingQueues.EVENT,
-                        connectionOptions: {
-                            redis: {
-                                host: configService.getOrThrow<string>('REDIS_HOST'),
-                                port: configService.getOrThrow<number>('REDIS_PORT'),
-                                db: configService.getOrThrow<number>('REDIS_DB'),
-                                password: configService.get<string | undefined>('REDIS_PASSWORD'),
-                            },
-                            prefix: 'ebus',
+                        connection: {
+                            host: configService.getOrThrow<string>('REDIS_HOST'),
+                            port: configService.getOrThrow<number>('REDIS_PORT'),
+                            db: configService.getOrThrow<number>('REDIS_DB'),
+                            password: configService.get<string | undefined>('REDIS_PASSWORD'),
                         },
+                        keyPrefix: 'ebus',
                         middlewares: [],
                         avoidErrorsForNotExistedHandlers: true,
                         enableConsumer: isScheduler(),
