@@ -15,6 +15,10 @@ export const configSchema = z
         JWT_AUTH_SECRET: z
             .string()
             .refine((val) => val !== 'change_me', 'JWT_AUTH_SECRET cannot be set to "change_me"'),
+        JWT_AUTH_LIFETIME: z
+            .string()
+            .default('12')
+            .transform((val) => parseInt(val, 10)),
         JWT_API_TOKENS_SECRET: z
             .string()
             .refine(
@@ -318,6 +322,14 @@ export const configSchema = z
                     });
                 }
             }
+        }
+
+        if (data.JWT_AUTH_LIFETIME > 168 || data.JWT_AUTH_LIFETIME < 12) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'JWT_AUTH_LIFETIME must be between 12 and 168 hours.',
+                path: ['JWT_AUTH_LIFETIME'],
+            });
         }
     });
 

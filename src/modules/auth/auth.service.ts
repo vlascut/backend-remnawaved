@@ -30,6 +30,7 @@ const scryptAsync = promisify(scrypt);
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
     private readonly jwtSecret: string;
+    private readonly jwtLifetime: number;
 
     constructor(
         private readonly jwtService: JwtService,
@@ -39,6 +40,7 @@ export class AuthService {
         private readonly eventEmitter: EventEmitter2,
     ) {
         this.jwtSecret = this.configService.getOrThrow<string>('JWT_AUTH_SECRET');
+        this.jwtLifetime = this.configService.getOrThrow<number>('JWT_AUTH_LIFETIME');
     }
 
     public async login(
@@ -135,7 +137,7 @@ export class AuthService {
                     uuid: admin.response.uuid,
                     role: ROLE.ADMIN,
                 },
-                { expiresIn: '12h' },
+                { expiresIn: `${this.jwtLifetime}h` },
             );
 
             await this.emitLoginSuccess(username, ip, userAgent);
@@ -210,7 +212,7 @@ export class AuthService {
                     uuid: createAdminResponse.response.uuid,
                     role: ROLE.ADMIN,
                 },
-                { expiresIn: '12h' },
+                { expiresIn: `${this.jwtLifetime}h` },
             );
 
             return {
@@ -388,7 +390,7 @@ export class AuthService {
                     uuid: firstAdmin.response.uuid,
                     role: ROLE.ADMIN,
                 },
-                { expiresIn: '12h' },
+                { expiresIn: `${this.jwtLifetime}h` },
             );
 
             await this.emitLoginSuccess(

@@ -16,6 +16,7 @@ import { NestFactory } from '@nestjs/core';
 import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
 import { proxyCheckMiddleware, getRealIp } from '@common/middlewares';
+import { customLogFilter } from '@common/utils/filter-logs';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
@@ -32,17 +33,18 @@ patchNestJsSwagger();
 //     silly: 6,
 // };
 
-const instanedId = process.env.INSTANCE_ID || '0';
+const instanceId = process.env.INSTANCE_ID || '0';
 
 const logger = createLogger({
     transports: [new winston.transports.Console()],
     format: winston.format.combine(
+        customLogFilter(),
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss.SSS',
         }),
         // winston.format.ms(),
         winston.format.align(),
-        nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanedId}`, {
+        nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanceId}`, {
             colors: true,
             prettyPrint: true,
             processId: false,
