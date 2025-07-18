@@ -93,7 +93,10 @@ export class RenderTemplatesService {
 
             case 'XRAY_JSON':
                 return {
-                    sub: await this.xrayJsonGeneratorService.generateConfig(formattedHosts),
+                    sub: await this.xrayJsonGeneratorService.generateConfig(
+                        formattedHosts,
+                        /^Happ\//.test(userAgent),
+                    ),
                     contentType: configParams.CONTENT_TYPE,
                 };
 
@@ -153,7 +156,10 @@ export class RenderTemplatesService {
 
             case 'XRAY_JSON':
                 return {
-                    sub: await this.xrayJsonGeneratorService.generateConfig(formattedHosts),
+                    sub: await this.xrayJsonGeneratorService.generateConfig(
+                        formattedHosts,
+                        /^Happ\//.test(userAgent),
+                    ),
                     contentType: SUBSCRIPTION_CONFIG_TYPES.XRAY_JSON.CONTENT_TYPE,
                 };
 

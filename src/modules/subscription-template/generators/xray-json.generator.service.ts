@@ -52,6 +52,9 @@ interface Outbound {
 interface XrayJsonConfig {
     remarks: string;
     outbounds: Outbound[];
+    meta?: {
+        serverDescription?: string;
+    };
 }
 
 @Injectable()
@@ -60,7 +63,7 @@ export class XrayJsonGeneratorService {
 
     constructor(private readonly subscriptionTemplateService: SubscriptionTemplateService) {}
 
-    public async generateConfig(hosts: IFormattedHost[]): Promise<string> {
+    public async generateConfig(hosts: IFormattedHost[], isHapp: boolean): Promise<string> {
         try {
             const templateContent = (await this.subscriptionTemplateService.getJsonTemplateByType(
                 'XRAY_JSON',
@@ -73,7 +76,7 @@ export class XrayJsonGeneratorService {
                     continue;
                 }
 
-                const templatedOutbound = this.createConfigForHost(host);
+                const templatedOutbound = this.createConfigForHost(host, isHapp);
                 if (templatedOutbound) {
                     templatedOutbounds.push(templatedOutbound);
                 }
@@ -95,7 +98,7 @@ export class XrayJsonGeneratorService {
         }
     }
 
-    private createConfigForHost(host: IFormattedHost): XrayJsonConfig | null {
+    private createConfigForHost(host: IFormattedHost, isHapp: boolean): XrayJsonConfig | null {
         try {
             const outbounds: Outbound[] = [];
 
@@ -108,10 +111,18 @@ export class XrayJsonGeneratorService {
 
             outbounds.push(mainOutbound);
 
-            return {
+            const config: XrayJsonConfig = {
                 remarks: host.remark,
                 outbounds: outbounds,
             };
+
+            if (isHapp && host.serverDescription) {
+                config.meta = {
+                    serverDescription: host.serverDescription,
+                };
+            }
+
+            return config;
         } catch (error) {
             this.logger.error('Error creating config for host:', error);
             return null;
