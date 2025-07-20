@@ -127,34 +127,6 @@ export class HostsRepository implements ICrud<HostsEntity> {
     }
 
     public async findActiveHostsByUserUuid(userUuid: string): Promise<HostWithRawInbound[]> {
-        // const hosts = await this.qb.kysely
-        //     .selectFrom('hosts')
-        //     .innerJoin(
-        //         'internalSquadInbounds',
-        //         'internalSquadInbounds.inboundUuid',
-        //         'hosts.configProfileInboundUuid',
-        //     )
-        //     .innerJoin(
-        //         'internalSquadMembers',
-        //         'internalSquadMembers.internalSquadUuid',
-        //         'internalSquadInbounds.internalSquadUuid',
-        //     )
-
-        //     .innerJoin(
-        //         'configProfileInbounds',
-        //         'configProfileInbounds.uuid',
-        //         'hosts.configProfileInboundUuid',
-        //     )
-
-        //     .where('hosts.isDisabled', '=', false)
-        //     .where('internalSquadMembers.userUuid', '=', getKyselyUuid(userUuid))
-        //     .selectAll('hosts')
-        //     .select(['configProfileInbounds.rawInbound', 'configProfileInbounds.tag'])
-        //     .orderBy('hosts.viewPosition', 'asc')
-        //     .execute();
-
-        // TODO: remove later
-
         const hosts = await this.qb.kysely
             .selectFrom('hosts')
             .distinct()

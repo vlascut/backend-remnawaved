@@ -1,1 +1,1 @@
-export * from './headers.contants';
+export * from './headers.constants';

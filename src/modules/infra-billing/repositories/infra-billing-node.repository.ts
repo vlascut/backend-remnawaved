@@ -205,12 +205,6 @@ export class InfraBillingNodeRepository implements ICrud<InfraBillingNodeEntity>
             }),
         );
 
-        // const x = results
-        //     .flat()
-        //     .sort(
-        //         (a, b) => new Date(a.nextBillingAt).getTime() - new Date(b.nextBillingAt).getTime(),
-        //     );
-
         return results.flat().map((node) => new InfraBillingNodeNotificationEntity(node));
     }
 }

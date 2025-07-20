@@ -21,14 +21,12 @@ import { QueueNames } from '../queue.enum';
 )
 export class StartAllNodesQueueProcessor extends WorkerHost {
     private readonly logger = new Logger(StartAllNodesQueueProcessor.name);
-    private readonly CONCURRENCY: number;
 
     constructor(
         private readonly nodesRepository: NodesRepository,
         private readonly startAllNodesByProfileQueueService: StartAllNodesByProfileQueueService,
     ) {
         super();
-        this.CONCURRENCY = 20;
     }
 
     async process(job: Job) {

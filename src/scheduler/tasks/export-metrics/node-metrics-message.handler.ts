@@ -98,7 +98,7 @@ export class NodeMetricsMessageHandler implements IMessageHandler<NodeMetricsMes
 
             return new MessageResponse([{ result: 'OK' }]);
         } catch (error) {
-            this.logger.error(`Error in reportShortUserStats: ${error}`);
+            this.logger.error(`Error in handle: ${error}`);
 
             return new MessageResponse([{ result: 'ERROR' }]);
         }

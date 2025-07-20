@@ -252,7 +252,7 @@ export class ConfigProfileService {
             this.logger.error(error);
             return {
                 isOk: false,
-                ...ERRORS.CREATE_CONFIG_PROFILE_ERROR,
+                ...ERRORS.UPDATE_CONFIG_PROFILE_ERROR,
             };
         }
     }

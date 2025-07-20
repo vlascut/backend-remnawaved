@@ -106,21 +106,6 @@ export class NodesRepository implements ICrud<NodesEntity> {
         return new NodesEntity(result);
     }
 
-    // public async update({ uuid, ...data }: Partial<NodesEntity>): Promise<NodesEntity> {
-
-    //     const result = await this.prisma.tx.nodes.update({
-    //         where: {
-    //             uuid,
-    //         },
-    //         data: {
-    //             ...data,
-    //         },
-    //         include: INCLUDE_RESOLVED_INBOUNDS,
-    //     });
-
-    //     return new NodesEntity(result);
-    // }
-
     public async findByCriteria(dto: Partial<NodesEntity>): Promise<NodesEntity[]> {
         const nodesList = await this.prisma.tx.nodes.findMany({
             where: dto,

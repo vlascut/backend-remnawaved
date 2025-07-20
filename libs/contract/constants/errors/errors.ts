@@ -724,4 +724,9 @@ export const ERRORS = {
         message: 'This name is reserved by Remnawave. Please use a different name.',
         httpCode: 400,
     },
+    UPDATE_CONFIG_PROFILE_ERROR: {
+        code: 'A146',
+        message: 'Update config profile error',
+        httpCode: 500,
+    },
 } as const;
