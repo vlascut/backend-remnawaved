@@ -87,6 +87,8 @@ export const configSchema = z
             .transform((val) => parseInt(val, 10))
             .refine((val) => val >= 16 && val <= 64, 'SHORT_UUID_LENGTH must be between 16 and 64'),
         IS_HTTP_LOGGING_ENABLED: z.string().default('false'),
+        IS_CROWDIN_EDITOR_ENABLED: z.string().default('false'),
+        REMNAWAVE_BRANCH: z.string().default('dev'),
 
         HWID_DEVICE_LIMIT_ENABLED: z.string().default('false'),
         HWID_FALLBACK_DEVICE_LIMIT: z.optional(
@@ -329,6 +331,14 @@ export const configSchema = z
                 code: z.ZodIssueCode.custom,
                 message: 'JWT_AUTH_LIFETIME must be between 12 and 168 hours.',
                 path: ['JWT_AUTH_LIFETIME'],
+            });
+        }
+
+        if (data.REMNAWAVE_BRANCH !== 'dev' && data.REMNAWAVE_BRANCH !== 'main') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'REMNAWAVE_BRANCH is modified in the Dockerfile. Please do not change it.',
+                path: ['REMNAWAVE_BRANCH'],
             });
         }
     });
