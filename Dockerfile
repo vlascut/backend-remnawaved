@@ -1,8 +1,10 @@
 FROM alpine:3.19 AS frontend
 WORKDIR /opt/frontend
 
+ARG FRONTEND_URL=https://github.com/remnawave/frontend/releases/latest/download/remnawave-frontend.zip
+
 RUN apk add --no-cache curl unzip ca-certificates \
-    && curl -L https://github.com/remnawave/frontend/releases/latest/download/remnawave-frontend.zip -o frontend.zip \
+    && curl -L ${FRONTEND_URL} -o frontend.zip \
     && unzip frontend.zip -d frontend_temp \
     && curl -L https://remnawave.github.io/xray-monaco-editor/wasm_exec.js -o frontend_temp/dist/wasm_exec.js \
     && curl -L https://remnawave.github.io/xray-monaco-editor/xray.schema.json -o frontend_temp/dist/xray.schema.json \
