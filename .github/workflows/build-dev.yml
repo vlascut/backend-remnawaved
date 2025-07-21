@@ -53,7 +53,7 @@ jobs:
           build-args: |
             FRONTEND_URL=https://github.com/remnawave/frontend/releases/download/dev-build/remnawave-frontend.zip
             FRONTEND_WITH_CROWDIN=https://github.com/remnawave/frontend/releases/download/dev-build/remnawave-frontend-loc.zip
-            REMNAWAVE_BRANCH=dev
+            BRANCH=dev
 
           context: .
           file: Dockerfile
