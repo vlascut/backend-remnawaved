@@ -192,6 +192,22 @@ export class AuthService {
                     ...ERRORS.FORBIDDEN,
                 };
             }
+            if (
+                Object.values(statusResponse.response.oauth2.providers).some((enabled) => enabled)
+            ) {
+                await this.emitFailedLoginAttempt(
+                    username,
+                    password,
+                    ip,
+                    userAgent,
+                    'OAuth2 enabled, so username/password login is disabled.',
+                );
+
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
 
             const admin = await this.getAdminByUsername({
                 username,
@@ -524,6 +540,13 @@ export class AuthService {
                 };
             }
 
+            if (!statusResponse.response.oauth2.providers[provider]) {
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
+
             let authorizationURL: URL;
             const state = arctic.generateState();
             let stateKey: string;
@@ -598,6 +621,13 @@ export class AuthService {
                     'Login is not allowed.',
                 );
 
+                return {
+                    isOk: false,
+                    ...ERRORS.FORBIDDEN,
+                };
+            }
+
+            if (!statusResponse.response.oauth2.providers[provider]) {
                 return {
                     isOk: false,
                     ...ERRORS.FORBIDDEN,
