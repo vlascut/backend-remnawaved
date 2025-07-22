@@ -1,6 +1,7 @@
 export const OAUTH2_PROVIDERS = {
     GITHUB: 'github',
     POCKETID: 'pocketid',
+    YANDEX: 'yandex',
 } as const;
 
 export type TOAuth2Providers = [keyof typeof OAUTH2_PROVIDERS][number];

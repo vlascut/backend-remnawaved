@@ -158,6 +158,22 @@ export const configSchema = z
                 }
             })
             .pipe(z.array(z.string()).optional()),
+
+        OAUTH2_YANDEX_ENABLED: z.string().default('false'),
+        OAUTH2_YANDEX_CLIENT_ID: z.string().optional(),
+        OAUTH2_YANDEX_CLIENT_SECRET: z.string().optional(),
+        OAUTH2_YANDEX_ALLOWED_EMAILS: z
+            .string()
+            .optional()
+            .transform((val) => {
+                if (!val || val === '') return undefined;
+                try {
+                    return JSON.parse(val);
+                } catch {
+                    throw new Error('OAUTH2_YANDEX_ALLOWED_EMAILS must be a valid JSON array');
+                }
+            })
+            .pipe(z.array(z.string()).optional()),
     })
     .superRefine((data, ctx) => {
         if (data.WEBHOOK_ENABLED === 'true') {
@@ -342,6 +358,34 @@ export const configSchema = z
             }
         }
 
+        if (data.OAUTH2_YANDEX_ENABLED === 'true') {
+            if (!data.OAUTH2_YANDEX_CLIENT_ID) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'OAUTH2_YANDEX_CLIENT_ID is required when OAUTH2_YANDEX_ENABLED is true',
+                    path: ['OAUTH2_YANDEX_CLIENT_ID'],
+                });
+            }
+
+            if (!data.OAUTH2_YANDEX_CLIENT_SECRET) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'OAUTH2_YANDEX_CLIENT_SECRET is required when OAUTH2_YANDEX_ENABLED is true',
+                    path: ['OAUTH2_YANDEX_CLIENT_SECRET'],
+                });
+            }
+
+            if (!data.OAUTH2_YANDEX_ALLOWED_EMAILS) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message:
+                        'OAUTH2_YANDEX_ALLOWED_EMAILS is required when OAUTH2_YANDEX_ENABLED is true',
+                    path: ['OAUTH2_YANDEX_ALLOWED_EMAILS'],
+                });
+            }
+        }
         // if (data.COOKIE_AUTH_ENABLED) {
         //     if (!data.COOKIE_AUTH_NONCE) {
         //         ctx.addIssue({

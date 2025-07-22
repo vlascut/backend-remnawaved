@@ -53,6 +53,10 @@ export class AuthService {
         botToken: string | null;
         adminIds: number[];
     };
+    private readonly yandex: {
+        client: arctic.Yandex;
+        allowedEmails: string[];
+    };
     private readonly oauth2Providers: Record<TOAuth2ProvidersKeys, boolean>;
 
     constructor(
@@ -71,11 +75,14 @@ export class AuthService {
             this.configService.get<string>('OAUTH2_GITHUB_ENABLED') === 'true';
         const isPocketIdAuthEnabled =
             this.configService.get<string>('OAUTH2_POCKETID_ENABLED') === 'true';
+        const isYandexAuthEnabled =
+            this.configService.get<string>('OAUTH2_YANDEX_ENABLED') === 'true';
         const isTgAuthEnabled = this.configService.get<string>('TELEGRAM_OAUTH_ENABLED') === 'true';
 
         this.oauth2Providers = {
             [OAUTH2_PROVIDERS.GITHUB]: isGithubAuthEnabled,
             [OAUTH2_PROVIDERS.POCKETID]: isPocketIdAuthEnabled,
+            [OAUTH2_PROVIDERS.YANDEX]: isYandexAuthEnabled,
         };
 
         if (isGithubAuthEnabled) {
@@ -101,6 +108,19 @@ export class AuthService {
                 plainDomain: this.configService.getOrThrow<string>('OAUTH2_POCKETID_PLAIN_DOMAIN'),
                 allowedEmails: this.configService.getOrThrow<string[]>(
                     'OAUTH2_POCKETID_ALLOWED_EMAILS',
+                ),
+            };
+        }
+
+        if (isYandexAuthEnabled) {
+            this.yandex = {
+                client: new arctic.Yandex(
+                    this.configService.getOrThrow<string>('OAUTH2_YANDEX_CLIENT_ID'),
+                    this.configService.getOrThrow<string>('OAUTH2_YANDEX_CLIENT_SECRET'),
+                    '',
+                ),
+                allowedEmails: this.configService.getOrThrow<string[]>(
+                    'OAUTH2_YANDEX_ALLOWED_EMAILS',
                 ),
             };
         }
@@ -523,6 +543,12 @@ export class AuthService {
                     );
                     stateKey = `oauth2:${OAUTH2_PROVIDERS.POCKETID}`;
                     break;
+                case OAUTH2_PROVIDERS.YANDEX:
+                    authorizationURL = this.yandex.client.createAuthorizationURL(state, [
+                        'login:email',
+                    ]);
+                    stateKey = `oauth2:${OAUTH2_PROVIDERS.YANDEX}`;
+                    break;
                 default:
                     return {
                         isOk: false,
@@ -608,7 +634,9 @@ export class AuthService {
                 case OAUTH2_PROVIDERS.POCKETID:
                     callbackResult = await this.pocketIdCallback(code, state, ip, userAgent);
                     break;
-
+                case OAUTH2_PROVIDERS.YANDEX:
+                    callbackResult = await this.yandexCallback(code, state, ip, userAgent);
+                    break;
                 default:
                     return {
                         isOk: false,
@@ -849,6 +877,110 @@ export class AuthService {
             };
         } catch (error) {
             this.logger.error('PocketID callback error:', error);
+
+            return {
+                isAllowed: false,
+                email: null,
+            };
+        }
+    }
+
+    private async yandexCallback(
+        code: string,
+        state: string,
+        ip: string,
+        userAgent: string,
+    ): Promise<{
+        isAllowed: boolean;
+        email: string | null;
+    }> {
+        try {
+            const stateFromCache = await this.cacheManager.get<string>(
+                `oauth2:${OAUTH2_PROVIDERS.YANDEX}`,
+            );
+
+            if (stateFromCache !== state) {
+                this.logger.error('OAuth2 state mismatch');
+                await this.emitFailedLoginAttempt(
+                    'Unknown',
+                    `State: ${state}`,
+                    ip,
+                    userAgent,
+                    'Yandex OAuth2 state mismatch.',
+                );
+                return {
+                    isAllowed: false,
+                    email: null,
+                };
+            }
+
+            const tokens = await this.yandex.client.validateAuthorizationCode(code);
+            const accessToken = tokens.accessToken();
+
+            await this.cacheManager.del(`oauth2:${OAUTH2_PROVIDERS.YANDEX}`);
+
+            const { data } = await firstValueFrom(
+                this.httpService
+                    .get<{
+                        default_email: string;
+                    }>('https://login.yandex.ru/info?format=json', {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                            'User-Agent': 'Remnawave',
+                        },
+                    })
+                    .pipe(
+                        catchError((error: AxiosError) => {
+                            throw error.response?.data;
+                        }),
+                    ),
+            );
+
+            if (!data) {
+                this.logger.error('Failed to fetch Yandex user info');
+                return {
+                    isAllowed: false,
+                    email: null,
+                };
+            }
+
+            const primaryEmail = data.default_email;
+
+            if (!primaryEmail) {
+                await this.emitFailedLoginAttempt(
+                    'Unknown',
+                    '–',
+                    ip,
+                    userAgent,
+                    'No primary email found for Yandex user.',
+                );
+                this.logger.error('No primary email found for Yandex user');
+                return {
+                    isAllowed: false,
+                    email: null,
+                };
+            }
+
+            if (!this.yandex.allowedEmails.includes(primaryEmail)) {
+                await this.emitFailedLoginAttempt(
+                    primaryEmail,
+                    '–',
+                    ip,
+                    userAgent,
+                    'Yandex email is not in the allowed list.',
+                );
+                return {
+                    isAllowed: false,
+                    email: null,
+                };
+            }
+
+            return {
+                isAllowed: true,
+                email: primaryEmail,
+            };
+        } catch (error) {
+            this.logger.error('Yandex callback error:', error);
 
             return {
                 isAllowed: false,
