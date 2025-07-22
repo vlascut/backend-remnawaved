@@ -696,6 +696,8 @@ export class AuthService {
                 `oauth2:${OAUTH2_PROVIDERS.GITHUB}`,
             );
 
+            await this.cacheManager.del(`oauth2:${OAUTH2_PROVIDERS.GITHUB}`);
+
             if (stateFromCache !== state) {
                 this.logger.error('OAuth2 state mismatch');
                 await this.emitFailedLoginAttempt(
@@ -713,8 +715,6 @@ export class AuthService {
 
             const tokens = await this.github.client.validateAuthorizationCode(code);
             const accessToken = tokens.accessToken();
-
-            await this.cacheManager.del(`oauth2:${OAUTH2_PROVIDERS.GITHUB}`);
 
             const { data } = await firstValueFrom(
                 this.httpService
@@ -805,6 +805,8 @@ export class AuthService {
                 `oauth2:${OAUTH2_PROVIDERS.POCKETID}`,
             );
 
+            await this.cacheManager.del(`oauth2:${OAUTH2_PROVIDERS.POCKETID}`);
+
             if (stateFromCache !== state) {
                 this.logger.error('OAuth2 state mismatch');
                 await this.emitFailedLoginAttempt(
@@ -827,8 +829,6 @@ export class AuthService {
             );
 
             const accessToken = tokens.accessToken();
-
-            await this.cacheManager.del(`oauth2:${OAUTH2_PROVIDERS.POCKETID}`);
 
             const { data } = await firstValueFrom(
                 this.httpService
@@ -899,6 +899,8 @@ export class AuthService {
                 `oauth2:${OAUTH2_PROVIDERS.YANDEX}`,
             );
 
+            await this.cacheManager.del(`oauth2:${OAUTH2_PROVIDERS.YANDEX}`);
+
             if (stateFromCache !== state) {
                 this.logger.error('OAuth2 state mismatch');
                 await this.emitFailedLoginAttempt(
@@ -916,8 +918,6 @@ export class AuthService {
 
             const tokens = await this.yandex.client.validateAuthorizationCode(code);
             const accessToken = tokens.accessToken();
-
-            await this.cacheManager.del(`oauth2:${OAUTH2_PROVIDERS.YANDEX}`);
 
             const { data } = await firstValueFrom(
                 this.httpService
