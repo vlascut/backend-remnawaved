@@ -28,13 +28,14 @@ import { FormatHostsService } from '@modules/subscription-template/generators/fo
 import { HwidUserDeviceEntity } from '@modules/hwid-user-devices/entities/hwid-user-device.entity';
 import { RenderTemplatesService } from '@modules/subscription-template/render-templates.service';
 import { CountUsersDevicesQuery } from '@modules/hwid-user-devices/queries/count-users-devices';
+import { IFormattedHost, IRawHost } from '@modules/subscription-template/generators/interfaces';
 import { GetUsersWithPaginationQuery } from '@modules/users/queries/get-users-with-pagination';
 import { CheckHwidExistsQuery } from '@modules/hwid-user-devices/queries/check-hwid-exists';
 import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
-import { IFormattedHost } from '@modules/subscription-template/generators/interfaces';
 import { UserEntity } from '@modules/users/entities/user.entity';
 
 import {
+    RawSubscriptionWithHostsResponse,
     SubscriptionNotFoundResponse,
     SubscriptionRawResponse,
     SubscriptionWithConfigResponse,
@@ -219,6 +220,110 @@ export class SubscriptionService {
                 ),
                 body: subscription.sub,
                 contentType: subscription.contentType,
+            });
+        } catch (error) {
+            this.logger.error(error);
+            return new SubscriptionNotFoundResponse();
+        }
+    }
+
+    public async getRawSubscriptionByShortUuid(
+        shortUuid: string,
+        userAgent: string,
+        hwidHeaders: HwidHeaders | null,
+    ): Promise<SubscriptionNotFoundResponse | RawSubscriptionWithHostsResponse> {
+        try {
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        shortUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
+            if (!user.isOk || !user.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            const settings = await this.getSubscriptionSettings();
+
+            if (!settings.isOk || !settings.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            const settingEntity = settings.response;
+
+            let isHwidLimited: boolean | undefined;
+
+            const headers = await this.getUserProfileHeadersInfo(
+                user.response,
+                /^Happ\//.test(userAgent),
+                settingEntity,
+            );
+
+            if (this.hwidDeviceLimitEnabled) {
+                const isAllowed = await this.checkHwidDeviceLimit(user.response, hwidHeaders);
+
+                if (
+                    isAllowed.isOk &&
+                    isAllowed.response &&
+                    !isAllowed.response.isSubscriptionAllowed
+                ) {
+                    headers.announce = `base64:${Buffer.from(
+                        this.configService.getOrThrow<string>('HWID_MAX_DEVICES_ANNOUNCE'),
+                    ).toString('base64')}`;
+
+                    isHwidLimited = true;
+                }
+            } else {
+                await this.checkAndUpsertHwidUserDevice(user.response, hwidHeaders);
+
+                isHwidLimited = false;
+            }
+
+            const subscriptionInfo = await this.getSubscriptionInfoByShortUuid(
+                user.response.shortUuid,
+                settingEntity,
+            );
+
+            if (!subscriptionInfo.isOk || !subscriptionInfo.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
+
+            if (!hosts.isOk || !hosts.response) {
+                return new SubscriptionNotFoundResponse();
+            }
+
+            if (settingEntity.randomizeHosts) {
+                hosts.response = _.shuffle(hosts.response);
+            }
+
+            await this.updateSubLastOpenedAndUserAgent({
+                userUuid: user.response.uuid,
+                subLastOpenedAt: new Date(),
+                subLastUserAgent: userAgent,
+            });
+
+            let subscription: { rawHosts: IRawHost[] } | undefined;
+
+            if (!isHwidLimited) {
+                subscription = await this.renderTemplatesService.generateRawSubscription({
+                    user: user.response,
+                    hosts: hosts.response,
+                });
+            }
+
+            return new RawSubscriptionWithHostsResponse({
+                user: subscriptionInfo.response.user,
+                headers,
+                subscriptionUrl: subscriptionInfo.response.subscriptionUrl,
+                rawHosts: subscription?.rawHosts ?? [],
+                isHwidLimited: isHwidLimited ?? false,
             });
         } catch (error) {
             this.logger.error(error);

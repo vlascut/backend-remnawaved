@@ -152,6 +152,10 @@ export const REST_API = {
             `${ROOT}/${CONTROLLERS.SUBSCRIPTION_CONTROLLER}/${CONTROLLERS.SUBSCRIPTION_ROUTES.GET_INFO(
                 shortUuid,
             )}`,
+        GET_RAW: (shortUuid: string) =>
+            `${ROOT}/${CONTROLLERS.SUBSCRIPTION_CONTROLLER}/${CONTROLLERS.SUBSCRIPTION_ROUTES.GET_RAW(
+                shortUuid,
+            )}`,
     },
     HOSTS: {
         CREATE: `${ROOT}/${CONTROLLERS.HOSTS_CONTROLLER}/${CONTROLLERS.HOSTS_ROUTES.CREATE}`,

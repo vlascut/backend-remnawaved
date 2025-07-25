@@ -2,17 +2,21 @@ import semver from 'semver';
 
 import { Injectable } from '@nestjs/common';
 
+import { HostWithRawInbound } from '@modules/hosts/entities/host-with-inbound-tag.entity';
 import { parseSingBoxVersion } from '@modules/subscription/utils/parse-sing-box-version';
+import { UserEntity } from '@modules/users/entities';
 
 import { SUBSCRIPTION_CONFIG_TYPES, TSubscriptionConfigTypes } from './constants/config-types';
 import { IGenerateSubscription, IGenerateSubscriptionByClientType } from './interfaces';
 import { XrayJsonGeneratorService } from './generators/xray-json.generator.service';
+import { RawHostsGeneratorService } from './generators/raw-hosts.generator.service';
 import { OutlineGeneratorService } from './generators/outline.generator.service';
 import { SingBoxGeneratorService } from './generators/singbox.generator.service';
 import { MihomoGeneratorService } from './generators/mihomo.generator.service';
 import { ClashGeneratorService } from './generators/clash.generator.service';
 import { XrayGeneratorService } from './generators/xray.generator.service';
 import { FormatHostsService } from './generators/format-hosts.service';
+import { IRawHost } from './generators/interfaces';
 
 @Injectable()
 export class RenderTemplatesService {
@@ -24,6 +28,7 @@ export class RenderTemplatesService {
         private readonly xrayGeneratorService: XrayGeneratorService,
         private readonly singBoxGeneratorService: SingBoxGeneratorService,
         private readonly xrayJsonGeneratorService: XrayJsonGeneratorService,
+        private readonly rawHostsGeneratorService: RawHostsGeneratorService,
     ) {}
 
     public async generateSubscription(params: IGenerateSubscription): Promise<{
@@ -103,6 +108,23 @@ export class RenderTemplatesService {
             default:
                 return { sub: '', contentType: '' };
         }
+    }
+
+    public async generateRawSubscription(params: {
+        user: UserEntity;
+        hosts: HostWithRawInbound[];
+    }): Promise<{
+        rawHosts: IRawHost[];
+    }> {
+        const { user, hosts } = params;
+
+        const formattedHosts = await this.formatHostsService.generateFormattedHosts(hosts, user);
+
+        const rawHosts = await this.rawHostsGeneratorService.generateConfig(formattedHosts);
+
+        return {
+            rawHosts,
+        };
     }
 
     public async generateSubscriptionByClientType(
