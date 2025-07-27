@@ -7,7 +7,6 @@ interface OutlineOutbound {
     password: string;
     server: string;
     server_port: number;
-    tag: string;
 }
 
 @Injectable()
@@ -28,7 +27,6 @@ export class OutlineGeneratorService {
                 }
 
                 const outbound = this.makeOutbound(
-                    host.remark,
                     host.address,
                     host.port,
                     host.password.ssPassword,
@@ -40,7 +38,7 @@ export class OutlineGeneratorService {
                     break;
                 }
 
-                if (decodedTag && decodedTag === outbound.tag) {
+                if (decodedTag && decodedTag === host.remark) {
                     Object.assign(config, outbound);
                     break;
                 }
@@ -58,7 +56,6 @@ export class OutlineGeneratorService {
     }
 
     private makeOutbound(
-        remark: string,
         server: string,
         server_port: number,
         password: string,
@@ -69,7 +66,6 @@ export class OutlineGeneratorService {
             password,
             server,
             server_port,
-            tag: remark,
         };
     }
 }
