@@ -27,7 +27,7 @@ export class TemplateEngine {
 
     static formatWithUser(template: string, user: UserEntity, subPublicDomain: string): string {
         return this.replace(template, {
-            DAYS_LEFT: dayjs(user.expireAt).diff(dayjs(), 'day'),
+            DAYS_LEFT: Math.max(0, dayjs(user.expireAt).diff(dayjs(), 'day')),
             TRAFFIC_USED: prettyBytesUtil(user.usedTrafficBytes, true, 3),
             TRAFFIC_LEFT: prettyBytesUtil(user.trafficLimitBytes - user.usedTrafficBytes, true, 3),
             TOTAL_TRAFFIC: prettyBytesUtil(user.trafficLimitBytes, true, 3),
