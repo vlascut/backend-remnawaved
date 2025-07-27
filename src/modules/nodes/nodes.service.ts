@@ -1,9 +1,8 @@
 import { Prisma } from '@prisma/client';
 
 import { StartAllNodesQueueService } from 'src/queue/start-all-nodes/start-all-nodes.service';
-import { ERRORS, EVENTS, MessagingBuses, MessagingMessages } from '@contract/constants';
+import { ERRORS, EVENTS } from '@contract/constants';
 
-import { IMessageBus, MessageBus, RoutingMessage } from '@nestjstools/messaging';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
@@ -14,8 +13,6 @@ import { toNano } from '@common/utils/nano';
 import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetConfigProfileByUuidQuery } from '@modules/config-profiles/queries/get-config-profile-by-uuid';
-
-import { RemoveNodeMetricsMessage } from '@scheduler/tasks/export-metrics/node-metrics.message.interface';
 
 import { StartNodeQueueService } from '@queue/start-node/start-node.service';
 import { StopNodeQueueService } from '@queue/stop-node/stop-node.service';
@@ -35,7 +32,6 @@ export class NodesService {
         private readonly startAllNodesQueue: StartAllNodesQueueService,
         private readonly startNodeQueue: StartNodeQueueService,
         private readonly stopNodeQueue: StopNodeQueueService,
-        @MessageBus(MessagingBuses.EVENT) private readonly messageBus: IMessageBus,
         private readonly queryBus: QueryBus,
     ) {}
 
@@ -321,13 +317,6 @@ export class NodesService {
             this.eventEmitter.emit(
                 EVENTS.NODE.MODIFIED,
                 new NodeEvent(result, EVENTS.NODE.MODIFIED),
-            );
-
-            await this.messageBus.dispatch(
-                new RoutingMessage(
-                    new RemoveNodeMetricsMessage(),
-                    MessagingMessages.REMOVE_NODE_METRICS,
-                ),
             );
 
             return {

@@ -12,5 +12,4 @@ export enum MessagingQueues {
 
 export enum MessagingMessages {
     NODE_METRICS = 'node.metrics',
-    REMOVE_NODE_METRICS = 'remove.node.metrics',
 }
