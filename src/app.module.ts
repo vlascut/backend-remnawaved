@@ -18,7 +18,6 @@ import { AxiosModule } from '@common/axios/axios.module';
 import { PrismaModule } from '@common/database';
 
 import { IntegrationModules } from '@integration-modules/integration-modules';
-import { MessagingModules } from '@integration-modules/messaging-modules';
 
 import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 
@@ -79,7 +78,6 @@ import { QueueModule } from '@queue/queue.module';
             () => !disableFrontend(),
         ),
 
-        MessagingModules,
         QueueModule,
         CacheModule.registerAsync({
             imports: [ConfigModule],
