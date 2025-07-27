@@ -151,7 +151,9 @@ export class XRayConfig {
     }
 
     public leaveInbounds(tags: string[]): void {
-        this.config.inbounds = this.config.inbounds.filter((inbound) => tags.includes(inbound.tag));
+        this.config.inbounds = this.config.inbounds.filter(
+            (inbound) => tags.includes(inbound.tag) || !this.isInboundWithUsers(inbound.protocol),
+        );
     }
 
     private getInbounds(): Inbound[] {
