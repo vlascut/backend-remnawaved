@@ -1,4 +1,5 @@
 import { InfraBillingNodesNotificationsTask } from './crm/infra-billing-nodes-notifications/infra-billing-nodes-notifications.task';
+import { RemoveNodeMetricsMessageHandler } from './export-metrics/remove-node-metrics-message.handler';
 import { NodeMetricsMessageHandler } from './export-metrics/node-metrics-message.handler';
 import { ResetNodeTrafficTask } from './reset-node-traffic/reset-node-traffic.service';
 import { ExportMetricsTask } from './export-metrics/export-metrics.task';
@@ -11,4 +12,4 @@ export const JOBS_SERVICES = [
     InfraBillingNodesNotificationsTask,
 ];
 
-export const MESSAGE_HANDLERS = [NodeMetricsMessageHandler];
+export const MESSAGE_HANDLERS = [NodeMetricsMessageHandler, RemoveNodeMetricsMessageHandler];

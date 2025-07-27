@@ -15,3 +15,7 @@ interface INodeMetrics {
 export class NodeMetricsMessage {
     constructor(public readonly nodeMetrics: INodeMetrics) {}
 }
+
+export class RemoveNodeMetricsMessage {
+    constructor() {}
+}

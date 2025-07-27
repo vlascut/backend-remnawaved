@@ -1,7 +1,10 @@
+import { IMessageBus, MessageBus, RoutingMessage } from '@nestjstools/messaging';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants';
+import { ERRORS, MessagingBuses, MessagingMessages } from '@libs/contracts/constants';
+
+import { RemoveNodeMetricsMessage } from '@scheduler/tasks/export-metrics/node-metrics.message.interface';
 
 import {
     CreateInfraBillingHistoryRecordRequestDto,
@@ -33,6 +36,7 @@ export class InfraBillingService {
         private readonly infraBillingHistoryRepository: InfraBillingHistoryRepository,
         private readonly infraBillingNodeRepository: InfraBillingNodeRepository,
         private readonly infraProviderRepository: InfraProviderRepository,
+        @MessageBus(MessagingBuses.EVENT) private readonly messageBus: IMessageBus,
     ) {}
 
     public async getInfraProviders(): Promise<ICommandResponse<GetInfraProvidersResponseModel>> {
@@ -121,6 +125,14 @@ export class InfraBillingService {
         try {
             const provider = await this.infraProviderRepository.update(
                 new InfraProviderEntity(dto),
+            );
+
+            // indirect node modification, (provider > provider name change)
+            await this.messageBus.dispatch(
+                new RoutingMessage(
+                    new RemoveNodeMetricsMessage(),
+                    MessagingMessages.REMOVE_NODE_METRICS,
+                ),
             );
 
             return await this.getInfraProviderByUuid(provider.uuid);
