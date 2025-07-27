@@ -17,6 +17,7 @@ import {
     getLast30DaysRanges,
     getLastTwoWeeksRanges,
 } from '@common/utils/get-date-ranges.uti';
+import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
@@ -24,6 +25,8 @@ import { prettyBytesUtil } from '@common/utils/bytes';
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
 import { CountOnlineUsersQuery } from '@modules/nodes/queries/count-online-users';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
+import { GetAllNodesQuery } from '@modules/nodes/queries/get-all-nodes';
+import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 
 import {
     GetBandwidthStatsResponseModel,
@@ -216,7 +219,7 @@ export class SystemService {
 
             const parsed = parsePrometheusTextFormat(metricsText.data);
 
-            const nodeMetrics = this.groupMetricsByNodesLodash(parsed);
+            const nodeMetrics = await this.groupMetricsByNodesLodash(parsed);
 
             return {
                 isOk: true,
@@ -332,79 +335,133 @@ export class SystemService {
         return this.getUsageComparison(ranges);
     }
 
-    private groupMetricsByNodesLodash(metrics: Metric[]): NodeMetrics[] {
-        const allMetrics = metrics.flatMap((metric) =>
+    private async groupMetricsByNodesLodash(metrics: Metric[]): Promise<NodeMetrics[]> {
+        const nodes = await this.getAllNodes();
+        if (!nodes.isOk || !nodes.response) {
+            return [];
+        }
+
+        const createNodeKey = (...parts: string[]) => parts.join('§');
+
+        const nodesMap = new Map(
+            nodes.response.map((node) => {
+                const key = createNodeKey(
+                    node.uuid,
+                    node.name,
+                    resolveCountryEmoji(node.countryCode),
+                    node.provider?.name || 'unknown',
+                );
+                return [key, node];
+            }),
+        );
+
+        const validMetrics = [
+            'remnawave_node_online_users',
+            'remnawave_node_inbound_upload_bytes',
+            'remnawave_node_inbound_download_bytes',
+            'remnawave_node_outbound_upload_bytes',
+            'remnawave_node_outbound_download_bytes',
+        ];
+
+        const filteredMetrics = metrics.filter((metric) => validMetrics.includes(metric.name));
+
+        const allMetrics = filteredMetrics.flatMap((metric) =>
             metric.metrics.map((m) => ({
                 metricName: metric.name,
                 ...m,
             })),
         );
 
-        const groupedByNode = groupBy(allMetrics, 'labels.node_uuid');
+        const groupedByNode = groupBy(allMetrics, (item) =>
+            createNodeKey(
+                item.labels.node_uuid,
+                item.labels.node_name,
+                item.labels.node_country_emoji,
+                item.labels.provider_name,
+            ),
+        );
+        return (
+            Object.entries(groupedByNode)
+                .filter(([key]) => nodesMap.has(key))
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .map(([_, nodeMetrics]) => {
+                    const firstMetric = nodeMetrics[0];
+                    const {
+                        node_uuid: nodeUuid,
+                        node_name: nodeName,
+                        node_country_emoji: countryEmoji,
+                        provider_name: providerName,
+                    } = firstMetric.labels;
 
-        return Object.entries(groupedByNode)
-            .map(([nodeUuid, nodeMetrics]) => {
-                const firstMetric = nodeMetrics[0];
-                const { node_name, node_country_emoji, provider_name } = firstMetric.labels;
+                    const metricGroups = {
+                        onlineUsers: 0,
+                        inboundUpload: new Map<string, number>(),
+                        inboundDownload: new Map<string, number>(),
+                        outboundUpload: new Map<string, number>(),
+                        outboundDownload: new Map<string, number>(),
+                    };
 
-                const onlineUsersMetric = nodeMetrics.find(
-                    (m) => m.metricName === 'remnawave_node_online_users',
-                );
-                const usersOnline = onlineUsersMetric ? parseFloat(onlineUsersMetric.value) : 0;
+                    for (const metric of nodeMetrics) {
+                        const value = parseFloat(metric.value) || 0;
+                        const tag = metric.labels.tag;
 
-                const inboundUpload = groupBy(
-                    nodeMetrics.filter(
-                        (m) => m.metricName === 'remnawave_node_inbound_upload_bytes',
-                    ),
-                    'labels.tag',
-                );
-                const inboundDownload = groupBy(
-                    nodeMetrics.filter(
-                        (m) => m.metricName === 'remnawave_node_inbound_download_bytes',
-                    ),
-                    'labels.tag',
-                );
-                const outboundUpload = groupBy(
-                    nodeMetrics.filter(
-                        (m) => m.metricName === 'remnawave_node_outbound_upload_bytes',
-                    ),
-                    'labels.tag',
-                );
-                const outboundDownload = groupBy(
-                    nodeMetrics.filter(
-                        (m) => m.metricName === 'remnawave_node_outbound_download_bytes',
-                    ),
-                    'labels.tag',
-                );
+                        switch (metric.metricName) {
+                            case 'remnawave_node_online_users':
+                                metricGroups.onlineUsers = value;
+                                break;
+                            case 'remnawave_node_inbound_upload_bytes':
+                                metricGroups.inboundUpload.set(tag, value);
+                                break;
+                            case 'remnawave_node_inbound_download_bytes':
+                                metricGroups.inboundDownload.set(tag, value);
+                                break;
+                            case 'remnawave_node_outbound_upload_bytes':
+                                metricGroups.outboundUpload.set(tag, value);
+                                break;
+                            case 'remnawave_node_outbound_download_bytes':
+                                metricGroups.outboundDownload.set(tag, value);
+                                break;
+                        }
+                    }
 
-                const inboundsStats: InboundStats[] = Object.keys({
-                    ...inboundUpload,
-                    ...inboundDownload,
-                }).map((tag) => ({
-                    tag,
-                    upload: prettyBytesUtil(parseFloat(inboundUpload[tag]?.[0]?.value || '0')),
-                    download: prettyBytesUtil(parseFloat(inboundDownload[tag]?.[0]?.value || '0')),
-                }));
+                    const allInboundTags = new Set([
+                        ...metricGroups.inboundDownload.keys(),
+                        ...metricGroups.inboundUpload.keys(),
+                    ]);
+                    const allOutboundTags = new Set([
+                        ...metricGroups.outboundDownload.keys(),
+                        ...metricGroups.outboundUpload.keys(),
+                    ]);
 
-                const outboundsStats: OutboundStats[] = Object.keys({
-                    ...outboundUpload,
-                    ...outboundDownload,
-                }).map((tag) => ({
-                    tag,
-                    upload: prettyBytesUtil(parseFloat(outboundUpload[tag]?.[0]?.value || '0')),
-                    download: prettyBytesUtil(parseFloat(outboundDownload[tag]?.[0]?.value || '0')),
-                }));
+                    const inboundsStats: InboundStats[] = Array.from(allInboundTags, (tag) => ({
+                        tag,
+                        upload: prettyBytesUtil(metricGroups.inboundUpload.get(tag) || 0),
+                        download: prettyBytesUtil(metricGroups.inboundDownload.get(tag) || 0),
+                    }));
 
-                return {
-                    nodeUuid,
-                    nodeName: node_name,
-                    countryEmoji: node_country_emoji,
-                    providerName: provider_name,
-                    usersOnline,
-                    inboundsStats,
-                    outboundsStats,
-                };
-            })
-            .filter((node) => node.inboundsStats.length > 0 || node.outboundsStats.length > 0);
+                    const outboundsStats: OutboundStats[] = Array.from(allOutboundTags, (tag) => ({
+                        tag,
+                        upload: prettyBytesUtil(metricGroups.outboundUpload.get(tag) || 0),
+                        download: prettyBytesUtil(metricGroups.outboundDownload.get(tag) || 0),
+                    }));
+
+                    return {
+                        nodeUuid,
+                        nodeName,
+                        countryEmoji,
+                        providerName,
+                        usersOnline: metricGroups.onlineUsers,
+                        inboundsStats,
+                        outboundsStats,
+                    };
+                })
+                .filter((node) => node.inboundsStats.length > 0 || node.outboundsStats.length > 0)
+        );
+    }
+
+    private async getAllNodes(): Promise<ICommandResponse<NodesEntity[]>> {
+        return this.queryBus.execute<GetAllNodesQuery, ICommandResponse<NodesEntity[]>>(
+            new GetAllNodesQuery(),
+        );
     }
 }
