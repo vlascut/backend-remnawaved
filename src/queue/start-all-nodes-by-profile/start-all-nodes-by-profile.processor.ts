@@ -13,6 +13,7 @@ import { NodesEntity, NodesRepository } from '@modules/nodes';
 
 import { StartAllNodesQueueService } from '@queue/start-all-nodes';
 import { StartNodeQueueService } from '@queue/start-node';
+import { StopNodeQueueService } from '@queue/stop-node';
 
 import { StartAllNodesByProfileJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
@@ -34,6 +35,7 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
         private readonly nodesRepository: NodesRepository,
         private readonly axios: AxiosService,
         private readonly startNodeQueueService: StartNodeQueueService,
+        private readonly stopNodeQueueService: StopNodeQueueService,
         private readonly startAllNodesQueueService: StartAllNodesQueueService,
         private readonly queryBus: QueryBus,
     ) {
@@ -69,6 +71,32 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
             const activeNodeTags = new Map<string, string[]>();
 
             for (const node of nodes) {
+                if (node.activeInbounds.length === 0) {
+                    this.logger.warn(
+                        `No active inbounds found for node ${node.uuid} with profile ${payload.profileUuid}, disabling and clearing profile from node...`,
+                    );
+
+                    await this.nodesRepository.update({
+                        uuid: node.uuid,
+                        isDisabled: true,
+                        activeConfigProfileUuid: null,
+                        isConnecting: false,
+                        isXrayRunning: false,
+                        isNodeOnline: false,
+                        isConnected: false,
+                        lastStatusMessage: null,
+                        lastStatusChange: new Date(),
+                        usersOnline: 0,
+                    });
+
+                    await this.stopNodeQueueService.stopNode({
+                        nodeUuid: node.uuid,
+                        isNeedToBeDeleted: false,
+                    });
+
+                    continue;
+                }
+
                 await this.nodesRepository.update({
                     uuid: node.uuid,
                     isConnecting: true,

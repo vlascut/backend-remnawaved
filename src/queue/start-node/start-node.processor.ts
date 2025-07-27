@@ -13,6 +13,8 @@ import { NodeEvent } from '@integration-modules/notifications/interfaces';
 import { GetPreparedConfigWithUsersQuery } from '@modules/users/queries/get-prepared-config-with-users';
 import { NodesRepository } from '@modules/nodes';
 
+import { StopNodeQueueService } from '@queue/stop-node';
+
 import { StartNodeJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
 
@@ -25,6 +27,7 @@ export class StartNodeQueueProcessor extends WorkerHost {
     constructor(
         private readonly axios: AxiosService,
         private readonly nodesRepository: NodesRepository,
+        private readonly stopNodeQueueService: StopNodeQueueService,
         private readonly queryBus: QueryBus,
         private readonly eventEmitter: EventEmitter2,
     ) {
@@ -47,7 +50,28 @@ export class StartNodeQueueProcessor extends WorkerHost {
             }
 
             if (!nodeEntity.activeConfigProfileUuid || !nodeEntity.activeInbounds) {
-                this.logger.error(`Node ${nodeUuid} has no active config profile or inbounds`);
+                this.logger.warn(
+                    `Node ${nodeUuid} has no active config profile or inbounds, disabling and clearing profile from node...`,
+                );
+
+                await this.nodesRepository.update({
+                    uuid: nodeEntity.uuid,
+                    isDisabled: true,
+                    activeConfigProfileUuid: null,
+                    isConnecting: false,
+                    isXrayRunning: false,
+                    isNodeOnline: false,
+                    isConnected: false,
+                    lastStatusMessage: null,
+                    lastStatusChange: new Date(),
+                    usersOnline: 0,
+                });
+
+                await this.stopNodeQueueService.stopNode({
+                    nodeUuid: nodeEntity.uuid,
+                    isNeedToBeDeleted: false,
+                });
+
                 return;
             }
 
