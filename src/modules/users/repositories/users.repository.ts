@@ -245,6 +245,20 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                     continue;
                 }
 
+                if (filter.id === 'activeInternalSquads') {
+                    whereBuilder = whereBuilder.where('uuid', 'in', (eb) =>
+                        eb
+                            .selectFrom('internalSquadMembers')
+                            .select('internalSquadMembers.userUuid')
+                            .where(
+                                'internalSquadMembers.internalSquadUuid',
+                                '=',
+                                getKyselyUuid(filter.value as string),
+                            ),
+                    );
+                    continue;
+                }
+
                 const field = filter.id as keyof DB['users'];
 
                 switch (mode) {
@@ -316,6 +330,20 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                         } catch {
                             countBuilder = countBuilder.where('telegramId', 'is', null);
                         }
+                        continue;
+                    }
+
+                    if (filter.id === 'activeInternalSquads') {
+                        countBuilder = countBuilder.where('uuid', 'in', (eb) =>
+                            eb
+                                .selectFrom('internalSquadMembers')
+                                .select('internalSquadMembers.userUuid')
+                                .where(
+                                    'internalSquadMembers.internalSquadUuid',
+                                    '=',
+                                    getKyselyUuid(filter.value as string),
+                                ),
+                        );
                         continue;
                     }
 
