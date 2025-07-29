@@ -145,8 +145,10 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
                 const response = await this.axios.startXray(
                     {
                         ...config.response,
-                        inbounds: config.response.inbounds.filter((inbound) =>
-                            activeNodeInboundsTags.has(inbound.tag),
+                        inbounds: config.response.inbounds.filter(
+                            (inbound) =>
+                                activeNodeInboundsTags.has(inbound.tag) ||
+                                this.isUnsecureInbound(inbound.protocol),
                         ),
                     } as unknown as Record<string, unknown>,
                     node.address,
@@ -206,5 +208,9 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
             await this.startNodeQueueService.queue.resume();
             await this.startAllNodesQueueService.queue.resume();
         }
+    }
+
+    private isUnsecureInbound(protocol: string): boolean {
+        return ['dokodemo-door', 'http', 'mixed', 'wireguard'].includes(protocol);
     }
 }
