@@ -34,6 +34,8 @@ RUN npm ci
 
 COPY . .
 
+ENV PRISMA_CLI_BINARY_TARGETS=native,linux-musl-openssl-3.0.x,linux-musl-arm64-openssl-3.0.x
+
 RUN npm run migrate:generate
 
 RUN npm run build
