@@ -25,7 +25,7 @@ RUN if [ "$BRANCH" = "dev" ]; then \
 FROM node:22 AS backend-build
 WORKDIR /opt/app
 
-ENV PRISMA_CLI_BINARY_TARGETS=native,linux-musl-openssl-3.0.x,linux-musl-arm64-openssl-3.0.x
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x,linux-musl-arm64-openssl-3.0.x
 
 COPY package*.json ./
 COPY prisma ./prisma
