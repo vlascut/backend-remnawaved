@@ -380,83 +380,96 @@ export class SystemService {
                 item.labels.provider_name,
             ),
         );
-        return (
-            Object.entries(groupedByNode)
-                .filter(([key]) => nodesMap.has(key))
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                .map(([_, nodeMetrics]) => {
-                    const firstMetric = nodeMetrics[0];
-                    const {
-                        node_uuid: nodeUuid,
-                        node_name: nodeName,
-                        node_country_emoji: countryEmoji,
-                        provider_name: providerName,
-                    } = firstMetric.labels;
 
-                    const metricGroups = {
-                        onlineUsers: 0,
-                        inboundUpload: new Map<string, number>(),
-                        inboundDownload: new Map<string, number>(),
-                        outboundUpload: new Map<string, number>(),
-                        outboundDownload: new Map<string, number>(),
-                    };
+        const nodeMetrics = Object.entries(groupedByNode)
+            .filter(([key]) => nodesMap.has(key))
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            .map(([_, nodeMetrics]) => {
+                const firstMetric = nodeMetrics[0];
+                const {
+                    node_uuid: nodeUuid,
+                    node_name: nodeName,
+                    node_country_emoji: countryEmoji,
+                    provider_name: providerName,
+                } = firstMetric.labels;
 
-                    for (const metric of nodeMetrics) {
-                        const value = parseFloat(metric.value) || 0;
-                        const tag = metric.labels.tag;
+                const metricGroups = {
+                    onlineUsers: 0,
+                    inboundUpload: new Map<string, number>(),
+                    inboundDownload: new Map<string, number>(),
+                    outboundUpload: new Map<string, number>(),
+                    outboundDownload: new Map<string, number>(),
+                };
 
-                        switch (metric.metricName) {
-                            case 'remnawave_node_online_users':
-                                metricGroups.onlineUsers = value;
-                                break;
-                            case 'remnawave_node_inbound_upload_bytes':
-                                metricGroups.inboundUpload.set(tag, value);
-                                break;
-                            case 'remnawave_node_inbound_download_bytes':
-                                metricGroups.inboundDownload.set(tag, value);
-                                break;
-                            case 'remnawave_node_outbound_upload_bytes':
-                                metricGroups.outboundUpload.set(tag, value);
-                                break;
-                            case 'remnawave_node_outbound_download_bytes':
-                                metricGroups.outboundDownload.set(tag, value);
-                                break;
-                        }
+                for (const metric of nodeMetrics) {
+                    const value = parseFloat(metric.value) || 0;
+                    const tag = metric.labels.tag;
+
+                    switch (metric.metricName) {
+                        case 'remnawave_node_online_users':
+                            metricGroups.onlineUsers = value;
+                            break;
+                        case 'remnawave_node_inbound_upload_bytes':
+                            metricGroups.inboundUpload.set(tag, value);
+                            break;
+                        case 'remnawave_node_inbound_download_bytes':
+                            metricGroups.inboundDownload.set(tag, value);
+                            break;
+                        case 'remnawave_node_outbound_upload_bytes':
+                            metricGroups.outboundUpload.set(tag, value);
+                            break;
+                        case 'remnawave_node_outbound_download_bytes':
+                            metricGroups.outboundDownload.set(tag, value);
+                            break;
                     }
+                }
 
-                    const allInboundTags = new Set([
-                        ...metricGroups.inboundDownload.keys(),
-                        ...metricGroups.inboundUpload.keys(),
-                    ]);
-                    const allOutboundTags = new Set([
-                        ...metricGroups.outboundDownload.keys(),
-                        ...metricGroups.outboundUpload.keys(),
-                    ]);
+                const allInboundTags = new Set([
+                    ...metricGroups.inboundDownload.keys(),
+                    ...metricGroups.inboundUpload.keys(),
+                ]);
+                const allOutboundTags = new Set([
+                    ...metricGroups.outboundDownload.keys(),
+                    ...metricGroups.outboundUpload.keys(),
+                ]);
 
-                    const inboundsStats: InboundStats[] = Array.from(allInboundTags, (tag) => ({
-                        tag,
-                        upload: prettyBytesUtil(metricGroups.inboundUpload.get(tag) || 0),
-                        download: prettyBytesUtil(metricGroups.inboundDownload.get(tag) || 0),
-                    }));
+                const inboundsStats: InboundStats[] = Array.from(allInboundTags, (tag) => ({
+                    tag,
+                    upload: prettyBytesUtil(metricGroups.inboundUpload.get(tag) || 0),
+                    download: prettyBytesUtil(metricGroups.inboundDownload.get(tag) || 0),
+                })).sort((a, b) => a.tag.localeCompare(b.tag));
 
-                    const outboundsStats: OutboundStats[] = Array.from(allOutboundTags, (tag) => ({
-                        tag,
-                        upload: prettyBytesUtil(metricGroups.outboundUpload.get(tag) || 0),
-                        download: prettyBytesUtil(metricGroups.outboundDownload.get(tag) || 0),
-                    }));
+                const outboundsStats: OutboundStats[] = Array.from(allOutboundTags, (tag) => ({
+                    tag,
+                    upload: prettyBytesUtil(metricGroups.outboundUpload.get(tag) || 0),
+                    download: prettyBytesUtil(metricGroups.outboundDownload.get(tag) || 0),
+                })).sort((a, b) => a.tag.localeCompare(b.tag));
 
-                    return {
-                        nodeUuid,
-                        nodeName,
-                        countryEmoji,
-                        providerName,
-                        usersOnline: metricGroups.onlineUsers,
-                        inboundsStats,
-                        outboundsStats,
-                    };
-                })
-                .filter((node) => node.inboundsStats.length > 0 || node.outboundsStats.length > 0)
-        );
+                return {
+                    nodeUuid,
+                    nodeName,
+                    countryEmoji,
+                    providerName,
+                    usersOnline: metricGroups.onlineUsers,
+                    inboundsStats,
+                    outboundsStats,
+                };
+            })
+            .filter((node) => node.inboundsStats.length > 0 || node.outboundsStats.length > 0);
+
+        return nodeMetrics.sort((a, b) => {
+            const nodeA = nodesMap.get(
+                createNodeKey(a.nodeUuid, a.nodeName, a.countryEmoji, a.providerName),
+            );
+            const nodeB = nodesMap.get(
+                createNodeKey(b.nodeUuid, b.nodeName, b.countryEmoji, b.providerName),
+            );
+
+            const viewPositionA = nodeA?.viewPosition ?? 0;
+            const viewPositionB = nodeB?.viewPosition ?? 0;
+
+            return viewPositionA - viewPositionB;
+        });
     }
 
     private async getAllNodes(): Promise<ICommandResponse<NodesEntity[]>> {
