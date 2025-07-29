@@ -7,7 +7,7 @@ import {
     BulkResetTrafficUsersCommand,
     BulkRevokeUsersSubscriptionCommand,
     BulkUpdateUsersCommand,
-    BulkUpdateUsersInboundsCommand,
+    BulkUpdateUsersSquadsCommand,
 } from '@libs/contracts/commands';
 
 export class BulkResetTrafficUsersRequestDto extends createZodDto(
@@ -34,11 +34,11 @@ export class BulkUpdateUsersResponseDto extends createZodDto(
     BulkUpdateUsersCommand.ResponseSchema,
 ) {}
 
-export class BulkUpdateUsersInboundsRequestDto extends createZodDto(
-    BulkUpdateUsersInboundsCommand.RequestSchema,
+export class BulkUpdateUsersSquadsRequestDto extends createZodDto(
+    BulkUpdateUsersSquadsCommand.RequestSchema,
 ) {}
-export class BulkUpdateUsersInboundsResponseDto extends createZodDto(
-    BulkUpdateUsersInboundsCommand.ResponseSchema,
+export class BulkUpdateUsersSquadsResponseDto extends createZodDto(
+    BulkUpdateUsersSquadsCommand.ResponseSchema,
 ) {}
 
 export class BulkAllUpdateUsersRequestDto extends createZodDto(

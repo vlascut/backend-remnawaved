@@ -1,10 +1,12 @@
 import { Prisma } from '@prisma/client';
 
 import { Injectable, Logger } from '@nestjs/common';
+import { QueryBus } from '@nestjs/cqrs';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
+import { GetConfigProfileByUuidQuery } from '@modules/config-profiles/queries/get-config-profile-by-uuid';
 import { ReorderHostRequestDto } from '@modules/hosts/dtos/reorder-hosts.dto';
 
 import { DeleteHostResponseModel } from './models/delete-host.response.model';
@@ -16,7 +18,10 @@ import { UpdateHostRequestDto } from './dtos';
 @Injectable()
 export class HostsService {
     private readonly logger = new Logger(HostsService.name);
-    constructor(private readonly hostsRepository: HostsRepository) {}
+    constructor(
+        private readonly hostsRepository: HostsRepository,
+        private readonly queryBus: QueryBus,
+    ) {}
 
     public async createHost(dto: CreateHostRequestDto): Promise<ICommandResponse<HostsEntity>> {
         try {
@@ -29,10 +34,46 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            let serverDescription: null | string | undefined;
+            if (dto.serverDescription !== undefined && dto.serverDescription !== null) {
+                serverDescription = dto.serverDescription;
+            } else if (dto.serverDescription === null) {
+                serverDescription = null;
+            } else {
+                serverDescription = undefined;
+            }
+
+            const { inbound: inboundObj, ...rest } = dto;
+
+            const configProfile = await this.queryBus.execute(
+                new GetConfigProfileByUuidQuery(inboundObj.configProfileUuid),
+            );
+
+            if (!configProfile.isOk || !configProfile.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_NOT_FOUND,
+                };
+            }
+
+            const configProfileInbound = configProfile.response.inbounds.find(
+                (inbound) => inbound.uuid === inboundObj.configProfileInboundUuid,
+            );
+
+            if (!configProfileInbound) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                };
+            }
+
             const hostEntity = new HostsEntity({
-                ...dto,
+                ...rest,
                 address: dto.address.trim(),
                 xHttpExtraParams,
+                configProfileUuid: configProfile.response.uuid,
+                configProfileInboundUuid: configProfileInbound.uuid,
+                serverDescription,
             });
 
             const result = await this.hostsRepository.create(hostEntity);
@@ -61,6 +102,8 @@ export class HostsService {
 
     public async updateHost(dto: UpdateHostRequestDto): Promise<ICommandResponse<HostsEntity>> {
         try {
+            const { inbound: inboundObj, ...rest } = dto;
+
             const host = await this.hostsRepository.findByUUID(dto.uuid);
             if (!host) {
                 return {
@@ -78,10 +121,51 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            let serverDescription: null | string | undefined;
+            if (dto.serverDescription !== undefined && dto.serverDescription !== null) {
+                serverDescription = dto.serverDescription;
+            } else if (dto.serverDescription === null) {
+                serverDescription = null;
+            } else {
+                serverDescription = undefined;
+            }
+
+            let configProfileUuid: string | undefined;
+            let configProfileInboundUuid: string | undefined;
+            if (inboundObj) {
+                const configProfile = await this.queryBus.execute(
+                    new GetConfigProfileByUuidQuery(inboundObj.configProfileUuid),
+                );
+
+                if (!configProfile.isOk || !configProfile.response) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.CONFIG_PROFILE_NOT_FOUND,
+                    };
+                }
+
+                const configProfileInbound = configProfile.response.inbounds.find(
+                    (inbound) => inbound.uuid === inboundObj.configProfileInboundUuid,
+                );
+
+                if (!configProfileInbound) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                    };
+                }
+
+                configProfileUuid = configProfile.response.uuid;
+                configProfileInboundUuid = configProfileInbound.uuid;
+            }
+
             const result = await this.hostsRepository.update({
-                ...dto,
+                ...rest,
                 address: dto.address ? dto.address.trim() : undefined,
                 xHttpExtraParams,
+                configProfileUuid,
+                configProfileInboundUuid,
+                serverDescription,
             });
 
             return {
@@ -235,10 +319,37 @@ export class HostsService {
 
     public async setInboundToHosts(
         uuids: string[],
-        inboundUuid: string,
+        configProfileUuid: string,
+        configProfileInboundUuid: string,
     ): Promise<ICommandResponse<HostsEntity[]>> {
         try {
-            await this.hostsRepository.setInboundToManyHosts(uuids, inboundUuid);
+            const configProfile = await this.queryBus.execute(
+                new GetConfigProfileByUuidQuery(configProfileUuid),
+            );
+
+            if (!configProfile.isOk || !configProfile.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_NOT_FOUND,
+                };
+            }
+
+            const configProfileInbound = configProfile.response.inbounds.find(
+                (inbound) => inbound.uuid === configProfileInboundUuid,
+            );
+
+            if (!configProfileInbound) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_PROFILE_INBOUND_NOT_FOUND_IN_SPECIFIED_PROFILE,
+                };
+            }
+
+            await this.hostsRepository.setInboundToManyHosts(
+                uuids,
+                configProfileUuid,
+                configProfileInboundUuid,
+            );
 
             const result = await this.getAllHosts();
 

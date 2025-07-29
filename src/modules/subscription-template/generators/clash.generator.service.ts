@@ -106,11 +106,27 @@ export class ClashGeneratorService {
             }
 
             for (const group of yamlConfig['proxy-groups']) {
+                let remnawaveCustom = undefined;
+
                 if (group?.remnawave) {
-                    if (group.remnawave['include-proxies'] === false) {
-                        delete group.remnawave;
-                        continue;
+                    remnawaveCustom = group.remnawave;
+
+                    delete group.remnawave;
+                }
+
+                if (remnawaveCustom && remnawaveCustom['include-proxies'] === false) {
+                    continue;
+                }
+
+                if (remnawaveCustom && remnawaveCustom['select-random-proxy'] === true) {
+                    const randomProxy =
+                        proxyRemarks[Math.floor(Math.random() * proxyRemarks.length)];
+
+                    if (randomProxy) {
+                        group.proxies.push(randomProxy);
                     }
+
+                    continue;
                 }
 
                 if (Array.isArray(group.proxies)) {

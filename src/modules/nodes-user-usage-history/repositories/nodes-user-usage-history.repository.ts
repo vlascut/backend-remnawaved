@@ -11,14 +11,10 @@ import { IGetUserUsageByRange } from '@modules/users/interfaces';
 import { GetNodeUsersUsageByRangeBuilder } from '../builders/get-node-users-usage-by-range/get-node-users-usage-by-range.builder';
 import { BulkUpsertHistoryEntryBuilder } from '../builders/bulk-upsert-history-entry/bulk-upsert-history-entry.builder';
 import { GetNodesRealtimeUsageBuilder } from '../builders/get-nodes-realtime-usage/get-nodes-realtime-usage.builder';
-import {
-    IGetNodesRealtimeUsage,
-    IGetNodeUserUsageByRange,
-    ILastConnectedNode,
-} from '../interfaces';
 import { GetUserUsageByRangeBuilder } from '../builders/get-user-usage-by-range/get-user-usage-by-range.builder';
 import { NodesUserUsageHistoryEntity } from '../entities/nodes-user-usage-history.entity';
 import { NodesUserUsageHistoryConverter } from '../nodes-user-usage-history.converter';
+import { IGetNodesRealtimeUsage, IGetNodeUserUsageByRange } from '../interfaces';
 
 @Injectable()
 export class NodesUserUsageHistoryRepository
@@ -74,26 +70,6 @@ export class NodesUserUsageHistoryRepository
             where: dto,
         });
         return this.converter.fromPrismaModelsToEntities(list);
-    }
-
-    public async getUserLastConnectedNode(userUuid: string): Promise<ILastConnectedNode | null> {
-        const result = await this.prisma.tx.nodesUserUsageHistory.findFirst({
-            where: { userUuid },
-            orderBy: {
-                updatedAt: 'desc',
-            },
-            include: {
-                node: true,
-            },
-            take: 1,
-        });
-        if (!result) {
-            return null;
-        }
-        return {
-            nodeName: result.node.name,
-            connectedAt: result.updatedAt,
-        };
     }
 
     public async bulkUpsertUsageHistory(

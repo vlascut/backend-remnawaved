@@ -1,17 +1,21 @@
 import { Job } from 'bullmq';
 
+import { IMessageBus, MessageBus, RoutingMessage } from '@nestjstools/messaging';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { CommandBus } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
-import { GetAllOutboundsStatsCommand } from '@remnawave/node-contract';
+import { GetAllInboundsStatsCommand, GetAllOutboundsStatsCommand } from '@remnawave/node-contract';
 
 import { ICommandResponse } from '@common/types/command-response.type';
 import { AxiosService } from '@common/axios';
+import { MessagingBuses, MessagingMessages } from '@libs/contracts/constants';
 
 import { UpsertHistoryEntryCommand } from '@modules/nodes-usage-history/commands/upsert-history-entry';
 import { IncrementUsedTrafficCommand } from '@modules/nodes/commands/increment-used-traffic';
 import { NodesUsageHistoryEntity } from '@modules/nodes-usage-history';
+
+import { NodeMetricsMessage } from '@scheduler/tasks/export-metrics/node-metrics.message.interface';
 
 import { RecordNodeUsagePayload } from './interfaces';
 import { RecordNodeUsageJobNames } from './enums';
@@ -24,6 +28,7 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
     private readonly logger = new Logger(RecordNodeUsageQueueProcessor.name);
 
     constructor(
+        @MessageBus(MessagingBuses.EVENT) private readonly messageBus: IMessageBus,
         private readonly commandBus: CommandBus,
         private readonly axios: AxiosService,
     ) {
@@ -41,17 +46,23 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
                 nodeAddress,
                 nodePort,
             );
-            switch (response.isOk) {
-                case true:
-                    return this.handleOk(nodeUuid, response.response!);
-                case false:
-                    this.logger.error(
-                        `Can't get nodes stats, node: ${nodeUuid}, error: ${JSON.stringify(
-                            response,
-                        )}`,
-                    );
-                    return;
+
+            const inboundsResponse = await this.axios.getAllInboundStats(
+                {
+                    reset: true,
+                },
+                nodeAddress,
+                nodePort,
+            );
+
+            if (response.isOk && inboundsResponse.isOk) {
+                return this.handleOk(nodeUuid, response.response!, inboundsResponse.response!);
             }
+
+            this.logger.error(
+                `Can't get nodes stats, node: ${nodeUuid}, error: ${JSON.stringify(response)}`,
+            );
+            return;
         } catch (error) {
             this.logger.error(
                 `Error handling "${RecordNodeUsageJobNames.recordNodeUsage}" job: ${error}`,
@@ -63,9 +74,26 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
 
     private async handleOk(
         nodeUuid: string,
-        response: GetAllOutboundsStatsCommand.Response,
+        outboundsResponse: GetAllOutboundsStatsCommand.Response,
+        inboundsResponse: GetAllInboundsStatsCommand.Response,
     ): Promise<void> {
-        const { totalDownlink, totalUplink } = response.response.outbounds?.reduce(
+        const nodeOutBoundsMetrics = new Map<
+            string,
+            {
+                downlink: string;
+                uplink: string;
+            }
+        >();
+
+        const nodeInBoundsMetrics = new Map<
+            string,
+            {
+                downlink: string;
+                uplink: string;
+            }
+        >();
+
+        const { totalDownlink, totalUplink } = outboundsResponse.response.outbounds?.reduce(
             (acc, outbound) => ({
                 totalDownlink: acc.totalDownlink + (outbound.downlink || 0),
                 totalUplink: acc.totalUplink + (outbound.uplink || 0),
@@ -95,6 +123,26 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
             bytes: BigInt(totalBytes),
         });
 
+        outboundsResponse.response.outbounds?.forEach((outbound) => {
+            nodeOutBoundsMetrics.set(outbound.outbound, {
+                downlink: outbound.downlink.toString(),
+                uplink: outbound.uplink.toString(),
+            });
+        });
+
+        inboundsResponse.response.inbounds?.forEach((inbound) => {
+            nodeInBoundsMetrics.set(inbound.inbound, {
+                downlink: inbound.downlink.toString(),
+                uplink: inbound.uplink.toString(),
+            });
+        });
+
+        await this.sendNodeMetrics({
+            nodeUuid,
+            nodeOutBoundsMetrics,
+            nodeInBoundsMetrics,
+        });
+
         return;
     }
 
@@ -111,6 +159,35 @@ export class RecordNodeUsageQueueProcessor extends WorkerHost {
     ): Promise<ICommandResponse<void>> {
         return this.commandBus.execute<IncrementUsedTrafficCommand, ICommandResponse<void>>(
             new IncrementUsedTrafficCommand(dto.nodeUuid, dto.bytes),
+        );
+    }
+
+    private async sendNodeMetrics(dto: {
+        nodeUuid: string;
+        nodeOutBoundsMetrics: Map<string, { downlink: string; uplink: string }>;
+        nodeInBoundsMetrics: Map<string, { downlink: string; uplink: string }>;
+    }): Promise<void> {
+        await this.messageBus.dispatch(
+            new RoutingMessage(
+                new NodeMetricsMessage({
+                    nodeUuid: dto.nodeUuid,
+                    inbounds: Array.from(dto.nodeInBoundsMetrics.entries()).map(
+                        ([tag, metrics]) => ({
+                            tag,
+                            downlink: metrics.downlink,
+                            uplink: metrics.uplink,
+                        }),
+                    ),
+                    outbounds: Array.from(dto.nodeOutBoundsMetrics.entries()).map(
+                        ([tag, metrics]) => ({
+                            tag,
+                            downlink: metrics.downlink,
+                            uplink: metrics.uplink,
+                        }),
+                    ),
+                }),
+                MessagingMessages.NODE_METRICS,
+            ),
         );
     }
 }

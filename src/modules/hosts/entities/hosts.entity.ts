@@ -4,7 +4,6 @@ import { TSecurityLayers } from '@contract/constants';
 
 export class HostsEntity implements Hosts {
     uuid: string;
-    inboundUuid: string;
     viewPosition: number;
     remark: string;
     address: string;
@@ -15,9 +14,12 @@ export class HostsEntity implements Hosts {
     alpn: null | string;
     fingerprint: null | string;
     securityLayer: TSecurityLayers;
-    allowInsecure: boolean;
     xHttpExtraParams: null | object;
     isDisabled: boolean;
+    serverDescription: null | string;
+
+    configProfileUuid: string | null;
+    configProfileInboundUuid: string | null;
 
     constructor(data: Partial<Hosts>) {
         Object.assign(this, data);

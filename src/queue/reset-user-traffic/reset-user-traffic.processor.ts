@@ -15,9 +15,8 @@ import { UserEvent } from '@integration-modules/notifications/interfaces';
 
 import { BatchResetLimitedUsersTrafficCommand } from '@modules/users/commands/batch-reset-limited-users-traffic';
 import { BatchResetUserTrafficCommand } from '@modules/users/commands/batch-reset-user-traffic';
-import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
+import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 import { AddUserToNodeEvent } from '@modules/nodes/events/add-user-to-node';
-import { UserWithActiveInboundsEntity } from '@modules/users/entities';
 
 import { StartAllNodesQueueService } from '@queue/start-all-nodes';
 
@@ -114,7 +113,12 @@ export class ResetUserTrafficQueueProcessor extends WorkerHost {
                 users,
                 async (userUuid) => {
                     try {
-                        const userResponse = await this.getUserByUuid(userUuid.uuid);
+                        const userResponse = await this.queryBus.execute(
+                            new GetUserByUniqueFieldQuery({
+                                uuid: userUuid.uuid,
+                            }),
+                        );
+
                         if (!userResponse.isOk || !userResponse.response) {
                             return;
                         }
@@ -124,7 +128,7 @@ export class ResetUserTrafficQueueProcessor extends WorkerHost {
                             new UserEvent(userResponse.response, EVENTS.USER.ENABLED),
                         );
 
-                        this.eventBus.publish(new AddUserToNodeEvent(userResponse.response));
+                        this.eventBus.publish(new AddUserToNodeEvent(userResponse.response.uuid));
                     } catch (error) {
                         this.logger.error(`Error handling "${job.name}" job: ${error}`);
                     }
@@ -149,15 +153,6 @@ export class ResetUserTrafficQueueProcessor extends WorkerHost {
                 affectedRows: number;
             }>
         >(new BatchResetUserTrafficCommand(dto.strategy));
-    }
-
-    private async getUserByUuid(
-        uuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        return this.queryBus.execute<
-            GetUserByUuidQuery,
-            ICommandResponse<UserWithActiveInboundsEntity>
-        >(new GetUserByUuidQuery(uuid));
     }
 
     private async batchResetLimitedUsersTraffic(

@@ -17,16 +17,15 @@ import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
-    ActivateAllInboundsCommand,
     CreateUserCommand,
     DeleteUserCommand,
     DisableUserCommand,
     EnableUserCommand,
     GetAllTagsCommand,
     GetAllUsersCommand,
+    GetUserAccessibleNodesCommand,
     GetUserByEmailCommand,
     GetUserByShortUuidCommand,
-    GetUserBySubscriptionUuidCommand,
     GetUserByTagCommand,
     GetUserByTelegramIdCommand,
     GetUserByUsernameCommand,
@@ -39,8 +38,6 @@ import { USERS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
-    ActivateAllInboundsRequestDto,
-    ActivateAllInboundsResponseDto,
     CreateUserRequestDto,
     CreateUserResponseDto,
     DeleteUserRequestDto,
@@ -52,10 +49,10 @@ import {
     GetAllTagsResponseDto,
     GetAllUsersQueryDto,
     GetAllUsersResponseDto,
+    GetUserAccessibleNodesRequestDto,
+    GetUserAccessibleNodesResponseDto,
     GetUserByShortUuidRequestDto,
     GetUserByShortUuidResponseDto,
-    GetUserBySubscriptionUuidRequestDto,
-    GetUserBySubscriptionUuidResponseDto,
     GetUserByTagRequestDto,
     GetUserByTagResponseDto,
     GetUserByUsernameRequestDto,
@@ -132,11 +129,7 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
+            response: new GetUserResponseModel(data, this.subPublicDomain),
         };
     }
 
@@ -222,6 +215,29 @@ export class UsersController {
         };
     }
 
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: GetUserAccessibleNodesResponseDto,
+        description: 'User accessible nodes fetched successfully',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @Endpoint({
+        command: GetUserAccessibleNodesCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getUserAccessibleNodes(
+        @Param() paramData: GetUserAccessibleNodesRequestDto,
+    ): Promise<GetUserAccessibleNodesResponseDto> {
+        const result = await this.usersService.getUserAccessibleNodes(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
     /* get by methods
 
 
@@ -251,36 +267,6 @@ export class UsersController {
     ): Promise<GetUserByShortUuidResponseDto> {
         const result = await this.usersService.getUserByUniqueFields({
             shortUuid: paramData.shortUuid,
-        });
-
-        const data = errorHandler(result);
-        return {
-            response: new GetFullUserResponseModel(data, this.subPublicDomain),
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
-        type: GetUserBySubscriptionUuidResponseDto,
-        description: 'User fetched successfully',
-    })
-    @ApiParam({
-        name: 'subscriptionUuid',
-        type: String,
-        description: 'UUID of the subscription',
-        required: true,
-    })
-    @Endpoint({
-        command: GetUserBySubscriptionUuidCommand,
-        httpCode: HttpStatus.OK,
-    })
-    async getUserBySubscriptionUuid(
-        @Param() paramData: GetUserBySubscriptionUuidRequestDto,
-    ): Promise<GetUserBySubscriptionUuidResponseDto> {
-        const result = await this.usersService.getUserByUniqueFields({
-            subscriptionUuid: paramData.subscriptionUuid,
         });
 
         const data = errorHandler(result);
@@ -362,7 +348,7 @@ export class UsersController {
     async getUserByTelegramId(
         @Param() paramData: GetUserByTelegramIdRequestDto,
     ): Promise<GetUserByTelegramIdResponseDto> {
-        const result = await this.usersService.getUsersByTelegramIdOrEmail({
+        const result = await this.usersService.getUsersByNonUniqueFields({
             telegramId: paramData.telegramId,
         });
 
@@ -392,7 +378,7 @@ export class UsersController {
     async getUsersByEmail(
         @Param() paramData: GetUserByEmailRequestDto,
     ): Promise<GetUserByEmailResponseDto> {
-        const result = await this.usersService.getUsersByTelegramIdOrEmail({
+        const result = await this.usersService.getUsersByNonUniqueFields({
             email: paramData.email,
         });
 
@@ -423,7 +409,7 @@ export class UsersController {
     async getUsersByTag(
         @Param() paramData: GetUserByTagRequestDto,
     ): Promise<GetUserByTagResponseDto> {
-        const result = await this.usersService.getUsersByTelegramIdOrEmail({
+        const result = await this.usersService.getUsersByNonUniqueFields({
             tag: paramData.tag,
         });
 
@@ -462,11 +448,7 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
+            response: new GetUserResponseModel(data, this.subPublicDomain),
         };
     }
 
@@ -487,11 +469,7 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
+            response: new GetUserResponseModel(data, this.subPublicDomain),
         };
     }
 
@@ -512,11 +490,7 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
+            response: new GetUserResponseModel(data, this.subPublicDomain),
         };
     }
 
@@ -539,38 +513,7 @@ export class UsersController {
 
         const data = errorHandler(result);
         return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
-        };
-    }
-
-    @ApiNotFoundResponse({
-        description: 'User not found',
-    })
-    @ApiOkResponse({
-        type: ActivateAllInboundsResponseDto,
-        description: 'All inbounds activated successfully',
-    })
-    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
-    @Endpoint({
-        command: ActivateAllInboundsCommand,
-        httpCode: HttpStatus.OK,
-    })
-    async activateAllInbounds(
-        @Param() paramData: ActivateAllInboundsRequestDto,
-    ): Promise<ActivateAllInboundsResponseDto> {
-        const result = await this.usersService.activateAllInbounds(paramData.uuid);
-
-        const data = errorHandler(result);
-        return {
-            response: new GetUserResponseModel(
-                data.user,
-                data.lastConnectedNode,
-                this.subPublicDomain,
-            ),
+            response: new GetUserResponseModel(data, this.subPublicDomain),
         };
     }
 }

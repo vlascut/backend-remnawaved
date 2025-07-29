@@ -5,16 +5,15 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
-import { ICommandResponse } from '@common/types/command-response.type';
-import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { AxiosService } from '@common/axios/axios.service';
 import { EVENTS } from '@libs/contracts/constants';
 
 import { NodeEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetPreparedConfigWithUsersQuery } from '@modules/users/queries/get-prepared-config-with-users';
-import { InboundsEntity } from '@modules/inbounds/entities/inbounds.entity';
 import { NodesRepository } from '@modules/nodes';
+
+import { StopNodeQueueService } from '@queue/stop-node';
 
 import { StartNodeJobNames } from './enums';
 import { QueueNames } from '../queue.enum';
@@ -28,6 +27,7 @@ export class StartNodeQueueProcessor extends WorkerHost {
     constructor(
         private readonly axios: AxiosService,
         private readonly nodesRepository: NodesRepository,
+        private readonly stopNodeQueueService: StopNodeQueueService,
         private readonly queryBus: QueryBus,
         private readonly eventEmitter: EventEmitter2,
     ) {
@@ -46,6 +46,32 @@ export class StartNodeQueueProcessor extends WorkerHost {
             }
 
             if (nodeEntity.isConnecting) {
+                return;
+            }
+
+            if (!nodeEntity.activeConfigProfileUuid || !nodeEntity.activeInbounds) {
+                this.logger.warn(
+                    `Node ${nodeUuid} has no active config profile or inbounds, disabling and clearing profile from node...`,
+                );
+
+                await this.nodesRepository.update({
+                    uuid: nodeEntity.uuid,
+                    isDisabled: true,
+                    activeConfigProfileUuid: null,
+                    isConnecting: false,
+                    isXrayRunning: false,
+                    isNodeOnline: false,
+                    isConnected: false,
+                    lastStatusMessage: null,
+                    lastStatusChange: new Date(),
+                    usersOnline: 0,
+                });
+
+                await this.stopNodeQueueService.stopNode({
+                    nodeUuid: nodeEntity.uuid,
+                    isNeedToBeDeleted: false,
+                });
+
                 return;
             }
 
@@ -75,7 +101,12 @@ export class StartNodeQueueProcessor extends WorkerHost {
             }
 
             const startTime = Date.now();
-            const config = await this.getConfigForNode(nodeEntity.excludedInbounds);
+            const config = await this.queryBus.execute(
+                new GetPreparedConfigWithUsersQuery(
+                    nodeEntity.activeConfigProfileUuid,
+                    nodeEntity.activeInbounds,
+                ),
+            );
 
             this.logger.log(`Generated config for node in ${Date.now() - startTime}ms`);
 
@@ -113,6 +144,7 @@ export class StartNodeQueueProcessor extends WorkerHost {
                 uuid: nodeEntity.uuid,
                 isXrayRunning: nodeResponse.isStarted,
                 xrayVersion: nodeResponse.version,
+                nodeVersion: nodeResponse.nodeInformation?.version || null,
                 isNodeOnline: true,
                 isConnected: nodeResponse.isStarted,
                 lastStatusMessage: nodeResponse.error ?? null,
@@ -135,14 +167,5 @@ export class StartNodeQueueProcessor extends WorkerHost {
         } catch (error) {
             this.logger.error(`Error handling "${StartNodeJobNames.startNode}" job: ${error}`);
         }
-    }
-
-    private getConfigForNode(
-        excludedInbounds: InboundsEntity[],
-    ): Promise<ICommandResponse<IXrayConfig>> {
-        return this.queryBus.execute<
-            GetPreparedConfigWithUsersQuery,
-            ICommandResponse<IXrayConfig>
-        >(new GetPreparedConfigWithUsersQuery(excludedInbounds));
     }
 }

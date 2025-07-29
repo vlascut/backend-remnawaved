@@ -8,9 +8,10 @@ export * from './delete-user.command';
 export * from './get-all-users.command';
 export * from './get-by';
 
+export * from './get-user-accessible-nodes.command';
+
 export * from './get-user-by-uuid.command';
-
 export * from './get-user-usage-by-range.command';
-export * from './tags';
 
+export * from './tags';
 export * from './update-user.command';

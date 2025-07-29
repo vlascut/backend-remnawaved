@@ -1,7 +1,9 @@
 import { Prisma } from '@prisma/client';
+import { Cache } from 'cache-manager';
 import { randomUUID } from 'crypto';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { CommandBus } from '@nestjs/cqrs';
 
@@ -18,13 +20,15 @@ import { ApiTokenEntity } from './entities/api-token.entity';
 export class ApiTokensService {
     private readonly logger = new Logger(ApiTokensService.name);
     constructor(
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+
         private readonly apiTokensRepository: ApiTokensRepository,
         private readonly commandBus: CommandBus,
         private readonly configService: ConfigService,
     ) {}
 
     public async create(body: ICreateApiTokenRequest): Promise<ICommandResponse<ApiTokenEntity>> {
-        const { tokenName, tokenDescription } = body;
+        const { tokenName } = body;
 
         try {
             const uuid = randomUUID();
@@ -43,7 +47,6 @@ export class ApiTokensService {
             const apiTokenEntity = new ApiTokenEntity({
                 uuid,
                 tokenName,
-                tokenDescription,
                 token: token.response,
             });
 
@@ -65,6 +68,8 @@ export class ApiTokensService {
     public async delete(uuid: string): Promise<ICommandResponse<IApiTokenDeleteResponse>> {
         try {
             const result = await this.apiTokensRepository.deleteByUUID(uuid);
+
+            await this.cacheManager.del(`api:${uuid}`);
 
             return {
                 isOk: true,

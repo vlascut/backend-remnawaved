@@ -1,0 +1,16 @@
+export const INTERNAL_SQUADS_CONTROLLER = 'internal-squads' as const;
+
+const BULK_ACTIONS_ROUTE = 'bulk-actions' as const;
+
+export const INTERNAL_SQUADS_ROUTES = {
+    GET: '', // Get list of all internal squads // get
+    CREATE: '', // Create new internal squad // post
+    UPDATE: '', // Update internal squad by uuid // patch
+    GET_BY_UUID: (uuid: string) => `${uuid}`, // Get internal squad by uuid // get
+    DELETE: (uuid: string) => `${uuid}`, // Delete internal squad by uuid // delete
+
+    BULK_ACTIONS: {
+        ADD_USERS: (uuid: string) => `${uuid}/${BULK_ACTIONS_ROUTE}/add-users`, // Add users to internal squad // post
+        REMOVE_USERS: (uuid: string) => `${uuid}/${BULK_ACTIONS_ROUTE}/remove-users`, // Remove users from internal squad // delete
+    },
+} as const;

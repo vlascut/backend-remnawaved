@@ -1,9 +1,13 @@
+import parsePrometheusTextFormat from 'parse-prometheus-text-format';
+import axios, { AxiosError } from 'axios';
 import * as si from 'systeminformation';
+import { groupBy } from 'lodash';
 import pm2 from 'pm2';
 
 import { ERRORS } from '@contract/constants';
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { QueryBus } from '@nestjs/cqrs';
 
 import {
@@ -13,6 +17,7 @@ import {
     getLast30DaysRanges,
     getLastTwoWeeksRanges,
 } from '@common/utils/get-date-ranges.uti';
+import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
@@ -20,14 +25,18 @@ import { prettyBytesUtil } from '@common/utils/bytes';
 import { Get7DaysStatsQuery } from '@modules/nodes-usage-history/queries/get-7days-stats';
 import { CountOnlineUsersQuery } from '@modules/nodes/queries/count-online-users';
 import { IGet7DaysStats } from '@modules/nodes-usage-history/interfaces';
+import { GetAllNodesQuery } from '@modules/nodes/queries/get-all-nodes';
+import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 
 import {
     GetBandwidthStatsResponseModel,
     GetNodesStatisticsResponseModel,
+    GetNodesStatsResponseModel,
     GetRemnawaveHealthResponseModel,
     IBaseStat,
 } from './models';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
+import { InboundStats, Metric, NodeMetrics, OutboundStats } from './interfaces';
 import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
 import { ShortUserStats } from '../users/interfaces/user-stats.interface';
@@ -36,7 +45,10 @@ import { GetStatsRequestQueryDto } from './dtos/get-stats.dto';
 @Injectable()
 export class SystemService {
     private readonly logger = new Logger(SystemService.name);
-    constructor(private readonly queryBus: QueryBus) {}
+    constructor(
+        private readonly queryBus: QueryBus,
+        private readonly configService: ConfigService,
+    ) {}
 
     public async getStats(): Promise<ICommandResponse<any>> {
         try {
@@ -193,6 +205,54 @@ export class SystemService {
         }
     }
 
+    public async getNodesMetrics(): Promise<ICommandResponse<GetNodesStatsResponseModel>> {
+        try {
+            const metricPort = this.configService.getOrThrow<string>('METRICS_PORT');
+            const username = this.configService.getOrThrow<string>('METRICS_USER');
+            const password = this.configService.getOrThrow<string>('METRICS_PASS');
+            const metricsText = await axios.get(`http://127.0.0.1:${metricPort}/metrics`, {
+                auth: {
+                    username,
+                    password,
+                },
+            });
+
+            const parsed = parsePrometheusTextFormat(metricsText.data);
+
+            const nodeMetrics = await this.groupMetricsByNodesLodash(parsed);
+
+            return {
+                isOk: true,
+                response: new GetNodesStatsResponseModel({
+                    nodes: nodeMetrics,
+                }),
+            };
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                this.logger.error(
+                    'Error in Axios Get Nodes Metrics Request:',
+                    JSON.stringify(error.message),
+                );
+
+                return {
+                    isOk: true,
+                    response: new GetNodesStatsResponseModel({
+                        nodes: [],
+                    }),
+                };
+            }
+
+            this.logger.error('Error getting nodes metrics:', error);
+
+            return {
+                isOk: true,
+                response: new GetNodesStatsResponseModel({
+                    nodes: [],
+                }),
+            };
+        }
+    }
+
     private async getShortUserStats(): Promise<ICommandResponse<ShortUserStats>> {
         return this.queryBus.execute<GetShortUserStatsQuery, ICommandResponse<ShortUserStats>>(
             new GetShortUserStatsQuery(),
@@ -273,5 +333,135 @@ export class SystemService {
     private async getCurrentYearUsage(tz: string): Promise<IBaseStat> {
         const ranges = getCalendarYearRanges(tz);
         return this.getUsageComparison(ranges);
+    }
+
+    private async groupMetricsByNodesLodash(metrics: Metric[]): Promise<NodeMetrics[]> {
+        const nodes = await this.getAllNodes();
+        if (!nodes.isOk || !nodes.response) {
+            return [];
+        }
+
+        const createNodeKey = (...parts: string[]) => parts.join('§');
+
+        const nodesMap = new Map(
+            nodes.response.map((node) => {
+                const key = createNodeKey(
+                    node.uuid,
+                    node.name,
+                    resolveCountryEmoji(node.countryCode),
+                    node.provider?.name || 'unknown',
+                );
+                return [key, node];
+            }),
+        );
+
+        const validMetrics = [
+            'remnawave_node_online_users',
+            'remnawave_node_inbound_upload_bytes',
+            'remnawave_node_inbound_download_bytes',
+            'remnawave_node_outbound_upload_bytes',
+            'remnawave_node_outbound_download_bytes',
+        ];
+
+        const filteredMetrics = metrics.filter((metric) => validMetrics.includes(metric.name));
+
+        const allMetrics = filteredMetrics.flatMap((metric) =>
+            metric.metrics.map((m) => ({
+                metricName: metric.name,
+                ...m,
+            })),
+        );
+
+        const groupedByNode = groupBy(allMetrics, (item) =>
+            createNodeKey(
+                item.labels.node_uuid,
+                item.labels.node_name,
+                item.labels.node_country_emoji,
+                item.labels.provider_name,
+            ),
+        );
+        return (
+            Object.entries(groupedByNode)
+                .filter(([key]) => nodesMap.has(key))
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .map(([_, nodeMetrics]) => {
+                    const firstMetric = nodeMetrics[0];
+                    const {
+                        node_uuid: nodeUuid,
+                        node_name: nodeName,
+                        node_country_emoji: countryEmoji,
+                        provider_name: providerName,
+                    } = firstMetric.labels;
+
+                    const metricGroups = {
+                        onlineUsers: 0,
+                        inboundUpload: new Map<string, number>(),
+                        inboundDownload: new Map<string, number>(),
+                        outboundUpload: new Map<string, number>(),
+                        outboundDownload: new Map<string, number>(),
+                    };
+
+                    for (const metric of nodeMetrics) {
+                        const value = parseFloat(metric.value) || 0;
+                        const tag = metric.labels.tag;
+
+                        switch (metric.metricName) {
+                            case 'remnawave_node_online_users':
+                                metricGroups.onlineUsers = value;
+                                break;
+                            case 'remnawave_node_inbound_upload_bytes':
+                                metricGroups.inboundUpload.set(tag, value);
+                                break;
+                            case 'remnawave_node_inbound_download_bytes':
+                                metricGroups.inboundDownload.set(tag, value);
+                                break;
+                            case 'remnawave_node_outbound_upload_bytes':
+                                metricGroups.outboundUpload.set(tag, value);
+                                break;
+                            case 'remnawave_node_outbound_download_bytes':
+                                metricGroups.outboundDownload.set(tag, value);
+                                break;
+                        }
+                    }
+
+                    const allInboundTags = new Set([
+                        ...metricGroups.inboundDownload.keys(),
+                        ...metricGroups.inboundUpload.keys(),
+                    ]);
+                    const allOutboundTags = new Set([
+                        ...metricGroups.outboundDownload.keys(),
+                        ...metricGroups.outboundUpload.keys(),
+                    ]);
+
+                    const inboundsStats: InboundStats[] = Array.from(allInboundTags, (tag) => ({
+                        tag,
+                        upload: prettyBytesUtil(metricGroups.inboundUpload.get(tag) || 0),
+                        download: prettyBytesUtil(metricGroups.inboundDownload.get(tag) || 0),
+                    }));
+
+                    const outboundsStats: OutboundStats[] = Array.from(allOutboundTags, (tag) => ({
+                        tag,
+                        upload: prettyBytesUtil(metricGroups.outboundUpload.get(tag) || 0),
+                        download: prettyBytesUtil(metricGroups.outboundDownload.get(tag) || 0),
+                    }));
+
+                    return {
+                        nodeUuid,
+                        nodeName,
+                        countryEmoji,
+                        providerName,
+                        usersOnline: metricGroups.onlineUsers,
+                        inboundsStats,
+                        outboundsStats,
+                    };
+                })
+                .filter((node) => node.inboundsStats.length > 0 || node.outboundsStats.length > 0)
+        );
+    }
+
+    private async getAllNodes(): Promise<ICommandResponse<NodesEntity[]>> {
+        return this.queryBus.execute<GetAllNodesQuery, ICommandResponse<NodesEntity[]>>(
+            new GetAllNodesQuery(),
+        );
     }
 }

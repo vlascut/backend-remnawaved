@@ -15,6 +15,9 @@ import { BasicStrategy } from './strategies';
             inject: [],
             controller: PrometheusReporterController,
             useFactory: () => ({
+                defaultMetrics: {
+                    enabled: false,
+                },
                 defaultLabels: {
                     app: 'remnawave',
                 },

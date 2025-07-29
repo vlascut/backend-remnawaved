@@ -1,5 +1,6 @@
 export * from './get-all-subscriptions.dto';
 export * from './get-outline-subscription.dto';
+export * from './get-raw-subscription-by-short-uuid.dto';
 export * from './get-subscription-by-client-type.dto';
 export * from './get-subscription-by-username.dto';
 export * from './get-subscription-info.dto';

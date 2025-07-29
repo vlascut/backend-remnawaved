@@ -13,9 +13,15 @@ import { ROOT } from '@contract/api';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
-import { getDocs, isDevelopment, isProduction } from '@common/utils/startup-app';
+import {
+    getDocs,
+    isCrowdinEditorEnabled,
+    isDevelopment,
+    isProduction,
+} from '@common/utils/startup-app';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
 import { proxyCheckMiddleware, getRealIp } from '@common/middlewares';
+import { customLogFilter } from '@common/utils/filter-logs';
 import { AxiosService } from '@common/axios';
 
 import { AppModule } from './app.module';
@@ -32,17 +38,18 @@ patchNestJsSwagger();
 //     silly: 6,
 // };
 
-const instanedId = process.env.INSTANCE_ID || '0';
+const instanceId = process.env.INSTANCE_ID || '0';
 
 const logger = createLogger({
     transports: [new winston.transports.Console()],
     format: winston.format.combine(
+        customLogFilter(),
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss.SSS',
         }),
         // winston.format.ms(),
         winston.format.align(),
-        nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanedId}`, {
+        nestWinstonModuleUtilities.format.nestLike(`API Server: #${instanceId}`, {
             colors: true,
             prettyPrint: true,
             processId: false,
@@ -65,27 +72,29 @@ async function bootstrap(): Promise<void> {
 
     const config = app.get(ConfigService);
 
-    app.use(
-        helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: ["'self'", '*'],
-                    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", '*'],
-                    imgSrc: ["'self'", 'data:', '*'],
-                    connectSrc: ["'self'", '*'],
-                    workerSrc: ["'self'", 'blob:', '*'],
-                    frameSrc: ["'self'", 'oauth.telegram.org', '*'],
-                    frameAncestors: ["'self'", '*'],
+    if (!isCrowdinEditorEnabled()) {
+        app.use(
+            helmet({
+                contentSecurityPolicy: {
+                    directives: {
+                        defaultSrc: ["'self'", '*'],
+                        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", '*'],
+                        imgSrc: ["'self'", 'data:', '*'],
+                        connectSrc: ["'self'", '*'],
+                        workerSrc: ["'self'", 'blob:', '*'],
+                        frameSrc: ["'self'", 'oauth.telegram.org', '*'],
+                        frameAncestors: ["'self'", '*'],
+                    },
                 },
-            },
 
-            crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
-            crossOriginResourcePolicy: { policy: 'same-site' },
-            referrerPolicy: {
-                policy: 'strict-origin-when-cross-origin',
-            },
-        }),
-    );
+                crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+                crossOriginResourcePolicy: { policy: 'same-site' },
+                referrerPolicy: {
+                    policy: 'strict-origin-when-cross-origin',
+                },
+            }),
+        );
+    }
 
     app.use(compression());
 

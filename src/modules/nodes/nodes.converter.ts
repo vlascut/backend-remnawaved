@@ -24,6 +24,7 @@ const entityToModel = (entity: NodesEntity): Nodes => {
         lastStatusChange: entity.lastStatusChange,
         lastStatusMessage: entity.lastStatusMessage,
         xrayVersion: entity.xrayVersion,
+        nodeVersion: entity.nodeVersion,
         xrayUptime: entity.xrayUptime,
         isTrafficTrackingActive: entity.isTrafficTrackingActive,
         trafficResetDay: entity.trafficResetDay,
@@ -39,6 +40,9 @@ const entityToModel = (entity: NodesEntity): Nodes => {
         viewPosition: entity.viewPosition,
         countryCode: entity.countryCode,
         consumptionMultiplier: entity.consumptionMultiplier,
+
+        activeConfigProfileUuid: entity.activeConfigProfileUuid,
+        providerUuid: entity.providerUuid,
     };
 };
 

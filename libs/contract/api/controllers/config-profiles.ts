@@ -1,0 +1,11 @@
+export const CONFIG_PROFILES_CONTROLLER = 'config-profiles' as const;
+
+export const CONFIG_PROFILES_ROUTES = {
+    GET: '', // Get list of all config profiles // get
+    CREATE: '', // Create new config profile // post
+    UPDATE: '', // Update config profile by uuid // patch
+    GET_BY_UUID: (uuid: string) => `${uuid}`, // Get config profile by uuid // get
+    DELETE: (uuid: string) => `${uuid}`, // Delete config profile by uuid // delete
+    GET_INBOUNDS_BY_PROFILE_UUID: (uuid: string) => `${uuid}/inbounds`, // Get list of all inbounds by config profile uuid // get
+    GET_ALL_INBOUNDS: 'inbounds', // Get list of all inbounds // get
+} as const;

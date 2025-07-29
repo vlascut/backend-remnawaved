@@ -1,11 +1,13 @@
+import { XRayConfig } from '@common/helpers/xray-config';
 import { generateJwtKeypair, generateMasterCerts } from '@common/utils/certs/generate-certs.util';
 import {
     SUBSCRIPTION_TEMPLATE_TYPE,
     SUBSCRIPTION_TEMPLATE_TYPE_VALUES,
 } from '@libs/contracts/constants';
 import { KeygenEntity } from '@modules/keygen/entities/keygen.entity';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import consola from 'consola';
+import _ from 'lodash';
 
 export const XTLSDefaultConfig = {
     log: {
@@ -37,23 +39,7 @@ export const XTLSDefaultConfig = {
         },
     ],
     routing: {
-        rules: [
-            {
-                ip: ['geoip:private'],
-                outboundTag: 'BLOCK',
-                type: 'field',
-            },
-            {
-                domain: ['geosite:private'],
-                outboundTag: 'BLOCK',
-                type: 'field',
-            },
-            {
-                protocol: ['bittorrent'],
-                outboundTag: 'BLOCK',
-                type: 'field',
-            },
-        ],
+        rules: [],
     },
 };
 
@@ -666,30 +652,103 @@ async function seedSubscriptionSettings() {
     });
 }
 
-async function seedConfigVariables() {
-    const existingConfig = await prisma.xrayConfig.findFirst();
-
-    consola.start('🔐 Seeding XTLS config...');
+async function seedDefaultConfigProfile() {
+    const existingConfig = await prisma.configProfiles.findFirst();
 
     if (existingConfig) {
-        consola.success('🔐 Default XTLS config already seeded!');
+        consola.info('Default config profile already seeded!');
         return;
     }
 
-    const config = await prisma.xrayConfig.create({
+    const config = await prisma.configProfiles.create({
         data: {
+            name: 'Default-Profile',
             config: XTLSDefaultConfig,
         },
     });
-
     if (!config) {
-        consola.error('🔐 Failed to create default config!');
+        consola.error('🔐 Failed to create default config profile!');
         process.exit(1);
     }
 
-    consola.success('🔐 Default XTLS config seeded!');
+    await syncInbounds();
+
+    const existingInternalSquad = await prisma.internalSquads.findFirst();
+
+    // workaround for created squad from migration
+    if (existingInternalSquad && existingInternalSquad.name === 'Default-Squad') {
+        const configProfileInbounds = await prisma.configProfileInbounds.findMany({
+            where: {
+                profileUuid: config.uuid,
+            },
+        });
+
+        if (configProfileInbounds.length === 0) {
+            consola.info('🔐 No config profile inbounds found!');
+            return;
+        }
+
+        const internalSquadInbounds = await prisma.internalSquadInbounds.createMany({
+            data: configProfileInbounds.map((inbound) => ({
+                inboundUuid: inbound.uuid,
+                internalSquadUuid: existingInternalSquad.uuid,
+            })),
+        });
+
+        if (!internalSquadInbounds) {
+            consola.error('🔐 Failed to create default internal squad inbounds!');
+            process.exit(1);
+        }
+
+        return;
+    }
+
+    consola.success('🔐 Default config profile seeded!');
 }
 
+async function seedDefaultInternalSquad() {
+    const existingInternalSquad = await prisma.internalSquads.findFirst();
+    const existingConfigProfile = await prisma.configProfiles.findFirst();
+
+    if (!existingConfigProfile) {
+        consola.error('🔐 Default config profile not found!');
+        process.exit(1);
+    }
+
+    if (existingInternalSquad) {
+        consola.info('🤔 Default internal squad already exists!');
+        return;
+    }
+
+    const configProfileInbounds = await prisma.configProfileInbounds.findMany({
+        where: {
+            profileUuid: existingConfigProfile.uuid,
+        },
+    });
+
+    if (configProfileInbounds.length === 0) {
+        consola.error('🔐 No config profile inbounds found!');
+        process.exit(1);
+    }
+
+    const res = await prisma.internalSquads.create({
+        data: {
+            name: 'Default-Squad',
+            internalSquadInbounds: {
+                create: configProfileInbounds.map((inbound) => ({
+                    inboundUuid: inbound.uuid,
+                })),
+            },
+        },
+    });
+
+    if (!res) {
+        consola.error('🔐 Failed to create default internal squad!');
+        process.exit(1);
+    }
+
+    consola.success('🔐 Default internal squad seeded!');
+}
 async function seedKeygen() {
     consola.start('🔐 Seeding keygen...');
 
@@ -783,32 +842,126 @@ async function seedKeygen() {
     }
 }
 
-async function ensureConfigUnique() {
-    const countConfigs = await prisma.xrayConfig.count();
-    try {
-        consola.info(`XTLS configs count: ${countConfigs}`);
-        if (countConfigs > 1) {
-            consola.warn('More than one XTLS config found! Deleting all except the first one...');
-            const firstConfig = await prisma.xrayConfig.findFirst({
-                orderBy: { updatedAt: 'asc' },
-            });
+async function syncInbounds() {
+    consola.start('Syncing inbounds...');
 
-            if (firstConfig) {
-                await prisma.xrayConfig.deleteMany({
-                    where: {
-                        uuid: {
-                            not: firstConfig.uuid,
-                        },
-                    },
-                });
+    const configProfiles = await prisma.configProfiles.findMany();
+
+    for (const configProfile of configProfiles) {
+        consola.log(`Syncing inbounds for config profile: ${configProfile.name}`);
+
+        const validatedConfig = new XRayConfig(configProfile.config as object);
+
+        const configInbounds = validatedConfig.getAllInbounds();
+
+        const existingInbounds = await prisma.configProfileInbounds.findMany({
+            where: {
+                profileUuid: configProfile.uuid,
+            },
+        });
+
+        const inboundsToRemove = existingInbounds.filter((existingInbound) => {
+            const configInbound = configInbounds.find((ci) => ci.tag === existingInbound.tag);
+            return !configInbound || configInbound.type !== existingInbound.type;
+        });
+
+        const inboundsToAdd = configInbounds.filter((configInbound) => {
+            if (!existingInbounds) {
+                return true;
+                // TODO: need additional checks
             }
 
-            consola.success('Successfully deleted all XTLS configs except the first one!');
+            const existingInbound = existingInbounds.find((ei) => ei.tag === configInbound.tag);
+            return !existingInbound || existingInbound.type !== configInbound.type;
+        });
+
+        if (inboundsToRemove.length) {
+            const tagsToRemove = inboundsToRemove.map((inbound) => inbound.tag);
+            consola.log(`Removing inbounds: ${tagsToRemove.join(', ')}`);
+
+            const result = await prisma.configProfileInbounds.deleteMany({
+                where: { uuid: { in: inboundsToRemove.map((inbound) => inbound.uuid) } },
+            });
         }
-    } catch (error) {
-        consola.error('Failed to ensure config unique:', error);
-        process.exit(1);
+
+        if (inboundsToAdd.length) {
+            consola.log(`Adding inbounds: ${inboundsToAdd.map((i) => i.tag).join(', ')}`);
+            await prisma.configProfileInbounds.createMany({
+                data: inboundsToAdd.map((inbound) => ({
+                    ...inbound,
+                    rawInbound: inbound.rawInbound as Prisma.InputJsonValue,
+                    profileUuid: configProfile.uuid,
+                })),
+            });
+        }
+
+        if (inboundsToAdd.length === 0 && inboundsToRemove.length === 0) {
+            const inboundsToUpdate = configInbounds
+                .filter((configInbound) => {
+                    if (!existingInbounds) {
+                        return false;
+                    }
+
+                    const existingInbound = existingInbounds.find(
+                        (ei) => ei.tag === configInbound.tag,
+                    );
+
+                    if (!existingInbound) {
+                        return false;
+                    }
+
+                    const securityChanged = configInbound.security !== existingInbound.security;
+                    const networkChanged = configInbound.network !== existingInbound.network;
+                    const typeChanged = configInbound.type !== existingInbound.type;
+                    const portChanged = configInbound.port !== existingInbound.port;
+                    const rawInboundChanged = !_.isEqual(
+                        configInbound.rawInbound,
+                        existingInbound.rawInbound,
+                    );
+
+                    return (
+                        securityChanged ||
+                        networkChanged ||
+                        typeChanged ||
+                        portChanged ||
+                        rawInboundChanged
+                    );
+                })
+                .map((configInbound) => {
+                    const existingInbound = existingInbounds.find(
+                        (ei) => ei.tag === configInbound.tag,
+                    );
+
+                    if (!existingInbound) {
+                        throw new Error(`Inbound with tag ${configInbound.tag} not found`);
+                    }
+
+                    existingInbound.security = configInbound.security;
+                    existingInbound.network = configInbound.network;
+                    existingInbound.type = configInbound.type;
+                    existingInbound.port = configInbound.port;
+                    existingInbound.rawInbound = configInbound.rawInbound;
+
+                    return existingInbound;
+                });
+
+            if (inboundsToUpdate.length) {
+                consola.log(`Updating inbounds: ${inboundsToUpdate.map((i) => i.tag).join(', ')}`);
+
+                for (const inbound of inboundsToUpdate) {
+                    await prisma.configProfileInbounds.update({
+                        where: { uuid: inbound.uuid },
+                        data: {
+                            ...inbound,
+                            rawInbound: inbound.rawInbound as Prisma.InputJsonValue,
+                        },
+                    });
+                }
+            }
+        }
     }
+
+    consola.success('Inbounds synced successfully');
 }
 
 async function checkDatabaseConnection() {
@@ -833,10 +986,11 @@ async function seedAll() {
         if (isConnected) {
             consola.start('Database connected. Starting seeding...');
             await seedSubscriptionTemplate();
-            await seedConfigVariables();
+            await seedDefaultConfigProfile();
+            await syncInbounds();
+            await seedDefaultInternalSquad();
             await seedSubscriptionSettings();
             await seedKeygen();
-            await ensureConfigUnique();
             break;
         } else {
             consola.info('Failed to connect to database. Retrying in 5 seconds...');

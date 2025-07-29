@@ -6,6 +6,7 @@ export class NodesUsageHistoryEntity implements NodesUsageHistory {
     public uploadBytes: bigint;
     public totalBytes: bigint;
     public createdAt: Date;
+    public updatedAt: Date;
 
     constructor(history: Partial<NodesUsageHistory>) {
         Object.assign(this, history);

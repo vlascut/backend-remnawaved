@@ -6,8 +6,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { ERRORS } from '@libs/contracts/constants';
 
-import { XrayConfigEntity } from '@modules/xray-config/entities/xray-config.entity';
-import { GetXrayConfigQuery } from '@modules/xray-config/queries/get-xray-config';
+import { GetConfigProfileByUuidQuery } from '@modules/config-profiles/queries/get-config-profile-by-uuid';
 import { UsersRepository } from '@modules/users/repositories/users.repository';
 
 import { GetPreparedConfigWithUsersQuery } from './get-prepared-config-with-users.query';
@@ -25,19 +24,29 @@ export class GetPreparedConfigWithUsersHandler
     async execute(query: GetPreparedConfigWithUsersQuery): Promise<ICommandResponse<IXrayConfig>> {
         let config: XRayConfig | null = null;
         try {
-            const { excludedInbounds, excludeInboundsFromConfig } = query;
+            const { configProfileUuid, activeInbounds } = query;
 
-            const xrayConfig = await this.getXrayConfig();
+            const configProfile = await this.queryBus.execute(
+                new GetConfigProfileByUuidQuery(configProfileUuid),
+            );
 
-            config = new XRayConfig(xrayConfig.config!);
-
-            if (excludeInboundsFromConfig) {
-                config.excludeInbounds(excludedInbounds.map((inbound) => inbound.tag));
+            if (!configProfile.isOk || !configProfile.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SERVER_ERROR,
+                };
             }
+
+            config = new XRayConfig(configProfile.response.config as object);
+
+            config.leaveInbounds(activeInbounds.map((inbound) => inbound.tag));
 
             config.processCertificates();
 
-            const usersStream = this.usersRepository.getUsersForConfigStream(excludedInbounds);
+            const usersStream = this.usersRepository.getUsersForConfigStream(
+                configProfileUuid,
+                activeInbounds,
+            );
 
             for await (const userBatch of usersStream) {
                 config.includeUserBatch(userBatch);
@@ -56,11 +65,5 @@ export class GetPreparedConfigWithUsersHandler
         } finally {
             config = null;
         }
-    }
-
-    private async getXrayConfig(): Promise<XrayConfigEntity> {
-        return this.queryBus.execute<GetXrayConfigQuery, XrayConfigEntity>(
-            new GetXrayConfigQuery(),
-        );
     }
 }

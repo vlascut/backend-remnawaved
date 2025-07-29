@@ -51,6 +51,7 @@ export class StopNodeQueueProcessor extends WorkerHost {
                     isConnected: false,
                     isConnecting: false,
                     isDisabled: true,
+                    usersOnline: 0,
                 });
             }
 

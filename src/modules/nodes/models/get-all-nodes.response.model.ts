@@ -1,6 +1,7 @@
 import { fromNanoToNumber } from '@common/utils/nano';
 
-import { InboundsEntity } from '@modules/inbounds/entities';
+import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
+import { InfraProviderEntity } from '@modules/infra-billing/entities';
 
 import { NodesEntity } from '../entities';
 
@@ -17,6 +18,7 @@ export class GetAllNodesResponseModel {
     public lastStatusChange: Date | null;
     public lastStatusMessage: null | string;
     public xrayVersion: null | string;
+    public nodeVersion: null | string;
     public xrayUptime: string;
     public isTrafficTrackingActive: boolean;
     public trafficResetDay: null | number;
@@ -35,7 +37,13 @@ export class GetAllNodesResponseModel {
     public createdAt: Date;
     public updatedAt: Date;
 
-    public excludedInbounds: InboundsEntity[];
+    public providerUuid: string | null;
+    public provider: InfraProviderEntity | null;
+
+    public configProfile: {
+        activeConfigProfileUuid: string | null;
+        activeInbounds: ConfigProfileInboundEntity[];
+    };
 
     constructor(data: NodesEntity) {
         this.uuid = data.uuid;
@@ -50,6 +58,7 @@ export class GetAllNodesResponseModel {
         this.lastStatusChange = data.lastStatusChange;
         this.lastStatusMessage = data.lastStatusMessage;
         this.xrayVersion = data.xrayVersion;
+        this.nodeVersion = data.nodeVersion;
         this.xrayUptime = data.xrayUptime;
         this.isTrafficTrackingActive = data.isTrafficTrackingActive;
         this.trafficResetDay = data.trafficResetDay;
@@ -68,6 +77,12 @@ export class GetAllNodesResponseModel {
         this.viewPosition = data.viewPosition;
         this.countryCode = data.countryCode;
 
-        this.excludedInbounds = data.excludedInbounds;
+        this.providerUuid = data.providerUuid;
+        this.provider = data.provider;
+
+        this.configProfile = {
+            activeConfigProfileUuid: data.activeConfigProfileUuid,
+            activeInbounds: data.activeInbounds,
+        };
     }
 }

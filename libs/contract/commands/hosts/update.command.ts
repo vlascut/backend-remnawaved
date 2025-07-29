@@ -17,11 +17,11 @@ export namespace UpdateHostCommand {
     export const RequestSchema = HostsSchema.pick({
         uuid: true,
     }).extend({
-        inboundUuid: z
-            .string({
-                invalid_type_error: 'Inbound UUID must be a string',
+        inbound: z
+            .object({
+                configProfileUuid: z.string().uuid(),
+                configProfileInboundUuid: z.string().uuid(),
             })
-            .uuid('Inbound UUID must be a valid UUID')
             .optional(),
         remark: z
             .string({
@@ -47,10 +47,17 @@ export namespace UpdateHostCommand {
         host: z.optional(z.string()),
         alpn: z.optional(z.nativeEnum(ALPN).nullable()),
         fingerprint: z.optional(z.nativeEnum(FINGERPRINTS).nullable()),
-        allowInsecure: z.optional(z.boolean()),
         isDisabled: z.optional(z.boolean()),
         securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS)),
         xHttpExtraParams: z.optional(z.nullable(z.unknown())),
+        serverDescription: z.optional(
+            z
+                .string()
+                .max(30, {
+                    message: 'Server description must be less than 30 characters',
+                })
+                .nullable(),
+        ),
     });
     export type Request = z.infer<typeof RequestSchema>;
 

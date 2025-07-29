@@ -1,17 +1,13 @@
 import { TUserEvents } from '@libs/contracts/constants';
 
-import { UserWithActiveInboundsEntity } from '@modules/users/entities/user-with-active-inbounds.entity';
+import { UserEntity } from '@modules/users/entities';
 
 export class UserEvent {
-    user: UserWithActiveInboundsEntity;
+    user: UserEntity;
     eventName: TUserEvents;
     skipTelegramNotification?: boolean;
 
-    constructor(
-        user: UserWithActiveInboundsEntity,
-        event: TUserEvents,
-        skipTelegramNotification?: boolean,
-    ) {
+    constructor(user: UserEntity, event: TUserEvents, skipTelegramNotification?: boolean) {
         this.user = user;
         this.eventName = event;
         this.skipTelegramNotification = skipTelegramNotification ?? false;

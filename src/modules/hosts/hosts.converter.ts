@@ -13,7 +13,7 @@ const modelToEntity = (model: Hosts): HostsEntity => {
 const entityToModel = (entity: HostsEntity): Hosts => {
     return {
         uuid: entity.uuid,
-        inboundUuid: entity.inboundUuid,
+
         viewPosition: entity.viewPosition,
         remark: entity.remark,
         address: entity.address,
@@ -24,9 +24,12 @@ const entityToModel = (entity: HostsEntity): Hosts => {
         alpn: entity.alpn,
         fingerprint: entity.fingerprint,
         securityLayer: entity.securityLayer,
-        allowInsecure: entity.allowInsecure,
         isDisabled: entity.isDisabled,
         xHttpExtraParams: entity.xHttpExtraParams,
+        serverDescription: entity.serverDescription,
+
+        configProfileUuid: entity.configProfileUuid,
+        configProfileInboundUuid: entity.configProfileInboundUuid,
     };
 };
 

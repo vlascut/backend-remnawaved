@@ -10,9 +10,9 @@ import {
     HttpCode,
     Type,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiInternalServerErrorResponse, ApiOperation } from '@nestjs/swagger';
 
-import { EndpointDetails } from '@libs/contracts/constants';
+import { EndpointDetails, ERRORS } from '@libs/contracts/constants';
 
 interface ApiEndpointOptions {
     command: { endpointDetails: EndpointDetails };
@@ -31,6 +31,18 @@ export function Endpoint(options: ApiEndpointOptions) {
         ApiOperation({
             summary: options.command.endpointDetails.METHOD_DESCRIPTION,
             description: options.command.endpointDetails.METHOD_LONG_DESCRIPTION,
+        }),
+        ApiInternalServerErrorResponse({
+            description: ERRORS.INTERNAL_SERVER_ERROR.message,
+            schema: {
+                type: 'object',
+                properties: {
+                    timestamp: { type: 'string' },
+                    path: { type: 'string' },
+                    message: { type: 'string' },
+                    errorCode: { type: 'string' },
+                },
+            },
         }),
         ...(apiBody ? [apiBody] : []),
     );

@@ -5,8 +5,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
-import { GetUserByUuidQuery } from '@modules/users/queries/get-user-by-uuid';
-import { UserWithActiveInboundsEntity } from '@modules/users/entities';
+import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 
 import { HwidUserDevicesRepository } from './repositories/hwid-user-devices.repository';
 import { HwidUserDeviceEntity } from './entities/hwid-user-device.entity';
@@ -26,7 +25,18 @@ export class HwidUserDevicesService {
         dto: CreateUserHwidDeviceRequestDto,
     ): Promise<ICommandResponse<HwidUserDeviceEntity[]>> {
         try {
-            const user = await this.getUserByUuid(dto.userUuid);
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        uuid: dto.userUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
+
             if (!user.isOk || !user.response) {
                 return {
                     isOk: false,
@@ -84,7 +94,18 @@ export class HwidUserDevicesService {
         userUuid: string,
     ): Promise<ICommandResponse<HwidUserDeviceEntity[]>> {
         try {
-            const user = await this.getUserByUuid(userUuid);
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        uuid: userUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
+
             if (!user.isOk || !user.response) {
                 return {
                     isOk: false,
@@ -114,7 +135,18 @@ export class HwidUserDevicesService {
         userUuid: string,
     ): Promise<ICommandResponse<HwidUserDeviceEntity[]>> {
         try {
-            const user = await this.getUserByUuid(userUuid);
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        uuid: userUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
+
             if (!user.isOk || !user.response) {
                 return {
                     isOk: false,
@@ -139,14 +171,5 @@ export class HwidUserDevicesService {
                 ...ERRORS.DELETE_HWID_USER_DEVICE_ERROR,
             };
         }
-    }
-
-    private async getUserByUuid(
-        uuid: string,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity>> {
-        return this.queryBus.execute<
-            GetUserByUuidQuery,
-            ICommandResponse<UserWithActiveInboundsEntity>
-        >(new GetUserByUuidQuery(uuid));
     }
 }

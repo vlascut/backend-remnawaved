@@ -1,11 +1,10 @@
 import { z } from 'zod';
 
+import { BaseInternalSquadSchema } from './base-internal-squad.schema';
 import { RESET_PERIODS, USERS_STATUS } from '../constants';
-import { InboundsSchema } from './inbounds.schema';
 
 export const UsersSchema = z.object({
     uuid: z.string().uuid(),
-    subscriptionUuid: z.string().uuid(),
     shortUuid: z.string(),
     username: z.string(),
 
@@ -82,5 +81,5 @@ export const UsersSchema = z.object({
         .datetime()
         .transform((str) => new Date(str)),
 
-    activeUserInbounds: z.array(InboundsSchema),
+    activeInternalSquads: z.array(BaseInternalSquadSchema),
 });

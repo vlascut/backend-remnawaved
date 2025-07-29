@@ -1,8 +1,15 @@
-import { InboundsEntity } from '@modules/inbounds/entities';
+import { Query } from '@nestjs/cqrs';
 
-export class GetPreparedConfigWithUsersQuery {
+import { ICommandResponse } from '@common/types/command-response.type';
+import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
+
+import { ConfigProfileInboundEntity } from '@modules/config-profiles/entities';
+
+export class GetPreparedConfigWithUsersQuery extends Query<ICommandResponse<IXrayConfig>> {
     constructor(
-        public readonly excludedInbounds: InboundsEntity[],
-        public readonly excludeInboundsFromConfig: boolean = true,
-    ) {}
+        public readonly configProfileUuid: string,
+        public readonly activeInbounds: ConfigProfileInboundEntity[],
+    ) {
+        super();
+    }
 }

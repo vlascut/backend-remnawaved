@@ -4,7 +4,6 @@ export class FindAllApiTokensResponseModel {
     public apiKeys: {
         createdAt: Date;
         token: string;
-        tokenDescription: null | string;
         tokenName: string;
         updatedAt: Date;
         uuid: string;
@@ -25,7 +24,6 @@ export class FindAllApiTokensResponseModel {
                 uuid: data.uuid,
                 token: data.token,
                 tokenName: data.tokenName,
-                tokenDescription: data.tokenDescription,
                 createdAt: data.createdAt,
                 updatedAt: data.updatedAt,
             },

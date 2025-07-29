@@ -15,18 +15,21 @@ export namespace CreateHostCommand {
     );
 
     export const RequestSchema = z.object({
-        inboundUuid: z
-            .string({
-                invalid_type_error: 'Inbound UUID must be a string',
-            })
-            .uuid('Inbound UUID must be a valid UUID'),
+        inbound: z.object({
+            configProfileUuid: z.string().uuid(),
+            configProfileInboundUuid: z.string().uuid(),
+        }),
         remark: z
             .string({
                 invalid_type_error: 'Remark must be a string',
             })
+            .min(1, {
+                message: 'Remark must be at least 1 character',
+            })
             .max(40, {
                 message: 'Remark must be less than 40 characters',
             }),
+
         address: z.string({
             invalid_type_error: 'Address must be a string',
         }),
@@ -40,11 +43,19 @@ export namespace CreateHostCommand {
         host: z.string().optional(),
         alpn: z.optional(z.nativeEnum(ALPN).nullable()),
         fingerprint: z.optional(z.nativeEnum(FINGERPRINTS).nullable()),
-        allowInsecure: z.optional(z.boolean().default(false)),
         isDisabled: z.optional(z.boolean().default(false)),
         securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS).default(SECURITY_LAYERS.DEFAULT)),
         xHttpExtraParams: z.optional(z.nullable(z.unknown())),
+        serverDescription: z.optional(
+            z
+                .string()
+                .max(30, {
+                    message: 'Server description must be less than 30 characters',
+                })
+                .nullable(),
+        ),
     });
+
     export type Request = z.infer<typeof RequestSchema>;
 
     export const ResponseSchema = z.object({

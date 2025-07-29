@@ -4,21 +4,19 @@ import { Logger } from '@nestjs/common';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { ERRORS } from '@libs/contracts/constants';
 
-import { UserWithActiveInboundsEntity } from '../../entities/user-with-active-inbounds.entity';
+import { UserEntity } from '@modules/users/entities/user.entity';
+
 import { GetUsersByExpireAtQuery } from './get-users-by-expire-at.query';
 import { UsersRepository } from '../../repositories/users.repository';
 
 @QueryHandler(GetUsersByExpireAtQuery)
 export class GetUsersByExpireAtHandler
-    implements
-        IQueryHandler<GetUsersByExpireAtQuery, ICommandResponse<UserWithActiveInboundsEntity[]>>
+    implements IQueryHandler<GetUsersByExpireAtQuery, ICommandResponse<UserEntity[]>>
 {
     private readonly logger = new Logger(GetUsersByExpireAtHandler.name);
     constructor(private readonly usersRepository: UsersRepository) {}
 
-    async execute(
-        query: GetUsersByExpireAtQuery,
-    ): Promise<ICommandResponse<UserWithActiveInboundsEntity[]>> {
+    async execute(query: GetUsersByExpireAtQuery): Promise<ICommandResponse<UserEntity[]>> {
         try {
             const users = await this.usersRepository.findUsersByExpireAt(query.start, query.end);
 

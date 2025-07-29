@@ -18,7 +18,7 @@ WITH nodes_latest_updates AS (
         SUM(total_bytes) AS current_total_bytes,
         MAX(updated_at) AS latest_update_time
     FROM 
-        nodes_user_usage_history
+        nodes_usage_history
     WHERE 
         created_at = date_trunc('hour', NOW())
     GROUP BY 

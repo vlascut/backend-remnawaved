@@ -1,13 +1,16 @@
+import { createKeyv } from '@keyv/redis';
 import { ClsModule } from 'nestjs-cls';
 import { join } from 'node:path';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { ConditionalModule, ConfigModule, ConfigService } from '@nestjs/config';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 
+import { disableFrontend, isCrowdinEditorEnabled } from '@common/utils/startup-app/is-development';
 import { validateEnvConfig } from '@common/utils/validate-env-config';
 import { PrismaService } from '@common/database/prisma.service';
 import { configSchema, Env } from '@common/config/app-config';
@@ -48,26 +51,56 @@ import { QueueModule } from '@queue/queue.module';
 
         IntegrationModules,
         RemnawaveModules,
-        ServeStaticModule.forRootAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => [
-                {
-                    rootPath: join(__dirname, '..', '..', 'frontend'),
-                    renderPath: '*splat',
-                    exclude: [
-                        '/api/*splat',
-                        configService.getOrThrow<string>('SWAGGER_PATH'),
-                        configService.getOrThrow<string>('SCALAR_PATH'),
-                    ],
-                    serveStaticOptions: {
-                        dotfiles: 'deny',
+        ConditionalModule.registerWhen(
+            ServeStaticModule.forRootAsync({
+                imports: [ConfigModule],
+                inject: [ConfigService],
+                useFactory: (configService: ConfigService) => [
+                    {
+                        rootPath: join(
+                            __dirname,
+                            '..',
+                            '..',
+                            isCrowdinEditorEnabled() ? 'frontend-crowdin' : 'frontend',
+                        ),
+                        renderPath: '*splat',
+                        exclude: [
+                            '/api/*splat',
+                            configService.getOrThrow<string>('SWAGGER_PATH'),
+                            configService.getOrThrow<string>('SCALAR_PATH'),
+                        ],
+                        serveStaticOptions: {
+                            dotfiles: 'ignore',
+                        },
                     },
-                },
-            ],
-        }),
+                ],
+            }),
+            () => !disableFrontend(),
+        ),
 
         QueueModule,
+        CacheModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            isGlobal: true,
+            useFactory: async (configService: ConfigService) => {
+                return {
+                    stores: [
+                        createKeyv(
+                            {
+                                url: `redis://${configService.getOrThrow<string>('REDIS_HOST')}:${configService.getOrThrow<number>('REDIS_PORT')}`,
+                                database: configService.getOrThrow<number>('REDIS_DB'),
+                                password: configService.get<string | undefined>('REDIS_PASSWORD'),
+                            },
+                            {
+                                namespace: 'rmnwv',
+                                keyPrefixSeparator: ':',
+                            },
+                        ),
+                    ],
+                };
+            },
+        }),
     ],
 })
 export class AppModule {}

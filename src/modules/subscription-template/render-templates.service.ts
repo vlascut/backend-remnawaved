@@ -2,17 +2,21 @@ import semver from 'semver';
 
 import { Injectable } from '@nestjs/common';
 
+import { HostWithRawInbound } from '@modules/hosts/entities/host-with-inbound-tag.entity';
 import { parseSingBoxVersion } from '@modules/subscription/utils/parse-sing-box-version';
+import { UserEntity } from '@modules/users/entities';
 
 import { SUBSCRIPTION_CONFIG_TYPES, TSubscriptionConfigTypes } from './constants/config-types';
 import { IGenerateSubscription, IGenerateSubscriptionByClientType } from './interfaces';
 import { XrayJsonGeneratorService } from './generators/xray-json.generator.service';
+import { RawHostsGeneratorService } from './generators/raw-hosts.generator.service';
 import { OutlineGeneratorService } from './generators/outline.generator.service';
 import { SingBoxGeneratorService } from './generators/singbox.generator.service';
 import { MihomoGeneratorService } from './generators/mihomo.generator.service';
 import { ClashGeneratorService } from './generators/clash.generator.service';
 import { XrayGeneratorService } from './generators/xray.generator.service';
 import { FormatHostsService } from './generators/format-hosts.service';
+import { IRawHost } from './generators/interfaces';
 
 @Injectable()
 export class RenderTemplatesService {
@@ -24,13 +28,14 @@ export class RenderTemplatesService {
         private readonly xrayGeneratorService: XrayGeneratorService,
         private readonly singBoxGeneratorService: SingBoxGeneratorService,
         private readonly xrayJsonGeneratorService: XrayJsonGeneratorService,
+        private readonly rawHostsGeneratorService: RawHostsGeneratorService,
     ) {}
 
     public async generateSubscription(params: IGenerateSubscription): Promise<{
         contentType: string;
         sub: string;
     }> {
-        const { userAgent, user, hosts, config, isOutlineConfig, encodedTag } = params;
+        const { userAgent, user, hosts, isOutlineConfig, encodedTag } = params;
 
         const configType =
             params.needJsonSubscription && this.isJsonSubscriptionAllowed(userAgent)
@@ -38,11 +43,7 @@ export class RenderTemplatesService {
                 : this.parseUserAgentType(userAgent);
 
         const configParams = SUBSCRIPTION_CONFIG_TYPES[configType];
-        const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-            config,
-            hosts,
-            user,
-        );
+        const formattedHosts = await this.formatHostsService.generateFormattedHosts(hosts, user);
 
         if (isOutlineConfig) {
             return {
@@ -57,6 +58,7 @@ export class RenderTemplatesService {
                     sub: await this.xrayGeneratorService.generateConfig(
                         formattedHosts,
                         configParams.BASE64,
+                        /^Happ\//.test(userAgent),
                     ),
                     contentType: configParams.CONTENT_TYPE,
                 };
@@ -96,7 +98,10 @@ export class RenderTemplatesService {
 
             case 'XRAY_JSON':
                 return {
-                    sub: await this.xrayJsonGeneratorService.generateConfig(formattedHosts),
+                    sub: await this.xrayJsonGeneratorService.generateConfig(
+                        formattedHosts,
+                        /^Happ\//.test(userAgent),
+                    ),
                     contentType: configParams.CONTENT_TYPE,
                 };
 
@@ -105,19 +110,32 @@ export class RenderTemplatesService {
         }
     }
 
+    public async generateRawSubscription(params: {
+        user: UserEntity;
+        hosts: HostWithRawInbound[];
+    }): Promise<{
+        rawHosts: IRawHost[];
+    }> {
+        const { user, hosts } = params;
+
+        const formattedHosts = await this.formatHostsService.generateFormattedHosts(hosts, user);
+
+        const rawHosts = await this.rawHostsGeneratorService.generateConfig(formattedHosts);
+
+        return {
+            rawHosts,
+        };
+    }
+
     public async generateSubscriptionByClientType(
         params: IGenerateSubscriptionByClientType,
     ): Promise<{
         contentType: string;
         sub: string;
     }> {
-        const { userAgent, user, hosts, config, clientType } = params;
+        const { userAgent, user, hosts, clientType } = params;
 
-        const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-            config,
-            hosts,
-            user,
-        );
+        const formattedHosts = await this.formatHostsService.generateFormattedHosts(hosts, user);
 
         switch (clientType) {
             case 'MIHOMO':
@@ -160,7 +178,10 @@ export class RenderTemplatesService {
 
             case 'XRAY_JSON':
                 return {
-                    sub: await this.xrayJsonGeneratorService.generateConfig(formattedHosts),
+                    sub: await this.xrayJsonGeneratorService.generateConfig(
+                        formattedHosts,
+                        /^Happ\//.test(userAgent),
+                    ),
                     contentType: SUBSCRIPTION_CONFIG_TYPES.XRAY_JSON.CONTENT_TYPE,
                 };
 
