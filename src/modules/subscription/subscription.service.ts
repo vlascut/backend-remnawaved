@@ -185,10 +185,7 @@ export class SubscriptionService {
 
             let subscription: { contentType: string; sub: string };
 
-            if (
-                clientOverride !== undefined &&
-                clientOverride !== SUBSCRIPTION_TEMPLATE_TYPE.XRAY_JSON
-            ) {
+            if (clientOverride !== undefined) {
                 subscription = await this.renderTemplatesService.generateSubscriptionByClientType({
                     userAgent,
                     user: user.response,

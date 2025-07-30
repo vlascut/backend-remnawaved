@@ -64,6 +64,8 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                         ),
                     ),
                     xHttpExtraParams: z.optional(z.nullable(z.object({}))),
+                    muxParams: z.optional(z.nullable(z.object({}))),
+                    sockoptParams: z.optional(z.nullable(z.object({}))),
                     serverDescription: z.optional(z.nullable(z.string())),
                     flow: z.optional(z.nullable(z.string())),
                     protocolOptions: z.optional(

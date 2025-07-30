@@ -109,6 +109,14 @@ export class XrayJsonGeneratorService {
                 streamSettings: this.createStreamSettings(host),
             };
 
+            if (
+                host.muxParams !== null &&
+                host.muxParams !== undefined &&
+                Object.keys(host.muxParams).length > 0
+            ) {
+                mainOutbound.mux = host.muxParams;
+            }
+
             outbounds.push(mainOutbound);
 
             const config: XrayJsonConfig = {
@@ -221,6 +229,14 @@ export class XrayJsonGeneratorService {
         } else if (host.tls === 'reality') {
             streamSettings.security = 'reality';
             streamSettings.realitySettings = this.createRealitySettings(host);
+        }
+
+        if (
+            host.sockoptParams !== null &&
+            host.sockoptParams !== undefined &&
+            Object.keys(host.sockoptParams).length > 0
+        ) {
+            streamSettings.sockopt = host.sockoptParams;
         }
 
         return streamSettings;

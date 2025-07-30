@@ -34,6 +34,32 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            let muxParams: null | object | undefined;
+            if (dto.muxParams !== undefined && dto.muxParams !== null) {
+                if (Object.keys(dto.muxParams).length === 0) {
+                    muxParams = null;
+                } else {
+                    muxParams = dto.muxParams;
+                }
+            } else if (dto.muxParams === null) {
+                muxParams = null;
+            } else {
+                muxParams = undefined;
+            }
+
+            let sockoptParams: null | object | undefined;
+            if (dto.sockoptParams !== undefined && dto.sockoptParams !== null) {
+                if (Object.keys(dto.sockoptParams).length === 0) {
+                    sockoptParams = null;
+                } else {
+                    sockoptParams = dto.sockoptParams;
+                }
+            } else if (dto.sockoptParams === null) {
+                sockoptParams = null;
+            } else {
+                sockoptParams = undefined;
+            }
+
             let serverDescription: null | string | undefined;
             if (dto.serverDescription !== undefined && dto.serverDescription !== null) {
                 serverDescription = dto.serverDescription;
@@ -71,6 +97,8 @@ export class HostsService {
                 ...rest,
                 address: dto.address.trim(),
                 xHttpExtraParams,
+                muxParams,
+                sockoptParams,
                 configProfileUuid: configProfile.response.uuid,
                 configProfileInboundUuid: configProfileInbound.uuid,
                 serverDescription,
@@ -121,6 +149,32 @@ export class HostsService {
                 xHttpExtraParams = undefined;
             }
 
+            let muxParams: null | object | undefined;
+            if (dto.muxParams !== undefined && dto.muxParams !== null) {
+                if (Object.keys(dto.muxParams).length === 0) {
+                    muxParams = null;
+                } else {
+                    muxParams = dto.muxParams;
+                }
+            } else if (dto.muxParams === null) {
+                muxParams = null;
+            } else {
+                muxParams = undefined;
+            }
+
+            let sockoptParams: null | object | undefined;
+            if (dto.sockoptParams !== undefined && dto.sockoptParams !== null) {
+                if (Object.keys(dto.sockoptParams).length === 0) {
+                    sockoptParams = null;
+                } else {
+                    sockoptParams = dto.sockoptParams;
+                }
+            } else if (dto.sockoptParams === null) {
+                sockoptParams = null;
+            } else {
+                sockoptParams = undefined;
+            }
+
             let serverDescription: null | string | undefined;
             if (dto.serverDescription !== undefined && dto.serverDescription !== null) {
                 serverDescription = dto.serverDescription;
@@ -163,6 +217,8 @@ export class HostsService {
                 ...rest,
                 address: dto.address ? dto.address.trim() : undefined,
                 xHttpExtraParams,
+                muxParams,
+                sockoptParams,
                 configProfileUuid,
                 configProfileInboundUuid,
                 serverDescription,

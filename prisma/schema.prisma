@@ -242,6 +242,8 @@ model Hosts {
   fingerprint       String? @map("fingerprint") // ENUM: chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized
   securityLayer     String  @default("DEFAULT") @map("security_layer") // ENUM: DEFAULT, TLS, NONE
   xHttpExtraParams  Json?   @map("xhttp_extra_params")
+  muxParams         Json?   @map("mux_params")
+  sockoptParams     Json?   @map("sockopt_params")
   isDisabled        Boolean @default(false) @map("is_disabled")
   serverDescription String? @map("server_description")
 
