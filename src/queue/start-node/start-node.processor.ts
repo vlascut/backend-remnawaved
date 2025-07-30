@@ -49,7 +49,7 @@ export class StartNodeQueueProcessor extends WorkerHost {
                 return;
             }
 
-            if (!nodeEntity.activeConfigProfileUuid || !nodeEntity.activeInbounds) {
+            if (nodeEntity.activeInbounds.length === 0 || !nodeEntity.activeConfigProfileUuid) {
                 this.logger.warn(
                     `Node ${nodeUuid} has no active config profile or inbounds, disabling and clearing profile from node...`,
                 );
