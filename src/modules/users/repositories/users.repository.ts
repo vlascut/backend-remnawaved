@@ -742,9 +742,21 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                 status: 'LIMITED',
                 OR: [
                     {
-                        usedTrafficBytes: {
-                            lt: this.prisma.tx.users.fields.trafficLimitBytes,
+                        trafficLimitBytes: {
+                            equals: 0n,
                         },
+                    },
+                    {
+                        AND: [
+                            {
+                                trafficLimitBytes: { gt: 0n },
+                            },
+                            {
+                                usedTrafficBytes: {
+                                    lt: this.prisma.tx.users.fields.trafficLimitBytes,
+                                },
+                            },
+                        ],
                     },
                     {
                         usedTrafficBytes: {
