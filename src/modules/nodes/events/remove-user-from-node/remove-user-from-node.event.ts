@@ -1,3 +1,3 @@
 export class RemoveUserFromNodeEvent {
-    constructor(public readonly userUuid: string) {}
+    constructor(public readonly username: string) {}
 }

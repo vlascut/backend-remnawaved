@@ -67,6 +67,31 @@ export class NodesRepository implements ICrud<NodesEntity> {
         return nodesList.map((value) => new NodesEntity(value));
     }
 
+    public async findConnectedNodesWithoutInbounds(): Promise<
+        {
+            uuid: string;
+            address: string;
+            port: number | null;
+        }[]
+    > {
+        return await this.prisma.tx.nodes.findMany({
+            select: {
+                uuid: true,
+                address: true,
+                port: true,
+            },
+            where: {
+                isConnected: true,
+                isXrayRunning: true,
+                isNodeOnline: true,
+                isDisabled: false,
+                activeConfigProfileUuid: {
+                    not: null,
+                },
+            },
+        });
+    }
+
     public async findAllNodes(): Promise<NodesEntity[]> {
         const nodesList = await this.prisma.tx.nodes.findMany({
             include: INCLUDE_RESOLVED_INBOUNDS,

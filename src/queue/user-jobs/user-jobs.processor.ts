@@ -108,7 +108,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
                     );
 
                     // TODO: find a better way to do this. If previous user status was limited, this event will throw warning.
-                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
+                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user.username));
                 } catch (error) {
                     this.logger.error(
                         `Error handling "${UserJobsJobNames.findExpiredUsers}" job: ${error}`,
@@ -173,7 +173,7 @@ export class UserJobsQueueProcessor extends WorkerHost {
                         new UserEvent(user, EVENTS.USER.LIMITED),
                     );
 
-                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
+                    await this.eventBus.publish(new RemoveUserFromNodeEvent(user.username));
                 } catch (error) {
                     this.logger.error(
                         `Error handling "${UserJobsJobNames.findExceededUsers}" job: ${error}`,
