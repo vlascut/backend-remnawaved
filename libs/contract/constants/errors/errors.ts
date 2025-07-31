@@ -744,4 +744,9 @@ export const ERRORS = {
         message: 'Node is disabled',
         httpCode: 400,
     },
+    SYNC_ACTIVE_PROFILE_ERROR: {
+        code: 'A149',
+        message: 'Sync active profile error',
+        httpCode: 500,
+    },
 } as const;
