@@ -29,6 +29,8 @@ export class HostsRepository implements ICrud<HostsEntity> {
             data: {
                 ...model,
                 xHttpExtraParams: model.xHttpExtraParams as Prisma.InputJsonValue,
+                muxParams: model.muxParams as Prisma.InputJsonValue,
+                sockoptParams: model.sockoptParams as Prisma.InputJsonValue,
             },
         });
 
@@ -53,6 +55,8 @@ export class HostsRepository implements ICrud<HostsEntity> {
             data: {
                 ...data,
                 xHttpExtraParams: data.xHttpExtraParams as Prisma.InputJsonValue,
+                muxParams: data.muxParams as Prisma.InputJsonValue,
+                sockoptParams: data.sockoptParams as Prisma.InputJsonValue,
             },
         });
 
@@ -60,7 +64,7 @@ export class HostsRepository implements ICrud<HostsEntity> {
     }
 
     public async findByCriteria(
-        dto: Omit<Partial<HostsEntity>, 'xHttpExtraParams'>,
+        dto: Omit<Partial<HostsEntity>, 'xHttpExtraParams' | 'muxParams' | 'sockoptParams'>,
     ): Promise<HostsEntity[]> {
         const list = await this.prisma.tx.hosts.findMany({
             where: dto,

@@ -50,6 +50,8 @@ export namespace UpdateHostCommand {
         isDisabled: z.optional(z.boolean()),
         securityLayer: z.optional(z.nativeEnum(SECURITY_LAYERS)),
         xHttpExtraParams: z.optional(z.nullable(z.unknown())),
+        muxParams: z.optional(z.nullable(z.unknown())),
+        sockoptParams: z.optional(z.nullable(z.unknown())),
         serverDescription: z.optional(
             z
                 .string()

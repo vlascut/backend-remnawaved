@@ -147,6 +147,13 @@ export class NodesService {
                 };
             }
 
+            if (node.isDisabled) {
+                return {
+                    isOk: false,
+                    ...ERRORS.NODE_IS_DISABLED,
+                };
+            }
+
             await this.startNodeQueue.startNode({
                 nodeUuid: node.uuid,
             });

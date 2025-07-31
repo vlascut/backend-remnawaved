@@ -41,6 +41,7 @@ interface ProxyNode {
     server: string;
     servername?: string;
     'skip-cert-verify'?: boolean;
+    'packet-encoding'?: string;
     sni?: string;
     tls?: boolean;
     type: string;
@@ -173,6 +174,7 @@ export class MihomoGeneratorService {
         switch (host.protocol) {
             case 'vless':
                 node.uuid = host.password.vlessPassword;
+                node['packet-encoding'] = 'xudp';
 
                 if (
                     ['raw', 'tcp'].includes(host.network) &&

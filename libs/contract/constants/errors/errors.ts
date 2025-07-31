@@ -739,4 +739,9 @@ export const ERRORS = {
         message: 'OAuth2 authorize error',
         httpCode: 500,
     },
+    NODE_IS_DISABLED: {
+        code: 'A149',
+        message: 'Node is disabled',
+        httpCode: 400,
+    },
 } as const;

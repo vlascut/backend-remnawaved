@@ -272,7 +272,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                         whereBuilder = whereBuilder.where(field, '=', filter.value as string);
                         break;
                     default: // 'contains'
-                        whereBuilder = whereBuilder.where(field, 'like', `%${filter.value}%`);
+                        whereBuilder = whereBuilder.where(field, 'ilike', `%${filter.value}%`);
                         break;
                 }
             }
@@ -360,7 +360,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                             countBuilder = countBuilder.where(field, '=', filter.value as string);
                             break;
                         default:
-                            countBuilder = countBuilder.where(field, 'like', `%${filter.value}%`);
+                            countBuilder = countBuilder.where(field, 'ilike', `%${filter.value}%`);
                             break;
                     }
                 }
@@ -742,9 +742,21 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                 status: 'LIMITED',
                 OR: [
                     {
-                        usedTrafficBytes: {
-                            lt: this.prisma.tx.users.fields.trafficLimitBytes,
+                        trafficLimitBytes: {
+                            equals: 0n,
                         },
+                    },
+                    {
+                        AND: [
+                            {
+                                trafficLimitBytes: { gt: 0n },
+                            },
+                            {
+                                usedTrafficBytes: {
+                                    lt: this.prisma.tx.users.fields.trafficLimitBytes,
+                                },
+                            },
+                        ],
                     },
                     {
                         usedTrafficBytes: {

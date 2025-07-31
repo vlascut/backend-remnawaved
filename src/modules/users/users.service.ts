@@ -134,7 +134,7 @@ export class UsersService {
             }
 
             if (user.response.isNeedToBeRemovedFromNode) {
-                this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user.uuid));
+                this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user.username));
             }
 
             this.eventEmitter.emit(
@@ -542,9 +542,11 @@ export class UsersService {
                     ...ERRORS.USER_NOT_FOUND,
                 };
             }
+
             const result = await this.userRepository.deleteByUUID(user.uuid);
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user.username));
+
             this.eventEmitter.emit(EVENTS.USER.DELETED, new UserEvent(user, EVENTS.USER.DELETED));
             return {
                 isOk: true,
@@ -588,7 +590,7 @@ export class UsersService {
                 };
             }
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user.uuid));
+            this.eventBus.publish(new RemoveUserFromNodeEvent(updatedUser.username));
             this.eventEmitter.emit(
                 EVENTS.USER.DISABLED,
                 new UserEvent(updatedUser, EVENTS.USER.DISABLED),

@@ -16,6 +16,8 @@ export class GetAllHostsResponseModel {
     public isDisabled: boolean;
     public securityLayer: TSecurityLayers;
     public xHttpExtraParams: null | object;
+    public muxParams: null | object;
+    public sockoptParams: null | object;
     public serverDescription: null | string;
 
     public inbound: {
@@ -39,6 +41,8 @@ export class GetAllHostsResponseModel {
         this.isDisabled = data.isDisabled;
         this.securityLayer = data.securityLayer;
         this.xHttpExtraParams = data.xHttpExtraParams;
+        this.muxParams = data.muxParams;
+        this.sockoptParams = data.sockoptParams;
         this.serverDescription = data.serverDescription;
         this.inbound = {
             configProfileUuid: data.configProfileUuid,

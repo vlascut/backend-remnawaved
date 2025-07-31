@@ -127,6 +127,8 @@ export class FormatHostsService {
             let additionalParams: IFormattedHost['additionalParams'] | undefined;
             let headerType: string | undefined;
             let xHttpExtraParams: null | object | undefined;
+            let muxParams: null | object | undefined;
+            let sockoptParams: null | object | undefined;
             let serverDescription: string | undefined;
 
             switch (network) {
@@ -252,6 +254,26 @@ export class FormatHostsService {
                 }
             }
 
+            if (
+                inputHost.muxParams !== null &&
+                inputHost.muxParams !== undefined &&
+                Object.keys(inputHost.muxParams).length > 0
+            ) {
+                muxParams = inputHost.muxParams;
+            } else {
+                muxParams = null;
+            }
+
+            if (
+                inputHost.sockoptParams !== null &&
+                inputHost.sockoptParams !== undefined &&
+                Object.keys(inputHost.sockoptParams).length > 0
+            ) {
+                sockoptParams = inputHost.sockoptParams;
+            } else {
+                sockoptParams = null;
+            }
+
             if (inputHost.serverDescription !== undefined && inputHost.serverDescription !== null) {
                 serverDescription = Buffer.from(inputHost.serverDescription).toString('base64');
             }
@@ -321,6 +343,8 @@ export class FormatHostsService {
                 additionalParams,
                 xHttpExtraParams,
                 serverDescription,
+                muxParams,
+                sockoptParams,
             });
         }
 

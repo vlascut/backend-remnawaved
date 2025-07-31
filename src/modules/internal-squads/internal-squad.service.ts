@@ -187,14 +187,14 @@ export class InternalSquadService {
                 includedProfiles.add(inbound.profileUuid);
             }
 
+            const deleted = await this.internalSquadRepository.deleteByUUID(uuid);
+
             for (const profileUuid of includedProfiles) {
                 await this.startAllNodesByProfileQueueService.startAllNodesByProfile({
                     profileUuid,
                     emitter: 'deleteInternalSquad',
                 });
             }
-
-            const deleted = await this.internalSquadRepository.deleteByUUID(uuid);
 
             return {
                 isOk: true,
