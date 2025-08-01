@@ -50,6 +50,7 @@ ARG BRANCH=main
 
 # Install jemalloc
 RUN apk add --no-cache jemalloc
+RUN apk add --no-cache curl
 
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV REMNAWAVE_BRANCH=${BRANCH}
