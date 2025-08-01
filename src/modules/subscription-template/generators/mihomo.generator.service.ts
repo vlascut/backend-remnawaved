@@ -138,9 +138,34 @@ export class MihomoGeneratorService {
                 }
             }
 
+            if (yamlConfig['proxy-providers']) {
+                // dialer-proxy support
+                for (const providerKey in yamlConfig['proxy-providers']) {
+                    const provider = yamlConfig['proxy-providers'][providerKey];
+
+                    let remnawaveCustom = undefined;
+
+                    if (provider?.remnawave) {
+                        remnawaveCustom = provider.remnawave;
+
+                        delete provider.remnawave;
+                    } else {
+                        continue;
+                    }
+
+                    if (remnawaveCustom && remnawaveCustom['include-proxies'] === true) {
+                        provider.payload = [];
+
+                        for (const proxy of data.proxies) {
+                            provider.payload.push(proxy);
+                        }
+                    }
+                }
+            }
+
             return yaml.stringify(yamlConfig);
         } catch (error) {
-            this.logger.error('Error rendering yaml config:', error);
+            this.logger.error(`Error rendering yaml config: ${error}`);
             return '';
         }
     }
