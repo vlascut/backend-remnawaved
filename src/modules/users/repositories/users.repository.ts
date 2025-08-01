@@ -396,7 +396,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
 
         const usersResult = users.map((user) => new UserEntity(user));
 
-        return [usersResult, Number(total)];
+        return [usersResult, Number(total.count)];
     }
 
     public async findByUUID(uuid: string): Promise<null | BaseUserEntity> {
