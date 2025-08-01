@@ -211,4 +211,26 @@ export class NodesRepository implements ICrud<NodesEntity> {
 
         return !!result;
     }
+
+    public async clearActiveConfigProfileForNodesWithoutInbounds(): Promise<number> {
+        const result = await this.qb.kysely
+            .updateTable('nodes')
+            .set({
+                activeConfigProfileUuid: null,
+            })
+            .where('activeConfigProfileUuid', 'is not', null)
+            .where((eb) =>
+                eb.not(
+                    eb.exists(
+                        eb
+                            .selectFrom('configProfileInboundsToNodes')
+                            .select('nodeUuid')
+                            .whereRef('nodeUuid', '=', 'nodes.uuid'),
+                    ),
+                ),
+            )
+            .executeTakeFirst();
+
+        return Number(result.numUpdatedRows || 0);
+    }
 }

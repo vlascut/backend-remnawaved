@@ -227,6 +227,9 @@ export class ConfigProfileService {
                 config: sortedConfig as object,
             });
 
+            // No need for now
+            // await this.commandBus.execute(new SyncActiveProfileCommand());
+
             await this.startAllNodesByProfileQueueService.startAllNodesByProfile({
                 profileUuid: existingConfigProfile.uuid,
                 emitter: 'updateConfigProfile',

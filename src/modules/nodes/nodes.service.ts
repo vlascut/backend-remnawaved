@@ -349,6 +349,33 @@ export class NodesService {
                 };
             }
 
+            if (!node.activeConfigProfileUuid || node.activeInbounds.length === 0) {
+                const result = await this.nodesRepository.update({
+                    uuid: node.uuid,
+                    isDisabled: true,
+                    activeConfigProfileUuid: null,
+                    isConnecting: false,
+                    isXrayRunning: false,
+                    isNodeOnline: false,
+                    isConnected: false,
+                    lastStatusMessage: null,
+                    lastStatusChange: new Date(),
+                    usersOnline: 0,
+                });
+
+                if (!result) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.ENABLE_NODE_ERROR,
+                    };
+                }
+
+                return {
+                    isOk: true,
+                    response: result,
+                };
+            }
+
             const result = await this.nodesRepository.update({
                 uuid: node.uuid,
                 isDisabled: false,
@@ -390,13 +417,23 @@ export class NodesService {
                 };
             }
 
+            if (!node.activeConfigProfileUuid || node.activeInbounds.length === 0) {
+                await this.nodesRepository.update({
+                    uuid: node.uuid,
+                    activeConfigProfileUuid: null,
+                });
+            }
+
             const result = await this.nodesRepository.update({
                 uuid: node.uuid,
                 isDisabled: true,
-                isConnected: false,
                 isConnecting: false,
-                isNodeOnline: false,
                 isXrayRunning: false,
+                isNodeOnline: false,
+                isConnected: false,
+                lastStatusMessage: null,
+                lastStatusChange: new Date(),
+                usersOnline: 0,
             });
 
             if (!result) {
