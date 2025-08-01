@@ -13,7 +13,7 @@ import { WorkerRoutesGuard } from '@common/guards/worker-routes/worker-routes.gu
 import { customLogFilter } from '@common/utils/filter-logs/filter-logs';
 import { isDevelopment } from '@common/utils/startup-app';
 import { AxiosService } from '@common/axios';
-import { BULLBOARD_ROOT, METRICS_ROOT } from '@libs/contracts/api';
+import { BULLBOARD_ROOT, HEALTH_ROOT, METRICS_ROOT } from '@libs/contracts/api';
 
 import { SchedulerRootModule } from './scheduler.root.module';
 
@@ -77,7 +77,9 @@ async function bootstrap(): Promise<void> {
 
     app.useGlobalFilters(new NotFoundExceptionFilter());
 
-    app.useGlobalGuards(new WorkerRoutesGuard({ allowedPaths: [METRICS_ROOT, BULLBOARD_ROOT] }));
+    app.useGlobalGuards(
+        new WorkerRoutesGuard({ allowedPaths: [METRICS_ROOT, BULLBOARD_ROOT, HEALTH_ROOT] }),
+    );
 
     app.enableShutdownHooks();
 

@@ -2,6 +2,7 @@ import * as CONTROLLERS from './controllers';
 
 export const ROOT = '/api' as const;
 export const METRICS_ROOT = '/metrics' as const;
+export const HEALTH_ROOT = '/health' as const;
 export const BULLBOARD_ROOT = '/queues' as const;
 
 export const REST_API = {
