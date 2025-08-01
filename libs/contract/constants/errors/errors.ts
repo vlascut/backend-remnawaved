@@ -745,7 +745,7 @@ export const ERRORS = {
         httpCode: 400,
     },
     SYNC_ACTIVE_PROFILE_ERROR: {
-        code: 'A149',
+        code: 'A150',
         message: 'Sync active profile error',
         httpCode: 500,
     },

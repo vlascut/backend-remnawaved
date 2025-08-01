@@ -417,7 +417,7 @@ export class NodesService {
                 };
             }
 
-            if (!node.activeConfigProfileUuid || node.activeConfigProfileUuid.length === 0) {
+            if (!node.activeConfigProfileUuid || node.activeInbounds.length === 0) {
                 await this.nodesRepository.update({
                     uuid: node.uuid,
                     activeConfigProfileUuid: null,
