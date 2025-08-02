@@ -4,12 +4,14 @@ import { BaseUserEntity } from './base-users.entity';
 
 export interface ILastConnectedNode {
     nodeName: string;
+    countryCode: string;
     connectedAt: Date;
 }
 
 interface ILastConnectedNodeWithActiveInternalSquads {
     lastConnectedNode?: {
         name: string;
+        countryCode: string;
     } | null;
     activeInternalSquads?: Omit<InternalSquadEntity, 'createdAt' | 'updatedAt'>[];
 }
@@ -25,6 +27,7 @@ export class UserEntity extends BaseUserEntity {
         if (user.lastConnectedNode && user.onlineAt) {
             this.lastConnectedNode = {
                 nodeName: user.lastConnectedNode.name,
+                countryCode: user.lastConnectedNode.countryCode,
                 connectedAt: user.onlineAt,
             };
         } else {

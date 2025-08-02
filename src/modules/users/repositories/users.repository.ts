@@ -1159,7 +1159,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         return jsonObjectFrom(
             eb
                 .selectFrom('nodes')
-                .select(['name'])
+                .select(['name', 'countryCode'])
                 .whereRef('nodes.uuid', '=', 'users.lastConnectedNodeUuid'),
         ).as('lastConnectedNode');
     }

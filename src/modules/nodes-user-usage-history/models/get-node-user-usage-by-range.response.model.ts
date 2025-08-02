@@ -3,6 +3,7 @@ import { IGetNodeUserUsageByRange } from '../interfaces';
 export class GetNodeUserUsageByRangeResponseModel {
     public readonly userUuid: string;
     public readonly nodeUuid: string;
+
     public readonly username: string;
     public readonly total: number;
     public readonly date: Date;
