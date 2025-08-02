@@ -259,6 +259,15 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                     continue;
                 }
 
+                if (filter.id === 'nodeName') {
+                    whereBuilder = whereBuilder.where(
+                        'lastConnectedNodeUuid',
+                        '=',
+                        getKyselyUuid(filter.value as string),
+                    );
+                    continue;
+                }
+
                 const field = filter.id as keyof DB['users'];
 
                 switch (mode) {
@@ -343,6 +352,15 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                                     '=',
                                     getKyselyUuid(filter.value as string),
                                 ),
+                        );
+                        continue;
+                    }
+
+                    if (filter.id === 'nodeName') {
+                        countBuilder = countBuilder.where(
+                            'lastConnectedNodeUuid',
+                            '=',
+                            getKyselyUuid(filter.value as string),
                         );
                         continue;
                     }
@@ -604,13 +622,6 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             neverOnline: Number(result.neverOnline),
         };
     }
-
-    // public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
-    //     const { query } = new BatchResetUsersUsageBuilder(strategy);
-    //     await this.prisma.tx.tx.$executeRaw<void>(query);
-
-    //     return;
-    // }
 
     public async resetUserTraffic(strategy: TResetPeriods): Promise<void> {
         await this.qb.kysely
