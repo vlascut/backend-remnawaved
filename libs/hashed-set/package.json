@@ -1,6 +1,6 @@
 {
     "name": "@remnawave/hashed-set",
-    "version": "0.0.2",
+    "version": "0.0.4",
     "public": true,
     "license": "AGPL-3.0-only",
     "description": "A high-performance Set implementation with hash-based equality comparison for fast set operations.",

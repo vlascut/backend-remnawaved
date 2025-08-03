@@ -76,8 +76,7 @@ export class GetPreparedConfigWithUsersHandler
             }
 
             for (const [tag, set] of inboundsEmailSets) {
-                const hash = set.hash;
-                this.logger.log(`Inbound ${tag} has ${hash}...`);
+                this.logger.log(`Inbound ${tag} has ${set.hash64String}...`);
             }
 
             return {
@@ -88,7 +87,7 @@ export class GetPreparedConfigWithUsersHandler
                         emptyConfig: configHash,
                         inbounds: Array.from(inboundsEmailSets.entries()).map(([tag, set]) => ({
                             usersCount: set.size,
-                            hash: set.hash,
+                            hash: set.hash64String,
                             tag,
                         })),
                     },

@@ -283,7 +283,7 @@ export class XRayConfig {
                 for (const user of users) {
                     (inbound.settings as TrojanSettings).clients.push({
                         password: user.trojanPassword,
-                        email: `${user.username}`,
+                        email: user.username,
                     });
                 }
                 break;
@@ -292,7 +292,7 @@ export class XRayConfig {
                 for (const user of users) {
                     (inbound.settings as VLessSettings).clients.push({
                         id: user.vlessUuid,
-                        email: `${user.username}`,
+                        email: user.username,
                         flow: getVlessFlow(inbound),
                     });
                 }

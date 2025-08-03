@@ -76,7 +76,7 @@ export class FormatHostsService {
             }
         }
 
-        if (hosts.length === 0 && user.activeInternalSquads.length > 0) {
+        if (hosts.length === 0 && user.activeInternalSquads.length === 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
                     '→ Remnawave',
