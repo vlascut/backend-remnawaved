@@ -1,5 +1,8 @@
 import { createPublicKey, createPrivateKey, KeyObject } from 'node:crypto';
+import { hasher } from 'node-object-hash';
 import { readFileSync } from 'node:fs';
+
+import { HashedSet } from '@remnawave/hashed-set';
 
 import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
 
@@ -233,6 +236,15 @@ export class XRayConfig {
         return config;
     }
 
+    public getConfigHash(): string {
+        const hash = hasher({
+            trim: true,
+            sort: true,
+        }).hash;
+
+        return hash(this.config);
+    }
+
     public getAllInbounds(): InboundsWithTagsAndType[] {
         return this.inbounds
             .filter((inbound) => this.isInboundWithUsers(inbound.protocol))
@@ -300,7 +312,10 @@ export class XRayConfig {
         }
     }
 
-    public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
+    public includeUserBatch(
+        users: UserForConfigEntity[],
+        inboundsEmailSets: Map<string, HashedSet>,
+    ): IXrayConfig {
         const usersByTag = new Map<string, UserForConfigEntity[]>();
         for (const user of users) {
             for (const tag of user.tags) {
@@ -308,6 +323,12 @@ export class XRayConfig {
                     usersByTag.set(tag, []);
                 }
                 usersByTag.get(tag)!.push(user);
+
+                if (!inboundsEmailSets.has(tag)) {
+                    inboundsEmailSets.set(tag, new HashedSet());
+                }
+
+                inboundsEmailSets.get(tag)!.add(user.username);
             }
         }
 

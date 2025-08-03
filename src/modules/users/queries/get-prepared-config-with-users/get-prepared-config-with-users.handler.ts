@@ -1,19 +1,27 @@
 import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
+import { HashedSet } from '@remnawave/hashed-set';
+
 import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { ERRORS } from '@libs/contracts/constants';
 
 import { GetConfigProfileByUuidQuery } from '@modules/config-profiles/queries/get-config-profile-by-uuid';
 import { UsersRepository } from '@modules/users/repositories/users.repository';
 
-import { GetPreparedConfigWithUsersQuery } from './get-prepared-config-with-users.query';
+import {
+    GetPreparedConfigWithUsersQuery,
+    IGetPreparedConfigWithUsersResponse,
+} from './get-prepared-config-with-users.query';
 
 @QueryHandler(GetPreparedConfigWithUsersQuery)
 export class GetPreparedConfigWithUsersHandler
-    implements IQueryHandler<GetPreparedConfigWithUsersQuery, ICommandResponse<IXrayConfig>>
+    implements
+        IQueryHandler<
+            GetPreparedConfigWithUsersQuery,
+            ICommandResponse<IGetPreparedConfigWithUsersResponse>
+        >
 {
     private readonly logger = new Logger(GetPreparedConfigWithUsersHandler.name);
     constructor(
@@ -21,9 +29,13 @@ export class GetPreparedConfigWithUsersHandler
         private readonly queryBus: QueryBus,
     ) {}
 
-    async execute(query: GetPreparedConfigWithUsersQuery): Promise<ICommandResponse<IXrayConfig>> {
+    async execute(
+        query: GetPreparedConfigWithUsersQuery,
+    ): Promise<ICommandResponse<IGetPreparedConfigWithUsersResponse>> {
         let config: XRayConfig | null = null;
+        const inboundsEmailSets: Map<string, HashedSet> = new Map();
         try {
+            // TODO: cleanup logs
             const { configProfileUuid, activeInbounds } = query;
 
             const configProfile = await this.queryBus.execute(
@@ -43,18 +55,44 @@ export class GetPreparedConfigWithUsersHandler
 
             config.processCertificates();
 
+            const start = Date.now();
+            const configHash = config.getConfigHash();
+            this.logger.log(`Config hash: ${configHash} in ${Date.now() - start}ms`);
+
             const usersStream = this.usersRepository.getUsersForConfigStream(
                 configProfileUuid,
                 activeInbounds,
             );
 
+            const startUserBatch = Date.now();
             for await (const userBatch of usersStream) {
-                config.includeUserBatch(userBatch);
+                config.includeUserBatch(userBatch, inboundsEmailSets);
+            }
+            const endUserBatch = Date.now();
+            this.logger.log(`User batch in ${endUserBatch - startUserBatch}ms`);
+
+            for (const [tag, set] of inboundsEmailSets) {
+                this.logger.log(`Inbound ${tag} has ${set.size} users`);
+            }
+
+            for (const [tag, set] of inboundsEmailSets) {
+                const hash = set.hash;
+                this.logger.log(`Inbound ${tag} has ${hash}...`);
             }
 
             return {
                 isOk: true,
-                response: config.getConfig(),
+                response: {
+                    config: config.getConfig(),
+                    hashes: {
+                        emptyConfig: configHash,
+                        inbounds: Array.from(inboundsEmailSets.entries()).map(([tag, set]) => ({
+                            usersCount: set.size,
+                            hash: set.hash,
+                            tag,
+                        })),
+                    },
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -64,6 +102,10 @@ export class GetPreparedConfigWithUsersHandler
             };
         } finally {
             config = null;
+            for (const [, set] of inboundsEmailSets) {
+                set.clear();
+            }
+            inboundsEmailSets.clear();
         }
     }
 }

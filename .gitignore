@@ -7,6 +7,9 @@
 /libs/contract/build
 /libs/contract/node_modules
 /libs/contract/dist
+/libs/hashed-set/build
+/libs/hashed-set/node_modules
+/libs/hashed-set/dist
 # Logs
 logs
 *.log
