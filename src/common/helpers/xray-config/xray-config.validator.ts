@@ -239,10 +239,10 @@ export class XRayConfig {
     public getConfigHash(): string {
         const hash = hasher({
             trim: true,
-            sort: true,
+            sort: false,
         }).hash;
 
-        return hash(this.config);
+        return hash(this.getSortedConfig());
     }
 
     public getAllInbounds(): InboundsWithTagsAndType[] {
