@@ -107,26 +107,4 @@ export class HashedSet<T = any> extends Set<T> {
     hasSameHash(other: HashedSet<T>): boolean {
         return this.hash === other.hash;
     }
-
-    /**
-     * Checks if this set is equal to another set by comparing elements.
-     * For HashedSets, this first checks hash equality for performance.
-     * If the other set is a HashedSet and the hashes don't match, returns false immediately.
-     * Otherwise, compares each element to ensure both sets contain the same values.
-     * @param other The other set to compare with
-     * @returns True if both sets contain exactly the same elements, false otherwise
-     */
-    deepEquals(other: Set<T>): boolean {
-        if (other instanceof HashedSet && !this.hasSameHash(other)) {
-            return false;
-        }
-
-        for (const value of this) {
-            if (!other.has(value)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }

@@ -14,7 +14,6 @@ console.log(`Set 2: [${Array.from(set2).join(', ')}]`);
 console.log(`Set 1 hash: ${set1.hash}`);
 console.log(`Set 2 hash: ${set2.hash}`);
 console.log(`Hashes equal: ${set1.hasSameHash(set2)}`);
-console.log(`Sets equal: ${set1.deepEquals(set2)}\n`);
 
 // Performance comparison
 console.log('⚡ Performance Demo:');
@@ -37,14 +36,6 @@ const hashEqual = bigSet1.hasSameHash(bigSet2);
 const hashTime = performance.now() - hashStart;
 
 console.log(`Hash comparison: ${hashTime.toFixed(4)}ms - Result: ${hashEqual}`);
-
-// Full comparison (slower but definitive)
-const fullStart = performance.now();
-const fullEqual = bigSet1.deepEquals(bigSet2);
-const fullTime = performance.now() - fullStart;
-
-console.log(`Full comparison: ${fullTime.toFixed(4)}ms - Result: ${fullEqual}`);
-console.log(`Hash comparison is ${(fullTime / hashTime).toFixed(0)}x faster!\n`);
 
 // Modification demo
 console.log('🔧 Modification Demo:');

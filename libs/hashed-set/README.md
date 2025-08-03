@@ -50,11 +50,6 @@ if (set1.hasSameHash(set2)) {
   console.log('Sets likely contain the same elements');
 }
 
-// Full equality check
-if (set1.deepEquals(set2)) {
-  console.log('Sets are definitely equal');
-}
-
 // Get unique hash for the set
 console.log(`Set hash: ${set1.hash}`);
 ```
@@ -103,7 +98,6 @@ console.log(`Comparison took ${endTime - startTime}ms`); // ~0.01ms instead of ~
 #### Additional Methods
 
 - `hasSameHash(other: HashedSet<T>): boolean` - Fast hash-based comparison
-- `deepEquals(other: Set<T>): boolean` - Deep equality comparison
 
 ## Hash Algorithm
 
@@ -120,7 +114,6 @@ The final set hash is computed using XOR operations, making it order-independent
 - **Set Creation**: O(n) where n is the number of elements
 - **Add/Delete**: O(1) average case
 - **Hash Comparison**: O(1)
-- **Full Equality Check**: O(n) worst case, O(1) best case with hash pre-check
 
 ## License
 
