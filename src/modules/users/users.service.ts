@@ -134,7 +134,12 @@ export class UsersService {
             }
 
             if (user.response.isNeedToBeRemovedFromNode) {
-                this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user.username));
+                this.eventBus.publish(
+                    new RemoveUserFromNodeEvent(
+                        user.response.user.username,
+                        user.response.user.vlessUuid,
+                    ),
+                );
             }
 
             this.eventEmitter.emit(
@@ -508,6 +513,12 @@ export class UsersService {
                 };
             }
 
+            if (updatedUser.status === USERS_STATUS.ACTIVE) {
+                this.eventBus.publish(
+                    new AddUserToNodeEvent(updatedUser.uuid, updatedUser.vlessUuid),
+                );
+            }
+
             this.eventEmitter.emit(
                 EVENTS.USER.REVOKED,
                 new UserEvent(updatedUser, EVENTS.USER.REVOKED),
@@ -545,7 +556,7 @@ export class UsersService {
 
             const result = await this.userRepository.deleteByUUID(user.uuid);
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user.username));
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user.username, user.vlessUuid));
 
             this.eventEmitter.emit(EVENTS.USER.DELETED, new UserEvent(user, EVENTS.USER.DELETED));
             return {
@@ -590,7 +601,9 @@ export class UsersService {
                 };
             }
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(updatedUser.username));
+            this.eventBus.publish(
+                new RemoveUserFromNodeEvent(updatedUser.username, updatedUser.vlessUuid),
+            );
             this.eventEmitter.emit(
                 EVENTS.USER.DISABLED,
                 new UserEvent(updatedUser, EVENTS.USER.DISABLED),

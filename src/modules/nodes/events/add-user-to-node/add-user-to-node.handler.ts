@@ -49,6 +49,11 @@ export class AddUserToNodeHandler implements IEventHandler<AddUserToNodeEvent> {
             }
 
             const userData: AddUserToNodeCommandSdk.Request = {
+                hashData: {
+                    vlessUuid,
+                    prevVlessUuid: event.prevVlessUuid,
+                },
+
                 data: inbounds.map((inbound) => {
                     const inboundType = inbound.type;
 

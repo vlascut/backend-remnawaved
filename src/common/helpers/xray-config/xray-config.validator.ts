@@ -284,6 +284,7 @@ export class XRayConfig {
                     (inbound.settings as TrojanSettings).clients.push({
                         password: user.trojanPassword,
                         email: user.username,
+                        id: user.vlessUuid,
                     });
                 }
                 break;
@@ -304,6 +305,7 @@ export class XRayConfig {
                         password: user.ssPassword,
                         method: 'chacha20-ietf-poly1305',
                         email: user.username,
+                        id: user.vlessUuid,
                     });
                 }
                 break;
@@ -314,7 +316,7 @@ export class XRayConfig {
 
     public includeUserBatch(
         users: UserForConfigEntity[],
-        inboundsEmailSets: Map<string, HashedSet>,
+        inboundsUserSets: Map<string, HashedSet>,
     ): IXrayConfig {
         const usersByTag = new Map<string, UserForConfigEntity[]>();
         for (const user of users) {
@@ -324,11 +326,11 @@ export class XRayConfig {
                 }
                 usersByTag.get(tag)!.push(user);
 
-                if (!inboundsEmailSets.has(tag)) {
-                    inboundsEmailSets.set(tag, new HashedSet());
+                if (!inboundsUserSets.has(tag)) {
+                    inboundsUserSets.set(tag, new HashedSet());
                 }
 
-                inboundsEmailSets.get(tag)!.add(user.username);
+                inboundsUserSets.get(tag)!.add(user.vlessUuid);
             }
         }
 

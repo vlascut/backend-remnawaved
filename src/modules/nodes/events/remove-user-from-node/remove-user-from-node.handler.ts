@@ -27,6 +27,9 @@ export class RemoveUserFromNodeHandler implements IEventHandler<RemoveUserFromNo
 
             const userData: RemoveUserFromNodeCommandSdk.Request = {
                 username: event.username,
+                hashData: {
+                    vlessUuid: event.vlessUuid,
+                },
             };
 
             await this.nodeUsersQueue.removeUserFromNodeBulk(

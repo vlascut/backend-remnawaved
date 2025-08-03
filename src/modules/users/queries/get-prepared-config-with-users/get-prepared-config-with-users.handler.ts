@@ -33,7 +33,7 @@ export class GetPreparedConfigWithUsersHandler
         query: GetPreparedConfigWithUsersQuery,
     ): Promise<ICommandResponse<IGetPreparedConfigWithUsersResponse>> {
         let config: XRayConfig | null = null;
-        const inboundsEmailSets: Map<string, HashedSet> = new Map();
+        const inboundsUserSets: Map<string, HashedSet> = new Map();
         try {
             // TODO: cleanup logs
             const { configProfileUuid, activeInbounds } = query;
@@ -66,16 +66,16 @@ export class GetPreparedConfigWithUsersHandler
 
             const startUserBatch = Date.now();
             for await (const userBatch of usersStream) {
-                config.includeUserBatch(userBatch, inboundsEmailSets);
+                config.includeUserBatch(userBatch, inboundsUserSets);
             }
             const endUserBatch = Date.now();
             this.logger.log(`User batch in ${endUserBatch - startUserBatch}ms`);
 
-            for (const [tag, set] of inboundsEmailSets) {
+            for (const [tag, set] of inboundsUserSets) {
                 this.logger.log(`Inbound ${tag} has ${set.size} users`);
             }
 
-            for (const [tag, set] of inboundsEmailSets) {
+            for (const [tag, set] of inboundsUserSets) {
                 this.logger.log(`Inbound ${tag} has ${set.hash64String}...`);
             }
 
@@ -85,7 +85,7 @@ export class GetPreparedConfigWithUsersHandler
                     config: config.getConfig(),
                     hashes: {
                         emptyConfig: configHash,
-                        inbounds: Array.from(inboundsEmailSets.entries()).map(([tag, set]) => ({
+                        inbounds: Array.from(inboundsUserSets.entries()).map(([tag, set]) => ({
                             usersCount: set.size,
                             hash: set.hash64String,
                             tag,
@@ -101,10 +101,10 @@ export class GetPreparedConfigWithUsersHandler
             };
         } finally {
             config = null;
-            for (const [, set] of inboundsEmailSets) {
+            for (const [, set] of inboundsUserSets) {
                 set.clear();
             }
-            inboundsEmailSets.clear();
+            inboundsUserSets.clear();
         }
     }
 }
