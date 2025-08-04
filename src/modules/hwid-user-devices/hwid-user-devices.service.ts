@@ -14,12 +14,20 @@ import { CreateUserHwidDeviceRequestDto } from './dtos';
 @Injectable()
 export class HwidUserDevicesService {
     private readonly logger = new Logger(HwidUserDevicesService.name);
+    private readonly hwidDeviceLimitEnabled: boolean;
+    private readonly hwidGlobalDeviceLimit: number | undefined;
 
     constructor(
         private readonly hwidUserDevicesRepository: HwidUserDevicesRepository,
         private readonly configService: ConfigService,
         private readonly queryBus: QueryBus,
-    ) {}
+    ) {
+        this.hwidDeviceLimitEnabled =
+            this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
+        this.hwidGlobalDeviceLimit = this.configService.get<number | undefined>(
+            'HWID_FALLBACK_DEVICE_LIMIT',
+        );
+    }
 
     public async createUserHwidDevice(
         dto: CreateUserHwidDeviceRequestDto,
@@ -44,10 +52,6 @@ export class HwidUserDevicesService {
                 };
             }
 
-            const hwidGlobalDeviceLimit = this.configService.getOrThrow<number>(
-                'HWID_FALLBACK_DEVICE_LIMIT',
-            );
-
             const isDeviceExists = await this.hwidUserDevicesRepository.checkHwidExists(
                 dto.hwid,
                 dto.userUuid,
@@ -60,15 +64,17 @@ export class HwidUserDevicesService {
                 };
             }
 
-            const count = await this.hwidUserDevicesRepository.countByUserUuid(dto.userUuid);
+            if (this.hwidDeviceLimitEnabled && this.hwidGlobalDeviceLimit) {
+                const count = await this.hwidUserDevicesRepository.countByUserUuid(dto.userUuid);
 
-            const deviceLimit = user.response.hwidDeviceLimit ?? hwidGlobalDeviceLimit;
+                const deviceLimit = user.response.hwidDeviceLimit ?? this.hwidGlobalDeviceLimit;
 
-            if (count >= deviceLimit) {
-                return {
-                    isOk: false,
-                    ...ERRORS.USER_HWID_DEVICE_LIMIT_REACHED,
-                };
+                if (count >= deviceLimit) {
+                    return {
+                        isOk: false,
+                        ...ERRORS.USER_HWID_DEVICE_LIMIT_REACHED,
+                    };
+                }
             }
 
             await this.hwidUserDevicesRepository.create(new HwidUserDeviceEntity(dto));

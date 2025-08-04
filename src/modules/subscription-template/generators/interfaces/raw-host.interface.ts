@@ -1,6 +1,16 @@
 import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
 export interface IRawHost {
+    dbData?: {
+        rawInbound: object | null;
+        tag: string;
+        uuid: string;
+        configProfileUuid: string | null;
+        configProfileInboundUuid: string | null;
+        isDisabled: boolean;
+        viewPosition: number;
+    };
+
     address: string;
     alpn: string;
     fingerprint: string;

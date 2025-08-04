@@ -29,4 +29,13 @@ export interface IFormattedHost {
     muxParams?: null | object;
     sockoptParams?: null | object;
     serverDescription?: string;
+    dbData?: {
+        rawInbound: object | null;
+        tag: string;
+        uuid: string;
+        configProfileUuid: string | null;
+        configProfileInboundUuid: string | null;
+        isDisabled: boolean;
+        viewPosition: number;
+    };
 }

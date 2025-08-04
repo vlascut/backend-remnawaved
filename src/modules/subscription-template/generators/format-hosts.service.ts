@@ -42,6 +42,7 @@ export class FormatHostsService {
     public async generateFormattedHosts(
         hosts: HostWithRawInbound[],
         user: UserEntity,
+        returnDbHost: boolean = false,
     ): Promise<IFormattedHost[]> {
         const formattedHosts: IFormattedHost[] = [];
 
@@ -319,6 +320,20 @@ export class FormatHostsService {
 
             const spiderX = spiderXFromConfig || '';
 
+            let dbData: IFormattedHost['dbData'] | undefined;
+
+            if (returnDbHost) {
+                dbData = {
+                    rawInbound: inputHost.rawInbound,
+                    tag: inputHost.tag,
+                    uuid: inputHost.uuid,
+                    configProfileUuid: inputHost.configProfileUuid,
+                    configProfileInboundUuid: inputHost.configProfileInboundUuid,
+                    isDisabled: inputHost.isDisabled,
+                    viewPosition: inputHost.viewPosition,
+                };
+            }
+
             formattedHosts.push({
                 remark,
                 address,
@@ -345,6 +360,7 @@ export class FormatHostsService {
                 serverDescription,
                 muxParams,
                 sockoptParams,
+                dbData,
             });
         }
 

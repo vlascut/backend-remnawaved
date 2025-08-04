@@ -227,6 +227,7 @@ export class SubscriptionService {
     public async getRawSubscriptionByShortUuid(
         shortUuid: string,
         userAgent: string,
+        withDisabledHosts: boolean,
         hwidHeaders: HwidHeaders | null,
     ): Promise<SubscriptionNotFoundResponse | RawSubscriptionWithHostsResponse> {
         try {
@@ -290,7 +291,10 @@ export class SubscriptionService {
                 return new SubscriptionNotFoundResponse();
             }
 
-            const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
+            const hosts = await this.getHostsByUserUuid({
+                userUuid: user.response.uuid,
+                returnDisabledHosts: withDisabledHosts,
+            });
 
             if (!hosts.isOk || !hosts.response) {
                 return new SubscriptionNotFoundResponse();
@@ -702,7 +706,7 @@ export class SubscriptionService {
         dto: GetHostsForUserQuery,
     ): Promise<ICommandResponse<HostWithRawInbound[]>> {
         return this.queryBus.execute<GetHostsForUserQuery, ICommandResponse<HostWithRawInbound[]>>(
-            new GetHostsForUserQuery(dto.userUuid),
+            new GetHostsForUserQuery(dto.userUuid, dto.returnDisabledHosts),
         );
     }
 

@@ -130,7 +130,10 @@ export class HostsRepository implements ICrud<HostsEntity> {
         return !!result;
     }
 
-    public async findActiveHostsByUserUuid(userUuid: string): Promise<HostWithRawInbound[]> {
+    public async findActiveHostsByUserUuid(
+        userUuid: string,
+        returnDisabledHosts: boolean = false,
+    ): Promise<HostWithRawInbound[]> {
         const hosts = await this.qb.kysely
             .selectFrom('hosts')
             .distinct()
@@ -149,7 +152,7 @@ export class HostsRepository implements ICrud<HostsEntity> {
                 'configProfileInbounds.uuid',
                 'hosts.configProfileInboundUuid',
             )
-            .where('hosts.isDisabled', '=', false)
+            .$if(!returnDisabledHosts, (eb) => eb.where('hosts.isDisabled', '=', false))
             .where('internalSquadMembers.userUuid', '=', getKyselyUuid(userUuid))
             .selectAll('hosts')
             .select(['configProfileInbounds.rawInbound', 'configProfileInbounds.tag'])
