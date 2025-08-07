@@ -1,7 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Cache } from 'cache-manager';
+
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants';
+import { CACHE_KEYS, ERRORS } from '@libs/contracts/constants';
 
 import { SubscriptionSettingsRepository } from './repositories/subscription-settings.repository';
 import { SubscriptionSettingsEntity } from './entities/subscription-settings.entity';
@@ -11,7 +14,10 @@ import { UpdateSubscriptionSettingsRequestDto } from './dtos';
 export class SubscriptionSettingsService {
     private readonly logger = new Logger(SubscriptionSettingsService.name);
 
-    constructor(private readonly subscriptionSettingsRepository: SubscriptionSettingsRepository) {}
+    constructor(
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly subscriptionSettingsRepository: SubscriptionSettingsRepository,
+    ) {}
 
     public async getSubscriptionSettings(): Promise<ICommandResponse<SubscriptionSettingsEntity>> {
         try {
@@ -53,6 +59,8 @@ export class SubscriptionSettingsService {
             const updatedSettings = await this.subscriptionSettingsRepository.update({
                 ...dto,
             });
+
+            await this.cacheManager.del(CACHE_KEYS.SUBSCRIPTION_SETTINGS);
 
             return {
                 isOk: true,

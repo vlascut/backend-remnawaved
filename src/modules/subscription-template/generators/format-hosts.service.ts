@@ -103,12 +103,26 @@ export class FormatHostsService {
 
         const publicKeyMap = await resolveInboundAndPublicKey(hosts.map((host) => host.rawInbound));
 
+        const knownRemarks = new Map<string, number>();
+
         for (const inputHost of hosts) {
             const remark = TemplateEngine.formatWithUser(
                 inputHost.remark,
                 user,
                 this.subPublicDomain,
             );
+
+            const currentCount = knownRemarks.get(remark) || 0;
+            knownRemarks.set(remark, currentCount + 1);
+
+            let finalRemark;
+            if (currentCount === 0) {
+                finalRemark = remark;
+            } else {
+                const hasExistingSuffix = remark.includes('^~') && remark.endsWith('~^');
+                const suffix = hasExistingSuffix ? currentCount : currentCount + 1;
+                finalRemark = `${remark} ^~${suffix}~^`;
+            }
 
             const inbound = inputHost.rawInbound as InboundObject;
 
@@ -331,11 +345,12 @@ export class FormatHostsService {
                     configProfileInboundUuid: inputHost.configProfileInboundUuid,
                     isDisabled: inputHost.isDisabled,
                     viewPosition: inputHost.viewPosition,
+                    remark: inputHost.remark,
                 };
             }
 
             formattedHosts.push({
-                remark,
+                remark: finalRemark,
                 address,
                 port,
                 protocol,

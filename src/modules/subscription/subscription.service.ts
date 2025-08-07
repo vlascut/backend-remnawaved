@@ -1,8 +1,10 @@
+import { Cache } from 'cache-manager';
 import dayjs from 'dayjs';
 import pMap from 'p-map';
 import _ from 'lodash';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 
@@ -12,6 +14,7 @@ import { ICommandResponse } from '@common/types/command-response.type';
 import { HwidHeaders } from '@common/utils/extract-hwid-headers';
 import { createHappCryptoLink } from '@common/utils';
 import {
+    CACHE_KEYS,
     ERRORS,
     REQUEST_TEMPLATE_TYPE,
     SUBSCRIPTION_TEMPLATE_TYPE,
@@ -50,9 +53,7 @@ import { GetAllSubscriptionsQueryDto } from './dto';
 @Injectable()
 export class SubscriptionService {
     private readonly logger = new Logger(SubscriptionService.name);
-
     private readonly hwidDeviceLimitEnabled: boolean;
-
     private readonly subPublicDomain: string;
 
     constructor(
@@ -62,6 +63,7 @@ export class SubscriptionService {
         private readonly renderTemplatesService: RenderTemplatesService,
         private readonly formatHostsService: FormatHostsService,
         private readonly xrayGeneratorService: XrayGeneratorService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
@@ -93,13 +95,11 @@ export class SubscriptionService {
                 return new SubscriptionNotFoundResponse();
             }
 
-            const settings = await this.getSubscriptionSettings();
+            const settingEntity = await this.getCachedSubscriptionSettings();
 
-            if (!settings.isOk || !settings.response) {
+            if (!settingEntity) {
                 return new SubscriptionNotFoundResponse();
             }
-
-            const settingEntity = settings.response;
 
             if (this.hwidDeviceLimitEnabled) {
                 const isAllowed = await this.checkHwidDeviceLimit(user.response, hwidHeaders);
@@ -246,13 +246,11 @@ export class SubscriptionService {
                 return new SubscriptionNotFoundResponse();
             }
 
-            const settings = await this.getSubscriptionSettings();
+            const settingEntity = await this.getCachedSubscriptionSettings();
 
-            if (!settings.isOk || !settings.response) {
+            if (!settingEntity) {
                 return new SubscriptionNotFoundResponse();
             }
-
-            const settingEntity = settings.response;
 
             let isHwidLimited: boolean | undefined;
 
@@ -358,13 +356,11 @@ export class SubscriptionService {
                 return new SubscriptionNotFoundResponse();
             }
 
-            const settings = await this.getSubscriptionSettings();
+            const settingEntity = await this.getCachedSubscriptionSettings();
 
-            if (!settings.isOk || !settings.response) {
+            if (!settingEntity) {
                 return new SubscriptionNotFoundResponse();
             }
-
-            const settingEntity = settings.response;
 
             if (isHtml) {
                 const result = await this.getSubscriptionInfoByShortUuid(user.response.shortUuid);
@@ -447,16 +443,16 @@ export class SubscriptionService {
 
             let settings: SubscriptionSettingsEntity;
             if (!settingEntity) {
-                const settingsResponse = await this.getSubscriptionSettings();
+                const settingsResponse = await this.getCachedSubscriptionSettings();
 
-                if (!settingsResponse.isOk || !settingsResponse.response) {
+                if (!settingsResponse) {
                     return {
                         isOk: false,
                         ...ERRORS.INTERNAL_SERVER_ERROR,
                     };
                 }
 
-                settings = settingsResponse.response;
+                settings = settingsResponse;
             } else {
                 settings = settingEntity;
             }
@@ -527,16 +523,14 @@ export class SubscriptionService {
             const users = usersResponse.response.users;
             const total = usersResponse.response.total;
 
-            const settingsResponse = await this.getSubscriptionSettings();
+            const settings = await this.getCachedSubscriptionSettings();
 
-            if (!settingsResponse.isOk || !settingsResponse.response) {
+            if (!settings) {
                 return {
                     isOk: false,
                     ...ERRORS.INTERNAL_SERVER_ERROR,
                 };
             }
-
-            const settings = settingsResponse.response;
 
             const subscriptions: SubscriptionRawResponse[] = [];
 
@@ -715,6 +709,23 @@ export class SubscriptionService {
             GetSubscriptionSettingsQuery,
             ICommandResponse<SubscriptionSettingsEntity>
         >(new GetSubscriptionSettingsQuery());
+    }
+
+    private async getCachedSubscriptionSettings(): Promise<SubscriptionSettingsEntity | null> {
+        const cached = await this.cacheManager.get<SubscriptionSettingsEntity>(
+            CACHE_KEYS.SUBSCRIPTION_SETTINGS,
+        );
+        if (cached) {
+            return cached;
+        }
+
+        const settings = await this.getSubscriptionSettings();
+        if (!settings.isOk || !settings.response) {
+            return null;
+        }
+
+        await this.cacheManager.set(CACHE_KEYS.SUBSCRIPTION_SETTINGS, settings.response, 3_600_000);
+        return settings.response;
     }
 
     private async updateSubLastOpenedAndUserAgent(

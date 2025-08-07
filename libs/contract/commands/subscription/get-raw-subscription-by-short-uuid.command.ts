@@ -100,6 +100,7 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                             configProfileInboundUuid: z.nullable(z.string()),
                             isDisabled: z.boolean(),
                             viewPosition: z.number(),
+                            remark: z.string(),
                         }),
                     ),
                 }),

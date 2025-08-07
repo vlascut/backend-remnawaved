@@ -37,5 +37,6 @@ export interface IFormattedHost {
         configProfileInboundUuid: string | null;
         isDisabled: boolean;
         viewPosition: number;
+        remark: string;
     };
 }

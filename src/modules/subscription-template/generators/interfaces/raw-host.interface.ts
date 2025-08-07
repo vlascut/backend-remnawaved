@@ -9,6 +9,7 @@ export interface IRawHost {
         configProfileInboundUuid: string | null;
         isDisabled: boolean;
         viewPosition: number;
+        remark: string;
     };
 
     address: string;

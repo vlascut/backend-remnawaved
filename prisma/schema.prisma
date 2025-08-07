@@ -232,7 +232,7 @@ model UserTrafficHistory {
 model Hosts {
   uuid              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   viewPosition      Int     @default(autoincrement()) @map("view_position")
-  remark            String  @unique @map("remark")
+  remark            String  @map("remark")
   address           String  @map("address")
   port              Int     @map("port")
   path              String? @map("path")
