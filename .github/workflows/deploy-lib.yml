@@ -31,15 +31,15 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Install HashedSet dependencies and build
-        working-directory: 'libs/hashed-set'
-        run: npm i && npm run prepublish
+      # - name: Install HashedSet dependencies and build
+      #   working-directory: 'libs/hashed-set'
+      #   run: npm i && npm run prepublish
 
-      - name: Publish HashedSet package on NPM
-        working-directory: 'libs/hashed-set'
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Publish HashedSet package on NPM
+      #   working-directory: 'libs/hashed-set'
+      #   run: npm publish --provenance --access public
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   send-telegram-message:
     name: Send Telegram message

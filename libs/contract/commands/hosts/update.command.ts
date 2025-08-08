@@ -65,14 +65,14 @@ export namespace UpdateHostCommand {
                 z
                     .string()
                     .regex(
-                        /^[A-Z0-9_]+$/,
-                        'Tag can only contain uppercase letters, numbers, underscores',
+                        /^[A-Z0-9_:]+$/,
+                        'Tag can only contain uppercase letters, numbers, underscores and colons',
                     )
-                    .max(16, 'Tag must be less than 16 characters')
+                    .max(32, 'Tag must be less than 32 characters')
                     .nullable(),
             )
             .describe(
-                'Optional. Host tag for categorization. Max 16 characters, uppercase letters, numbers and underscores only.',
+                'Optional. Host tag for categorization. Max 32 characters, uppercase letters, numbers, underscores and colons are allowed.',
             ),
         isHidden: z.optional(z.boolean()),
     });
