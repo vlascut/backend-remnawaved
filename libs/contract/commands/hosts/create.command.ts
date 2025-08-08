@@ -56,6 +56,21 @@ export namespace CreateHostCommand {
                 })
                 .nullable(),
         ),
+        tag: z
+            .optional(
+                z
+                    .string()
+                    .regex(
+                        /^[A-Z0-9_]+$/,
+                        'Tag can only contain uppercase letters, numbers, underscores',
+                    )
+                    .max(16, 'Tag must be less than 16 characters')
+                    .nullable(),
+            )
+            .describe(
+                'Optional. Host tag for categorization. Max 16 characters, uppercase letters, numbers and underscores only.',
+            ),
+        isHidden: z.optional(z.boolean().default(false)),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

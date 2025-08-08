@@ -413,4 +413,15 @@ export class HostsService {
             return { isOk: false, ...ERRORS.SET_PORT_TO_HOSTS_ERROR };
         }
     }
+
+    public async getAllHostTags(): Promise<ICommandResponse<string[]>> {
+        try {
+            const result = await this.hostsRepository.getAllHostTags();
+
+            return { isOk: true, response: result };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_ALL_HOST_TAGS_ERROR };
+        }
+    }
 }

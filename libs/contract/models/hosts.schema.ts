@@ -25,4 +25,6 @@ export const HostsSchema = z.object({
     }),
 
     serverDescription: z.string().nullable(),
+    tag: z.string().nullable(),
+    isHidden: z.boolean().default(false),
 });

@@ -167,7 +167,11 @@ export class SubscriptionService {
                 return result.response;
             }
 
-            const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
+            const hosts = await this.getHostsByUserUuid({
+                userUuid: user.response.uuid,
+                returnDisabledHosts: false,
+                returnHiddenHosts: false,
+            });
 
             if (!hosts.isOk || !hosts.response) {
                 return new SubscriptionNotFoundResponse();
@@ -292,6 +296,7 @@ export class SubscriptionService {
             const hosts = await this.getHostsByUserUuid({
                 userUuid: user.response.uuid,
                 returnDisabledHosts: withDisabledHosts,
+                returnHiddenHosts: true,
             });
 
             if (!hosts.isOk || !hosts.response) {
@@ -370,7 +375,11 @@ export class SubscriptionService {
                 return result.response;
             }
 
-            const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
+            const hosts = await this.getHostsByUserUuid({
+                userUuid: user.response.uuid,
+                returnDisabledHosts: false,
+                returnHiddenHosts: false,
+            });
 
             if (!hosts.isOk || !hosts.response) {
                 return new SubscriptionNotFoundResponse();
@@ -427,7 +436,11 @@ export class SubscriptionService {
                 };
             }
 
-            const hosts = await this.getHostsByUserUuid({ userUuid: user.response.uuid });
+            const hosts = await this.getHostsByUserUuid({
+                userUuid: user.response.uuid,
+                returnDisabledHosts: false,
+                returnHiddenHosts: false,
+            });
 
             const formattedHosts = await this.formatHostsService.generateFormattedHosts(
                 hosts.response || [],
@@ -537,7 +550,11 @@ export class SubscriptionService {
             await pMap(
                 users,
                 async (user) => {
-                    const hosts = await this.getHostsByUserUuid({ userUuid: user.uuid });
+                    const hosts = await this.getHostsByUserUuid({
+                        userUuid: user.uuid,
+                        returnDisabledHosts: false,
+                        returnHiddenHosts: false,
+                    });
                     const formattedHosts = await this.formatHostsService.generateFormattedHosts(
                         hosts.response || [],
                         user,
@@ -700,7 +717,7 @@ export class SubscriptionService {
         dto: GetHostsForUserQuery,
     ): Promise<ICommandResponse<HostWithRawInbound[]>> {
         return this.queryBus.execute<GetHostsForUserQuery, ICommandResponse<HostWithRawInbound[]>>(
-            new GetHostsForUserQuery(dto.userUuid, dto.returnDisabledHosts),
+            new GetHostsForUserQuery(dto.userUuid, dto.returnDisabledHosts, dto.returnHiddenHosts),
         );
     }
 

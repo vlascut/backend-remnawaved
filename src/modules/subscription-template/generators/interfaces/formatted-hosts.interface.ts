@@ -31,12 +31,14 @@ export interface IFormattedHost {
     serverDescription?: string;
     dbData?: {
         rawInbound: object | null;
-        tag: string;
+        inboundTag: string;
         uuid: string;
         configProfileUuid: string | null;
         configProfileInboundUuid: string | null;
         isDisabled: boolean;
         viewPosition: number;
         remark: string;
+        isHidden: boolean;
+        tag: string | null;
     };
 }

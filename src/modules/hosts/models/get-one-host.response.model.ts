@@ -19,6 +19,9 @@ export class GetOneHostResponseModel {
     public muxParams: null | object;
     public sockoptParams: null | object;
 
+    public tag: null | string;
+    public isHidden: boolean;
+
     public inbound: {
         configProfileUuid: string | null;
         configProfileInboundUuid: string | null;
@@ -44,6 +47,10 @@ export class GetOneHostResponseModel {
         this.xHttpExtraParams = data.xHttpExtraParams;
         this.muxParams = data.muxParams;
         this.sockoptParams = data.sockoptParams;
+
+        this.tag = data.tag;
+        this.isHidden = data.isHidden;
+
         this.inbound = {
             configProfileUuid: data.configProfileUuid,
             configProfileInboundUuid: data.configProfileInboundUuid,

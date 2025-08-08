@@ -30,6 +30,9 @@ const entityToModel = (entity: HostsEntity): Hosts => {
         sockoptParams: entity.sockoptParams,
         serverDescription: entity.serverDescription,
 
+        tag: entity.tag,
+        isHidden: entity.isHidden,
+
         configProfileUuid: entity.configProfileUuid,
         configProfileInboundUuid: entity.configProfileInboundUuid,
     };

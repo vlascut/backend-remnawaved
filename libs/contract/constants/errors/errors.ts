@@ -749,4 +749,9 @@ export const ERRORS = {
         message: 'Sync active profile error',
         httpCode: 500,
     },
+    GET_ALL_HOST_TAGS_ERROR: {
+        code: 'A151',
+        message: 'Get all host tags error',
+        httpCode: 500,
+    },
 } as const;

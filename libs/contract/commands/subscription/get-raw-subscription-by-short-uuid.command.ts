@@ -94,13 +94,15 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                     dbData: z.optional(
                         z.object({
                             rawInbound: z.nullable(z.object({})),
-                            tag: z.string(),
+                            inboundTag: z.string(),
                             uuid: z.string(),
                             configProfileUuid: z.nullable(z.string()),
                             configProfileInboundUuid: z.nullable(z.string()),
                             isDisabled: z.boolean(),
                             viewPosition: z.number(),
                             remark: z.string(),
+                            isHidden: z.boolean(),
+                            tag: z.nullable(z.string()),
                         }),
                     ),
                 }),

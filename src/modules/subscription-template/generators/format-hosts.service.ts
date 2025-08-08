@@ -339,13 +339,15 @@ export class FormatHostsService {
             if (returnDbHost) {
                 dbData = {
                     rawInbound: inputHost.rawInbound,
-                    tag: inputHost.tag,
+                    inboundTag: inputHost.inboundTag,
                     uuid: inputHost.uuid,
                     configProfileUuid: inputHost.configProfileUuid,
                     configProfileInboundUuid: inputHost.configProfileInboundUuid,
                     isDisabled: inputHost.isDisabled,
                     viewPosition: inputHost.viewPosition,
                     remark: inputHost.remark,
+                    isHidden: inputHost.isHidden,
+                    tag: inputHost.tag,
                 };
             }
 

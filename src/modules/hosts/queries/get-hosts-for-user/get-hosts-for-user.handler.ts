@@ -21,6 +21,7 @@ export class GetHostsForUserHandler
             const hosts = await this.hostsRepository.findActiveHostsByUserUuid(
                 query.userUuid,
                 query.returnDisabledHosts,
+                query.returnHiddenHosts,
             );
 
             return {

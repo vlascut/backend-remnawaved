@@ -20,6 +20,9 @@ export class UpdateHostResponseModel {
     public sockoptParams: null | object;
     public serverDescription: null | string;
 
+    public tag: null | string;
+    public isHidden: boolean;
+
     public inbound: {
         configProfileUuid: string | null;
         configProfileInboundUuid: string | null;
@@ -44,6 +47,10 @@ export class UpdateHostResponseModel {
         this.muxParams = data.muxParams;
         this.sockoptParams = data.sockoptParams;
         this.serverDescription = data.serverDescription;
+
+        this.tag = data.tag;
+        this.isHidden = data.isHidden;
+
         this.inbound = {
             configProfileUuid: data.configProfileUuid,
             configProfileInboundUuid: data.configProfileInboundUuid,

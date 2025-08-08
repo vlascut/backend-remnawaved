@@ -20,6 +20,9 @@ export class HostsEntity implements Hosts {
     isDisabled: boolean;
     serverDescription: null | string;
 
+    tag: null | string;
+    isHidden: boolean;
+
     configProfileUuid: string | null;
     configProfileInboundUuid: string | null;
 

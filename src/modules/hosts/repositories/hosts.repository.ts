@@ -133,6 +133,7 @@ export class HostsRepository implements ICrud<HostsEntity> {
     public async findActiveHostsByUserUuid(
         userUuid: string,
         returnDisabledHosts: boolean = false,
+        returnHiddenHosts: boolean = false,
     ): Promise<HostWithRawInbound[]> {
         const hosts = await this.qb.kysely
             .selectFrom('hosts')
@@ -153,9 +154,10 @@ export class HostsRepository implements ICrud<HostsEntity> {
                 'hosts.configProfileInboundUuid',
             )
             .$if(!returnDisabledHosts, (eb) => eb.where('hosts.isDisabled', '=', false))
+            .$if(!returnHiddenHosts, (eb) => eb.where('hosts.isHidden', '=', false))
             .where('internalSquadMembers.userUuid', '=', getKyselyUuid(userUuid))
             .selectAll('hosts')
-            .select(['configProfileInbounds.rawInbound', 'configProfileInbounds.tag'])
+            .select(['configProfileInbounds.rawInbound', 'configProfileInbounds.tag as inboundTag'])
             .orderBy('hosts.viewPosition', 'asc')
             .execute();
 
@@ -183,5 +185,16 @@ export class HostsRepository implements ICrud<HostsEntity> {
             .$executeRaw`SELECT setval('hosts_view_position_seq', (SELECT MAX(view_position) FROM hosts) + 1)`;
 
         return true;
+    }
+
+    public async getAllHostTags(): Promise<string[]> {
+        const result = await this.prisma.tx.hosts.findMany({
+            select: {
+                tag: true,
+            },
+            distinct: ['tag'],
+        });
+
+        return result.map((host) => host.tag).filter((tag) => tag !== null);
     }
 }
