@@ -131,6 +131,8 @@ export class FormatHostsService {
             if (address.includes(',')) {
                 const addressList = address.split(',');
                 address = addressList[Math.floor(Math.random() * addressList.length)].trim();
+            } else if (address.includes('*')) {
+                address = address.replace('*', this.nanoid()).trim();
             }
 
             const port = inputHost.port;
@@ -296,7 +298,11 @@ export class FormatHostsService {
             const protocol = inbound.protocol;
             const path = inputHost.path || pathFromConfig || '';
 
-            const host = inputHost.host || hostFromConfig || '';
+            let host = inputHost.host || hostFromConfig || '';
+
+            if (host.includes('*')) {
+                host = host.replace('*', this.nanoid()).trim();
+            }
 
             const tls = tlsFromConfig;
 
