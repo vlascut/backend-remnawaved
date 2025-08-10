@@ -35,7 +35,6 @@ export class GetPreparedConfigWithUsersHandler
         let config: XRayConfig | null = null;
         const inboundsUserSets: Map<string, HashedSet> = new Map();
         try {
-            // TODO: cleanup logs
             const { configProfileUuid, activeInbounds } = query;
 
             const configProfile = await this.queryBus.execute(
@@ -55,28 +54,19 @@ export class GetPreparedConfigWithUsersHandler
 
             config.processCertificates();
 
-            const start = Date.now();
             const configHash = config.getConfigHash();
-            this.logger.log(`Config hash: ${configHash} in ${Date.now() - start}ms`);
 
             const usersStream = this.usersRepository.getUsersForConfigStream(
                 configProfileUuid,
                 activeInbounds,
             );
 
-            const startUserBatch = Date.now();
             for await (const userBatch of usersStream) {
                 config.includeUserBatch(userBatch, inboundsUserSets);
             }
-            const endUserBatch = Date.now();
-            this.logger.log(`User batch in ${endUserBatch - startUserBatch}ms`);
 
             for (const [tag, set] of inboundsUserSets) {
-                this.logger.log(`Inbound ${tag} has ${set.size} users`);
-            }
-
-            for (const [tag, set] of inboundsUserSets) {
-                this.logger.log(`Inbound ${tag} has ${set.hash64String}...`);
+                this.logger.debug(`Inbound ${tag}: hash ${set.hash64String} and ${set.size} users`);
             }
 
             return {
