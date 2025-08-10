@@ -357,6 +357,12 @@ export class FormatHostsService {
                 };
             }
 
+            // overrides
+
+            if (inputHost.overrideSniFromAddress) {
+                sni = address;
+            }
+
             formattedHosts.push({
                 remark: finalRemark,
                 address,

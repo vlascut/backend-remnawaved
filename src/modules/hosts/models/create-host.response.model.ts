@@ -25,6 +25,8 @@ export class CreateHostResponseModel {
     public tag: null | string;
     public isHidden: boolean;
 
+    public overrideSniFromAddress: boolean;
+
     public inbound: {
         configProfileUuid: string | null;
         configProfileInboundUuid: string | null;
@@ -52,6 +54,8 @@ export class CreateHostResponseModel {
 
         this.tag = data.tag;
         this.isHidden = data.isHidden;
+
+        this.overrideSniFromAddress = data.overrideSniFromAddress;
 
         this.inbound = {
             configProfileUuid: data.configProfileUuid,

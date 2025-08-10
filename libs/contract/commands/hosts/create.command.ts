@@ -71,6 +71,7 @@ export namespace CreateHostCommand {
                 'Optional. Host tag for categorization. Max 32 characters, uppercase letters, numbers, underscores and colons are allowed.',
             ),
         isHidden: z.optional(z.boolean().default(false)),
+        overrideSniFromAddress: z.optional(z.boolean().default(false)),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

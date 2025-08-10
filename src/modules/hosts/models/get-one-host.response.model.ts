@@ -22,6 +22,8 @@ export class GetOneHostResponseModel {
     public tag: null | string;
     public isHidden: boolean;
 
+    public overrideSniFromAddress: boolean;
+
     public inbound: {
         configProfileUuid: string | null;
         configProfileInboundUuid: string | null;
@@ -57,5 +59,7 @@ export class GetOneHostResponseModel {
         };
 
         this.serverDescription = data.serverDescription;
+
+        this.overrideSniFromAddress = data.overrideSniFromAddress;
     }
 }

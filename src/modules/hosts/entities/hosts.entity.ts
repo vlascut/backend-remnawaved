@@ -23,6 +23,8 @@ export class HostsEntity implements Hosts {
     tag: null | string;
     isHidden: boolean;
 
+    overrideSniFromAddress: boolean;
+
     configProfileUuid: string | null;
     configProfileInboundUuid: string | null;
 

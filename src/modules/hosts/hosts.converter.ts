@@ -33,6 +33,8 @@ const entityToModel = (entity: HostsEntity): Hosts => {
         tag: entity.tag,
         isHidden: entity.isHidden,
 
+        overrideSniFromAddress: entity.overrideSniFromAddress,
+
         configProfileUuid: entity.configProfileUuid,
         configProfileInboundUuid: entity.configProfileInboundUuid,
     };
