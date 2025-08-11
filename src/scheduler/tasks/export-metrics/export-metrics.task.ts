@@ -226,16 +226,18 @@ export class ExportMetricsTask {
                     ) {
                         const axmMonitor = process.pm2_env.axm_monitor as AxmMonitor;
 
-                        this.nodejsHeapUsedBytes.set(
-                            {
-                                instance_id: process.pm2_env.INSTANCE_ID,
-                                instance_name: process.name,
-                            },
-                            this.convertToBytes(
-                                axmMonitor['Used Heap Size'].value,
-                                axmMonitor['Used Heap Size'].unit || 'B',
-                            ),
-                        );
+                        if (axmMonitor['Used Heap Size']?.value !== undefined) {
+                            this.nodejsHeapUsedBytes.set(
+                                {
+                                    instance_id: process.pm2_env.INSTANCE_ID,
+                                    instance_name: process.name,
+                                },
+                                this.convertToBytes(
+                                    axmMonitor['Used Heap Size'].value,
+                                    axmMonitor['Used Heap Size'].unit || 'B',
+                                ),
+                            );
+                        }
 
                         this.nodejsHeapTotalBytes.set(
                             {
@@ -248,49 +250,59 @@ export class ExportMetricsTask {
                             ),
                         );
 
-                        this.nodejsHeapUsagePercent.set(
-                            {
-                                instance_id: process.pm2_env.INSTANCE_ID,
-                                instance_name: process.name,
-                            },
-                            Number(axmMonitor['Heap Usage'].value),
-                        );
+                        if (axmMonitor['Heap Usage']?.value !== undefined) {
+                            this.nodejsHeapUsagePercent.set(
+                                {
+                                    instance_id: process.pm2_env.INSTANCE_ID,
+                                    instance_name: process.name,
+                                },
+                                Number(axmMonitor['Heap Usage'].value),
+                            );
+                        }
 
-                        this.nodejsActiveHandlers.set(
-                            {
-                                instance_id: process.pm2_env.INSTANCE_ID,
-                                instance_name: process.name,
-                            },
-                            Number(axmMonitor['Active handles'].value),
-                        );
+                        if (axmMonitor['Active handles']?.value !== undefined) {
+                            this.nodejsActiveHandlers.set(
+                                {
+                                    instance_id: process.pm2_env.INSTANCE_ID,
+                                    instance_name: process.name,
+                                },
+                                Number(axmMonitor['Active handles'].value),
+                            );
+                        }
 
-                        this.nodejsActiveRequests.set(
-                            {
-                                instance_id: process.pm2_env.INSTANCE_ID,
-                                instance_name: process.name,
-                            },
-                            Number(axmMonitor['Active requests'].value),
-                        );
+                        if (axmMonitor['Active requests']?.value !== undefined) {
+                            this.nodejsActiveRequests.set(
+                                {
+                                    instance_id: process.pm2_env.INSTANCE_ID,
+                                    instance_name: process.name,
+                                },
+                                Number(axmMonitor['Active requests'].value),
+                            );
+                        }
 
-                        this.nodejsEventLoopLatencyP50.set(
-                            {
-                                instance_id: process.pm2_env.INSTANCE_ID,
-                                instance_name: process.name,
-                            },
-                            this.convert(Number(axmMonitor['Event Loop Latency p95'].value))
-                                .from(axmMonitor['Event Loop Latency p95'].unit || 'ms')
-                                .to('ms'),
-                        );
+                        if (axmMonitor['Event Loop Latency p95']?.value !== undefined) {
+                            this.nodejsEventLoopLatencyP50.set(
+                                {
+                                    instance_id: process.pm2_env.INSTANCE_ID,
+                                    instance_name: process.name,
+                                },
+                                this.convert(Number(axmMonitor['Event Loop Latency p95'].value))
+                                    .from(axmMonitor['Event Loop Latency p95'].unit || 'ms')
+                                    .to('ms'),
+                            );
+                        }
 
-                        this.nodejsEventLoopLatencyP95.set(
-                            {
-                                instance_id: process.pm2_env.INSTANCE_ID,
-                                instance_name: process.name,
-                            },
-                            this.convert(Number(axmMonitor['Event Loop Latency'].value))
-                                .from(axmMonitor['Event Loop Latency'].unit || 'ms')
-                                .to('ms'),
-                        );
+                        if (axmMonitor['Event Loop Latency']?.value !== undefined) {
+                            this.nodejsEventLoopLatencyP95.set(
+                                {
+                                    instance_id: process.pm2_env.INSTANCE_ID,
+                                    instance_name: process.name,
+                                },
+                                this.convert(Number(axmMonitor['Event Loop Latency'].value))
+                                    .from(axmMonitor['Event Loop Latency'].unit || 'ms')
+                                    .to('ms'),
+                            );
+                        }
 
                         this.nodejsCpuUsagePercent.set(
                             {
@@ -308,7 +320,7 @@ export class ExportMetricsTask {
                             this.convertToBytes(process.monit?.memory || 0, 'B'),
                         );
 
-                        if (axmMonitor['HTTP']) {
+                        if (axmMonitor['HTTP']?.value !== undefined) {
                             this.nodejsHttpReqRate.set(
                                 {
                                     instance_id: process.pm2_env.INSTANCE_ID,
@@ -318,7 +330,7 @@ export class ExportMetricsTask {
                             );
                         }
 
-                        if (axmMonitor['HTTP P95 Latency']) {
+                        if (axmMonitor['HTTP P95 Latency']?.value !== undefined) {
                             this.nodejsHttpReqLatencyP95.set(
                                 {
                                     instance_id: process.pm2_env.INSTANCE_ID,
@@ -330,7 +342,7 @@ export class ExportMetricsTask {
                             );
                         }
 
-                        if (axmMonitor['HTTP Mean Latency']) {
+                        if (axmMonitor['HTTP Mean Latency']?.value !== undefined) {
                             this.nodejsHttpReqLatencyP50.set(
                                 {
                                     instance_id: process.pm2_env.INSTANCE_ID,
@@ -344,7 +356,7 @@ export class ExportMetricsTask {
                     }
                 }
             } catch (error) {
-                this.logger.error(`Error in reportPm2Stats for process ${process.name}: ${error}`);
+                this.logger.warn(`Error in reportPm2Stats for process ${process.name}: ${error}`);
                 continue;
             }
         }

@@ -78,7 +78,10 @@ export class UsersService {
                 return user;
             }
 
-            this.eventBus.publish(new AddUserToNodeEvent(user.response.uuid));
+            if (user.response.status === USERS_STATUS.ACTIVE) {
+                this.eventBus.publish(new AddUserToNodeEvent(user.response.uuid));
+            }
+
             this.eventEmitter.emit(
                 EVENTS.USER.CREATED,
                 new UserEvent(user.response, EVENTS.USER.CREATED),
@@ -217,8 +220,8 @@ export class UsersService {
                 const currentExpireDate = dayjs.utc(user.expireAt);
                 const now = dayjs.utc();
 
-                if (currentExpireDate !== newExpireDate) {
-                    if (newExpireDate.isAfter(currentExpireDate) && newExpireDate.isAfter(now)) {
+                if (!currentExpireDate.isSame(newExpireDate)) {
+                    if (newExpireDate.isAfter(now)) {
                         newStatus = USERS_STATUS.ACTIVE;
                         isNeedToBeAddedToNode = true;
                     }

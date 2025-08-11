@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { getEndpointDetails, RESET_PERIODS } from '../../constants';
+import { getEndpointDetails, RESET_PERIODS, USERS_STATUS } from '../../constants';
 import { ExtendedUsersSchema, UsersSchema } from '../../models';
 import { REST_API, USERS_ROUTES } from '../../api';
 
@@ -14,10 +14,17 @@ export namespace UpdateUserCommand {
         'Update a user',
     );
 
-    export const RequestSchema = UsersSchema.pick({
-        uuid: true,
-    }).extend({
-        status: UsersSchema.shape.status.optional(),
+    export const RequestSchema = z.object({
+        uuid: z.string().uuid(),
+        status: z
+            .enum([USERS_STATUS.ACTIVE, USERS_STATUS.DISABLED], {
+                errorMap: () => ({
+                    message:
+                        "You can't change status to LIMITED or EXPIRED. This statuses handled by Remnawave.",
+                }),
+            })
+
+            .optional(),
         trafficLimitBytes: z
             .number({
                 invalid_type_error: 'Traffic limit must be a number',
