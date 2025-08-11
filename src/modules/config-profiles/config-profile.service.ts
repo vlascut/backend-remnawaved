@@ -256,6 +256,8 @@ export class ConfigProfileService {
 
             return this.getConfigProfileByUUID(existingConfigProfile.uuid);
         } catch (error) {
+            this.logger.error(error);
+
             if (
                 error instanceof PrismaClientKnownRequestError &&
                 error.code === 'P2002' &&
@@ -271,7 +273,14 @@ export class ConfigProfileService {
                     return { isOk: false, ...ERRORS.CONFIG_PROFILE_NAME_ALREADY_EXISTS };
                 }
             }
-            this.logger.error(error);
+
+            if (error instanceof Error) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_VALIDATION_ERROR.withMessage(error.message),
+                };
+            }
+
             return {
                 isOk: false,
                 ...ERRORS.UPDATE_CONFIG_PROFILE_ERROR,
