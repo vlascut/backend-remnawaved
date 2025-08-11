@@ -16,7 +16,16 @@ export namespace UpdateConfigProfileCommand {
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid('UUID must be a valid UUID'),
-        config: z.object({}).passthrough(),
+        name: z
+            .string()
+            .min(2, 'Name must be at least 2 characters')
+            .max(20, 'Name must be less than 20 characters')
+            .regex(
+                /^[A-Za-z0-9_-]+$/,
+                'Name can only contain letters, numbers, underscores and dashes',
+            )
+            .optional(),
+        config: z.object({}).passthrough().optional(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

@@ -194,6 +194,7 @@ export class ConfigProfileController {
     ): Promise<UpdateConfigProfileResponseDto> {
         const result = await this.configProfileService.updateConfigProfile(
             updateConfigProfileDto.uuid,
+            updateConfigProfileDto.name,
             updateConfigProfileDto.config,
         );
 
