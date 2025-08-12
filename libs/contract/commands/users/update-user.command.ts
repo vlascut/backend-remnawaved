@@ -20,7 +20,7 @@ export namespace UpdateUserCommand {
             .enum([USERS_STATUS.ACTIVE, USERS_STATUS.DISABLED], {
                 errorMap: () => ({
                     message:
-                        "You can't change status to LIMITED or EXPIRED. This statuses handled by Remnawave.",
+                        "You can't change status to LIMITED or EXPIRED. These statuses handled by Remnawave.",
                 }),
             })
 

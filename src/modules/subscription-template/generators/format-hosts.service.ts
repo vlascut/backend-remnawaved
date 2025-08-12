@@ -120,6 +120,7 @@ export class FormatHostsService {
                 finalRemark = remark;
             } else {
                 const hasExistingSuffix = remark.includes('^~') && remark.endsWith('~^');
+                // TODO: ???
                 const suffix = hasExistingSuffix ? currentCount : currentCount + 1;
                 finalRemark = `${remark} ^~${suffix}~^`;
             }

@@ -1,19 +1,20 @@
 import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
-export interface IRawHost {
-    dbData?: {
-        rawInbound: object | null;
-        inboundTag: string;
-        uuid: string;
-        configProfileUuid: string | null;
-        configProfileInboundUuid: string | null;
-        isDisabled: boolean;
-        viewPosition: number;
-        remark: string;
-        isHidden: boolean;
-        tag: string | null;
-    };
+export interface IDbHostData {
+    rawInbound: object | null;
+    inboundTag: string;
+    uuid: string;
+    configProfileUuid: string | null;
+    configProfileInboundUuid: string | null;
+    isDisabled: boolean;
+    viewPosition: number;
+    remark: string;
+    isHidden: boolean;
+    tag: string | null;
+}
 
+export interface IRawHost {
+    dbData?: IDbHostData;
     address: string;
     alpn: string;
     fingerprint: string;

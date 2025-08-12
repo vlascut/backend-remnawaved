@@ -482,7 +482,7 @@ export class UsersService {
         try {
             const user = await this.userRepository.getPartialUserByUniqueFields(
                 { uuid: userUuid },
-                ['uuid'],
+                ['uuid', 'vlessUuid'],
             );
 
             if (!user) {
@@ -491,6 +491,7 @@ export class UsersService {
                     ...ERRORS.USER_NOT_FOUND,
                 };
             }
+
             const updateResult = await this.userRepository.revokeUserSubscription({
                 uuid: user.uuid,
                 shortUuid: shortUuid ?? this.createNanoId(),
@@ -517,9 +518,7 @@ export class UsersService {
             }
 
             if (updatedUser.status === USERS_STATUS.ACTIVE) {
-                this.eventBus.publish(
-                    new AddUserToNodeEvent(updatedUser.uuid, updatedUser.vlessUuid),
-                );
+                this.eventBus.publish(new AddUserToNodeEvent(updatedUser.uuid, user.vlessUuid));
             }
 
             this.eventEmitter.emit(

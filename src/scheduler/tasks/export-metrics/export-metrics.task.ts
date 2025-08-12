@@ -281,7 +281,7 @@ export class ExportMetricsTask {
                         }
 
                         if (axmMonitor['Event Loop Latency p95']?.value !== undefined) {
-                            this.nodejsEventLoopLatencyP50.set(
+                            this.nodejsEventLoopLatencyP95.set(
                                 {
                                     instance_id: process.pm2_env.INSTANCE_ID,
                                     instance_name: process.name,
@@ -293,7 +293,7 @@ export class ExportMetricsTask {
                         }
 
                         if (axmMonitor['Event Loop Latency']?.value !== undefined) {
-                            this.nodejsEventLoopLatencyP95.set(
+                            this.nodejsEventLoopLatencyP50.set(
                                 {
                                     instance_id: process.pm2_env.INSTANCE_ID,
                                     instance_name: process.name,
