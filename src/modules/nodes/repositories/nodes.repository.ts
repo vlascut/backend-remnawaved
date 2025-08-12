@@ -57,6 +57,7 @@ export class NodesRepository implements ICrud<NodesEntity> {
                 isXrayRunning: true,
                 isNodeOnline: true,
                 isDisabled: false,
+                isConnecting: false,
                 activeConfigProfileUuid: {
                     not: null,
                 },
