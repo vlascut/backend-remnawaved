@@ -1,4 +1,5 @@
 import yaml from 'yaml';
+import _ from 'lodash';
 
 import { Injectable, Logger } from '@nestjs/common';
 
@@ -124,6 +125,16 @@ export class ClashGeneratorService {
 
                     if (randomProxy) {
                         group.proxies.push(randomProxy);
+                    }
+
+                    continue;
+                }
+
+                if (remnawaveCustom && remnawaveCustom['shuffle-proxies-order'] === true) {
+                    const shuffledProxies = _.shuffle(proxyRemarks);
+
+                    for (const proxyRemark of shuffledProxies) {
+                        group.proxies.push(proxyRemark);
                     }
 
                     continue;
