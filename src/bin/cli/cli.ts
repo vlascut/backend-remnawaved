@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import consola from 'consola';
 
 import { encodeCertPayload } from '@common/utils/certs/encode-node-payload';
@@ -16,6 +16,7 @@ const prisma = new PrismaClient({
 
 const enum CLI_ACTIONS {
     EXIT = 'exit',
+    FIX_POSTGRES_COLLATION = 'fix-postgres-collation',
     GET_SSL_CERT_FOR_NODE = 'get-ssl-cert-for-node',
     RESET_CERTS = 'reset-certs',
     RESET_SUPERADMIN = 'reset-superadmin',
@@ -139,6 +140,36 @@ async function getSslCertForNode() {
     }
 }
 
+async function fixPostgresCollation() {
+    consola.start('🔄 Fixing Collation...');
+
+    const answer = await consola.prompt('Are you sure you want to fix Collation?', {
+        type: 'confirm',
+        required: true,
+    });
+
+    if (!answer) {
+        consola.error('❌ Aborted.');
+        process.exit(1);
+    }
+
+    try {
+        const result = await prisma.$queryRaw<
+            { dbname: string }[]
+        >`SELECT current_database() as dbname;`;
+        const dbName = result[0].dbname;
+
+        consola.info(`🔄 Refreshing Collation for database: ${dbName}`);
+
+        await prisma.$executeRaw`ALTER DATABASE ${Prisma.raw(dbName)} REFRESH COLLATION VERSION;`;
+        consola.success('✅ Collation fixed successfully.');
+        process.exit(0);
+    } catch (error) {
+        consola.error('❌ Failed to fix Collation:', error);
+        process.exit(1);
+    }
+}
+
 async function main() {
     consola.box('Remnawave Rescue CLI v0.2');
 
@@ -170,11 +201,16 @@ async function main() {
                 hint: 'Get SSL_CERT in cases, where you can not get from Panel',
             },
             {
+                value: CLI_ACTIONS.FIX_POSTGRES_COLLATION,
+                label: 'Fix Collation',
+                hint: 'Fix Collation issues for current database',
+            },
+            {
                 value: CLI_ACTIONS.EXIT,
                 label: 'Exit',
             },
         ],
-        initial: CLI_ACTIONS.RESET_SUPERADMIN,
+        initial: CLI_ACTIONS.EXIT,
     });
 
     switch (action) {
@@ -186,6 +222,9 @@ async function main() {
             break;
         case CLI_ACTIONS.GET_SSL_CERT_FOR_NODE:
             await getSslCertForNode();
+            break;
+        case CLI_ACTIONS.FIX_POSTGRES_COLLATION:
+            await fixPostgresCollation();
             break;
         case CLI_ACTIONS.EXIT:
             consola.info('👋 Exiting...');
