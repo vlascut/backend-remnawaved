@@ -4,6 +4,7 @@ import {
     ApiCreatedResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
+    ApiParam,
     ApiTags,
 } from '@nestjs/swagger';
 import { Body, Controller, HttpStatus, Param, UseFilters, UseGuards } from '@nestjs/common';
@@ -19,6 +20,7 @@ import {
     CreateInternalSquadCommand,
     DeleteInternalSquadCommand,
     DeleteUsersFromInternalSquadCommand,
+    GetInternalSquadAccessibleNodesCommand,
     GetInternalSquadByUuidCommand,
     GetInternalSquadsCommand,
     UpdateInternalSquadCommand,
@@ -31,6 +33,8 @@ import {
     CreateInternalSquadRequestDto,
     CreateInternalSquadResponseDto,
     DeleteInternalSquadResponseDto,
+    GetInternalSquadAccessibleNodesRequestDto,
+    GetInternalSquadAccessibleNodesResponseDto,
     GetInternalSquadByUuidResponseDto,
     GetInternalSquadsResponseDto,
     RemoveUsersFromInternalSquadResponseDto,
@@ -101,6 +105,36 @@ export class InternalSquadController {
         const result = await this.internalSquadService.createInternalSquad(
             createInternalSquadDto.name,
             createInternalSquadDto.inbounds,
+        );
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'Internal squad not found',
+    })
+    @ApiOkResponse({
+        type: GetInternalSquadAccessibleNodesResponseDto,
+        description: 'Internal squad accessible nodes fetched successfully',
+    })
+    @ApiParam({
+        name: 'uuid',
+        type: String,
+        description: 'UUID of the internal squad',
+        required: true,
+    })
+    @Endpoint({
+        command: GetInternalSquadAccessibleNodesCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getInternalSquadAccessibleNodes(
+        @Param() paramData: GetInternalSquadAccessibleNodesRequestDto,
+    ): Promise<GetInternalSquadAccessibleNodesResponseDto> {
+        const result = await this.internalSquadService.getInternalSquadAccessibleNodes(
+            paramData.uuid,
         );
 
         const data = errorHandler(result);

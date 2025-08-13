@@ -8,6 +8,7 @@ import { TxKyselyService } from '@common/database';
 import { ICrud } from '@common/types/crud-port';
 import { getKyselyUuid } from '@common/helpers';
 
+import { IGetSquadAccessibleNodes } from '../interfaces/get-squad-accessible-nodes.interface';
 import { InternalSquadEntity } from '../entities/internal-squad.entity';
 import { InternalSquadConverter } from '../internal-squad.converter';
 import { InternalSquadWithInfoEntity } from '../entities';
@@ -312,6 +313,80 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
             .select('configProfileInbounds.profileUuid as configProfileUuid')
             .where('internalSquadUuid', '=', getKyselyUuid(internalSquadUuid))
             .execute();
+
+        return result;
+    }
+
+    public async getSquadAccessibleNodes(squadUuid: string): Promise<IGetSquadAccessibleNodes> {
+        const flatResults = await this.qb.kysely
+            .selectFrom('nodes as n')
+            .innerJoin('configProfiles as cp', 'n.activeConfigProfileUuid', 'cp.uuid')
+            .innerJoin('configProfileInbounds as cpi', 'cpi.profileUuid', 'cp.uuid')
+            .innerJoin('configProfileInboundsToNodes as cpin', (join) =>
+                join
+                    .onRef('cpin.configProfileInboundUuid', '=', 'cpi.uuid')
+                    .onRef('cpin.nodeUuid', '=', 'n.uuid'),
+            )
+            .innerJoin('internalSquadInbounds as isi', 'isi.inboundUuid', 'cpi.uuid')
+            .innerJoin('internalSquads as sq', (join) =>
+                join
+                    .onRef('sq.uuid', '=', 'isi.internalSquadUuid')
+                    .on('sq.uuid', '=', getKyselyUuid(squadUuid)),
+            )
+            .select([
+                'n.uuid as nodeUuid',
+                'n.name as nodeName',
+                'n.countryCode',
+                'n.viewPosition',
+                'cp.uuid as configProfileUuid',
+                'cp.name as configProfileName',
+                'cpi.tag as inboundTag',
+            ])
+            .execute();
+
+        const nodesMap = new Map<
+            string,
+            {
+                uuid: string;
+                nodeName: string;
+                countryCode: string;
+                viewPosition: number;
+                configProfileUuid: string;
+                configProfileName: string;
+                activeInbounds: Set<string>;
+            }
+        >();
+
+        flatResults.forEach((row) => {
+            if (!nodesMap.has(row.nodeUuid)) {
+                nodesMap.set(row.nodeUuid, {
+                    uuid: row.nodeUuid,
+                    nodeName: row.nodeName,
+                    countryCode: row.countryCode,
+                    viewPosition: row.viewPosition,
+                    configProfileUuid: row.configProfileUuid,
+                    configProfileName: row.configProfileName,
+                    activeInbounds: new Set(),
+                });
+            }
+
+            const node = nodesMap.get(row.nodeUuid)!;
+            node.activeInbounds.add(row.inboundTag);
+        });
+
+        const result: IGetSquadAccessibleNodes = {
+            squadUuid,
+            accessibleNodes: Array.from(nodesMap.values())
+                .sort((a, b) => a.viewPosition - b.viewPosition)
+                .map((node) => ({
+                    uuid: node.uuid,
+                    nodeName: node.nodeName,
+                    countryCode: node.countryCode,
+                    configProfileUuid: node.configProfileUuid,
+                    configProfileName: node.configProfileName,
+                    activeInbounds: Array.from(node.activeInbounds),
+                })),
+        };
 
         return result;
     }

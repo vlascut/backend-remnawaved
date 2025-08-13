@@ -249,7 +249,10 @@ export const REST_API = {
             `${ROOT}/${CONTROLLERS.INTERNAL_SQUADS_CONTROLLER}/${CONTROLLERS.INTERNAL_SQUADS_ROUTES.DELETE(
                 uuid,
             )}`,
-
+        ACCESSIBLE_NODES: (uuid: string) =>
+            `${ROOT}/${CONTROLLERS.INTERNAL_SQUADS_CONTROLLER}/${CONTROLLERS.INTERNAL_SQUADS_ROUTES.ACCESSIBLE_NODES(
+                uuid,
+            )}`,
         BULK_ACTIONS: {
             ADD_USERS: (uuid: string) =>
                 `${ROOT}/${CONTROLLERS.INTERNAL_SQUADS_CONTROLLER}/${CONTROLLERS.INTERNAL_SQUADS_ROUTES.BULK_ACTIONS.ADD_USERS(uuid)}`,

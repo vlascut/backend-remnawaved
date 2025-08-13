@@ -14,6 +14,7 @@ import { DeleteInternalSquadResponseModel } from './models/delete-internal-squad
 import { EventSentInternalSquadResponseModel } from './models/event-sent-internal-squad.response.model';
 import { GetInternalSquadsResponseModel } from './models/get-internal-squads.response.model';
 import { InternalSquadRepository } from './repositories/internal-squad.repository';
+import { GetInternalSquadAccessibleNodesResponseModel } from './models';
 import { InternalSquadEntity } from './entities/internal-squad.entity';
 
 @Injectable()
@@ -331,6 +332,42 @@ export class InternalSquadService {
                 isOk: false,
                 ...ERRORS.REMOVE_USERS_FROM_INTERNAL_SQUAD_ERROR,
             };
+        }
+    }
+
+    public async getInternalSquadAccessibleNodes(
+        squadUuid: string,
+    ): Promise<ICommandResponse<GetInternalSquadAccessibleNodesResponseModel>> {
+        try {
+            const internalSquad =
+                await this.internalSquadRepository.getInternalSquadsByUuid(squadUuid);
+
+            if (!internalSquad) {
+                return {
+                    isOk: false,
+                    ...ERRORS.INTERNAL_SQUAD_NOT_FOUND,
+                };
+            }
+
+            const result = await this.internalSquadRepository.getSquadAccessibleNodes(squadUuid);
+
+            if (!result) {
+                return {
+                    isOk: true,
+                    response: new GetInternalSquadAccessibleNodesResponseModel({
+                        squadUuid,
+                        accessibleNodes: [],
+                    }),
+                };
+            }
+
+            return {
+                isOk: true,
+                response: new GetInternalSquadAccessibleNodesResponseModel(result),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_INTERNAL_SQUAD_ACCESSIBLE_NODES_ERROR };
         }
     }
 }

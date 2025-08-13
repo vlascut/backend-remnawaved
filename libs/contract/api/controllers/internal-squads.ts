@@ -8,6 +8,7 @@ export const INTERNAL_SQUADS_ROUTES = {
     UPDATE: '', // Update internal squad by uuid // patch
     GET_BY_UUID: (uuid: string) => `${uuid}`, // Get internal squad by uuid // get
     DELETE: (uuid: string) => `${uuid}`, // Delete internal squad by uuid // delete
+    ACCESSIBLE_NODES: (uuid: string) => `${uuid}/accessible-nodes`, // Get accessible nodes for internal squad // get
 
     BULK_ACTIONS: {
         ADD_USERS: (uuid: string) => `${uuid}/${BULK_ACTIONS_ROUTE}/add-users`, // Add users to internal squad // post
