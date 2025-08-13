@@ -1,19 +1,27 @@
 import { IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 
+import { HashedSet } from '@remnawave/hashed-set';
+
 import { XRayConfig } from '@common/helpers/xray-config/xray-config.validator';
 import { ICommandResponse } from '@common/types/command-response.type';
-import { IXrayConfig } from '@common/helpers/xray-config/interfaces';
 import { ERRORS } from '@libs/contracts/constants';
 
 import { GetConfigProfileByUuidQuery } from '@modules/config-profiles/queries/get-config-profile-by-uuid';
 import { UsersRepository } from '@modules/users/repositories/users.repository';
 
-import { GetPreparedConfigWithUsersQuery } from './get-prepared-config-with-users.query';
+import {
+    GetPreparedConfigWithUsersQuery,
+    IGetPreparedConfigWithUsersResponse,
+} from './get-prepared-config-with-users.query';
 
 @QueryHandler(GetPreparedConfigWithUsersQuery)
 export class GetPreparedConfigWithUsersHandler
-    implements IQueryHandler<GetPreparedConfigWithUsersQuery, ICommandResponse<IXrayConfig>>
+    implements
+        IQueryHandler<
+            GetPreparedConfigWithUsersQuery,
+            ICommandResponse<IGetPreparedConfigWithUsersResponse>
+        >
 {
     private readonly logger = new Logger(GetPreparedConfigWithUsersHandler.name);
     constructor(
@@ -21,8 +29,11 @@ export class GetPreparedConfigWithUsersHandler
         private readonly queryBus: QueryBus,
     ) {}
 
-    async execute(query: GetPreparedConfigWithUsersQuery): Promise<ICommandResponse<IXrayConfig>> {
+    async execute(
+        query: GetPreparedConfigWithUsersQuery,
+    ): Promise<ICommandResponse<IGetPreparedConfigWithUsersResponse>> {
         let config: XRayConfig | null = null;
+        const inboundsUserSets: Map<string, HashedSet> = new Map();
         try {
             const { configProfileUuid, activeInbounds } = query;
 
@@ -43,18 +54,34 @@ export class GetPreparedConfigWithUsersHandler
 
             config.processCertificates();
 
+            const configHash = config.getConfigHash();
+
             const usersStream = this.usersRepository.getUsersForConfigStream(
                 configProfileUuid,
                 activeInbounds,
             );
 
             for await (const userBatch of usersStream) {
-                config.includeUserBatch(userBatch);
+                config.includeUserBatch(userBatch, inboundsUserSets);
+            }
+
+            for (const [tag, set] of inboundsUserSets) {
+                this.logger.debug(`Inbound ${tag}: hash ${set.hash64String} and ${set.size} users`);
             }
 
             return {
                 isOk: true,
-                response: config.getConfig(),
+                response: {
+                    config: config.getConfig(),
+                    hashes: {
+                        emptyConfig: configHash,
+                        inbounds: Array.from(inboundsUserSets.entries()).map(([tag, set]) => ({
+                            usersCount: set.size,
+                            hash: set.hash64String,
+                            tag,
+                        })),
+                    },
+                },
             };
         } catch (error) {
             this.logger.error(error);
@@ -64,6 +91,10 @@ export class GetPreparedConfigWithUsersHandler
             };
         } finally {
             config = null;
+            for (const [, set] of inboundsUserSets) {
+                set.clear();
+            }
+            inboundsUserSets.clear();
         }
     }
 }

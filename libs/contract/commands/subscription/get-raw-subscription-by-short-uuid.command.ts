@@ -20,6 +20,16 @@ export namespace GetRawSubscriptionByShortUuidCommand {
 
     export type Request = z.infer<typeof RequestSchema>;
 
+    export const RequestQuerySchema = z.object({
+        withDisabledHosts: z
+            .string()
+            .transform((str) => str === 'true')
+            .optional()
+            .default('false'),
+    });
+
+    export type RequestQuery = z.infer<typeof RequestQuerySchema>;
+
     export const ResponseSchema = z.object({
         response: z.object({
             user: z.object({
@@ -80,6 +90,20 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                                 ),
                             }),
                         ),
+                    ),
+                    dbData: z.optional(
+                        z.object({
+                            rawInbound: z.nullable(z.object({})),
+                            inboundTag: z.string(),
+                            uuid: z.string(),
+                            configProfileUuid: z.nullable(z.string()),
+                            configProfileInboundUuid: z.nullable(z.string()),
+                            isDisabled: z.boolean(),
+                            viewPosition: z.number(),
+                            remark: z.string(),
+                            isHidden: z.boolean(),
+                            tag: z.nullable(z.string()),
+                        }),
                     ),
                 }),
             ),

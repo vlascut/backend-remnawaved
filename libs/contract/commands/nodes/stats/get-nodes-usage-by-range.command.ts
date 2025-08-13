@@ -25,6 +25,7 @@ export namespace GetNodesUsageByRangeCommand {
             z.object({
                 nodeUuid: z.string().uuid(),
                 nodeName: z.string(),
+                nodeCountryCode: z.string(),
                 total: z.number(),
                 totalDownload: z.number(),
                 totalUpload: z.number(),

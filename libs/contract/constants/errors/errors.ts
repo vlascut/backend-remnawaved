@@ -749,4 +749,19 @@ export const ERRORS = {
         message: 'Sync active profile error',
         httpCode: 500,
     },
+    GET_ALL_HOST_TAGS_ERROR: {
+        code: 'A151',
+        message: 'Get all host tags error',
+        httpCode: 500,
+    },
+    NAME_OR_CONFIG_REQUIRED: {
+        code: 'A152',
+        message: 'Name or config is required',
+        httpCode: 400,
+    },
+    NAME_OR_INBOUNDS_REQUIRED: {
+        code: 'A153',
+        message: 'Name or inbounds is required',
+        httpCode: 400,
+    },
 } as const;

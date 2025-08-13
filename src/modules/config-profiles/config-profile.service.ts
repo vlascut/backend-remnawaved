@@ -188,7 +188,8 @@ export class ConfigProfileService {
     @Transactional()
     public async updateConfigProfile(
         uuid: string,
-        config: object,
+        name?: string,
+        config?: object,
     ): Promise<ICommandResponse<GetConfigProfileByUuidResponseModel>> {
         try {
             const existingConfigProfile =
@@ -201,42 +202,62 @@ export class ConfigProfileService {
                 };
             }
 
-            const existingInbounds = existingConfigProfile.inbounds;
+            if (!name && !config) {
+                return {
+                    isOk: false,
+                    ...ERRORS.NAME_OR_CONFIG_REQUIRED,
+                };
+            }
 
-            const validatedConfig = new XRayConfig(config);
-            const sortedConfig = validatedConfig.getSortedConfig();
-            const inbounds = validatedConfig.getAllInbounds();
-
-            const inboundsEntities = inbounds.map(
-                (inbound) =>
-                    new ConfigProfileInboundEntity({
-                        profileUuid: existingConfigProfile.uuid,
-                        tag: inbound.tag,
-                        type: inbound.type,
-                        network: inbound.network,
-                        security: inbound.security,
-                        port: inbound.port,
-                        rawInbound: inbound.rawInbound as unknown as object,
-                    }),
-            );
-
-            await this.syncInbounds(existingInbounds, inboundsEntities);
-
-            await this.configProfileRepository.update({
-                uuid: existingConfigProfile.uuid,
-                config: sortedConfig as object,
+            const configProfileEntity = new ConfigProfileEntity({
+                uuid,
             });
 
-            // No need for now
-            // await this.commandBus.execute(new SyncActiveProfileCommand());
+            if (name) {
+                configProfileEntity.name = name;
+            }
 
-            await this.startAllNodesByProfileQueueService.startAllNodesByProfile({
-                profileUuid: existingConfigProfile.uuid,
-                emitter: 'updateConfigProfile',
-            });
+            if (config) {
+                const existingInbounds = existingConfigProfile.inbounds;
+
+                const validatedConfig = new XRayConfig(config);
+                const sortedConfig = validatedConfig.getSortedConfig();
+                const inbounds = validatedConfig.getAllInbounds();
+
+                const inboundsEntities = inbounds.map(
+                    (inbound) =>
+                        new ConfigProfileInboundEntity({
+                            profileUuid: existingConfigProfile.uuid,
+                            tag: inbound.tag,
+                            type: inbound.type,
+                            network: inbound.network,
+                            security: inbound.security,
+                            port: inbound.port,
+                            rawInbound: inbound.rawInbound as unknown as object,
+                        }),
+                );
+
+                await this.syncInbounds(existingInbounds, inboundsEntities);
+
+                configProfileEntity.config = sortedConfig as object;
+            }
+
+            await this.configProfileRepository.update(configProfileEntity);
+
+            if (config) {
+                // No need for now
+                // await this.commandBus.execute(new SyncActiveProfileCommand());
+
+                await this.startAllNodesByProfileQueueService.startAllNodesByProfile({
+                    profileUuid: existingConfigProfile.uuid,
+                    emitter: 'updateConfigProfile',
+                });
+            }
 
             return this.getConfigProfileByUUID(existingConfigProfile.uuid);
         } catch (error) {
+            this.logger.error(error);
+
             if (
                 error instanceof PrismaClientKnownRequestError &&
                 error.code === 'P2002' &&
@@ -252,7 +273,14 @@ export class ConfigProfileService {
                     return { isOk: false, ...ERRORS.CONFIG_PROFILE_NAME_ALREADY_EXISTS };
                 }
             }
-            this.logger.error(error);
+
+            if (error instanceof Error) {
+                return {
+                    isOk: false,
+                    ...ERRORS.CONFIG_VALIDATION_ERROR.withMessage(error.message),
+                };
+            }
+
             return {
                 isOk: false,
                 ...ERRORS.UPDATE_CONFIG_PROFILE_ERROR,

@@ -1,5 +1,8 @@
 import { createPublicKey, createPrivateKey, KeyObject } from 'node:crypto';
+import { hasher } from 'node-object-hash';
 import { readFileSync } from 'node:fs';
+
+import { HashedSet } from '@remnawave/hashed-set';
 
 import { getVlessFlow } from '@common/utils/flow/get-vless-flow';
 
@@ -233,6 +236,15 @@ export class XRayConfig {
         return config;
     }
 
+    public getConfigHash(): string {
+        const hash = hasher({
+            trim: true,
+            sort: false,
+        }).hash;
+
+        return hash(this.getSortedConfig());
+    }
+
     public getAllInbounds(): InboundsWithTagsAndType[] {
         return this.inbounds
             .filter((inbound) => this.isInboundWithUsers(inbound.protocol))
@@ -271,7 +283,8 @@ export class XRayConfig {
                 for (const user of users) {
                     (inbound.settings as TrojanSettings).clients.push({
                         password: user.trojanPassword,
-                        email: `${user.username}`,
+                        email: user.username,
+                        id: user.vlessUuid,
                     });
                 }
                 break;
@@ -280,7 +293,7 @@ export class XRayConfig {
                 for (const user of users) {
                     (inbound.settings as VLessSettings).clients.push({
                         id: user.vlessUuid,
-                        email: `${user.username}`,
+                        email: user.username,
                         flow: getVlessFlow(inbound),
                     });
                 }
@@ -292,6 +305,7 @@ export class XRayConfig {
                         password: user.ssPassword,
                         method: 'chacha20-ietf-poly1305',
                         email: user.username,
+                        id: user.vlessUuid,
                     });
                 }
                 break;
@@ -300,7 +314,10 @@ export class XRayConfig {
         }
     }
 
-    public includeUserBatch(users: UserForConfigEntity[]): IXrayConfig {
+    public includeUserBatch(
+        users: UserForConfigEntity[],
+        inboundsUserSets: Map<string, HashedSet>,
+    ): IXrayConfig {
         const usersByTag = new Map<string, UserForConfigEntity[]>();
         for (const user of users) {
             for (const tag of user.tags) {
@@ -308,6 +325,12 @@ export class XRayConfig {
                     usersByTag.set(tag, []);
                 }
                 usersByTag.get(tag)!.push(user);
+
+                if (!inboundsUserSets.has(tag)) {
+                    inboundsUserSets.set(tag, new HashedSet());
+                }
+
+                inboundsUserSets.get(tag)!.add(user.vlessUuid);
             }
         }
 

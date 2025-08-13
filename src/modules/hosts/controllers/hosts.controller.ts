@@ -18,6 +18,7 @@ import {
     CreateHostCommand,
     DeleteHostCommand,
     GetAllHostsCommand,
+    GetAllHostTagsCommand,
     GetOneHostCommand,
     ReorderHostCommand,
     UpdateHostCommand,
@@ -28,10 +29,12 @@ import { ROLE } from '@libs/contracts/constants';
 import { ReorderHostRequestDto, ReorderHostResponseDto } from '../dtos/reorder-hosts.dto';
 import { CreateHostRequestDto, CreateHostResponseDto } from '../dtos/create-host.dto';
 import { DeleteHostRequestDto, DeleteHostResponseDto } from '../dtos/delete-host.dto';
+import { GetAllHostTagsResponseModel } from '../models/get-all-tags.response.model';
 import { GetAllHostsResponseModel } from '../models/get-all-hosts.response.model';
 import { GetOneHostResponseModel } from '../models/get-one-host.response.model';
 import { CreateHostResponseModel } from '../models/create-host.response.model';
 import { UpdateHostResponseModel } from '../models/update-host.response.model';
+import { GetAllHostTagsResponseDto } from '../dtos/get-all-host-tags.dto';
 import { GetAllHostsResponseDto } from '../dtos/get-all-hosts.dto';
 import { UpdateHostResponseDto } from '../dtos/update-host.dto';
 import { UpdateHostRequestDto } from '../dtos/update-host.dto';
@@ -47,6 +50,23 @@ import { HostsService } from '../hosts.service';
 @Controller(HOSTS_CONTROLLER)
 export class HostsController {
     constructor(private readonly hostsService: HostsService) {}
+
+    @ApiOkResponse({
+        type: GetAllHostTagsResponseDto,
+        description: 'Host tags fetched successfully',
+    })
+    @Endpoint({
+        command: GetAllHostTagsCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getAllHostTags(): Promise<GetAllHostTagsResponseDto> {
+        const result = await this.hostsService.getAllHostTags();
+
+        const data = errorHandler(result);
+        return {
+            response: new GetAllHostTagsResponseModel(data),
+        };
+    }
 
     @ApiCreatedResponse({
         type: CreateHostResponseDto,

@@ -20,4 +20,8 @@ export const HOSTS_ROUTES = {
         SET_INBOUND: 'bulk/set-inbound',
         SET_PORT: 'bulk/set-port',
     },
+
+    TAGS: {
+        GET: 'tags',
+    },
 } as const;

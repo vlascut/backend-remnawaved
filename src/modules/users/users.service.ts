@@ -78,7 +78,10 @@ export class UsersService {
                 return user;
             }
 
-            this.eventBus.publish(new AddUserToNodeEvent(user.response.uuid));
+            if (user.response.status === USERS_STATUS.ACTIVE) {
+                this.eventBus.publish(new AddUserToNodeEvent(user.response.uuid));
+            }
+
             this.eventEmitter.emit(
                 EVENTS.USER.CREATED,
                 new UserEvent(user.response, EVENTS.USER.CREATED),
@@ -134,7 +137,12 @@ export class UsersService {
             }
 
             if (user.response.isNeedToBeRemovedFromNode) {
-                this.eventBus.publish(new RemoveUserFromNodeEvent(user.response.user.username));
+                this.eventBus.publish(
+                    new RemoveUserFromNodeEvent(
+                        user.response.user.username,
+                        user.response.user.vlessUuid,
+                    ),
+                );
             }
 
             this.eventEmitter.emit(
@@ -212,8 +220,8 @@ export class UsersService {
                 const currentExpireDate = dayjs.utc(user.expireAt);
                 const now = dayjs.utc();
 
-                if (currentExpireDate !== newExpireDate) {
-                    if (newExpireDate.isAfter(currentExpireDate) && newExpireDate.isAfter(now)) {
+                if (!currentExpireDate.isSame(newExpireDate)) {
+                    if (newExpireDate.isAfter(now)) {
                         newStatus = USERS_STATUS.ACTIVE;
                         isNeedToBeAddedToNode = true;
                     }
@@ -474,7 +482,7 @@ export class UsersService {
         try {
             const user = await this.userRepository.getPartialUserByUniqueFields(
                 { uuid: userUuid },
-                ['uuid'],
+                ['uuid', 'vlessUuid'],
             );
 
             if (!user) {
@@ -483,6 +491,7 @@ export class UsersService {
                     ...ERRORS.USER_NOT_FOUND,
                 };
             }
+
             const updateResult = await this.userRepository.revokeUserSubscription({
                 uuid: user.uuid,
                 shortUuid: shortUuid ?? this.createNanoId(),
@@ -506,6 +515,10 @@ export class UsersService {
                     isOk: false,
                     ...ERRORS.USER_NOT_FOUND,
                 };
+            }
+
+            if (updatedUser.status === USERS_STATUS.ACTIVE) {
+                this.eventBus.publish(new AddUserToNodeEvent(updatedUser.uuid, user.vlessUuid));
             }
 
             this.eventEmitter.emit(
@@ -545,7 +558,7 @@ export class UsersService {
 
             const result = await this.userRepository.deleteByUUID(user.uuid);
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(user.username));
+            this.eventBus.publish(new RemoveUserFromNodeEvent(user.username, user.vlessUuid));
 
             this.eventEmitter.emit(EVENTS.USER.DELETED, new UserEvent(user, EVENTS.USER.DELETED));
             return {
@@ -590,7 +603,9 @@ export class UsersService {
                 };
             }
 
-            this.eventBus.publish(new RemoveUserFromNodeEvent(updatedUser.username));
+            this.eventBus.publish(
+                new RemoveUserFromNodeEvent(updatedUser.username, updatedUser.vlessUuid),
+            );
             this.eventEmitter.emit(
                 EVENTS.USER.DISABLED,
                 new UserEvent(updatedUser, EVENTS.USER.DISABLED),

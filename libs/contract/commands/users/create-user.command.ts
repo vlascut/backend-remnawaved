@@ -25,9 +25,9 @@ export namespace CreateUserCommand {
                 'Username can only contain letters, numbers, underscores and dashes',
             )
             .max(36, 'Username must be less than 36 characters')
-            .min(6, 'Username must be at least 6 characters')
+            .min(3, 'Username must be at least 3 characters')
             .describe(
-                'Unique username for the user. Required. Must be 6-36 characters long and contain only letters, numbers, underscores and dashes.',
+                'Unique username for the user. Required. Must be 3-36 characters long and contain only letters, numbers, underscores and dashes.',
             ),
         status: UsersSchema.shape.status
             .optional()

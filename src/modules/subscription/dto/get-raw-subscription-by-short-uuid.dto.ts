@@ -8,3 +8,7 @@ export class GetRawSubscriptionByShortUuidRequestDto extends createZodDto(
 export class GetRawSubscriptionByShortUuidResponseDto extends createZodDto(
     GetRawSubscriptionByShortUuidCommand.ResponseSchema,
 ) {}
+
+export class GetRawSubscriptionByShortUuidRequestQueryDto extends createZodDto(
+    GetRawSubscriptionByShortUuidCommand.RequestQuerySchema,
+) {}

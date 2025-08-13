@@ -2,17 +2,17 @@ import { HostsEntity } from './hosts.entity';
 
 type HostWithRawInboundConstructorData = {
     rawInbound: object | null;
-    tag: string;
+    inboundTag: string;
 } & ConstructorParameters<typeof HostsEntity>[0];
 
 export class HostWithRawInbound extends HostsEntity {
     public rawInbound: object | null;
-    public tag: string;
+    public inboundTag: string;
 
     constructor(data: HostWithRawInboundConstructorData) {
         super(data);
 
         this.rawInbound = data.rawInbound;
-        this.tag = data.tag;
+        this.inboundTag = data.inboundTag;
     }
 }

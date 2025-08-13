@@ -128,6 +128,7 @@ export class InternalSquadController {
     ): Promise<UpdateInternalSquadResponseDto> {
         const result = await this.internalSquadService.updateInternalSquad(
             updateInternalSquadDto.uuid,
+            updateInternalSquadDto.name,
             updateInternalSquadDto.inbounds,
         );
 

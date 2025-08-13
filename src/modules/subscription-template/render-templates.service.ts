@@ -118,7 +118,11 @@ export class RenderTemplatesService {
     }> {
         const { user, hosts } = params;
 
-        const formattedHosts = await this.formatHostsService.generateFormattedHosts(hosts, user);
+        const formattedHosts = await this.formatHostsService.generateFormattedHosts(
+            hosts,
+            user,
+            true,
+        );
 
         const rawHosts = await this.rawHostsGeneratorService.generateConfig(formattedHosts);
 

@@ -1,5 +1,3 @@
-import { Prisma } from '@prisma/client';
-
 import { Injectable, Logger } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 
@@ -112,17 +110,6 @@ export class HostsService {
             };
         } catch (error) {
             this.logger.error(error);
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2002' &&
-                error.meta?.modelName === 'Hosts' &&
-                Array.isArray(error.meta.target)
-            ) {
-                const fields = error.meta.target as string[];
-                if (fields.includes('remark')) {
-                    return { isOk: false, ...ERRORS.HOST_REMARK_ALREADY_EXISTS };
-                }
-            }
 
             return { isOk: false, ...ERRORS.CREATE_HOST_ERROR };
         }
@@ -230,17 +217,6 @@ export class HostsService {
             };
         } catch (error) {
             this.logger.error(error);
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === 'P2002' &&
-                error.meta?.modelName === 'Hosts' &&
-                Array.isArray(error.meta.target)
-            ) {
-                const fields = error.meta.target as string[];
-                if (fields.includes('remark')) {
-                    return { isOk: false, ...ERRORS.HOST_REMARK_ALREADY_EXISTS };
-                }
-            }
 
             return { isOk: false, ...ERRORS.UPDATE_HOST_ERROR };
         }
@@ -320,7 +296,7 @@ export class HostsService {
                 },
             };
         } catch (error) {
-            this.logger.error(JSON.stringify(error));
+            this.logger.error(error);
             return { isOk: false, ...ERRORS.REORDER_HOSTS_ERROR };
         }
     }
@@ -435,6 +411,17 @@ export class HostsService {
         } catch (error) {
             this.logger.error(error);
             return { isOk: false, ...ERRORS.SET_PORT_TO_HOSTS_ERROR };
+        }
+    }
+
+    public async getAllHostTags(): Promise<ICommandResponse<string[]>> {
+        try {
+            const result = await this.hostsRepository.getAllHostTags();
+
+            return { isOk: true, response: result };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_ALL_HOST_TAGS_ERROR };
         }
     }
 }

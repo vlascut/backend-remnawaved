@@ -7,5 +7,6 @@ export const LastConnectedNodeSchema = z
             .datetime()
             .transform((str) => new Date(str)),
         nodeName: z.string(),
+        countryCode: z.string(),
     })
     .nullable();

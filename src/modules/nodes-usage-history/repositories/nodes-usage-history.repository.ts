@@ -84,6 +84,7 @@ export class NodesUsageHistoryRepository
             SELECT 
                 n.uuid as "nodeUuid",
                 n.name as "nodeName",
+                n.country_code as "nodeCountryCode",
                 COALESCE(SUM(h."total_bytes"), 0) as total,
                 COALESCE(SUM(h."download_bytes"), 0) as "totalDownload",
                 COALESCE(SUM(h."upload_bytes"), 0) as "totalUpload",
@@ -92,7 +93,7 @@ export class NodesUsageHistoryRepository
             INNER JOIN "nodes_usage_history" h ON h."node_uuid" = n.uuid 
                 AND h."created_at" >= ${start}
                 AND h."created_at" <= ${end}
-            GROUP BY n.uuid, n.name, DATE_TRUNC('day', h."created_at")
+            GROUP BY n.uuid, n.name, n.country_code, DATE_TRUNC('day', h."created_at")
             ORDER BY "date" ASC
         `;
     }

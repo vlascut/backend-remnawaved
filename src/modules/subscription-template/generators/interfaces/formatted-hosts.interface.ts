@@ -1,5 +1,7 @@
 import { StreamSettingsObject } from '@common/helpers/xray-config/interfaces/transport.config';
 
+import { IDbHostData } from './raw-host.interface';
+
 export interface IFormattedHost {
     address: string;
     alpn: string;
@@ -29,4 +31,5 @@ export interface IFormattedHost {
     muxParams?: null | object;
     sockoptParams?: null | object;
     serverDescription?: string;
+    dbData?: IDbHostData;
 }

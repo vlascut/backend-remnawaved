@@ -5,12 +5,13 @@ import {
     Get,
     HttpStatus,
     Param,
+    Query,
     Req,
     Res,
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -29,6 +30,7 @@ import { REQUEST_TEMPLATE_TYPE, ROLE } from '@libs/contracts/constants';
 import {
     GetOutlineSubscriptionRequestDto,
     GetRawSubscriptionByShortUuidRequestDto,
+    GetRawSubscriptionByShortUuidRequestQueryDto,
     GetRawSubscriptionByShortUuidResponseDto,
     GetSubscriptionByShortUuidByClientTypeRequestDto,
     GetSubscriptionInfoRequestDto,
@@ -81,6 +83,12 @@ export class SubscriptionController {
         description: 'Short UUID of the user',
         required: true,
     })
+    @ApiQuery({
+        name: 'withDisabledHosts',
+        type: Boolean,
+        description: 'Include disabled hosts in the subscription. Default is false.',
+        required: false,
+    })
     @ApiResponse({
         status: 200,
         description: 'Raw subscription fetched successfully',
@@ -94,12 +102,14 @@ export class SubscriptionController {
     @UseGuards(JwtDefaultGuard, RolesGuard)
     async getRawSubscriptionByShortUuid(
         @Param() { shortUuid }: GetRawSubscriptionByShortUuidRequestDto,
+        @Query() { withDisabledHosts }: GetRawSubscriptionByShortUuidRequestQueryDto,
         @Req() request: Request,
         @Res() response: Response,
     ): Promise<GetRawSubscriptionByShortUuidResponseDto | Response> {
         const result = await this.subscriptionService.getRawSubscriptionByShortUuid(
             shortUuid,
             request.headers['user-agent'] as string,
+            withDisabledHosts,
             extractHwidHeaders(request),
         );
 

@@ -297,4 +297,22 @@ export class InternalSquadRepository implements ICrud<InternalSquadEntity> {
 
         return configProfileUuids.map((row) => row.profileUuid);
     }
+
+    public async getInboundsBySquadUuid(
+        internalSquadUuid: string,
+    ): Promise<{ inboundUuid: string; configProfileUuid: string }[]> {
+        const result = await this.qb.kysely
+            .selectFrom('internalSquadInbounds')
+            .select('inboundUuid')
+            .innerJoin(
+                'configProfileInbounds',
+                'configProfileInbounds.uuid',
+                'internalSquadInbounds.inboundUuid',
+            )
+            .select('configProfileInbounds.profileUuid as configProfileUuid')
+            .where('internalSquadUuid', '=', getKyselyUuid(internalSquadUuid))
+            .execute();
+
+        return result;
+    }
 }

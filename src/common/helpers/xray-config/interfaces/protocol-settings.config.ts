@@ -6,6 +6,7 @@ export interface ShadowsocksSettings {
 export interface ShadowsocksUser extends UserObject {
     method: string;
     password: string;
+    id: string; // !!! This field is not exist in XTLS config!
 }
 
 export interface TrojanFallback {
@@ -24,6 +25,7 @@ export interface TrojanSettings {
 export interface TrojanUser extends UserObject {
     flow?: string;
     password: string;
+    id: string; // !!! This field is not exist in XTLS config!
 }
 
 // Common interfaces

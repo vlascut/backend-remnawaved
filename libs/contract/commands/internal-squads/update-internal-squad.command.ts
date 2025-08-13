@@ -16,7 +16,16 @@ export namespace UpdateInternalSquadCommand {
 
     export const RequestSchema = z.object({
         uuid: z.string().uuid(),
-        inbounds: z.array(z.string().uuid()),
+        name: z
+            .string()
+            .min(2, 'Name must be at least 2 characters')
+            .max(20, 'Name must be less than 20 characters')
+            .regex(
+                /^[A-Za-z0-9_-]+$/,
+                'Name can only contain letters, numbers, underscores and dashes',
+            )
+            .optional(),
+        inbounds: z.array(z.string().uuid()).optional(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

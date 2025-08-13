@@ -60,6 +60,22 @@ export namespace UpdateHostCommand {
                 })
                 .nullable(),
         ),
+        tag: z
+            .optional(
+                z
+                    .string()
+                    .regex(
+                        /^[A-Z0-9_:]+$/,
+                        'Tag can only contain uppercase letters, numbers, underscores and colons',
+                    )
+                    .max(32, 'Tag must be less than 32 characters')
+                    .nullable(),
+            )
+            .describe(
+                'Optional. Host tag for categorization. Max 32 characters, uppercase letters, numbers, underscores and colons are allowed.',
+            ),
+        isHidden: z.optional(z.boolean()),
+        overrideSniFromAddress: z.optional(z.boolean()),
     });
     export type Request = z.infer<typeof RequestSchema>;
 

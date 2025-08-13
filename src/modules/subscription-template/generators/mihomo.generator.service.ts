@@ -1,4 +1,5 @@
 import yaml from 'yaml';
+import _ from 'lodash';
 
 import { Injectable, Logger } from '@nestjs/common';
 
@@ -131,6 +132,16 @@ export class MihomoGeneratorService {
                     continue;
                 }
 
+                if (remnawaveCustom && remnawaveCustom['shuffle-proxies-order'] === true) {
+                    const shuffledProxies = _.shuffle(proxyRemarks);
+
+                    for (const proxyRemark of shuffledProxies) {
+                        group.proxies.push(proxyRemark);
+                    }
+
+                    continue;
+                }
+
                 if (Array.isArray(group.proxies)) {
                     for (const proxyRemark of proxyRemarks) {
                         group.proxies.push(proxyRemark);
@@ -138,9 +149,34 @@ export class MihomoGeneratorService {
                 }
             }
 
+            if (yamlConfig['proxy-providers']) {
+                // dialer-proxy support
+                for (const providerKey in yamlConfig['proxy-providers']) {
+                    const provider = yamlConfig['proxy-providers'][providerKey];
+
+                    let remnawaveCustom = undefined;
+
+                    if (provider?.remnawave) {
+                        remnawaveCustom = provider.remnawave;
+
+                        delete provider.remnawave;
+                    } else {
+                        continue;
+                    }
+
+                    if (remnawaveCustom && remnawaveCustom['include-proxies'] === true) {
+                        provider.payload = [];
+
+                        for (const proxy of data.proxies) {
+                            provider.payload.push(proxy);
+                        }
+                    }
+                }
+            }
+
             return yaml.stringify(yamlConfig);
         } catch (error) {
-            this.logger.error('Error rendering yaml config:', error);
+            this.logger.error(`Error rendering yaml config: ${error}`);
             return '';
         }
     }

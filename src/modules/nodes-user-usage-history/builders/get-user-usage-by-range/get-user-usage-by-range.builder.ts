@@ -15,6 +15,7 @@ export class GetUserUsageByRangeBuilder {
                 h.user_uuid as "userUuid",
                 h.node_uuid as "nodeUuid",
                 n.name AS "nodeName",
+                n.country_code AS "countryCode",
                 COALESCE(SUM(h.total_bytes), 0) AS "total"
             FROM
                 nodes_user_usage_history h
@@ -27,7 +28,8 @@ export class GetUserUsageByRangeBuilder {
                 "date",
                 h.user_uuid,
                 h.node_uuid,
-                n.name
+                n.name,
+                n.country_code
             ORDER BY
                 "date" ASC
         `;

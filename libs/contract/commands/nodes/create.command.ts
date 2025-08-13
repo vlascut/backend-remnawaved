@@ -14,7 +14,7 @@ export namespace CreateNodeCommand {
     );
 
     export const RequestSchema = z.object({
-        name: z.string().min(5, 'Minimum 5 characters!'),
+        name: z.string().min(3, 'Minimum 3 characters!'),
         address: z.string().min(2, 'Minimum 2 characters!'),
         port: z.number().int().min(1, 'Port is required').optional(),
         isTrafficTrackingActive: z.boolean().optional().default(false),

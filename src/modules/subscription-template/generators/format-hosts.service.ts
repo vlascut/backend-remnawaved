@@ -42,6 +42,7 @@ export class FormatHostsService {
     public async generateFormattedHosts(
         hosts: HostWithRawInbound[],
         user: UserEntity,
+        returnDbHost: boolean = false,
     ): Promise<IFormattedHost[]> {
         const formattedHosts: IFormattedHost[] = [];
 
@@ -76,7 +77,7 @@ export class FormatHostsService {
             }
         }
 
-        if (hosts.length === 0 && user.activeInternalSquads.length > 0) {
+        if (hosts.length === 0 && user.activeInternalSquads.length === 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
                     '→ Remnawave',
@@ -102,12 +103,27 @@ export class FormatHostsService {
 
         const publicKeyMap = await resolveInboundAndPublicKey(hosts.map((host) => host.rawInbound));
 
+        const knownRemarks = new Map<string, number>();
+
         for (const inputHost of hosts) {
             const remark = TemplateEngine.formatWithUser(
                 inputHost.remark,
                 user,
                 this.subPublicDomain,
             );
+
+            const currentCount = knownRemarks.get(remark) || 0;
+            knownRemarks.set(remark, currentCount + 1);
+
+            let finalRemark;
+            if (currentCount === 0) {
+                finalRemark = remark;
+            } else {
+                const hasExistingSuffix = remark.includes('^~') && remark.endsWith('~^');
+                // TODO: ???
+                const suffix = hasExistingSuffix ? currentCount : currentCount + 1;
+                finalRemark = `${remark} ^~${suffix}~^`;
+            }
 
             const inbound = inputHost.rawInbound as InboundObject;
 
@@ -116,6 +132,8 @@ export class FormatHostsService {
             if (address.includes(',')) {
                 const addressList = address.split(',');
                 address = addressList[Math.floor(Math.random() * addressList.length)].trim();
+            } else if (address.includes('*')) {
+                address = address.replace('*', this.nanoid()).trim();
             }
 
             const port = inputHost.port;
@@ -281,7 +299,11 @@ export class FormatHostsService {
             const protocol = inbound.protocol;
             const path = inputHost.path || pathFromConfig || '';
 
-            const host = inputHost.host || hostFromConfig || '';
+            let host = inputHost.host || hostFromConfig || '';
+
+            if (host.includes('*')) {
+                host = host.replace('*', this.nanoid()).trim();
+            }
 
             const tls = tlsFromConfig;
 
@@ -319,8 +341,31 @@ export class FormatHostsService {
 
             const spiderX = spiderXFromConfig || '';
 
+            let dbData: IFormattedHost['dbData'] | undefined;
+
+            if (returnDbHost) {
+                dbData = {
+                    rawInbound: inputHost.rawInbound,
+                    inboundTag: inputHost.inboundTag,
+                    uuid: inputHost.uuid,
+                    configProfileUuid: inputHost.configProfileUuid,
+                    configProfileInboundUuid: inputHost.configProfileInboundUuid,
+                    isDisabled: inputHost.isDisabled,
+                    viewPosition: inputHost.viewPosition,
+                    remark: inputHost.remark,
+                    isHidden: inputHost.isHidden,
+                    tag: inputHost.tag,
+                };
+            }
+
+            // overrides
+
+            if (inputHost.overrideSniFromAddress) {
+                sni = address;
+            }
+
             formattedHosts.push({
-                remark,
+                remark: finalRemark,
                 address,
                 port,
                 protocol,
@@ -345,6 +390,7 @@ export class FormatHostsService {
                 serverDescription,
                 muxParams,
                 sockoptParams,
+                dbData,
             });
         }
 

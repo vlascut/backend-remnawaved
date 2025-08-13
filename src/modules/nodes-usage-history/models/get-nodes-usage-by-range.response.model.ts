@@ -5,6 +5,7 @@ import { IGetNodesUsageByRange } from '../interfaces';
 export class GetNodesUsageByRangeResponseModel {
     nodeUuid: string;
     nodeName: string;
+    nodeCountryCode: string;
     total: number;
     totalDownload: number;
     totalUpload: number;
@@ -16,6 +17,7 @@ export class GetNodesUsageByRangeResponseModel {
     constructor(data: IGetNodesUsageByRange) {
         this.nodeUuid = data.nodeUuid;
         this.nodeName = data.nodeName;
+        this.nodeCountryCode = data.nodeCountryCode;
         this.total = Number(data.total);
         this.totalDownload = Number(data.totalDownload);
         this.totalUpload = Number(data.totalUpload);

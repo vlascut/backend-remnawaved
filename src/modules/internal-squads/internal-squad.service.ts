@@ -117,7 +117,8 @@ export class InternalSquadService {
     @Transactional()
     public async updateInternalSquad(
         uuid: string,
-        inbounds: string[],
+        name?: string,
+        inbounds?: string[],
     ): Promise<ICommandResponse<GetInternalSquadByUuidResponseModel>> {
         try {
             const internalSquad = await this.internalSquadRepository.findByUUID(uuid);
@@ -129,37 +130,101 @@ export class InternalSquadService {
                 };
             }
 
-            const currentProfiles = await this.internalSquadRepository.getConfigProfilesBySquadUuid(
-                internalSquad.uuid,
-            );
-
-            await this.internalSquadRepository.cleanInbounds(internalSquad.uuid);
-
-            if (inbounds.length > 0) {
-                await this.internalSquadRepository.createInbounds(inbounds, internalSquad.uuid);
+            if (!name && !inbounds) {
+                return {
+                    isOk: false,
+                    ...ERRORS.NAME_OR_INBOUNDS_REQUIRED,
+                };
             }
 
-            const result = await this.getInternalSquadByUuid(internalSquad.uuid);
-
-            const includedProfiles = new Set<string>();
-
-            for (const inbound of result.response?.inbounds || []) {
-                includedProfiles.add(inbound.profileUuid);
-            }
-
-            for (const profileUuid of currentProfiles) {
-                includedProfiles.add(profileUuid);
-            }
-
-            includedProfiles.forEach(async (profileUuid) => {
-                await this.startAllNodesByProfileQueueService.startAllNodesByProfile({
-                    profileUuid,
-                    emitter: 'updateInternalSquad',
+            if (name) {
+                await this.internalSquadRepository.update({
+                    uuid,
+                    name,
                 });
-            });
+            }
 
-            return result;
+            if (inbounds !== undefined) {
+                const currentInbounds = await this.internalSquadRepository.getInboundsBySquadUuid(
+                    internalSquad.uuid,
+                );
+
+                const currentProfilesMap = new Map<string, Set<string>>();
+                for (const inbound of currentInbounds) {
+                    if (!currentProfilesMap.has(inbound.configProfileUuid)) {
+                        currentProfilesMap.set(inbound.configProfileUuid, new Set());
+                    }
+                    currentProfilesMap.get(inbound.configProfileUuid)!.add(inbound.inboundUuid);
+                }
+
+                /* Clean & Add inbounds */
+                await this.internalSquadRepository.cleanInbounds(internalSquad.uuid);
+
+                if (inbounds.length > 0) {
+                    await this.internalSquadRepository.createInbounds(inbounds, internalSquad.uuid);
+                }
+                /* Clean & Add inbounds */
+
+                const newInbounds = await this.internalSquadRepository.getInboundsBySquadUuid(
+                    internalSquad.uuid,
+                );
+
+                const newProfilesMap = new Map<string, Set<string>>();
+                for (const inbound of newInbounds) {
+                    if (!newProfilesMap.has(inbound.configProfileUuid)) {
+                        newProfilesMap.set(inbound.configProfileUuid, new Set());
+                    }
+                    newProfilesMap.get(inbound.configProfileUuid)!.add(inbound.inboundUuid);
+                }
+
+                const allProfileUuids = new Set([
+                    ...currentProfilesMap.keys(),
+                    ...newProfilesMap.keys(),
+                ]);
+
+                const affectedConfigProfiles: string[] = [];
+
+                for (const profileUuid of allProfileUuids) {
+                    const currentSet = currentProfilesMap.get(profileUuid) || new Set();
+                    const newSet = newProfilesMap.get(profileUuid) || new Set();
+
+                    if (currentSet.symmetricDifference(newSet).size > 0) {
+                        affectedConfigProfiles.push(profileUuid);
+                    }
+                }
+
+                if (affectedConfigProfiles.length > 0) {
+                    this.logger.log(
+                        `Internal squad changed, restart nodes for profiles: ${affectedConfigProfiles.join(
+                            ', ',
+                        )}`,
+                    );
+
+                    await Promise.all(
+                        affectedConfigProfiles.map((profileUuid) =>
+                            this.startAllNodesByProfileQueueService.startAllNodesByProfile({
+                                profileUuid,
+                                emitter: 'updateInternalSquad',
+                            }),
+                        ),
+                    );
+                }
+            }
+
+            return await this.getInternalSquadByUuid(internalSquad.uuid);
         } catch (error) {
+            if (
+                error instanceof PrismaClientKnownRequestError &&
+                error.code === 'P2002' &&
+                error.meta?.modelName === 'InternalSquads' &&
+                Array.isArray(error.meta.target)
+            ) {
+                const fields = error.meta.target as string[];
+                if (fields.includes('name')) {
+                    return { isOk: false, ...ERRORS.INTERNAL_SQUAD_NAME_ALREADY_EXISTS };
+                }
+            }
+
             this.logger.error(error);
             return {
                 isOk: false,

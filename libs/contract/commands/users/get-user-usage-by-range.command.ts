@@ -32,6 +32,7 @@ export namespace GetUserUsageByRangeCommand {
                 userUuid: z.string().uuid(),
                 nodeUuid: z.string().uuid(),
                 nodeName: z.string(),
+                countryCode: z.string(),
                 total: z.number(),
                 date: z.string().transform((str) => new Date(str)),
             }),

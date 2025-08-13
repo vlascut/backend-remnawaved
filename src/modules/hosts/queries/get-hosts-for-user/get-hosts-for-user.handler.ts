@@ -18,7 +18,11 @@ export class GetHostsForUserHandler
 
     async execute(query: GetHostsForUserQuery): Promise<ICommandResponse<HostsEntity[]>> {
         try {
-            const hosts = await this.hostsRepository.findActiveHostsByUserUuid(query.userUuid);
+            const hosts = await this.hostsRepository.findActiveHostsByUserUuid(
+                query.userUuid,
+                query.returnDisabledHosts,
+                query.returnHiddenHosts,
+            );
 
             return {
                 isOk: true,

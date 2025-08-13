@@ -142,15 +142,27 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
                     throw new Error('Failed to get active node inbounds tags');
                 }
 
+                const filteredInboundsHashes = config.response.hashes.inbounds.filter((inbound) =>
+                    activeNodeInboundsTags.has(inbound.tag),
+                );
+
+                const hashPayload = Buffer.from(
+                    JSON.stringify({
+                        emptyConfig: config.response.hashes.emptyConfig,
+                        inbounds: filteredInboundsHashes,
+                    }),
+                ).toString('base64');
+
                 const response = await this.axios.startXray(
                     {
-                        ...config.response,
-                        inbounds: config.response.inbounds.filter(
+                        ...config.response.config,
+                        inbounds: config.response.config.inbounds.filter(
                             (inbound) =>
                                 activeNodeInboundsTags.has(inbound.tag) ||
                                 this.isUnsecureInbound(inbound.protocol),
                         ),
                     } as unknown as Record<string, unknown>,
+                    hashPayload,
                     node.address,
                     node.port,
                 );
