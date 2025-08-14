@@ -764,4 +764,9 @@ export const ERRORS = {
         message: 'Name or inbounds is required',
         httpCode: 400,
     },
+    GET_INTERNAL_SQUAD_ACCESSIBLE_NODES_ERROR: {
+        code: 'A154',
+        message: 'Get internal squad accessible nodes error',
+        httpCode: 500,
+    },
 } as const;
