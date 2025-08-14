@@ -10,6 +10,7 @@ RUN apk add --no-cache curl unzip ca-certificates \
     && unzip frontend.zip -d frontend_temp \
     && curl -L https://remnawave.github.io/xray-monaco-editor/wasm_exec.js -o frontend_temp/dist/wasm_exec.js \
     && curl -L https://remnawave.github.io/xray-monaco-editor/xray.schema.json -o frontend_temp/dist/xray.schema.json \
+    && curl -L https://remnawave.github.io/xray-monaco-editor/xray.schema.cn.json -o frontend_temp/dist/xray.schema.cn.json \
     && curl -L https://remnawave.github.io/xray-monaco-editor/main.wasm -o frontend_temp/dist/main.wasm
 
 RUN if [ "$BRANCH" = "dev" ]; then \
@@ -17,6 +18,7 @@ RUN if [ "$BRANCH" = "dev" ]; then \
     && unzip frontend-crowdin.zip -d frontend_crowdin_temp \
     && curl -L https://remnawave.github.io/xray-monaco-editor/wasm_exec.js -o frontend_crowdin_temp/dist/wasm_exec.js \
     && curl -L https://remnawave.github.io/xray-monaco-editor/xray.schema.json -o frontend_crowdin_temp/dist/xray.schema.json \
+    && curl -L https://remnawave.github.io/xray-monaco-editor/xray.schema.cn.json -o frontend_crowdin_temp/dist/xray.schema.cn.json \
     && curl -L https://remnawave.github.io/xray-monaco-editor/main.wasm -o frontend_crowdin_temp/dist/main.wasm; \
     else \
     mkdir -p frontend_crowdin_temp/dist; \
