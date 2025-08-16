@@ -72,4 +72,7 @@ COPY docker-entrypoint.sh ./
 RUN npm install pm2 -g \
     && npm link
 
-CMD [ "/bin/sh", "docker-entrypoint.sh" ]
+
+ENTRYPOINT [ "/bin/sh", "docker-entrypoint.sh" ]
+
+CMD [ "pm2-runtime", "start", "ecosystem.config.js", "--env", "production" ]

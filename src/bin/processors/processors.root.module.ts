@@ -3,10 +3,10 @@ import { ClsModule } from 'nestjs-cls';
 import { QueueModule } from 'src/queue/queue.module';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { Logger, OnApplicationShutdown, Module } from '@nestjs/common';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule } from '@nestjs/config';
-import { Module } from '@nestjs/common';
 
 import { validateEnvConfig } from '@common/utils/validate-env-config';
 import { PrismaService } from '@common/database/prisma.service';
@@ -54,4 +54,10 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
     ],
     controllers: [],
 })
-export class ProcessorsRootModule {}
+export class ProcessorsRootModule implements OnApplicationShutdown {
+    private readonly logger = new Logger(ProcessorsRootModule.name);
+
+    async onApplicationShutdown(signal?: string): Promise<void> {
+        this.logger.log(`${signal} signal received, shutting down...`);
+    }
+}
