@@ -3,11 +3,11 @@ import { ClsModule } from 'nestjs-cls';
 import { QueueModule } from 'src/queue/queue.module';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { Logger, Module, OnApplicationShutdown } from '@nestjs/common';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
-import { Module } from '@nestjs/common';
 
 import { validateEnvConfig } from '@common/utils/validate-env-config';
 import { PrismaService } from '@common/database/prisma.service';
@@ -61,4 +61,10 @@ import { SchedulerModule } from '@scheduler/scheduler.module';
         HealthModule,
     ],
 })
-export class SchedulerRootModule {}
+export class SchedulerRootModule implements OnApplicationShutdown {
+    private readonly logger = new Logger(SchedulerRootModule.name);
+
+    async onApplicationShutdown(signal?: string): Promise<void> {
+        this.logger.log(`Scheduler shutdown signal: ${signal}`);
+    }
+}

@@ -4,11 +4,11 @@ import { join } from 'node:path';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { ConditionalModule, ConfigModule, ConfigService } from '@nestjs/config';
+import { Logger, Module, OnApplicationShutdown } from '@nestjs/common';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
 
 import { disableFrontend, isCrowdinEditorEnabled } from '@common/utils/startup-app/is-development';
 import { validateEnvConfig } from '@common/utils/validate-env-config';
@@ -103,4 +103,10 @@ import { QueueModule } from '@queue/queue.module';
         }),
     ],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationShutdown {
+    private readonly logger = new Logger(AppModule.name);
+
+    async onApplicationShutdown(signal?: string): Promise<void> {
+        this.logger.log(`Application shutdown signal: ${signal}`);
+    }
+}
