@@ -107,6 +107,6 @@ export class AppModule implements OnApplicationShutdown {
     private readonly logger = new Logger(AppModule.name);
 
     async onApplicationShutdown(signal?: string): Promise<void> {
-        this.logger.log(`Application shutdown signal: ${signal}`);
+        this.logger.log(`${signal} signal received, shutting down...`);
     }
 }

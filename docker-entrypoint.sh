@@ -17,7 +17,5 @@ if ! npm run migrate:seed; then
     exit 1
 fi
 
-echo "Starting pm2..."
-pm2-runtime start ecosystem.config.js --env production
-
 echo "Entrypoint script completed."
+exec "$@"

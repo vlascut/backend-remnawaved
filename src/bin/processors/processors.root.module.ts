@@ -58,6 +58,6 @@ export class ProcessorsRootModule implements OnApplicationShutdown {
     private readonly logger = new Logger(ProcessorsRootModule.name);
 
     async onApplicationShutdown(signal?: string): Promise<void> {
-        this.logger.log(`Processor shutdown signal: ${signal}`);
+        this.logger.log(`${signal} signal received, shutting down...`);
     }
 }

@@ -65,6 +65,6 @@ export class SchedulerRootModule implements OnApplicationShutdown {
     private readonly logger = new Logger(SchedulerRootModule.name);
 
     async onApplicationShutdown(signal?: string): Promise<void> {
-        this.logger.log(`Scheduler shutdown signal: ${signal}`);
+        this.logger.log(`${signal} signal received, shutting down...`);
     }
 }
