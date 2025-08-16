@@ -41,7 +41,7 @@ export class UsersEvents {
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
 <b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
-<b>Inbounds:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
+<b>Internal Squads:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -60,7 +60,7 @@ export class UsersEvents {
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
 <b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
-<b>Inbounds:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
+<b>Internal Squads:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -79,7 +79,7 @@ export class UsersEvents {
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
 <b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
-<b>Inbounds:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
+<b>Internal Squads:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,

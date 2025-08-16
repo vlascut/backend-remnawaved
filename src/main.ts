@@ -19,8 +19,8 @@ import {
     isDevelopment,
     isProduction,
 } from '@common/utils/startup-app';
+import { proxyCheckMiddleware, getRealIp, noRobotsMiddleware } from '@common/middlewares';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
-import { proxyCheckMiddleware, getRealIp } from '@common/middlewares';
 import { customLogFilter } from '@common/utils/filter-logs';
 import { AxiosService } from '@common/axios';
 
@@ -116,7 +116,7 @@ async function bootstrap(): Promise<void> {
         }
     }
 
-    app.use(proxyCheckMiddleware);
+    app.use(noRobotsMiddleware, proxyCheckMiddleware);
 
     // if (config.getOrThrow<boolean>('COOKIE_AUTH_ENABLED')) {
     //     app.use(cookieParser());

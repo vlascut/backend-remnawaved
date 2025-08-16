@@ -153,9 +153,9 @@ export class XRayConfig {
         );
     }
 
-    public leaveInbounds(tags: string[]): void {
+    public leaveInbounds(tags: Set<string>): void {
         this.config.inbounds = this.config.inbounds.filter(
-            (inbound) => tags.includes(inbound.tag) || !this.isInboundWithUsers(inbound.protocol),
+            (inbound) => tags.has(inbound.tag) || !this.isInboundWithUsers(inbound.protocol),
         );
     }
 
@@ -193,10 +193,14 @@ export class XRayConfig {
         return sortedObj as T;
     }
 
-    public processCertificates(): IXrayConfig {
+    public processCertificates(forInbounds: Set<string> = new Set()): IXrayConfig {
         const config = this.config;
 
         for (const inbound of config.inbounds) {
+            if (forInbounds.size > 0 && !forInbounds.has(inbound.tag)) {
+                continue;
+            }
+
             const tlsSettings = inbound?.streamSettings?.tlsSettings;
             if (!tlsSettings?.certificates) continue;
 
@@ -240,6 +244,10 @@ export class XRayConfig {
         const hash = hasher({
             trim: true,
             sort: false,
+            // sort: {
+            //     array: true,
+            //     object: true,
+            // },
         }).hash;
 
         return hash(this.getSortedConfig());
