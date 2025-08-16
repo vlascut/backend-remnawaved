@@ -48,13 +48,15 @@ export class GetPreparedConfigWithUsersHandler
                 };
             }
 
+            const activeInboundsTags = new Set(activeInbounds.map((inbound) => inbound.tag));
+
             config = new XRayConfig(configProfile.response.config as object);
 
-            config.leaveInbounds(activeInbounds.map((inbound) => inbound.tag));
-
-            config.processCertificates();
+            config.processCertificates(activeInboundsTags);
 
             const configHash = config.getConfigHash();
+
+            config.leaveInbounds(activeInboundsTags);
 
             const usersStream = this.usersRepository.getUsersForConfigStream(
                 configProfileUuid,
