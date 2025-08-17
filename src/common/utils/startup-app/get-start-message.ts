@@ -1,11 +1,12 @@
 import { getBorderCharacters, table } from 'table';
 import { readPackageJSON } from 'pkg-types';
 
-export async function getStartMessage() {
+export async function getStartMessage(appPort: number, metricsPort: number) {
     const pkg = await readPackageJSON();
 
     return table(
         [
+            [`API Port: ${appPort} | Metrics Port: ${metricsPort}`],
             ['Docs → https://remna.st\nCommunity → https://t.me/remnawave'],
             ['Rescue CLI → docker exec -it remnawave remnawave'],
         ],
