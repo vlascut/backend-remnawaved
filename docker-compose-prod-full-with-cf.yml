@@ -49,7 +49,7 @@ services:
       retries: 3
 
   remnawave:
-    image: remnawave/backend:latest
+    image: remnawave/backend:2
     container_name: 'remnawave'
     hostname: remnawave
     restart: always

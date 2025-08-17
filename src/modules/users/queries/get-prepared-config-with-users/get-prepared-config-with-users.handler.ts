@@ -52,7 +52,7 @@ export class GetPreparedConfigWithUsersHandler
 
             config = new XRayConfig(configProfile.response.config as object);
 
-            config.processCertificates(activeInboundsTags);
+            config.processCertificates();
 
             const configHash = config.getConfigHash();
 

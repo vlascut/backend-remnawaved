@@ -1,5 +1,5 @@
 x-base: &base
-  image: remnawave/backend:latest
+  image: remnawave/backend:2
   restart: always
   env_file:
     - .env
@@ -11,6 +11,7 @@ services:
     <<: *base
     container_name: 'remnawave-rest-api'
     hostname: remnawave-rest-api
+    entrypoint: []
     command: 'pm2-runtime start ecosystem.config.js --env production --only remnawave-api' # Overrides CMD from Dockerfile
     depends_on:
       remnawave-db:
@@ -46,6 +47,7 @@ services:
     <<: *base
     container_name: 'remnawave-processor'
     hostname: remnawave-processor
+    entrypoint: []
     command: 'pm2-runtime start ecosystem.config.js --env production --only remnawave-jobs' # Overrides CMD from Dockerfile
     depends_on:
       remnawave-db:

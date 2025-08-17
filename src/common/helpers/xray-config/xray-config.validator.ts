@@ -193,14 +193,10 @@ export class XRayConfig {
         return sortedObj as T;
     }
 
-    public processCertificates(forInbounds: Set<string> = new Set()): IXrayConfig {
+    public processCertificates(): IXrayConfig {
         const config = this.config;
 
         for (const inbound of config.inbounds) {
-            if (forInbounds.size > 0 && !forInbounds.has(inbound.tag)) {
-                continue;
-            }
-
             const tlsSettings = inbound?.streamSettings?.tlsSettings;
             if (!tlsSettings?.certificates) continue;
 
