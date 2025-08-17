@@ -103,6 +103,7 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                             remark: z.string(),
                             isHidden: z.boolean(),
                             tag: z.nullable(z.string()),
+                            vlessRouteId: z.number().int().nullable(),
                         }),
                     ),
                 }),

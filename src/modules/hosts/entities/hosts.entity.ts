@@ -24,6 +24,7 @@ export class HostsEntity implements Hosts {
     isHidden: boolean;
 
     overrideSniFromAddress: boolean;
+    vlessRouteId: number | null;
 
     configProfileUuid: string | null;
     configProfileInboundUuid: string | null;

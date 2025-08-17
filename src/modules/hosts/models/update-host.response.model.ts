@@ -24,6 +24,7 @@ export class UpdateHostResponseModel {
     public isHidden: boolean;
 
     public overrideSniFromAddress: boolean;
+    public vlessRouteId: number | null;
 
     public inbound: {
         configProfileUuid: string | null;
@@ -59,5 +60,6 @@ export class UpdateHostResponseModel {
         };
 
         this.overrideSniFromAddress = data.overrideSniFromAddress;
+        this.vlessRouteId = data.vlessRouteId;
     }
 }

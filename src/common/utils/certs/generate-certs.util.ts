@@ -185,7 +185,7 @@ function arrayBufferToPem(buffer: Uint8Array, label: string): string {
     return `-----BEGIN ${label}-----\n${formatted}\n-----END ${label}-----`;
 }
 
-function pemToArrayBuffer(pem: string): Uint8Array {
+function pemToArrayBuffer(pem: string) {
     const b64 = pem
         .replace(/-----BEGIN .* KEY-----/, '')
         .replace(/-----END .* KEY-----/, '')
