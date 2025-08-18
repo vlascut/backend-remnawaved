@@ -86,7 +86,7 @@ export class RenderTemplatesService {
 
             case 'STASH':
                 return {
-                    sub: await this.clashGeneratorService.generateConfig(formattedHosts, true),
+                    sub: await this.mihomoGeneratorService.generateConfig(formattedHosts, true),
                     contentType: configParams.CONTENT_TYPE,
                 };
 
@@ -176,7 +176,7 @@ export class RenderTemplatesService {
 
             case 'STASH':
                 return {
-                    sub: await this.clashGeneratorService.generateConfig(formattedHosts, true),
+                    sub: await this.mihomoGeneratorService.generateConfig(formattedHosts, true),
                     contentType: SUBSCRIPTION_CONFIG_TYPES.STASH.CONTENT_TYPE,
                 };
 
