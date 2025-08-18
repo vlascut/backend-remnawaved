@@ -72,7 +72,7 @@ export namespace CreateHostCommand {
             ),
         isHidden: z.optional(z.boolean().default(false)),
         overrideSniFromAddress: z.optional(z.boolean().default(false)),
-        vlessRouteId: z.optional(z.number().int().min(0).max(255).nullable()),
+        vlessRouteId: z.optional(z.number().int().min(0).max(65535).nullable()),
     });
 
     export type Request = z.infer<typeof RequestSchema>;
