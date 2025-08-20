@@ -284,14 +284,7 @@ export class SubscriptionService {
                 isHwidLimited = false;
             }
 
-            const subscriptionInfo = await this.getSubscriptionInfoByShortUuid(
-                user.response.shortUuid,
-                settingEntity,
-            );
-
-            if (!subscriptionInfo.isOk || !subscriptionInfo.response) {
-                return new SubscriptionNotFoundResponse();
-            }
+            const userInfo = await this.getUserInfo(user.response, [], {}, settingEntity);
 
             const hosts = await this.getHostsByUserUuid({
                 userUuid: user.response.uuid,
@@ -323,9 +316,12 @@ export class SubscriptionService {
             }
 
             return new RawSubscriptionWithHostsResponse({
-                user: subscriptionInfo.response.user,
+                user: {
+                    ...userInfo.user,
+                    tag: user.response.tag,
+                },
                 headers,
-                subscriptionUrl: subscriptionInfo.response.subscriptionUrl,
+                subscriptionUrl: userInfo.subscriptionUrl,
                 rawHosts: subscription?.rawHosts ?? [],
                 isHwidLimited: isHwidLimited ?? false,
             });
@@ -490,8 +486,8 @@ export class SubscriptionService {
         settingEntity: SubscriptionSettingsEntity,
     ): Promise<SubscriptionRawResponse> {
         const subscriptionUrl = settingEntity.addUsernameToBaseSubscription
-            ? `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}#${user.username}`
-            : `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`;
+            ? `https://${this.subPublicDomain}/${user.shortUuid}#${user.username}`
+            : `https://${this.subPublicDomain}/${user.shortUuid}`;
 
         return new SubscriptionRawResponse({
             isFound: true,
@@ -500,6 +496,10 @@ export class SubscriptionService {
                 daysLeft: dayjs(user.expireAt).diff(dayjs(), 'day'),
                 trafficUsed: prettyBytesUtil(user.usedTrafficBytes),
                 trafficLimit: prettyBytesUtil(user.trafficLimitBytes),
+                lifetimeTrafficUsed: prettyBytesUtil(user.lifetimeUsedTrafficBytes),
+                lifetimeTrafficUsedBytes: user.lifetimeUsedTrafficBytes.toString(),
+                trafficLimitBytes: user.trafficLimitBytes.toString(),
+                trafficUsedBytes: user.usedTrafficBytes.toString(),
                 username: user.username,
                 expiresAt: user.expireAt,
                 isActive: user.status === USERS_STATUS.ACTIVE,

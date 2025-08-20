@@ -9,6 +9,10 @@ export class SubscriptionRawResponse {
         shortUuid: string;
         trafficLimit: string;
         trafficUsed: string;
+        lifetimeTrafficUsed: string;
+        trafficLimitBytes: string;
+        trafficUsedBytes: string;
+        lifetimeTrafficUsedBytes: string;
         username: string;
         userStatus: TUsersStatus;
         trafficLimitStrategy: TResetPeriods;
