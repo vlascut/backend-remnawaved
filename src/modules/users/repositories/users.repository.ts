@@ -718,11 +718,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                 .groupBy('users.uuid')
                 .orderBy('users.createdAt', 'asc');
 
-            const start = performance.now();
             const result = await builder.limit(BATCH_SIZE).offset(offset).execute();
-            const end = performance.now();
-            // TODO: remove debug logs
-            console.log(`time: ${end - start}ms, result.length: ${result.length}`);
 
             if (result.length < BATCH_SIZE) {
                 hasMoreData = false;
