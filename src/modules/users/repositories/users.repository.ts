@@ -668,7 +668,7 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         activeInbounds: ConfigProfileInboundEntity[],
     ): AsyncGenerator<UserForConfigEntity[]> {
         // TODO: configure batch size
-        const BATCH_SIZE = 100_000;
+        const BATCH_SIZE = 50_000;
         let offset = 0;
         let hasMoreData = true;
 
@@ -719,6 +719,8 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                 .orderBy('users.createdAt', 'asc');
 
             const result = await builder.limit(BATCH_SIZE).offset(offset).execute();
+            // TODO: remove debug logs
+            console.log(`result.length: ${result.length}`);
 
             if (result.length < BATCH_SIZE) {
                 hasMoreData = false;
