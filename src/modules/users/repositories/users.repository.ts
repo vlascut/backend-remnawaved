@@ -672,6 +672,33 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         let offset = 0;
         let hasMoreData = true;
 
+        const counter = this.qb.kysely
+            .selectFrom('internalSquadMembers')
+            .innerJoin('users', (join) =>
+                join
+                    .onRef('internalSquadMembers.userUuid', '=', 'users.uuid')
+                    .on('users.status', '=', USERS_STATUS.ACTIVE),
+            )
+            .innerJoin(
+                'internalSquadInbounds',
+                'internalSquadMembers.internalSquadUuid',
+                'internalSquadInbounds.internalSquadUuid',
+            )
+            .innerJoin('configProfileInbounds', (join) =>
+                join
+                    .onRef('internalSquadInbounds.inboundUuid', '=', 'configProfileInbounds.uuid')
+                    .on('configProfileInbounds.profileUuid', '=', getKyselyUuid(configProfileUuid))
+                    .on(
+                        'configProfileInbounds.uuid',
+                        'in',
+                        activeInbounds.map((inbound) => getKyselyUuid(inbound.uuid)),
+                    ),
+            )
+            .select(() => [sql<number>`count(distinct users.uuid)`.as('total')]);
+
+        const total = await counter.executeTakeFirstOrThrow();
+        console.log(`total: ${total.total}`);
+
         while (hasMoreData) {
             const builder = this.qb.kysely
                 .selectFrom('internalSquadMembers')

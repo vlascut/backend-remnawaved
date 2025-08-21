@@ -115,7 +115,6 @@ export class InternalSquadService {
         }
     }
 
-    @Transactional()
     public async updateInternalSquad(
         uuid: string,
         name?: string,
@@ -158,13 +157,7 @@ export class InternalSquadService {
                     currentProfilesMap.get(inbound.configProfileUuid)!.add(inbound.inboundUuid);
                 }
 
-                /* Clean & Add inbounds */
-                await this.internalSquadRepository.cleanInbounds(internalSquad.uuid);
-
-                if (inbounds.length > 0) {
-                    await this.internalSquadRepository.createInbounds(inbounds, internalSquad.uuid);
-                }
-                /* Clean & Add inbounds */
+                await this.syncInternalSquadInbounds(internalSquad, inbounds);
 
                 const newInbounds = await this.internalSquadRepository.getInboundsBySquadUuid(
                     internalSquad.uuid,
@@ -232,6 +225,20 @@ export class InternalSquadService {
                 ...ERRORS.UPDATE_INTERNAL_SQUAD_ERROR,
             };
         }
+    }
+
+    @Transactional()
+    private async syncInternalSquadInbounds(
+        internalSquad: InternalSquadEntity,
+        inbounds: string[],
+    ) {
+        /* Clean & Add inbounds */
+        await this.internalSquadRepository.cleanInbounds(internalSquad.uuid);
+
+        if (inbounds.length > 0) {
+            await this.internalSquadRepository.createInbounds(inbounds, internalSquad.uuid);
+        }
+        /* Clean & Add inbounds */
     }
 
     public async deleteInternalSquad(
