@@ -668,36 +668,9 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         activeInbounds: ConfigProfileInboundEntity[],
     ): AsyncGenerator<UserForConfigEntity[]> {
         // TODO: configure batch size
-        const BATCH_SIZE = 50_000;
+        const BATCH_SIZE = 100_000;
         let offset = 0;
         let hasMoreData = true;
-
-        const counter = this.qb.kysely
-            .selectFrom('internalSquadMembers')
-            .innerJoin('users', (join) =>
-                join
-                    .onRef('internalSquadMembers.userUuid', '=', 'users.uuid')
-                    .on('users.status', '=', USERS_STATUS.ACTIVE),
-            )
-            .innerJoin(
-                'internalSquadInbounds',
-                'internalSquadMembers.internalSquadUuid',
-                'internalSquadInbounds.internalSquadUuid',
-            )
-            .innerJoin('configProfileInbounds', (join) =>
-                join
-                    .onRef('internalSquadInbounds.inboundUuid', '=', 'configProfileInbounds.uuid')
-                    .on('configProfileInbounds.profileUuid', '=', getKyselyUuid(configProfileUuid))
-                    .on(
-                        'configProfileInbounds.uuid',
-                        'in',
-                        activeInbounds.map((inbound) => getKyselyUuid(inbound.uuid)),
-                    ),
-            )
-            .select(() => [sql<number>`count(distinct users.uuid)`.as('total')]);
-
-        const total = await counter.executeTakeFirstOrThrow();
-        console.log(`total: ${total.total}`);
 
         while (hasMoreData) {
             const builder = this.qb.kysely
@@ -745,9 +718,11 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                 .groupBy('users.uuid')
                 .orderBy('users.createdAt', 'asc');
 
+            const start = performance.now();
             const result = await builder.limit(BATCH_SIZE).offset(offset).execute();
+            const end = performance.now();
             // TODO: remove debug logs
-            console.log(`result.length: ${result.length}`);
+            console.log(`time: ${end - start}ms, result.length: ${result.length}`);
 
             if (result.length < BATCH_SIZE) {
                 hasMoreData = false;
