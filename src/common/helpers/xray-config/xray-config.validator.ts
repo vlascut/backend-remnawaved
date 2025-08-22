@@ -283,7 +283,7 @@ export class XRayConfig {
     private addUsersToInbound(inbound: Inbound, users: UserForConfigEntity[]): void {
         switch (inbound.protocol) {
             case 'trojan':
-                (inbound.settings as TrojanSettings).clients ??= [];
+                (inbound.settings as TrojanSettings).clients = [];
                 for (const user of users) {
                     (inbound.settings as TrojanSettings).clients.push({
                         password: user.trojanPassword,
@@ -293,7 +293,7 @@ export class XRayConfig {
                 }
                 break;
             case 'vless':
-                (inbound.settings as VLessSettings).clients ??= [];
+                (inbound.settings as VLessSettings).clients = [];
                 for (const user of users) {
                     (inbound.settings as VLessSettings).clients.push({
                         id: user.vlessUuid,
@@ -303,7 +303,7 @@ export class XRayConfig {
                 }
                 break;
             case 'shadowsocks':
-                (inbound.settings as ShadowsocksSettings).clients ??= [];
+                (inbound.settings as ShadowsocksSettings).clients = [];
                 for (const user of users) {
                     (inbound.settings as ShadowsocksSettings).clients.push({
                         password: user.ssPassword,
