@@ -52,6 +52,8 @@ export class GetPreparedConfigWithUsersHandler
 
             config = new XRayConfig(configProfile.response.config as object);
 
+            config.cleanInboundClients();
+
             config.processCertificates();
 
             const configHash = config.getConfigHash();
