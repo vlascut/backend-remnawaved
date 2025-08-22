@@ -42,6 +42,7 @@ import {
     GetOneNodeResponseDto,
     ReorderNodeRequestDto,
     ReorderNodeResponseDto,
+    RestartAllNodesRequestBodyDto,
     RestartAllNodesResponseDto,
     RestartNodeRequestDto,
     RestartNodeResponseDto,
@@ -209,8 +210,10 @@ export class NodesController {
         command: RestartAllNodesCommand,
         httpCode: HttpStatus.OK,
     })
-    async restartAllNodes(): Promise<RestartAllNodesResponseDto> {
-        const res = await this.nodesService.restartAllNodes();
+    async restartAllNodes(
+        @Body() { forceRestart }: RestartAllNodesRequestBodyDto,
+    ): Promise<RestartAllNodesResponseDto> {
+        const res = await this.nodesService.restartAllNodes(forceRestart);
         const data = errorHandler(res);
         return {
             response: data,

@@ -53,7 +53,11 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
         }
     }
 
-    private async handleStartAllNodesByProfile(payload: { profileUuid: string; emitter: string }) {
+    private async handleStartAllNodesByProfile(payload: {
+        profileUuid: string;
+        emitter: string;
+        force?: boolean;
+    }) {
         await this.startNodeQueueService.queue.pause();
         await this.startAllNodesQueueService.queue.pause();
 
@@ -165,6 +169,7 @@ export class StartAllNodesByProfileQueueProcessor extends WorkerHost {
                     hashPayload,
                     node.address,
                     node.port,
+                    payload.force,
                 );
 
                 switch (response.isOk) {

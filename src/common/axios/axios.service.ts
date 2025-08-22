@@ -22,6 +22,7 @@ import {
     StartXrayCommand,
     StopXrayCommand,
     X_HASH_PAYLOAD,
+    X_FORCE_RESTART,
 } from '@remnawave/node-contract';
 
 import { GetNodeJwtCommand, IGetNodeJwtResponse } from '@modules/keygen/commands/get-node-jwt';
@@ -94,6 +95,7 @@ export class AxiosService {
         hashesPayload: string,
         url: string,
         port: null | number,
+        force?: boolean,
     ): Promise<ICommandResponse<StartXrayCommand.Response>> {
         const nodeUrl = this.getNodeUrl(url, StartXrayCommand.url, port);
         try {
@@ -104,6 +106,7 @@ export class AxiosService {
                     timeout: 60_000,
                     headers: {
                         [X_HASH_PAYLOAD]: hashesPayload,
+                        [X_FORCE_RESTART]: force ? 'true' : 'false',
                     },
                 },
             );
