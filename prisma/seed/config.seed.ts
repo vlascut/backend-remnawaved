@@ -8,6 +8,7 @@ import { KeygenEntity } from '@modules/keygen/entities/keygen.entity';
 import { Prisma, PrismaClient } from '@prisma/client';
 import consola from 'consola';
 import _ from 'lodash';
+import { Redis } from 'ioredis';
 
 export const XTLSDefaultConfig = {
     log: {
@@ -975,6 +976,28 @@ async function checkDatabaseConnection() {
     }
 }
 
+async function clearRedis() {
+    consola.start('Clearing Redis...');
+
+    try {
+        const redis = new Redis({
+            host: process.env.REDIS_HOST || 'remnawave-redis',
+            port: parseInt(process.env.REDIS_PORT || '6379', 10),
+            db: parseInt(process.env.REDIS_DB || '1', 10),
+            password: process.env.REDIS_PASSWORD || undefined,
+        });
+
+        await redis.flushdb();
+        await redis.quit();
+
+        consola.success('Redis cleared successfully!');
+    } catch (error) {
+        consola.error('Redis clearing error:', error);
+
+        consola.warn('Continuing without Redis clearing...');
+    }
+}
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function seedAll() {
@@ -984,6 +1007,7 @@ async function seedAll() {
         isConnected = await checkDatabaseConnection();
 
         if (isConnected) {
+            await clearRedis();
             consola.start('Database connected. Starting seeding...');
             await seedSubscriptionTemplate();
             await seedDefaultConfigProfile();
