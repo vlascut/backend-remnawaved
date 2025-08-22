@@ -25,6 +25,7 @@ datasource db {
 
 model Users {
   uuid      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tId       BigInt @unique @default(autoincrement()) @map("t_id") @ignore
   shortUuid String @unique @map("short_uuid")
   username  String @unique @map("username")
 
@@ -75,6 +76,8 @@ model Users {
   activeInternalSquads InternalSquadMembers[]
 
   @@index([tag])
+  @@index([status], type: Hash)
+  @@index([createdAt(sort: Asc)])
   @@map("users")
 }
 
@@ -386,6 +389,7 @@ model ConfigProfileInbounds {
   internalSquadInbounds        InternalSquadInbounds[]
 
   @@unique([tag])
+  @@index([profileUuid, uuid])
   @@map("config_profile_inbounds")
 }
 

@@ -58,10 +58,7 @@ export class GetPreparedConfigWithUsersHandler
 
             config.leaveInbounds(activeInboundsTags);
 
-            const usersStream = this.usersRepository.getUsersForConfigStream(
-                configProfileUuid,
-                activeInbounds,
-            );
+            const usersStream = this.usersRepository.getUsersForConfigStream(activeInbounds);
 
             for await (const userBatch of usersStream) {
                 config.includeUserBatch(userBatch, inboundsUserSets);
