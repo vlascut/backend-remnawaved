@@ -55,6 +55,7 @@ export class SubscriptionService {
     private readonly logger = new Logger(SubscriptionService.name);
     private readonly hwidDeviceLimitEnabled: boolean;
     private readonly subPublicDomain: string;
+    private readonly hwidFallbackDeviceLimit: number;
 
     constructor(
         private readonly queryBus: QueryBus,
@@ -68,6 +69,9 @@ export class SubscriptionService {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
         this.subPublicDomain = this.configService.getOrThrow<string>('SUB_PUBLIC_DOMAIN');
+        this.hwidFallbackDeviceLimit = this.configService.getOrThrow<number>(
+            'HWID_FALLBACK_DEVICE_LIMIT',
+        );
     }
 
     public async getSubscriptionByShortUuid(
@@ -802,26 +806,25 @@ export class SubscriptionService {
     > {
         try {
             if (user.hwidDeviceLimit === 0) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: true,
-                    },
-                };
+                if (hwidHeaders !== null) {
+                    await this.upsertHwidUserDevice({
+                        hwidUserDevice: new HwidUserDeviceEntity({
+                            hwid: hwidHeaders.hwid,
+                            userUuid: user.uuid,
+                            platform: hwidHeaders.platform,
+                            osVersion: hwidHeaders.osVersion,
+                            deviceModel: hwidHeaders.deviceModel,
+                            userAgent: hwidHeaders.userAgent,
+                        }),
+                    });
+                }
+
+                return { isOk: true, response: { isSubscriptionAllowed: true } };
             }
 
             if (hwidHeaders === null) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: true, response: { isSubscriptionAllowed: false } };
             }
-
-            const hwidGlobalDeviceLimit = this.configService.getOrThrow<number>(
-                'HWID_FALLBACK_DEVICE_LIMIT',
-            );
 
             const isDeviceExists = await this.checkHwidDeviceExists({
                 hwid: hwidHeaders.hwid,
@@ -841,35 +844,20 @@ export class SubscriptionService {
                         }),
                     });
 
-                    return {
-                        isOk: true,
-                        response: {
-                            isSubscriptionAllowed: true,
-                        },
-                    };
+                    return { isOk: true, response: { isSubscriptionAllowed: true } };
                 }
             }
 
             const count = await this.countHwidUserDevices({ userUuid: user.uuid });
 
-            const deviceLimit = user.hwidDeviceLimit ?? hwidGlobalDeviceLimit;
+            const deviceLimit = user.hwidDeviceLimit ?? this.hwidFallbackDeviceLimit;
 
             if (!count.isOk || count.response === undefined) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: true, response: { isSubscriptionAllowed: false } };
             }
 
             if (count.response >= deviceLimit) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: true, response: { isSubscriptionAllowed: false } };
             }
 
             const result = await this.upsertHwidUserDevice({
@@ -885,28 +873,13 @@ export class SubscriptionService {
 
             if (!result.isOk || !result.response) {
                 this.logger.error(`Error creating Hwid user device, access forbidden.`);
-                return {
-                    isOk: false,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: false, response: { isSubscriptionAllowed: false } };
             }
 
-            return {
-                isOk: true,
-                response: {
-                    isSubscriptionAllowed: true,
-                },
-            };
+            return { isOk: true, response: { isSubscriptionAllowed: true } };
         } catch (error) {
             this.logger.error(`Error checking hwid device limit: ${error}`);
-            return {
-                isOk: false,
-                response: {
-                    isSubscriptionAllowed: false,
-                },
-            };
+            return { isOk: false, response: { isSubscriptionAllowed: false } };
         }
     }
 
