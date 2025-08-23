@@ -425,6 +425,7 @@ export class SubscriptionService {
                     },
                 ),
             );
+
             if (!user.isOk || !user.response) {
                 return {
                     isOk: false,
@@ -432,23 +433,29 @@ export class SubscriptionService {
                 };
             }
 
-            const hosts = await this.getHostsByUserUuid({
-                userUuid: user.response.uuid,
-                returnDisabledHosts: false,
-                returnHiddenHosts: false,
-            });
+            let formattedHosts: IFormattedHost[] = [];
+            let xrayLinks: string[] = [];
+            let ssConfLinks: Record<string, string> = {};
 
-            const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-                hosts.response || [],
-                user.response,
-            );
+            if (!this.hwidDeviceLimitEnabled) {
+                const hostsResponse = await this.getHostsByUserUuid({
+                    userUuid: user.response.uuid,
+                    returnDisabledHosts: false,
+                    returnHiddenHosts: false,
+                });
 
-            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts, false);
+                formattedHosts = await this.formatHostsService.generateFormattedHosts(
+                    hostsResponse.response || [],
+                    user.response,
+                );
 
-            const ssConfLinks = await this.generateSsConfLinks(
-                user.response.shortUuid,
-                formattedHosts,
-            );
+                xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts, false);
+
+                ssConfLinks = await this.generateSsConfLinks(
+                    user.response.shortUuid,
+                    formattedHosts,
+                );
+            }
 
             let settings: SubscriptionSettingsEntity;
             if (!settingEntity) {
