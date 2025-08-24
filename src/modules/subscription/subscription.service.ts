@@ -55,7 +55,7 @@ export class SubscriptionService {
     private readonly logger = new Logger(SubscriptionService.name);
     private readonly hwidDeviceLimitEnabled: boolean;
     private readonly subPublicDomain: string;
-    private readonly hwidFallbackDeviceLimit: number;
+    private readonly hwidFallbackDeviceLimit: number | undefined;
 
     constructor(
         private readonly queryBus: QueryBus,
@@ -69,7 +69,7 @@ export class SubscriptionService {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
         this.subPublicDomain = this.configService.getOrThrow<string>('SUB_PUBLIC_DOMAIN');
-        this.hwidFallbackDeviceLimit = this.configService.getOrThrow<number>(
+        this.hwidFallbackDeviceLimit = this.configService.get<number | undefined>(
             'HWID_FALLBACK_DEVICE_LIMIT',
         );
     }
@@ -850,7 +850,7 @@ export class SubscriptionService {
 
             const count = await this.countHwidUserDevices({ userUuid: user.uuid });
 
-            const deviceLimit = user.hwidDeviceLimit ?? this.hwidFallbackDeviceLimit;
+            const deviceLimit = user.hwidDeviceLimit ?? this.hwidFallbackDeviceLimit ?? 0;
 
             if (!count.isOk || count.response === undefined) {
                 return { isOk: true, response: { isSubscriptionAllowed: false } };
