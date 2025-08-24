@@ -39,7 +39,7 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
-<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
+<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')} UTC</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
 <b>Internal Squads:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
         `;
@@ -58,7 +58,7 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
-<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
+<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')} UTC</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
 <b>Internal Squads:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
         `;
@@ -77,7 +77,7 @@ export class UsersEvents {
 ➖➖➖➖➖➖➖➖➖
 <b>Username:</b> <code>${event.user.username}</code>
 <b>Traffic limit:</b> <code>${prettyBytesUtil(event.user.trafficLimitBytes)}</code>
-<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')}</code>
+<b>Valid until:</b> <code>${dayjs(event.user.expireAt).format('DD.MM.YYYY HH:mm')} UTC</code>
 <b>Sub:</b> <code>${event.user.shortUuid}</code>
 <b>Internal Squads:</b> <code>${event.user.activeInternalSquads.map((squad) => squad.name).join(', ')}</code>
         `;
