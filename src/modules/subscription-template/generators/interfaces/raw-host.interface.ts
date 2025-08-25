@@ -11,6 +11,7 @@ export interface IDbHostData {
     remark: string;
     isHidden: boolean;
     tag: string | null;
+    vlessRouteId: number | null;
 }
 
 export interface IRawHost {

@@ -27,7 +27,7 @@ export class StartAllNodesByProfileQueueEvents implements OnModuleInit {
 
             await sleep(10_000);
 
-            const profileUuid = jobId;
+            const profileUuid = deduplicationId;
 
             await this.startAllNodesByProfileQueue.startAllNodesByProfile({
                 profileUuid,

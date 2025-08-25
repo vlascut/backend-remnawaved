@@ -23,6 +23,7 @@ export class GetOneHostResponseModel {
     public isHidden: boolean;
 
     public overrideSniFromAddress: boolean;
+    public vlessRouteId: number | null;
 
     public inbound: {
         configProfileUuid: string | null;
@@ -61,5 +62,6 @@ export class GetOneHostResponseModel {
         this.serverDescription = data.serverDescription;
 
         this.overrideSniFromAddress = data.overrideSniFromAddress;
+        this.vlessRouteId = data.vlessRouteId;
     }
 }

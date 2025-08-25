@@ -37,6 +37,10 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                 daysLeft: z.number(),
                 trafficUsed: z.string(),
                 trafficLimit: z.string(),
+                lifetimeTrafficUsed: z.string(),
+                trafficUsedBytes: z.string(),
+                trafficLimitBytes: z.string(),
+                lifetimeTrafficUsedBytes: z.string(),
                 username: z.string(),
                 expiresAt: z
                     .string()
@@ -45,6 +49,7 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                 isActive: z.boolean(),
                 userStatus: z.nativeEnum(USERS_STATUS),
                 trafficLimitStrategy: z.nativeEnum(RESET_PERIODS),
+                tag: z.nullable(z.string()),
             }),
             subscriptionUrl: z.string(),
             rawHosts: z.array(
@@ -103,6 +108,7 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                             remark: z.string(),
                             isHidden: z.boolean(),
                             tag: z.nullable(z.string()),
+                            vlessRouteId: z.number().int().nullable(),
                         }),
                     ),
                 }),

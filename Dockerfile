@@ -55,6 +55,8 @@ RUN apk add --no-cache jemalloc curl
 
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV REMNAWAVE_BRANCH=${BRANCH}
+ENV PRISMA_HIDE_UPDATE_MESSAGE=true
+ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
 
 COPY --from=backend-build /opt/app/dist ./dist
 COPY --from=frontend /opt/frontend/frontend_temp/dist ./frontend

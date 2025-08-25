@@ -35,7 +35,11 @@ export class StartAllNodesByProfileQueueService
         await this.checkConnection();
     }
 
-    public async startAllNodesByProfile(payload: { emitter: string; profileUuid: string }) {
+    public async startAllNodesByProfile(payload: {
+        emitter: string;
+        profileUuid: string;
+        force?: boolean;
+    }) {
         return this.addJob(StartAllNodesByProfileJobNames.startAllNodesByProfile, payload, {
             // jobId: `${StartAllNodesByProfileJobNames.startAllNodesByProfile}-${payload.profileUuid}`,
             // removeOnComplete: true,

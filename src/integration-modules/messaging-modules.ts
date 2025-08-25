@@ -1,7 +1,8 @@
 import {
     MessagingRedisExtensionModule,
     RedisChannelConfig,
-} from '@nestjstools/messaging-redis-extension';
+} from '@kastov/messaging-redis-extension';
+
 import { MessagingModule } from '@nestjstools/messaging';
 import { ConfigService } from '@nestjs/config';
 import { ConfigModule } from '@nestjs/config';
@@ -27,6 +28,11 @@ import { MessagingBuses, MessagingChannels, MessagingQueues } from '@libs/contra
                     new RedisChannelConfig({
                         name: MessagingChannels.EVENT,
                         queue: MessagingQueues.EVENT,
+                        bullJobOptions: {
+                            removeOnComplete: 50,
+                            removeOnFail: 50,
+                        },
+
                         connection: {
                             host: configService.getOrThrow<string>('REDIS_HOST'),
                             port: configService.getOrThrow<number>('REDIS_PORT'),

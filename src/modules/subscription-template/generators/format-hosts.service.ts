@@ -17,6 +17,7 @@ import { TemplateEngine } from '@common/utils/templates/replace-templates-values
 import { resolveInboundAndPublicKey } from '@common/helpers/xray-config';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { InboundObject } from '@common/helpers/xray-config/interfaces';
+import { setVlessRouteForUuid } from '@common/utils/vless-route';
 import { SECURITY_LAYERS, USERS_STATUS } from '@libs/contracts/constants';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
@@ -355,6 +356,7 @@ export class FormatHostsService {
                     remark: inputHost.remark,
                     isHidden: inputHost.isHidden,
                     tag: inputHost.tag,
+                    vlessRouteId: inputHost.vlessRouteId,
                 };
             }
 
@@ -382,7 +384,7 @@ export class FormatHostsService {
                 network,
                 password: {
                     trojanPassword: user.trojanPassword,
-                    vlessPassword: user.vlessUuid,
+                    vlessPassword: setVlessRouteForUuid(user.vlessUuid, inputHost.vlessRouteId),
                     ssPassword: user.ssPassword,
                 },
                 additionalParams,

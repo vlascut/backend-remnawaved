@@ -86,7 +86,7 @@ export class RenderTemplatesService {
 
             case 'STASH':
                 return {
-                    sub: await this.clashGeneratorService.generateConfig(formattedHosts, true),
+                    sub: await this.mihomoGeneratorService.generateConfig(formattedHosts, true),
                     contentType: configParams.CONTENT_TYPE,
                 };
 
@@ -152,15 +152,6 @@ export class RenderTemplatesService {
                 return {
                     sub: await this.singBoxGeneratorService.generateConfig(
                         formattedHosts,
-                        parseSingBoxVersion(userAgent),
-                    ),
-                    contentType: SUBSCRIPTION_CONFIG_TYPES.SING_BOX.CONTENT_TYPE,
-                };
-
-            case 'SINGBOX':
-                return {
-                    sub: await this.singBoxGeneratorService.generateConfig(
-                        formattedHosts,
                         '1.11.1',
                     ),
                     contentType: SUBSCRIPTION_CONFIG_TYPES.SING_BOX.CONTENT_TYPE,
@@ -176,7 +167,7 @@ export class RenderTemplatesService {
 
             case 'STASH':
                 return {
-                    sub: await this.clashGeneratorService.generateConfig(formattedHosts, true),
+                    sub: await this.mihomoGeneratorService.generateConfig(formattedHosts, true),
                     contentType: SUBSCRIPTION_CONFIG_TYPES.STASH.CONTENT_TYPE,
                 };
 

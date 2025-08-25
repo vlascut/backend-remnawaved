@@ -55,6 +55,7 @@ export class SubscriptionService {
     private readonly logger = new Logger(SubscriptionService.name);
     private readonly hwidDeviceLimitEnabled: boolean;
     private readonly subPublicDomain: string;
+    private readonly hwidFallbackDeviceLimit: number | undefined;
 
     constructor(
         private readonly queryBus: QueryBus,
@@ -68,6 +69,9 @@ export class SubscriptionService {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
         this.subPublicDomain = this.configService.getOrThrow<string>('SUB_PUBLIC_DOMAIN');
+        this.hwidFallbackDeviceLimit = this.configService.get<number | undefined>(
+            'HWID_FALLBACK_DEVICE_LIMIT',
+        );
     }
 
     public async getSubscriptionByShortUuid(
@@ -284,14 +288,7 @@ export class SubscriptionService {
                 isHwidLimited = false;
             }
 
-            const subscriptionInfo = await this.getSubscriptionInfoByShortUuid(
-                user.response.shortUuid,
-                settingEntity,
-            );
-
-            if (!subscriptionInfo.isOk || !subscriptionInfo.response) {
-                return new SubscriptionNotFoundResponse();
-            }
+            const userInfo = await this.getUserInfo(user.response, [], {}, settingEntity);
 
             const hosts = await this.getHostsByUserUuid({
                 userUuid: user.response.uuid,
@@ -323,9 +320,12 @@ export class SubscriptionService {
             }
 
             return new RawSubscriptionWithHostsResponse({
-                user: subscriptionInfo.response.user,
+                user: {
+                    ...userInfo.user,
+                    tag: user.response.tag,
+                },
                 headers,
-                subscriptionUrl: subscriptionInfo.response.subscriptionUrl,
+                subscriptionUrl: userInfo.subscriptionUrl,
                 rawHosts: subscription?.rawHosts ?? [],
                 isHwidLimited: isHwidLimited ?? false,
             });
@@ -429,6 +429,7 @@ export class SubscriptionService {
                     },
                 ),
             );
+
             if (!user.isOk || !user.response) {
                 return {
                     isOk: false,
@@ -436,23 +437,29 @@ export class SubscriptionService {
                 };
             }
 
-            const hosts = await this.getHostsByUserUuid({
-                userUuid: user.response.uuid,
-                returnDisabledHosts: false,
-                returnHiddenHosts: false,
-            });
+            let formattedHosts: IFormattedHost[] = [];
+            let xrayLinks: string[] = [];
+            let ssConfLinks: Record<string, string> = {};
 
-            const formattedHosts = await this.formatHostsService.generateFormattedHosts(
-                hosts.response || [],
-                user.response,
-            );
+            if (!this.hwidDeviceLimitEnabled) {
+                const hostsResponse = await this.getHostsByUserUuid({
+                    userUuid: user.response.uuid,
+                    returnDisabledHosts: false,
+                    returnHiddenHosts: false,
+                });
 
-            const xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts, false);
+                formattedHosts = await this.formatHostsService.generateFormattedHosts(
+                    hostsResponse.response || [],
+                    user.response,
+                );
 
-            const ssConfLinks = await this.generateSsConfLinks(
-                user.response.shortUuid,
-                formattedHosts,
-            );
+                xrayLinks = this.xrayGeneratorService.generateLinks(formattedHosts, false);
+
+                ssConfLinks = await this.generateSsConfLinks(
+                    user.response.shortUuid,
+                    formattedHosts,
+                );
+            }
 
             let settings: SubscriptionSettingsEntity;
             if (!settingEntity) {
@@ -490,8 +497,8 @@ export class SubscriptionService {
         settingEntity: SubscriptionSettingsEntity,
     ): Promise<SubscriptionRawResponse> {
         const subscriptionUrl = settingEntity.addUsernameToBaseSubscription
-            ? `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}#${user.username}`
-            : `https://${this.configService.getOrThrow('SUB_PUBLIC_DOMAIN')}/${user.shortUuid}`;
+            ? `https://${this.subPublicDomain}/${user.shortUuid}#${user.username}`
+            : `https://${this.subPublicDomain}/${user.shortUuid}`;
 
         return new SubscriptionRawResponse({
             isFound: true,
@@ -500,6 +507,10 @@ export class SubscriptionService {
                 daysLeft: dayjs(user.expireAt).diff(dayjs(), 'day'),
                 trafficUsed: prettyBytesUtil(user.usedTrafficBytes),
                 trafficLimit: prettyBytesUtil(user.trafficLimitBytes),
+                lifetimeTrafficUsed: prettyBytesUtil(user.lifetimeUsedTrafficBytes),
+                lifetimeTrafficUsedBytes: user.lifetimeUsedTrafficBytes.toString(),
+                trafficLimitBytes: user.trafficLimitBytes.toString(),
+                trafficUsedBytes: user.usedTrafficBytes.toString(),
                 username: user.username,
                 expiresAt: user.expireAt,
                 isActive: user.status === USERS_STATUS.ACTIVE,
@@ -795,26 +806,25 @@ export class SubscriptionService {
     > {
         try {
             if (user.hwidDeviceLimit === 0) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: true,
-                    },
-                };
+                if (hwidHeaders !== null) {
+                    await this.upsertHwidUserDevice({
+                        hwidUserDevice: new HwidUserDeviceEntity({
+                            hwid: hwidHeaders.hwid,
+                            userUuid: user.uuid,
+                            platform: hwidHeaders.platform,
+                            osVersion: hwidHeaders.osVersion,
+                            deviceModel: hwidHeaders.deviceModel,
+                            userAgent: hwidHeaders.userAgent,
+                        }),
+                    });
+                }
+
+                return { isOk: true, response: { isSubscriptionAllowed: true } };
             }
 
             if (hwidHeaders === null) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: true, response: { isSubscriptionAllowed: false } };
             }
-
-            const hwidGlobalDeviceLimit = this.configService.getOrThrow<number>(
-                'HWID_FALLBACK_DEVICE_LIMIT',
-            );
 
             const isDeviceExists = await this.checkHwidDeviceExists({
                 hwid: hwidHeaders.hwid,
@@ -834,35 +844,20 @@ export class SubscriptionService {
                         }),
                     });
 
-                    return {
-                        isOk: true,
-                        response: {
-                            isSubscriptionAllowed: true,
-                        },
-                    };
+                    return { isOk: true, response: { isSubscriptionAllowed: true } };
                 }
             }
 
             const count = await this.countHwidUserDevices({ userUuid: user.uuid });
 
-            const deviceLimit = user.hwidDeviceLimit ?? hwidGlobalDeviceLimit;
+            const deviceLimit = user.hwidDeviceLimit ?? this.hwidFallbackDeviceLimit ?? 0;
 
             if (!count.isOk || count.response === undefined) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: true, response: { isSubscriptionAllowed: false } };
             }
 
             if (count.response >= deviceLimit) {
-                return {
-                    isOk: true,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: true, response: { isSubscriptionAllowed: false } };
             }
 
             const result = await this.upsertHwidUserDevice({
@@ -878,28 +873,13 @@ export class SubscriptionService {
 
             if (!result.isOk || !result.response) {
                 this.logger.error(`Error creating Hwid user device, access forbidden.`);
-                return {
-                    isOk: false,
-                    response: {
-                        isSubscriptionAllowed: false,
-                    },
-                };
+                return { isOk: false, response: { isSubscriptionAllowed: false } };
             }
 
-            return {
-                isOk: true,
-                response: {
-                    isSubscriptionAllowed: true,
-                },
-            };
+            return { isOk: true, response: { isSubscriptionAllowed: true } };
         } catch (error) {
             this.logger.error(`Error checking hwid device limit: ${error}`);
-            return {
-                isOk: false,
-                response: {
-                    isSubscriptionAllowed: false,
-                },
-            };
+            return { isOk: false, response: { isSubscriptionAllowed: false } };
         }
     }
 

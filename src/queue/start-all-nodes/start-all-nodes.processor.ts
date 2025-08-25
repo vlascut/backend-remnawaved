@@ -32,14 +32,14 @@ export class StartAllNodesQueueProcessor extends WorkerHost {
     async process(job: Job) {
         switch (job.name) {
             case StartAllNodesJobNames.startAllNodes:
-                return this.handleStartAllNodes();
+                return this.handleStartAllNodes(job);
             default:
                 this.logger.warn(`Job "${job.name}" is not handled.`);
                 break;
         }
     }
 
-    private async handleStartAllNodes() {
+    private async handleStartAllNodes(job: Job<{ emitter: string; force?: boolean }>) {
         try {
             const nodes = await this.nodesRepository.findByCriteria({
                 isDisabled: false,
@@ -47,6 +47,12 @@ export class StartAllNodesQueueProcessor extends WorkerHost {
 
             if (!nodes) {
                 return;
+            }
+
+            const forceRestart = job.data.force;
+
+            if (forceRestart) {
+                this.logger.warn('Force restart all nodes requested.');
             }
 
             const groupedByProfile = new Map<string, NodesEntity[]>();
@@ -65,6 +71,7 @@ export class StartAllNodesQueueProcessor extends WorkerHost {
                 await this.startAllNodesByProfileQueueService.startAllNodesByProfile({
                     profileUuid: profile,
                     emitter: 'StartAllNodesQueueProcessor',
+                    force: forceRestart,
                 });
             }
         } catch (error) {

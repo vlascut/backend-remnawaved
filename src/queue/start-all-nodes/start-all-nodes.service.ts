@@ -32,7 +32,7 @@ export class StartAllNodesQueueService
         await this.checkConnection();
     }
 
-    public async startAllNodes(payload: { emitter: string }) {
+    public async startAllNodes(payload: { emitter: string; force?: boolean }) {
         return this.addJob(StartAllNodesJobNames.startAllNodes, payload, {
             deduplication: {
                 id: StartAllNodesJobNames.startAllNodes,

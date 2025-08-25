@@ -193,14 +193,10 @@ export class XRayConfig {
         return sortedObj as T;
     }
 
-    public processCertificates(forInbounds: Set<string> = new Set()): IXrayConfig {
+    public processCertificates(): IXrayConfig {
         const config = this.config;
 
         for (const inbound of config.inbounds) {
-            if (forInbounds.size > 0 && !forInbounds.has(inbound.tag)) {
-                continue;
-            }
-
             const tlsSettings = inbound?.streamSettings?.tlsSettings;
             if (!tlsSettings?.certificates) continue;
 
@@ -282,6 +278,24 @@ export class XRayConfig {
         }
 
         return port;
+    }
+
+    public cleanInboundClients(): void {
+        for (const inbound of this.config.inbounds) {
+            switch (inbound.protocol) {
+                case 'trojan':
+                    (inbound.settings as TrojanSettings).clients = [];
+                    break;
+                case 'vless':
+                    (inbound.settings as VLessSettings).clients = [];
+                    break;
+                case 'shadowsocks':
+                    (inbound.settings as ShadowsocksSettings).clients = [];
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     private addUsersToInbound(inbound: Inbound, users: UserForConfigEntity[]): void {

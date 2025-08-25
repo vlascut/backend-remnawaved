@@ -8,7 +8,7 @@ import { DB } from 'prisma/generated/types';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { TxKyselyService } from '@common/database/tx-kysely.service';
 import { getKyselyUuid } from '@common/helpers/kysely';
@@ -41,6 +41,8 @@ dayjs.extend(utc);
 
 @Injectable()
 export class UsersRepository implements ICrud<BaseUserEntity> {
+    private readonly logger = new Logger(UsersRepository.name);
+
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly qb: TxKyselyService,
@@ -664,47 +666,35 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
     }
 
     public async *getUsersForConfigStream(
-        configProfileUuid: string,
         activeInbounds: ConfigProfileInboundEntity[],
     ): AsyncGenerator<UserForConfigEntity[]> {
-        // TODO: configure batch size
         const BATCH_SIZE = 100_000;
-        let offset = 0;
+        let lastTId: bigint | null = null;
         let hasMoreData = true;
 
         while (hasMoreData) {
             const builder = this.qb.kysely
-                .selectFrom('internalSquadMembers')
-                .innerJoin('users', (join) =>
-                    join
-                        .onRef('internalSquadMembers.userUuid', '=', 'users.uuid')
-                        .on('users.status', '=', USERS_STATUS.ACTIVE),
-                )
+                .selectFrom('users')
+                .where('users.status', '=', USERS_STATUS.ACTIVE)
+                .innerJoin('internalSquadMembers', 'internalSquadMembers.userUuid', 'users.uuid')
                 .innerJoin(
                     'internalSquadInbounds',
-                    'internalSquadMembers.internalSquadUuid',
                     'internalSquadInbounds.internalSquadUuid',
+                    'internalSquadMembers.internalSquadUuid',
                 )
-                .innerJoin('configProfileInbounds', (join) =>
-                    join
-                        .onRef(
-                            'internalSquadInbounds.inboundUuid',
-                            '=',
-                            'configProfileInbounds.uuid',
-                        )
-                        .on(
-                            'configProfileInbounds.profileUuid',
-                            '=',
-                            getKyselyUuid(configProfileUuid),
-                        )
-                        .on(
-                            'configProfileInbounds.uuid',
-                            'in',
-                            activeInbounds.map((inbound) => getKyselyUuid(inbound.uuid)),
-                        ),
+                .innerJoin(
+                    'configProfileInbounds',
+                    'configProfileInbounds.uuid',
+                    'internalSquadInbounds.inboundUuid',
                 )
-
+                .$if(lastTId !== null, (qb) => qb.where(sql.ref('users.t_id'), '>', lastTId!))
+                .where(
+                    'internalSquadInbounds.inboundUuid',
+                    'in',
+                    activeInbounds.map((inbound) => getKyselyUuid(inbound.uuid)),
+                )
                 .select((eb) => [
+                    sql.ref<bigint>('users.t_id').as('tId'),
                     'users.username',
                     'users.trojanPassword',
                     'users.vlessUuid',
@@ -715,18 +705,29 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
                         'tags',
                     ),
                 ])
-                .groupBy('users.uuid')
-                .orderBy('users.createdAt', 'asc');
+                .groupBy([
+                    sql.ref<bigint>('users.t_id'),
+                    'users.username',
+                    'users.trojanPassword',
+                    'users.vlessUuid',
+                    'users.ssPassword',
+                ])
+                .orderBy(sql<string>`users.t_id asc`)
+                .limit(BATCH_SIZE);
 
-            const result = await builder.limit(BATCH_SIZE).offset(offset).execute();
+            const start = performance.now();
+            const result = await builder.execute();
+            this.logger.log(
+                `[getUsersForConfigStream] ${performance.now() - start}ms, length: ${result.length}`,
+            );
 
             if (result.length < BATCH_SIZE) {
                 hasMoreData = false;
             }
 
             if (result.length > 0) {
+                lastTId = result[result.length - 1].tId;
                 yield result;
-                offset += result.length;
             } else {
                 break;
             }

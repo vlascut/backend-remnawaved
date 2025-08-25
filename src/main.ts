@@ -155,6 +155,13 @@ async function bootstrap(): Promise<void> {
     //     await app.close();
     // });
 
-    logger.info('\n' + (await getStartMessage()) + '\n');
+    logger.info(
+        '\n' +
+            (await getStartMessage(
+                config.getOrThrow<number>('APP_PORT'),
+                config.getOrThrow<number>('METRICS_PORT'),
+            )) +
+            '\n',
+    );
 }
 void bootstrap();

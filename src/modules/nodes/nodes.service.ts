@@ -171,7 +171,9 @@ export class NodesService {
         }
     }
 
-    public async restartAllNodes(): Promise<ICommandResponse<RestartNodeResponseModel>> {
+    public async restartAllNodes(
+        forceRestart?: boolean,
+    ): Promise<ICommandResponse<RestartNodeResponseModel>> {
         try {
             const nodes = await this.nodesRepository.findByCriteria({
                 isDisabled: false,
@@ -185,6 +187,7 @@ export class NodesService {
 
             await this.startAllNodesQueue.startAllNodes({
                 emitter: NodesService.name,
+                force: forceRestart ?? false,
             });
 
             return {
