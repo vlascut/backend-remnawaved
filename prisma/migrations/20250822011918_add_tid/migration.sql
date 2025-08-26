@@ -20,7 +20,7 @@ WHERE users.uuid = numbered.uuid;
 
 -- 3. Create sequence and set current value
 CREATE SEQUENCE IF NOT EXISTS users_t_id_seq;
-SELECT setval('users_t_id_seq', COALESCE((SELECT MAX(t_id) FROM users), 0));
+SELECT setval('users_t_id_seq', GREATEST(COALESCE((SELECT MAX(t_id) FROM users), 0), 1));
 
 -- 4. Make field NOT NULL with default
 ALTER TABLE "users" 
