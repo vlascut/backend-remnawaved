@@ -544,6 +544,21 @@ const prisma = new PrismaClient({
     },
 });
 
+async function fixOldMigrations() {
+    try {
+        const query = Prisma.sql`
+            UPDATE _prisma_migrations SET checksum = '650c47ab960ed73efaf0b1fa7dd484f94b0d626d0c00944a2832431e1ee0a78b' 
+            WHERE migration_name = '20250822011918_add_tid' 
+            AND checksum = '208f4ab9ad4d538853e2726fcc0c8733b2f5ddccfc80985d69bc2be2ecf017b4';
+`;
+        await prisma.$executeRaw(query);
+
+        consola.success('🔐 Old migrations fixed!');
+    } catch (error) {
+        consola.error('🔐 Failed to fix old migrations:', error);
+    }
+}
+
 async function seedSubscriptionTemplate() {
     consola.start('Seeding subscription templates...');
     for (const templateType of SUBSCRIPTION_TEMPLATE_TYPE_VALUES) {
@@ -1009,6 +1024,7 @@ async function seedAll() {
         if (isConnected) {
             await clearRedis();
             consola.start('Database connected. Starting seeding...');
+            await fixOldMigrations();
             await seedSubscriptionTemplate();
             await seedDefaultConfigProfile();
             await syncInbounds();
