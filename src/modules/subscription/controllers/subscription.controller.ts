@@ -114,7 +114,11 @@ export class SubscriptionController {
         );
 
         if (result instanceof RawSubscriptionWithHostsResponse) {
-            return response.status(200).send(result);
+            return response.status(200).send({
+                response: {
+                    ...result,
+                },
+            });
         }
 
         return response.status(404).send(result);
