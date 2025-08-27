@@ -416,6 +416,7 @@ export class SubscriptionService {
     public async getSubscriptionInfoByShortUuid(
         shortUuid: string,
         settingEntity?: SubscriptionSettingsEntity,
+        authenticatedFromBrowser: boolean = false,
     ): Promise<ICommandResponse<SubscriptionRawResponse>> {
         try {
             const user = await this.queryBus.execute(
@@ -424,7 +425,7 @@ export class SubscriptionService {
                         shortUuid,
                     },
                     {
-                        activeInternalSquads: false,
+                        activeInternalSquads: true,
                         lastConnectedNode: false,
                     },
                 ),
@@ -441,7 +442,7 @@ export class SubscriptionService {
             let xrayLinks: string[] = [];
             let ssConfLinks: Record<string, string> = {};
 
-            if (!this.hwidDeviceLimitEnabled) {
+            if (!this.hwidDeviceLimitEnabled || authenticatedFromBrowser) {
                 const hostsResponse = await this.getHostsByUserUuid({
                     userUuid: user.response.uuid,
                     returnDisabledHosts: false,

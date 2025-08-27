@@ -78,24 +78,26 @@ export class FormatHostsService {
             }
         }
 
-        if (hosts.length === 0 && user.activeInternalSquads.length === 0) {
+        if (hosts.length === 0 && user.activeInternalSquads.length !== 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
                     '→ Remnawave',
-                    '→ Did you forget to add internal squads?',
-                    '→ No internal squads found',
+                    '→ Did you forget to add hosts?',
+                    '→ No hosts found',
+                    '→ Check Hosts tab',
                 ]),
             );
 
             return formattedHosts;
         }
 
-        if (hosts.length === 0) {
+        if (hosts.length === 0 && user.activeInternalSquads.length === 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
                     '→ Remnawave',
-                    '→ Did you forget to add hosts?',
-                    '→ No hosts found',
+                    '→ Did you forget to add internal squads?',
+                    '→ No internal squads found',
+                    '→ User has no internal squads',
                 ]),
             );
 
@@ -417,10 +419,10 @@ export class FormatHostsService {
             remark,
             address: '0.0.0.0',
             port: 1,
-            protocol: 'trojan',
+            protocol: 'vless',
             path: '',
             host: '',
-            tls: 'tls',
+            tls: '',
             sni: '',
             alpn: '',
             publicKey: '',
