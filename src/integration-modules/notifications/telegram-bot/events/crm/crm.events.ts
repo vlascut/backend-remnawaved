@@ -34,13 +34,13 @@ export class CrmEvents {
     @RequireAdminId()
     async onInfraBillingNodePaymentIn7Days(event: CrmEvent): Promise<void> {
         const msg = `
-🔔 Node Payment Approaching, 7 days
-➖➖➖➖➖➖➖➖➖
-<b>Provider:</b> <code>${event.data.providerName}</code>
-<b>Node:</b> <code>${event.data.nodeName}</code>
-<b>Due date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+📅 <b>Payment Reminder</b>
 
-<a href="${event.data.loginUrl}">→ Login URL</a>
+🏢 <b>Provider:</b> <code>${event.data.providerName}</code>
+🖥️ <b>Node:</b> <code>${event.data.nodeName}</code>
+📆 <b>Due Date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+
+🔗 <a href="${event.data.loginUrl}">Open Provider Panel</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -53,13 +53,15 @@ export class CrmEvents {
     @RequireAdminId()
     async onInfraBillingNodePaymentIn48Hrs(event: CrmEvent): Promise<void> {
         const msg = `
-⚠️ Node Payment Approaching, 48 hours
-➖➖➖➖➖➖➖➖➖
-<b>Provider:</b> <code>${event.data.providerName}</code>
-<b>Node:</b> <code>${event.data.nodeName}</code>
-<b>Due date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+⚠️ <b>Payment Alert - 2 Days Warning</b>
 
-<a href="${event.data.loginUrl}">→ Login URL</a>
+🏢 <b>Provider:</b> <code>${event.data.providerName}</code>
+🖥️ <b>Node:</b> <code>${event.data.nodeName}</code>
+📆 <b>Due Date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+
+⚡ <i>Payment is due in 2 days!</i>
+
+🔗 <a href="${event.data.loginUrl}">Open Provider Panel</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -72,13 +74,15 @@ export class CrmEvents {
     @RequireAdminId()
     async onInfraBillingNodePaymentIn24Hrs(event: CrmEvent): Promise<void> {
         const msg = `
-🚨 URGENT: Node Payment Due Tomorrow
-➖➖➖➖➖➖➖➖➖
-<b>Provider:</b> <code>${event.data.providerName}</code>
-<b>Node:</b> <code>${event.data.nodeName}</code>
-<b>Due date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+🚨 <b>URGENT: Payment Due Tomorrow!</b>
 
-<a href="${event.data.loginUrl}">→ Login URL</a>
+🏢 <b>Provider:</b> <code>${event.data.providerName}</code>
+🖥️ <b>Node:</b> <code>${event.data.nodeName}</code>
+📆 <b>Due Date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+
+🔥 <i>Payment is due tomorrow!</i>
+
+🔗 <a href="${event.data.loginUrl}">Open Provider Panel</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -91,13 +95,15 @@ export class CrmEvents {
     @RequireAdminId()
     async onInfraBillingNodePaymentDueToday(event: CrmEvent): Promise<void> {
         const msg = `
-🚨 URGENT: Node Payment Due Today
-➖➖➖➖➖➖➖➖➖
-<b>Provider:</b> <code>${event.data.providerName}</code>
-<b>Node:</b> <code>${event.data.nodeName}</code>
-<b>Due date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+🔴 <b>CRITICAL: Payment Due TODAY!</b>
 
-<a href="${event.data.loginUrl}">→ Login URL</a>
+🏢 <b>Provider:</b> <code>${event.data.providerName}</code>
+🖥️ <b>Node:</b> <code>${event.data.nodeName}</code>
+📆 <b>Due Date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+
+⚡ <i>Payment must be completed today!</i>
+
+🔗 <a href="${event.data.loginUrl}">Open Provider Panel</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -109,14 +115,18 @@ export class CrmEvents {
     @OnEvent(EVENTS.CRM.INFRA_BILLING_NODE_PAYMENT_OVERDUE_24HRS)
     @RequireAdminId()
     async onInfraBillingNodePaymentOverdue24Hrs(event: CrmEvent): Promise<void> {
+        const daysPastDue = Math.abs(dayjs().diff(dayjs(event.data.nextBillingAt), 'day'));
         const msg = `
-🚨 FIRST OVERDUE NOTICE, 24 hours
-➖➖➖➖➖➖➖➖➖
-<b>Provider:</b> <code>${event.data.providerName}</code>
-<b>Node:</b> <code>${event.data.nodeName}</code>
-<b>Due date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+❌ <b>OVERDUE: First Notice</b>
 
-<a href="${event.data.loginUrl}">→ Login URL</a>
+🏢 <b>Provider:</b> <code>${event.data.providerName}</code>
+🖥️ <b>Node:</b> <code>${event.data.nodeName}</code>
+📆 <b>Due Date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+⚠️ <b>Days Overdue:</b> <code>${daysPastDue} day(s)</code>
+
+🚨 <i>Payment is overdue!</i>
+
+🔗 <a href="${event.data.loginUrl}">Open Provider Panel</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -128,14 +138,18 @@ export class CrmEvents {
     @OnEvent(EVENTS.CRM.INFRA_BILLING_NODE_PAYMENT_OVERDUE_48HRS)
     @RequireAdminId()
     async onInfraBillingNodePaymentOverdue48Hrs(event: CrmEvent): Promise<void> {
+        const daysPastDue = Math.abs(dayjs().diff(dayjs(event.data.nextBillingAt), 'day'));
         const msg = `
-🚨 SECOND OVERDUE NOTICE, 48 hours
-➖➖➖➖➖➖➖➖➖
-<b>Provider:</b> <code>${event.data.providerName}</code>
-<b>Node:</b> <code>${event.data.nodeName}</code>
-<b>Due date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+🔥 <b>OVERDUE: Second Notice</b>
 
-<a href="${event.data.loginUrl}">→ Login URL</a>
+🏢 <b>Provider:</b> <code>${event.data.providerName}</code>
+🖥️ <b>Node:</b> <code>${event.data.nodeName}</code>
+📆 <b>Due Date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+⚠️ <b>Days Overdue:</b> <code>${daysPastDue} day(s)</code>
+
+⚡ <i>Critical: Service suspension imminent!</i>
+
+🔗 <a href="${event.data.loginUrl}">Open Provider Panel</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
@@ -147,14 +161,16 @@ export class CrmEvents {
     @OnEvent(EVENTS.CRM.INFRA_BILLING_NODE_PAYMENT_OVERDUE_7_DAYS)
     @RequireAdminId()
     async onInfraBillingNodePaymentOverdue7Days(event: CrmEvent): Promise<void> {
+        const daysPastDue = Math.abs(dayjs().diff(dayjs(event.data.nextBillingAt), 'day'));
         const msg = `
-🚨 FINAL OVERDUE NOTICE, 7 days
-➖➖➖➖➖➖➖➖➖
-<b>Provider:</b> <code>${event.data.providerName}</code>
-<b>Node:</b> <code>${event.data.nodeName}</code>
-<b>Due date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+💀 <b>FINAL NOTICE: Service Termination Risk</b>
 
-<a href="${event.data.loginUrl}">→ Login URL</a>
+🏢 <b>Provider:</b> <code>${event.data.providerName}</code>
+🖥️ <b>Node:</b> <code>${event.data.nodeName}</code>
+📆 <b>Due Date:</b> <code>${dayjs(event.data.nextBillingAt).format('DD.MM.YYYY')}</code>
+⚠️ <b>Days Overdue:</b> <code>${daysPastDue} day(s)</code>
+
+🔗 <a href="${event.data.loginUrl}">Open Provider Panel</a>
         `;
         await this.telegramBotLoggerQueueService.addJobToSendTelegramMessage({
             message: msg,
