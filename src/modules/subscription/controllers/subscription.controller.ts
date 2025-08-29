@@ -13,9 +13,11 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { OptionalJwtGuard } from '@common/guards/jwt-guards/optional-jwt-guard';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { extractHwidHeaders } from '@common/utils/extract-hwid-headers';
+import { GetOptionalAuth } from '@common/decorators/get-optional-auth';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { RolesGuard } from '@common/guards/roles/roles.guard';
 import { Endpoint } from '@common/decorators/base-endpoint';
@@ -65,10 +67,16 @@ export class SubscriptionController {
         command: GetSubscriptionInfoByShortUuidCommand,
         httpCode: HttpStatus.OK,
     })
+    @UseGuards(OptionalJwtGuard)
     async getSubscriptionInfoByShortUuid(
         @Param() { shortUuid }: GetSubscriptionInfoRequestDto,
+        @GetOptionalAuth() authenticatedFromBrowser: boolean,
     ): Promise<GetSubscriptionInfoResponseDto> {
-        const result = await this.subscriptionService.getSubscriptionInfoByShortUuid(shortUuid);
+        const result = await this.subscriptionService.getSubscriptionInfoByShortUuid(
+            shortUuid,
+            undefined,
+            authenticatedFromBrowser,
+        );
 
         const data = errorHandler(result);
         return {
@@ -114,7 +122,11 @@ export class SubscriptionController {
         );
 
         if (result instanceof RawSubscriptionWithHostsResponse) {
-            return response.status(200).send(result);
+            return response.status(200).send({
+                response: {
+                    ...result,
+                },
+            });
         }
 
         return response.status(404).send(result);
