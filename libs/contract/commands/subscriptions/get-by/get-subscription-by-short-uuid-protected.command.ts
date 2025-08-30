@@ -4,18 +4,18 @@ import { REST_API, SUBSCRIPTIONS_ROUTES } from '../../../api';
 import { SubscriptionInfoSchema } from '../../../models';
 import { getEndpointDetails } from '../../../constants';
 
-export namespace GetSubscriptionByUsernameCommand {
-    export const url = REST_API.SUBSCRIPTIONS.GET_BY.USERNAME;
-    export const TSQ_url = url(':username');
+export namespace GetSubscriptionByShortUuidProtectedCommand {
+    export const url = REST_API.SUBSCRIPTIONS.GET_BY.SHORT_UUID;
+    export const TSQ_url = url(':shortUuid');
 
     export const endpointDetails = getEndpointDetails(
-        SUBSCRIPTIONS_ROUTES.GET_BY.USERNAME(':username'),
+        SUBSCRIPTIONS_ROUTES.GET_BY.SHORT_UUID(':shortUuid'),
         'get',
-        'Get subscription by username',
+        'Get subscription by short uuid (protected route)',
     );
 
     export const RequestSchema = z.object({
-        username: z.string(),
+        shortUuid: z.string(),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

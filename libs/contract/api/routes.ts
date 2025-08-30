@@ -217,6 +217,14 @@ export const REST_API = {
                 `${ROOT}/${CONTROLLERS.SUBSCRIPTIONS_CONTROLLER}/${CONTROLLERS.SUBSCRIPTIONS_ROUTES.GET_BY.USERNAME(
                     username,
                 )}`,
+            UUID: (uuid: string) =>
+                `${ROOT}/${CONTROLLERS.SUBSCRIPTIONS_CONTROLLER}/${CONTROLLERS.SUBSCRIPTIONS_ROUTES.GET_BY.UUID(
+                    uuid,
+                )}`,
+            SHORT_UUID: (shortUuid: string) =>
+                `${ROOT}/${CONTROLLERS.SUBSCRIPTIONS_CONTROLLER}/${CONTROLLERS.SUBSCRIPTIONS_ROUTES.GET_BY.SHORT_UUID(
+                    shortUuid,
+                )}`,
         },
     },
     CONFIG_PROFILES: {

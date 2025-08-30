@@ -605,14 +605,15 @@ export class SubscriptionService {
         }
     }
 
-    public async getSubscriptionByUsername(
-        username: string,
+    public async getSubscriptionByUniqueField(
+        uniqueField: string,
+        uniqueFieldKey: 'username' | 'shortUuid' | 'uuid',
     ): Promise<ICommandResponse<SubscriptionRawResponse>> {
         try {
             const user = await this.queryBus.execute(
                 new GetUserByUniqueFieldQuery(
                     {
-                        username,
+                        [uniqueFieldKey]: uniqueField,
                     },
                     {
                         activeInternalSquads: false,
@@ -628,7 +629,11 @@ export class SubscriptionService {
                 };
             }
 
-            const result = await this.getSubscriptionInfoByShortUuid(user.response.shortUuid);
+            const result = await this.getSubscriptionInfoByShortUuid(
+                user.response.shortUuid,
+                undefined,
+                true,
+            );
 
             if (!result.isOk || !result.response) {
                 return {
