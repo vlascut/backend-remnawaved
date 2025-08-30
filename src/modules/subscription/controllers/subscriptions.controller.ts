@@ -18,7 +18,9 @@ import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
     GetAllSubscriptionsCommand,
+    GetSubscriptionByShortUuidProtectedCommand,
     GetSubscriptionByUsernameCommand,
+    GetSubscriptionByUuidCommand,
 } from '@libs/contracts/commands';
 import { SUBSCRIPTIONS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
@@ -26,8 +28,12 @@ import { ROLE } from '@libs/contracts/constants';
 import {
     GetAllSubscriptionsQueryDto,
     GetAllSubscriptionsResponseDto,
+    GetSubscriptionByShortUuidProtectedRequestDto,
+    GetSubscriptionByShortUuidProtectedResponseDto,
     GetSubscriptionByUsernameRequestDto,
     GetSubscriptionByUsernameResponseDto,
+    GetSubscriptionByUuidRequestDto,
+    GetSubscriptionByUuidResponseDto,
 } from '../dto';
 import { AllSubscriptionsResponseModel, SubscriptionRawResponse } from '../models';
 import { SubscriptionService } from '../subscription.service';
@@ -111,7 +117,91 @@ export class SubscriptionsController {
         @Param() paramData: GetSubscriptionByUsernameRequestDto,
     ): Promise<GetSubscriptionByUsernameResponseDto> {
         const { username } = paramData;
-        const result = await this.subscriptionService.getSubscriptionByUsername(username);
+        const result = await this.subscriptionService.getSubscriptionByUniqueField(
+            username,
+            'username',
+        );
+
+        const data = errorHandler(result);
+
+        return {
+            response: new SubscriptionRawResponse(data),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                path: { type: 'string' },
+                message: { type: 'string' },
+                errorCode: { type: 'string' },
+            },
+        },
+    })
+    @ApiOkResponse({
+        type: GetSubscriptionByShortUuidProtectedResponseDto,
+        description: 'Subscription fetched successfully',
+    })
+    @ApiParam({
+        name: 'shortUuid',
+        type: String,
+        description: 'Short uuid of the user',
+        required: true,
+    })
+    @Endpoint({
+        command: GetSubscriptionByShortUuidProtectedCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getSubscriptionByShortUuidProtected(
+        @Param() paramData: GetSubscriptionByShortUuidProtectedRequestDto,
+    ): Promise<GetSubscriptionByShortUuidProtectedResponseDto> {
+        const { shortUuid } = paramData;
+        const result = await this.subscriptionService.getSubscriptionByUniqueField(
+            shortUuid,
+            'shortUuid',
+        );
+
+        const data = errorHandler(result);
+
+        return {
+            response: new SubscriptionRawResponse(data),
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+        schema: {
+            type: 'object',
+            properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                path: { type: 'string' },
+                message: { type: 'string' },
+                errorCode: { type: 'string' },
+            },
+        },
+    })
+    @ApiOkResponse({
+        type: GetSubscriptionByUuidResponseDto,
+        description: 'Subscription fetched successfully',
+    })
+    @ApiParam({
+        name: 'uuid',
+        type: String,
+        description: 'Uuid of the user',
+        required: true,
+    })
+    @Endpoint({
+        command: GetSubscriptionByUuidCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getSubscriptionByUuid(
+        @Param() paramData: GetSubscriptionByUuidRequestDto,
+    ): Promise<GetSubscriptionByUuidResponseDto> {
+        const { uuid } = paramData;
+        const result = await this.subscriptionService.getSubscriptionByUniqueField(uuid, 'uuid');
 
         const data = errorHandler(result);
 
