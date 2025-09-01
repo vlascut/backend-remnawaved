@@ -1,4 +1,6 @@
 import parsePrometheusTextFormat from 'parse-prometheus-text-format';
+import { generateKeyPair } from '@stablelib/x25519';
+import { encodeURLSafe } from '@stablelib/base64';
 import axios, { AxiosError } from 'axios';
 import * as si from 'systeminformation';
 import { groupBy } from 'lodash';
@@ -29,6 +31,7 @@ import { GetAllNodesQuery } from '@modules/nodes/queries/get-all-nodes';
 import { NodesEntity } from '@modules/nodes/entities/nodes.entity';
 
 import {
+    GenerateX25519ResponseModel,
     GetBandwidthStatsResponseModel,
     GetNodesStatisticsResponseModel,
     GetNodesStatsResponseModel,
@@ -249,6 +252,36 @@ export class SystemService {
                 response: new GetNodesStatsResponseModel({
                     nodes: [],
                 }),
+            };
+        }
+    }
+
+    public async getX25519Keypairs(): Promise<ICommandResponse<GenerateX25519ResponseModel>> {
+        try {
+            const generateAmount = 30;
+            const keypairs: { publicKey: string; privateKey: string }[] = [];
+
+            for (let i = 0; i < generateAmount; i++) {
+                const keypair = generateKeyPair();
+                keypairs.push({
+                    publicKey: encodeURLSafe(keypair.publicKey)
+                        .replace(/=/g, '')
+                        .replace(/\n/g, ''),
+                    privateKey: encodeURLSafe(keypair.secretKey)
+                        .replace(/=/g, '')
+                        .replace(/\n/g, ''),
+                });
+            }
+
+            return {
+                isOk: true,
+                response: new GenerateX25519ResponseModel(keypairs),
+            };
+        } catch (error) {
+            this.logger.error('Error getting x25519 keypairs:', error);
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
             };
         }
     }
