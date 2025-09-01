@@ -338,10 +338,10 @@ export class SubscriptionService {
                         lifetimeTrafficUsed: prettyBytesUtil(
                             user.response.lifetimeUsedTrafficBytes,
                         ),
+                        isHwidLimited: isHwidLimited ?? false,
                     },
                     headers,
                     rawHosts: subscription?.rawHosts ?? [],
-                    isHwidLimited: isHwidLimited ?? false,
                 }),
             };
         } catch (error) {

@@ -33,6 +33,14 @@ export namespace GetRawSubscriptionByShortUuidCommand {
     export const ResponseSchema = z.object({
         response: z.object({
             user: ExtendedUsersSchema,
+            convertedUserInfo: z.object({
+                daysLeft: z.number(),
+                trafficLimit: z.string(),
+                trafficUsed: z.string(),
+                lifetimeTrafficUsed: z.string(),
+                isHwidLimited: z.boolean(),
+            }),
+            headers: z.record(z.string(), z.string().optional()),
             rawHosts: z.array(
                 z.object({
                     address: z.optional(z.nullable(z.string())),
@@ -98,8 +106,6 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                     ),
                 }),
             ),
-            headers: z.record(z.string(), z.string().optional()),
-            isHwidLimited: z.boolean(),
         }),
     });
 

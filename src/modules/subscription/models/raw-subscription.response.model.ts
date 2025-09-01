@@ -10,15 +10,15 @@ export class RawSubscriptionWithHostsResponse {
         trafficLimit: string;
         trafficUsed: string;
         lifetimeTrafficUsed: string;
+        isHwidLimited: boolean;
     };
-    public isHwidLimited: boolean;
     public rawHosts: IRawHost[];
     public headers: ISubscriptionHeaders;
 
     constructor(data: RawSubscriptionWithHostsResponse) {
         this.user = data.user;
+        this.convertedUserInfo = data.convertedUserInfo;
         this.rawHosts = data.rawHosts;
         this.headers = data.headers;
-        this.isHwidLimited = data.isHwidLimited;
     }
 }
