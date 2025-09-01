@@ -105,6 +105,7 @@ export class BulkUserOperationsQueueProcessor extends WorkerHost {
                         : undefined,
                 description: fields.description !== undefined ? fields.description : undefined,
                 email: fields.email !== undefined ? fields.email : undefined,
+                hwidDeviceLimit: fields.hwidDeviceLimit,
             });
 
             if (!result.isOk) {

@@ -56,6 +56,9 @@ export namespace BulkAllUpdateUsersCommand {
                 .max(16, 'Tag must be less than 16 characters')
                 .nullable(),
         ),
+        hwidDeviceLimit: z.optional(
+            z.number().int().min(0, 'Device limit must be non-negative').nullable(),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;
