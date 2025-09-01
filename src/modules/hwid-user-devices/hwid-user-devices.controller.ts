@@ -12,7 +12,7 @@ import {
     DeleteUserHwidDeviceCommand,
     GetUserHwidDevicesCommand,
 } from '@libs/contracts/commands';
-import { HWID_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, HWID_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -27,7 +27,7 @@ import { HwidUserDevicesService } from './hwid-user-devices.service';
 import { BaseUserHwidDevicesResponseModel } from './models';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('HWID User Devices')
+@ApiTags(CONTROLLERS_INFO.HWID_USER_DEVICES.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

@@ -15,6 +15,7 @@ import {
     SetPortToManyHostsCommand,
 } from '@libs/contracts/commands';
 import { HOSTS_CONTROLLER } from '@libs/contracts/api/controllers';
+import { CONTROLLERS_INFO } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -33,7 +34,7 @@ import { GetAllHostsResponseModel } from '../models/get-all-hosts.response.model
 import { HostsService } from '../hosts.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Hosts Bulk Actions Controller')
+@ApiTags(CONTROLLERS_INFO.HOSTS_BULK_ACTIONS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

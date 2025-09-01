@@ -25,7 +25,7 @@ import {
     GetInternalSquadsCommand,
     UpdateInternalSquadCommand,
 } from '@libs/contracts/commands';
-import { INTERNAL_SQUADS_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, INTERNAL_SQUADS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -44,7 +44,7 @@ import {
 import { InternalSquadService } from './internal-squad.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Internal Squads Controller')
+@ApiTags(CONTROLLERS_INFO.INTERNAL_SQUADS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

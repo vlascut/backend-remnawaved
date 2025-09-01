@@ -11,7 +11,7 @@ export namespace GetSubscriptionInfoByShortUuidCommand {
     export const endpointDetails = getEndpointDetails(
         SUBSCRIPTION_ROUTES.GET_INFO(':shortUuid'),
         'get',
-        'Public endpoint: Get Subscription Info by Short UUID',
+        'Get Subscription Info by Short UUID',
     );
 
     export const RequestSchema = z.object({

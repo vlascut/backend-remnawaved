@@ -3,12 +3,12 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
-import { Endpoint } from '@common/decorators/base-endpoint';
 import { errorHandler } from '@common/helpers/error-handler.helper';
+import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { CONTROLLERS_INFO, KEYGEN_CONTROLLER } from '@libs/contracts/api';
 import { GetPubKeyCommand } from '@libs/contracts/commands';
-import { KEYGEN_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import { KeygenService } from './keygen.service';
@@ -16,7 +16,7 @@ import { GetPubKeyResponseDto } from './dtos';
 import { KeygenResponseModel } from './model';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Keygen Controller')
+@ApiTags(CONTROLLERS_INFO.KEYGEN.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

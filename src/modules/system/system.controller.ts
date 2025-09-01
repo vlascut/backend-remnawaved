@@ -15,7 +15,7 @@ import {
     GetRemnawaveHealthCommand,
     GetStatsCommand,
 } from '@libs/contracts/commands';
-import { SYSTEM_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, SYSTEM_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -30,7 +30,7 @@ import {
 import { SystemService } from './system.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('System Controller')
+@ApiTags(CONTROLLERS_INFO.SYSTEM.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

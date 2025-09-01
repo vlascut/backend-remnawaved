@@ -7,15 +7,15 @@ import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { CONTROLLERS_INFO, NODES_CONTROLLER } from '@libs/contracts/api';
 import { GetNodesUsageByRangeCommand } from '@libs/contracts/commands';
-import { NODES_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import { GetNodesUsageByRangeRequestQueryDto, GetNodesUsageByRangeResponseDto } from './dtos';
 import { NodesUsageHistoryService } from './nodes-usage-history.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Bandwidth stats')
+@ApiTags(CONTROLLERS_INFO.BANDWIDTH_STATS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

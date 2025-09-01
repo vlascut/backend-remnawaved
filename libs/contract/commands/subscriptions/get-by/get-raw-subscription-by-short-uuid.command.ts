@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
-import { RESET_PERIODS, USERS_STATUS } from '../../constants';
-import { REST_API, SUBSCRIPTION_ROUTES } from '../../api';
-import { getEndpointDetails } from '../../constants';
+import { REST_API, SUBSCRIPTIONS_ROUTES } from '../../../api';
+import { getEndpointDetails } from '../../../constants';
+import { ExtendedUsersSchema } from '../../../models';
 
 export namespace GetRawSubscriptionByShortUuidCommand {
-    export const url = REST_API.SUBSCRIPTION.GET_RAW;
+    export const url = REST_API.SUBSCRIPTIONS.GET_BY.SHORT_UUID_RAW;
     export const TSQ_url = url(':shortUuid');
 
     export const endpointDetails = getEndpointDetails(
-        SUBSCRIPTION_ROUTES.GET_RAW(':shortUuid'),
+        SUBSCRIPTIONS_ROUTES.GET_BY.SHORT_UUID_RAW(':shortUuid'),
         'get',
         'Get Raw Subscription by Short UUID',
     );
@@ -32,26 +32,7 @@ export namespace GetRawSubscriptionByShortUuidCommand {
 
     export const ResponseSchema = z.object({
         response: z.object({
-            user: z.object({
-                shortUuid: z.string(),
-                daysLeft: z.number(),
-                trafficUsed: z.string(),
-                trafficLimit: z.string(),
-                lifetimeTrafficUsed: z.string(),
-                trafficUsedBytes: z.string(),
-                trafficLimitBytes: z.string(),
-                lifetimeTrafficUsedBytes: z.string(),
-                username: z.string(),
-                expiresAt: z
-                    .string()
-                    .datetime()
-                    .transform((str) => new Date(str)),
-                isActive: z.boolean(),
-                userStatus: z.nativeEnum(USERS_STATUS),
-                trafficLimitStrategy: z.nativeEnum(RESET_PERIODS),
-                tag: z.nullable(z.string()),
-            }),
-            subscriptionUrl: z.string(),
+            user: ExtendedUsersSchema,
             rawHosts: z.array(
                 z.object({
                     address: z.optional(z.nullable(z.string())),
@@ -117,7 +98,7 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                     ),
                 }),
             ),
-            headers: z.record(z.string(), z.string()),
+            headers: z.record(z.string(), z.string().optional()),
             isHwidLimited: z.boolean(),
         }),
     });

@@ -14,8 +14,8 @@ import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
+import { CONTROLLERS_INFO, USERS_CONTROLLER } from '@libs/contracts/api';
 import { GetUserUsageByRangeCommand } from '@libs/contracts/commands';
-import { USERS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -27,7 +27,7 @@ import { GetUserUsageByRangeResponseModel } from '../models';
 import { UsersService } from '../users.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Users Stats Controller')
+@ApiTags(CONTROLLERS_INFO.USERS_STATS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

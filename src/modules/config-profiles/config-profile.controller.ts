@@ -23,7 +23,7 @@ import {
     GetInboundsByProfileUuidCommand,
     UpdateConfigProfileCommand,
 } from '@libs/contracts/commands';
-import { CONFIG_PROFILES_CONTROLLER } from '@libs/contracts/api';
+import { CONFIG_PROFILES_CONTROLLER, CONTROLLERS_INFO } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -40,7 +40,7 @@ import {
 import { ConfigProfileService } from './config-profile.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Config Profiles Controller')
+@ApiTags(CONTROLLERS_INFO.CONFIG_PROFILES.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

@@ -5,48 +5,38 @@ import {
     Get,
     HttpStatus,
     Param,
-    Query,
     Req,
     Res,
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { OptionalJwtGuard } from '@common/guards/jwt-guards/optional-jwt-guard';
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
-import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
 import { extractHwidHeaders } from '@common/utils/extract-hwid-headers';
 import { GetOptionalAuth } from '@common/decorators/get-optional-auth';
 import { errorHandler } from '@common/helpers/error-handler.helper';
-import { RolesGuard } from '@common/guards/roles/roles.guard';
 import { Endpoint } from '@common/decorators/base-endpoint';
-import { Roles } from '@common/decorators/roles';
 import {
-    GetRawSubscriptionByShortUuidCommand,
-    GetSubscriptionInfoByShortUuidCommand,
-} from '@libs/contracts/commands';
-import { SUBSCRIPTION_CONTROLLER, SUBSCRIPTION_ROUTES } from '@libs/contracts/api';
-import { REQUEST_TEMPLATE_TYPE, ROLE } from '@libs/contracts/constants';
+    CONTROLLERS_INFO,
+    SUBSCRIPTION_CONTROLLER,
+    SUBSCRIPTION_ROUTES,
+} from '@libs/contracts/api';
+import { GetSubscriptionInfoByShortUuidCommand } from '@libs/contracts/commands';
+import { REQUEST_TEMPLATE_TYPE } from '@libs/contracts/constants';
 
 import {
     GetOutlineSubscriptionRequestDto,
-    GetRawSubscriptionByShortUuidRequestDto,
-    GetRawSubscriptionByShortUuidRequestQueryDto,
-    GetRawSubscriptionByShortUuidResponseDto,
     GetSubscriptionByShortUuidByClientTypeRequestDto,
     GetSubscriptionInfoRequestDto,
     GetSubscriptionInfoResponseDto,
 } from '../dto';
-import {
-    RawSubscriptionWithHostsResponse,
-    SubscriptionNotFoundResponse,
-    SubscriptionRawResponse,
-} from '../models';
 import { GetSubscriptionByShortUuidRequestDto } from '../dto/get-subscription.dto';
+import { SubscriptionNotFoundResponse, SubscriptionRawResponse } from '../models';
 import { SubscriptionService } from '../subscription.service';
 
-@ApiTags('Subscription Controller')
+@ApiTags(CONTROLLERS_INFO.SUBSCRIPTION.tag)
 @UseFilters(HttpExceptionFilter)
 @Controller(SUBSCRIPTION_CONTROLLER)
 export class SubscriptionController {
@@ -82,54 +72,6 @@ export class SubscriptionController {
         return {
             response: data,
         };
-    }
-
-    @ApiBearerAuth('Authorization')
-    @ApiParam({
-        name: 'shortUuid',
-        type: String,
-        description: 'Short UUID of the user',
-        required: true,
-    })
-    @ApiQuery({
-        name: 'withDisabledHosts',
-        type: Boolean,
-        description: 'Include disabled hosts in the subscription. Default is false.',
-        required: false,
-    })
-    @ApiResponse({
-        status: 200,
-        description: 'Raw subscription fetched successfully',
-        type: GetRawSubscriptionByShortUuidResponseDto,
-    })
-    @Endpoint({
-        command: GetRawSubscriptionByShortUuidCommand,
-        httpCode: HttpStatus.OK,
-    })
-    @Roles(ROLE.ADMIN, ROLE.API)
-    @UseGuards(JwtDefaultGuard, RolesGuard)
-    async getRawSubscriptionByShortUuid(
-        @Param() { shortUuid }: GetRawSubscriptionByShortUuidRequestDto,
-        @Query() { withDisabledHosts }: GetRawSubscriptionByShortUuidRequestQueryDto,
-        @Req() request: Request,
-        @Res() response: Response,
-    ): Promise<GetRawSubscriptionByShortUuidResponseDto | Response> {
-        const result = await this.subscriptionService.getRawSubscriptionByShortUuid(
-            shortUuid,
-            request.headers['user-agent'] as string,
-            withDisabledHosts,
-            extractHwidHeaders(request),
-        );
-
-        if (result instanceof RawSubscriptionWithHostsResponse) {
-            return response.status(200).send({
-                response: {
-                    ...result,
-                },
-            });
-        }
-
-        return response.status(404).send(result);
     }
 
     @ApiParam({
