@@ -59,7 +59,11 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                     fingerprint: z.optional(z.nullable(z.string())),
                     host: z.optional(z.nullable(z.string())),
                     network: z.optional(z.nullable(z.string())),
-                    password: z.optional(z.nullable(z.string())),
+                    password: z.object({
+                        ssPassword: z.string(),
+                        trojanPassword: z.string(),
+                        vlessPassword: z.string(),
+                    }),
                     path: z.optional(z.nullable(z.string())),
                     publicKey: z.optional(z.nullable(z.string())),
                     port: z.optional(z.nullable(z.number())),
