@@ -60,10 +60,10 @@ export class ProcessorsRootModule implements OnApplicationShutdown, OnModuleInit
 
     async onModuleInit(): Promise<void> {
         const logger = this.logger;
-        SegfaultHandler.registerHandler('', function (signal, address, stack) {
+        SegfaultHandler.registerHandler('trace.log', function (signal, address, stack) {
             logger.error(`${signal} signal received, shutting down...`);
             logger.error(`${address} address received, shutting down...`);
-            logger.error(`${stack}`);
+            logger.error(`${JSON.stringify(stack, null, 2)}`);
         });
 
         // SegfaultHandler.causeSegfault();
