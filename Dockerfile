@@ -52,8 +52,12 @@ ARG BRANCH=main
 
 # Install jemalloc
 # RUN apk add --no-cache jemalloc curl
-
 # ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
+
+# Install mimalloc
+RUN apk add --no-cache mimalloc
+ENV LD_PRELOAD=/usr/lib/libmimalloc.so
+
 ENV REMNAWAVE_BRANCH=${BRANCH}
 ENV PRISMA_HIDE_UPDATE_MESSAGE=true
 ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1

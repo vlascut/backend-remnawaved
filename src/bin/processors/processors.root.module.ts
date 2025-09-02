@@ -71,5 +71,8 @@ export class ProcessorsRootModule implements OnApplicationShutdown, OnModuleInit
 
     async onApplicationShutdown(signal?: string): Promise<void> {
         this.logger.log(`${signal} signal received, shutting down...`);
+        if (signal === 'SIGSEGV') {
+            process.exit(1);
+        }
     }
 }
