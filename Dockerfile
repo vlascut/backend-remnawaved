@@ -51,9 +51,9 @@ WORKDIR /opt/app
 ARG BRANCH=main
 
 # Install jemalloc
-RUN apk add --no-cache jemalloc curl
+# RUN apk add --no-cache jemalloc curl
 
-ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
+# ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV REMNAWAVE_BRANCH=${BRANCH}
 ENV PRISMA_HIDE_UPDATE_MESSAGE=true
 ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
