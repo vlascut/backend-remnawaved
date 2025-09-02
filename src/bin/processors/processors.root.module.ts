@@ -1,4 +1,4 @@
-import SegfaultHandler from 'segfault-handler';
+import { setSignal, SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS, causeSegfault } from 'segfault-raub';
 import { ClsModule } from 'nestjs-cls';
 
 import { QueueModule } from 'src/queue/queue.module';
@@ -14,6 +14,7 @@ import { PrismaService } from '@common/database/prisma.service';
 import { configSchema, Env } from '@common/config/app-config';
 import { PrismaModule } from '@common/database';
 import { AxiosModule } from '@common/axios';
+import { sleep } from '@common/utils/sleep';
 
 import { MessagingModules } from '@integration-modules/messaging-modules';
 
@@ -59,14 +60,17 @@ export class ProcessorsRootModule implements OnApplicationShutdown, OnModuleInit
     private readonly logger = new Logger(ProcessorsRootModule.name);
 
     async onModuleInit(): Promise<void> {
-        const logger = this.logger;
-        SegfaultHandler.registerHandler('trace.log', function (signal, address, stack) {
-            logger.error(`${signal} signal received, shutting down...`);
-            logger.error(`${address} address received, shutting down...`);
-            logger.error(`${JSON.stringify(stack, null, 2)}`);
-        });
+        setSignal(SIGSEGV, true);
+        setSignal(SIGABRT, true);
+        setSignal(SIGFPE, true);
+        setSignal(SIGILL, true);
+        setSignal(SIGBUS, true);
 
-        // SegfaultHandler.causeSegfault();
+        this.logger.log('Segfault handler');
+
+        await sleep(3_000);
+
+        causeSegfault();
     }
 
     async onApplicationShutdown(signal?: string): Promise<void> {
