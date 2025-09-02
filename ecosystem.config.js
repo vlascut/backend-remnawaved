@@ -41,7 +41,7 @@ module.exports = {
             script: 'dist/src/bin/processors/processors.js',
             watch: false,
             instances: 1,
-            exec_mode: 'cluster',
+            exec_mode: 'fork',
             merge_logs: true,
             instance_var: 'INSTANCE_ID',
             env_development: {
