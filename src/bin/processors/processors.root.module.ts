@@ -1,4 +1,4 @@
-import { setSignal, SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS, causeSegfault } from 'segfault-raub';
+import { setSignal, SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS } from 'segfault-raub';
 import { ClsModule } from 'nestjs-cls';
 
 import { QueueModule } from 'src/queue/queue.module';
@@ -14,7 +14,6 @@ import { PrismaService } from '@common/database/prisma.service';
 import { configSchema, Env } from '@common/config/app-config';
 import { PrismaModule } from '@common/database';
 import { AxiosModule } from '@common/axios';
-import { sleep } from '@common/utils/sleep';
 
 import { MessagingModules } from '@integration-modules/messaging-modules';
 
@@ -68,9 +67,9 @@ export class ProcessorsRootModule implements OnApplicationShutdown, OnModuleInit
 
         this.logger.log('Segfault handler');
 
-        await sleep(3_000);
+        // await sleep(3_000);
 
-        causeSegfault();
+        // causeSegfault();
     }
 
     async onApplicationShutdown(signal?: string): Promise<void> {
