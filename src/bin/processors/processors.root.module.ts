@@ -1,9 +1,10 @@
+import SegfaultHandler from 'segfault-handler';
 import { ClsModule } from 'nestjs-cls';
 
 import { QueueModule } from 'src/queue/queue.module';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { Logger, OnApplicationShutdown, Module } from '@nestjs/common';
+import { Logger, OnApplicationShutdown, Module, OnModuleInit } from '@nestjs/common';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule } from '@nestjs/config';
@@ -54,8 +55,19 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
     ],
     controllers: [],
 })
-export class ProcessorsRootModule implements OnApplicationShutdown {
+export class ProcessorsRootModule implements OnApplicationShutdown, OnModuleInit {
     private readonly logger = new Logger(ProcessorsRootModule.name);
+
+    async onModuleInit(): Promise<void> {
+        const logger = this.logger;
+        SegfaultHandler.registerHandler('', function (signal, address, stack) {
+            logger.error(`${signal} signal received, shutting down...`);
+            logger.error(`${address} address received, shutting down...`);
+            logger.error(`${stack}`);
+        });
+
+        // SegfaultHandler.causeSegfault();
+    }
 
     async onApplicationShutdown(signal?: string): Promise<void> {
         this.logger.log(`${signal} signal received, shutting down...`);
