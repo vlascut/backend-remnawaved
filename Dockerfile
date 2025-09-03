@@ -24,8 +24,10 @@ RUN if [ "$BRANCH" = "dev" ]; then \
     mkdir -p frontend_crowdin_temp/dist; \
     fi
 
-FROM node:22 AS backend-build
+FROM node:22-alpine AS backend-build
 WORKDIR /opt/app
+
+RUN apk add python3 python3-dev build-base pkgconfig libunwind-dev
 
 ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x,linux-musl-arm64-openssl-3.0.x
 
@@ -56,7 +58,7 @@ ARG BRANCH=main
 # ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 
 # Install mimalloc
-RUN apk add --no-cache mimalloc
+RUN apk add --no-cache mimalloc libunwind
 ENV LD_PRELOAD=/usr/lib/libmimalloc.so
 
 ENV REMNAWAVE_BRANCH=${BRANCH}

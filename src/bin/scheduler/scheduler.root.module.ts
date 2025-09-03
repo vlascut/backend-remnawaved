@@ -1,9 +1,10 @@
+import segfaultHandler from 'node-segfault-handler';
 import { ClsModule } from 'nestjs-cls';
 
 import { QueueModule } from 'src/queue/queue.module';
 
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { Logger, Module, OnApplicationShutdown } from '@nestjs/common';
+import { Logger, Module, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -61,10 +62,21 @@ import { SchedulerModule } from '@scheduler/scheduler.module';
         HealthModule,
     ],
 })
-export class SchedulerRootModule implements OnApplicationShutdown {
+export class SchedulerRootModule implements OnApplicationShutdown, OnModuleInit {
     private readonly logger = new Logger(SchedulerRootModule.name);
+
+    async onModuleInit(): Promise<void> {
+        segfaultHandler.registerHandler();
+
+        this.logger.log('Segfault handler');
+
+        // segfaultHandler.segfault();
+    }
 
     async onApplicationShutdown(signal?: string): Promise<void> {
         this.logger.log(`${signal} signal received, shutting down...`);
+        if (signal === 'SIGSEGV') {
+            process.exit(1);
+        }
     }
 }

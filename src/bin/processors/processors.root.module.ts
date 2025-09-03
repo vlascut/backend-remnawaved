@@ -1,4 +1,4 @@
-import { setSignal, SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS } from 'segfault-raub';
+import segfaultHandler from 'node-segfault-handler';
 import { ClsModule } from 'nestjs-cls';
 
 import { QueueModule } from 'src/queue/queue.module';
@@ -59,17 +59,11 @@ export class ProcessorsRootModule implements OnApplicationShutdown, OnModuleInit
     private readonly logger = new Logger(ProcessorsRootModule.name);
 
     async onModuleInit(): Promise<void> {
-        setSignal(SIGSEGV, true);
-        setSignal(SIGABRT, true);
-        setSignal(SIGFPE, true);
-        setSignal(SIGILL, true);
-        setSignal(SIGBUS, true);
+        segfaultHandler.registerHandler();
 
         this.logger.log('Segfault handler');
 
-        // await sleep(3_000);
-
-        // causeSegfault();
+        segfaultHandler.segfault();
     }
 
     async onApplicationShutdown(signal?: string): Promise<void> {
