@@ -63,7 +63,7 @@ export class ProcessorsRootModule implements OnApplicationShutdown, OnModuleInit
 
         this.logger.log('Segfault handler');
 
-        segfaultHandler.segfault();
+        // segfaultHandler.segfault();
     }
 
     async onApplicationShutdown(signal?: string): Promise<void> {
