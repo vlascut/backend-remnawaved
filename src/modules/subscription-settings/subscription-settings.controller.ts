@@ -1,4 +1,4 @@
-import { SUBSCRIPTION_SETTINGS_CONTROLLER } from '@contract/api';
+import { CONTROLLERS_INFO, SUBSCRIPTION_SETTINGS_CONTROLLER } from '@contract/api';
 import { ROLE } from '@contract/constants';
 
 import { Body, Controller, HttpStatus, UseFilters, UseGuards } from '@nestjs/common';
@@ -24,7 +24,7 @@ import { SubscriptionSettingsResponseModel } from './models/get-subscription-set
 import { SubscriptionSettingsService } from './subscription-settings.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Subscriptions Settings Controller')
+@ApiTags(CONTROLLERS_INFO.SUBSCRIPTION_SETTINGS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

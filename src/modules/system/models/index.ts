@@ -1,3 +1,4 @@
+export * from './generate-x25519.response.model';
 export * from './get-bandwidth-stats.response.model';
 export * from './get-nodes-statistics.response.model';
 export * from './get-nodes-stats.response.model';

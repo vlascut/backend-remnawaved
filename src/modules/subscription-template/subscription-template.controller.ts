@@ -3,7 +3,7 @@ import {
     SUBSCRIPTION_TEMPLATE_TYPE_VALUES,
     TSubscriptionTemplateType,
 } from '@contract/constants';
-import { SUBSCRIPTION_TEMPLATE_CONTROLLER } from '@contract/api';
+import { CONTROLLERS_INFO, SUBSCRIPTION_TEMPLATE_CONTROLLER } from '@contract/api';
 
 import { Body, Controller, HttpStatus, Param, UseFilters, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
@@ -25,7 +25,7 @@ import { UpdateTemplateResponseDto } from './dtos/update-template.dto';
 import { UpdateTemplateRequestDto } from './dtos/update-template.dto';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Subscriptions Template Controller')
+@ApiTags(CONTROLLERS_INFO.SUBSCRIPTION_TEMPLATE.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

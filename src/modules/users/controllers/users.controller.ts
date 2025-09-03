@@ -34,7 +34,7 @@ import {
     RevokeUserSubscriptionCommand,
     UpdateUserCommand,
 } from '@libs/contracts/commands';
-import { USERS_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, USERS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -83,7 +83,7 @@ import { GetUserByEmailRequestDto } from '../dtos/get-user-by-email.dto';
 import { UsersService } from '../users.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Users Controller')
+@ApiTags(CONTROLLERS_INFO.USERS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

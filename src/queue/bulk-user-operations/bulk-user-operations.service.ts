@@ -85,6 +85,7 @@ export class BulkUserOperationsQueueService
                                 ? dto.fields.description
                                 : undefined,
                         email: dto.fields.email !== undefined ? dto.fields.email : undefined,
+                        hwidDeviceLimit: dto.fields.hwidDeviceLimit,
                     },
                 },
             })),

@@ -1,4 +1,4 @@
-import { NODES_CONTROLLER } from '@contract/api';
+import { CONTROLLERS_INFO, NODES_CONTROLLER } from '@contract/api';
 import { ROLE } from '@contract/constants';
 
 import {
@@ -58,7 +58,7 @@ import { EnableNodeRequestParamDto } from './dtos';
 import { NodesService } from './nodes.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Nodes Controller')
+@ApiTags(CONTROLLERS_INFO.NODES.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

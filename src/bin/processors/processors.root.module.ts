@@ -57,7 +57,18 @@ import { RemnawaveModules } from '@modules/remnawave-backend.modules';
 export class ProcessorsRootModule implements OnApplicationShutdown {
     private readonly logger = new Logger(ProcessorsRootModule.name);
 
+    // async onModuleInit(): Promise<void> {
+    //     segfaultHandler.registerHandler();
+
+    //     this.logger.log('Segfault handler');
+
+    //     // segfaultHandler.segfault();
+    // }
+
     async onApplicationShutdown(signal?: string): Promise<void> {
         this.logger.log(`${signal} signal received, shutting down...`);
+        if (signal === 'SIGSEGV') {
+            process.exit(1);
+        }
     }
 }

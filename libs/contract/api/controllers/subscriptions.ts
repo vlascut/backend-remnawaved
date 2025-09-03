@@ -6,5 +6,6 @@ export const SUBSCRIPTIONS_ROUTES = {
         USERNAME: (username: string) => `by-username/${username}`,
         UUID: (uuid: string) => `by-uuid/${uuid}`,
         SHORT_UUID: (shortUuid: string) => `by-short-uuid/${shortUuid}`,
+        SHORT_UUID_RAW: (shortUuid: string) => `by-short-uuid/${shortUuid}/raw`,
     },
 } as const;

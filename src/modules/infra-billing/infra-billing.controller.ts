@@ -27,7 +27,7 @@ import {
     UpdateInfraBillingNodeCommand,
     UpdateInfraProviderCommand,
 } from '@libs/contracts/commands';
-import { INFRA_BILLING_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, INFRA_BILLING_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -53,7 +53,7 @@ import {
 import { InfraBillingService } from './infra-billing.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Infra Billing Controller')
+@ApiTags(CONTROLLERS_INFO.INFRA_BILLING.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

@@ -64,7 +64,18 @@ import { SchedulerModule } from '@scheduler/scheduler.module';
 export class SchedulerRootModule implements OnApplicationShutdown {
     private readonly logger = new Logger(SchedulerRootModule.name);
 
+    // async onModuleInit(): Promise<void> {
+    //     segfaultHandler.registerHandler();
+
+    //     this.logger.log('Segfault handler');
+
+    //     // segfaultHandler.segfault();
+    // }
+
     async onApplicationShutdown(signal?: string): Promise<void> {
         this.logger.log(`${signal} signal received, shutting down...`);
+        if (signal === 'SIGSEGV') {
+            process.exit(1);
+        }
     }
 }

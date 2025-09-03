@@ -8,13 +8,14 @@ import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
+    GenerateX25519Command,
     GetBandwidthStatsCommand,
     GetNodesMetricsCommand,
     GetNodesStatisticsCommand,
     GetRemnawaveHealthCommand,
     GetStatsCommand,
 } from '@libs/contracts/commands';
-import { SYSTEM_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, SYSTEM_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -24,11 +25,12 @@ import {
     GetNodesStatisticsResponseDto,
     GetRemnawaveHealthResponseDto,
     GetStatsResponseDto,
+    GenerateX25519ResponseDto,
 } from './dtos';
 import { SystemService } from './system.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('System Controller')
+@ApiTags(CONTROLLERS_INFO.SYSTEM.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)
@@ -121,6 +123,24 @@ export class SystemController {
     })
     async getNodesMetrics(): Promise<GetNodesMetricsResponseDto> {
         const result = await this.systemService.getNodesMetrics();
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiResponse({
+        status: 200,
+        description: 'Returns x25519 keypairs',
+        type: GenerateX25519ResponseDto,
+    })
+    @Endpoint({
+        command: GenerateX25519Command,
+        httpCode: HttpStatus.OK,
+    })
+    async getX25519Keypairs(): Promise<GenerateX25519ResponseDto> {
+        const result = await this.systemService.getX25519Keypairs();
 
         const data = errorHandler(result);
         return {

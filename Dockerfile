@@ -24,13 +24,16 @@ RUN if [ "$BRANCH" = "dev" ]; then \
     mkdir -p frontend_crowdin_temp/dist; \
     fi
 
-FROM node:22 AS backend-build
+FROM node:22.18.0-alpine AS backend-build
 WORKDIR /opt/app
+
+# RUN apk add python3 python3-dev build-base pkgconfig libunwind-dev
 
 ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x,linux-musl-arm64-openssl-3.0.x
 
 COPY package*.json ./
 COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 
 
 RUN npm ci
@@ -45,15 +48,19 @@ RUN npm cache clean --force
 
 RUN npm prune --omit=dev
 
-FROM node:22-alpine
+FROM node:22.18.0-alpine
 WORKDIR /opt/app
 
 ARG BRANCH=main
 
 # Install jemalloc
-RUN apk add --no-cache jemalloc curl
+# RUN apk add --no-cache jemalloc curl
+# ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
+# libunwind
+# Install mimalloc
+RUN apk add --no-cache mimalloc 
+ENV LD_PRELOAD=/usr/lib/libmimalloc.so
 
-ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV REMNAWAVE_BRANCH=${BRANCH}
 ENV PRISMA_HIDE_UPDATE_MESSAGE=true
 ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
@@ -66,6 +73,7 @@ COPY --from=backend-build /opt/app/node_modules ./node_modules
 
 COPY configs /var/lib/remnawave/configs
 COPY package*.json ./
+COPY prisma.config.ts ./prisma.config.ts
 COPY libs ./libs
 
 COPY ecosystem.config.js ./

@@ -8,26 +8,31 @@ import {
     ApiQuery,
     ApiTags,
 } from '@nestjs/swagger';
-import { Controller, HttpStatus, Param, Query, UseFilters, UseGuards } from '@nestjs/common';
+import { Controller, HttpStatus, Param, Query, Req, UseFilters, UseGuards } from '@nestjs/common';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
+import { extractHwidHeaders } from '@common/utils/extract-hwid-headers';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
     GetAllSubscriptionsCommand,
+    GetRawSubscriptionByShortUuidCommand,
     GetSubscriptionByShortUuidProtectedCommand,
     GetSubscriptionByUsernameCommand,
     GetSubscriptionByUuidCommand,
 } from '@libs/contracts/commands';
-import { SUBSCRIPTIONS_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, SUBSCRIPTIONS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
     GetAllSubscriptionsQueryDto,
     GetAllSubscriptionsResponseDto,
+    GetRawSubscriptionByShortUuidRequestDto,
+    GetRawSubscriptionByShortUuidRequestQueryDto,
+    GetRawSubscriptionByShortUuidResponseDto,
     GetSubscriptionByShortUuidProtectedRequestDto,
     GetSubscriptionByShortUuidProtectedResponseDto,
     GetSubscriptionByUsernameRequestDto,
@@ -39,7 +44,7 @@ import { AllSubscriptionsResponseModel, SubscriptionRawResponse } from '../model
 import { SubscriptionService } from '../subscription.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Subscriptions Controller')
+@ApiTags(CONTROLLERS_INFO.SUBSCRIPTIONS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)
@@ -207,6 +212,45 @@ export class SubscriptionsController {
 
         return {
             response: new SubscriptionRawResponse(data),
+        };
+    }
+
+    @ApiOkResponse({
+        description: 'Raw subscription fetched successfully',
+        type: GetRawSubscriptionByShortUuidResponseDto,
+    })
+    @ApiParam({
+        name: 'shortUuid',
+        type: String,
+        description: 'Short UUID of the user',
+        required: true,
+    })
+    @ApiQuery({
+        name: 'withDisabledHosts',
+        type: Boolean,
+        description: 'Include disabled hosts in the subscription. Default is false.',
+        required: false,
+    })
+    @Endpoint({
+        command: GetRawSubscriptionByShortUuidCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getRawSubscriptionByShortUuid(
+        @Param() { shortUuid }: GetRawSubscriptionByShortUuidRequestDto,
+        @Query() { withDisabledHosts }: GetRawSubscriptionByShortUuidRequestQueryDto,
+        @Req() request: Request,
+    ): Promise<GetRawSubscriptionByShortUuidResponseDto> {
+        const result = await this.subscriptionService.getRawSubscriptionByShortUuid(
+            shortUuid,
+            request.headers['user-agent'] as string,
+            withDisabledHosts,
+            extractHwidHeaders(request),
+        );
+
+        const data = errorHandler(result);
+
+        return {
+            response: data,
         };
     }
 }

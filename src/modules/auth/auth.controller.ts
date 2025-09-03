@@ -20,6 +20,7 @@ import {
     OAuth2CallbackCommand,
 } from '@libs/contracts/commands';
 import { AUTH_CONTROLLER } from '@libs/contracts/api/controllers/auth';
+import { CONTROLLERS_INFO } from '@libs/contracts/api';
 
 import {
     GetStatusResponseDto,
@@ -38,7 +39,7 @@ import { RegisterResponseModel } from './model/register.response.model';
 import { AuthResponseModel } from './model/auth-response.model';
 import { AuthService } from './auth.service';
 
-@ApiTags('Auth Controller')
+@ApiTags(CONTROLLERS_INFO.AUTH.tag)
 @UseFilters(HttpExceptionFilter)
 @Controller(AUTH_CONTROLLER)
 export class AuthController {

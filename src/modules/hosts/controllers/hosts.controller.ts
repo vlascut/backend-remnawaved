@@ -24,6 +24,7 @@ import {
     UpdateHostCommand,
 } from '@libs/contracts/commands';
 import { HOSTS_CONTROLLER } from '@libs/contracts/api/controllers';
+import { CONTROLLERS_INFO } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import { ReorderHostRequestDto, ReorderHostResponseDto } from '../dtos/reorder-hosts.dto';
@@ -43,7 +44,7 @@ import { GetOneHostRequestDto } from '../dtos/get-one.dto';
 import { HostsService } from '../hosts.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Hosts Controller')
+@ApiTags(CONTROLLERS_INFO.HOSTS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

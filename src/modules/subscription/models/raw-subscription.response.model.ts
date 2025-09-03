@@ -1,36 +1,24 @@
-import { TResetPeriods, TUsersStatus } from '@libs/contracts/constants';
-
 import { IRawHost } from '@modules/subscription-template/generators/interfaces';
+import { GetUserResponseModel } from '@modules/users/models';
 
 import { ISubscriptionHeaders } from '../interfaces';
 
 export class RawSubscriptionWithHostsResponse {
-    public user: {
+    public user: GetUserResponseModel;
+    public convertedUserInfo: {
         daysLeft: number;
-        expiresAt: Date;
-        isActive: boolean;
-        shortUuid: string;
         trafficLimit: string;
         trafficUsed: string;
         lifetimeTrafficUsed: string;
-        trafficLimitBytes: string;
-        trafficUsedBytes: string;
-        lifetimeTrafficUsedBytes: string;
-        username: string;
-        userStatus: TUsersStatus;
-        trafficLimitStrategy: TResetPeriods;
-        tag: string | null;
+        isHwidLimited: boolean;
     };
-    public subscriptionUrl: string;
-    public isHwidLimited: boolean;
     public rawHosts: IRawHost[];
     public headers: ISubscriptionHeaders;
 
     constructor(data: RawSubscriptionWithHostsResponse) {
         this.user = data.user;
-        this.subscriptionUrl = data.subscriptionUrl;
+        this.convertedUserInfo = data.convertedUserInfo;
         this.rawHosts = data.rawHosts;
         this.headers = data.headers;
-        this.isHwidLimited = data.isHwidLimited;
     }
 }

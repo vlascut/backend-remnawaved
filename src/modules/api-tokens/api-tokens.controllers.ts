@@ -12,7 +12,7 @@ import {
     DeleteApiTokenCommand,
     FindAllApiTokensCommand,
 } from '@libs/contracts/commands';
-import { API_TOKENS_CONTROLLER } from '@libs/contracts/api';
+import { API_TOKENS_CONTROLLER, CONTROLLERS_INFO } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -26,7 +26,7 @@ import { ApiTokensService } from './api-tokens.service';
 import { CreateApiTokenResponseModel } from './models';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('API Tokens Management')
+@ApiTags(CONTROLLERS_INFO.API_TOKENS.tag)
 @Roles(ROLE.ADMIN)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

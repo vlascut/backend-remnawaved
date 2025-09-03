@@ -11,7 +11,7 @@ import {
     GetNodesRealtimeUsageCommand,
     GetNodeUserUsageByRangeCommand,
 } from '@libs/contracts/commands';
-import { NODES_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, NODES_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -24,7 +24,7 @@ import { GetNodesRealtimeUsageResponseDto } from './dtos/nodes-realtime-usage.dt
 import { NodesUserUsageHistoryService } from './nodes-user-usage-history.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Bandwidth stats')
+@ApiTags(CONTROLLERS_INFO.BANDWIDTH_STATS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

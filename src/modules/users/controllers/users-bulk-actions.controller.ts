@@ -18,7 +18,7 @@ import {
     BulkUpdateUsersCommand,
     BulkUpdateUsersSquadsCommand,
 } from '@libs/contracts/commands';
-import { USERS_CONTROLLER } from '@libs/contracts/api';
+import { CONTROLLERS_INFO, USERS_CONTROLLER } from '@libs/contracts/api';
 import { ROLE } from '@libs/contracts/constants';
 
 import {
@@ -41,7 +41,7 @@ import {
 import { UsersService } from '../users.service';
 
 @ApiBearerAuth('Authorization')
-@ApiTags('Users Bulk Actions Controller')
+@ApiTags(CONTROLLERS_INFO.USERS_BULK_ACTIONS.tag)
 @Roles(ROLE.ADMIN, ROLE.API)
 @UseGuards(JwtDefaultGuard, RolesGuard)
 @UseFilters(HttpExceptionFilter)

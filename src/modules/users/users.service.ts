@@ -932,6 +932,7 @@ export class UsersService {
                             ? null
                             : BigInt(dto.telegramId)
                         : undefined,
+                hwidDeviceLimit: dto.hwidDeviceLimit,
             });
 
             if (dto.trafficLimitBytes !== undefined) {

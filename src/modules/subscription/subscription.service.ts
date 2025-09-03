@@ -36,6 +36,7 @@ import { GetUsersWithPaginationQuery } from '@modules/users/queries/get-users-wi
 import { CheckHwidExistsQuery } from '@modules/hwid-user-devices/queries/check-hwid-exists';
 import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 import { UserEntity } from '@modules/users/entities/user.entity';
+import { GetUserResponseModel } from '@modules/users/models';
 
 import {
     RawSubscriptionWithHostsResponse,
@@ -237,7 +238,7 @@ export class SubscriptionService {
         userAgent: string,
         withDisabledHosts: boolean,
         hwidHeaders: HwidHeaders | null,
-    ): Promise<SubscriptionNotFoundResponse | RawSubscriptionWithHostsResponse> {
+    ): Promise<ICommandResponse<RawSubscriptionWithHostsResponse>> {
         try {
             const user = await this.queryBus.execute(
                 new GetUserByUniqueFieldQuery(
@@ -245,19 +246,25 @@ export class SubscriptionService {
                         shortUuid,
                     },
                     {
-                        activeInternalSquads: false,
-                        lastConnectedNode: false,
+                        activeInternalSquads: true,
+                        lastConnectedNode: true,
                     },
                 ),
             );
             if (!user.isOk || !user.response) {
-                return new SubscriptionNotFoundResponse();
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
             }
 
             const settingEntity = await this.getCachedSubscriptionSettings();
 
             if (!settingEntity) {
-                return new SubscriptionNotFoundResponse();
+                return {
+                    isOk: false,
+                    ...ERRORS.SUBSCRIPTION_SETTINGS_NOT_FOUND,
+                };
             }
 
             let isHwidLimited: boolean | undefined;
@@ -288,8 +295,6 @@ export class SubscriptionService {
                 isHwidLimited = false;
             }
 
-            const userInfo = await this.getUserInfo(user.response, [], {}, settingEntity);
-
             const hosts = await this.getHostsByUserUuid({
                 userUuid: user.response.uuid,
                 returnDisabledHosts: withDisabledHosts,
@@ -297,7 +302,10 @@ export class SubscriptionService {
             });
 
             if (!hosts.isOk || !hosts.response) {
-                return new SubscriptionNotFoundResponse();
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_ALL_HOSTS_ERROR,
+                };
             }
 
             if (settingEntity.randomizeHosts) {
@@ -319,19 +327,29 @@ export class SubscriptionService {
                 });
             }
 
-            return new RawSubscriptionWithHostsResponse({
-                user: {
-                    ...userInfo.user,
-                    tag: user.response.tag,
-                },
-                headers,
-                subscriptionUrl: userInfo.subscriptionUrl,
-                rawHosts: subscription?.rawHosts ?? [],
-                isHwidLimited: isHwidLimited ?? false,
-            });
+            return {
+                isOk: true,
+                response: new RawSubscriptionWithHostsResponse({
+                    user: new GetUserResponseModel(user.response, this.subPublicDomain),
+                    convertedUserInfo: {
+                        daysLeft: dayjs(user.response.expireAt).diff(dayjs(), 'day'),
+                        trafficUsed: prettyBytesUtil(user.response.usedTrafficBytes),
+                        trafficLimit: prettyBytesUtil(user.response.trafficLimitBytes),
+                        lifetimeTrafficUsed: prettyBytesUtil(
+                            user.response.lifetimeUsedTrafficBytes,
+                        ),
+                        isHwidLimited: isHwidLimited ?? false,
+                    },
+                    headers,
+                    rawHosts: subscription?.rawHosts ?? [],
+                }),
+            };
         } catch (error) {
             this.logger.error(error);
-            return new SubscriptionNotFoundResponse();
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
         }
     }
 
@@ -497,9 +515,11 @@ export class SubscriptionService {
         ssConfLinks: Record<string, string>,
         settingEntity: SubscriptionSettingsEntity,
     ): Promise<SubscriptionRawResponse> {
-        const subscriptionUrl = settingEntity.addUsernameToBaseSubscription
-            ? `https://${this.subPublicDomain}/${user.shortUuid}#${user.username}`
-            : `https://${this.subPublicDomain}/${user.shortUuid}`;
+        const subscriptionUrl = this.resolveSubscriptionUrl(
+            user.shortUuid,
+            user.username,
+            settingEntity.addUsernameToBaseSubscription,
+        );
 
         return new SubscriptionRawResponse({
             isFound: true,
@@ -913,5 +933,17 @@ export class SubscriptionService {
 
             return;
         }
+    }
+
+    private resolveSubscriptionUrl(
+        shortUuid: string,
+        username: string,
+        addUsernameToBaseSubscription: boolean,
+    ): string {
+        if (addUsernameToBaseSubscription) {
+            return `https://${this.subPublicDomain}/${shortUuid}#${username}`;
+        }
+
+        return `https://${this.subPublicDomain}/${shortUuid}`;
     }
 }
