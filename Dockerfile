@@ -27,7 +27,7 @@ RUN if [ "$BRANCH" = "dev" ]; then \
 FROM node:22.18.0-alpine AS backend-build
 WORKDIR /opt/app
 
-RUN apk add python3 python3-dev build-base pkgconfig libunwind-dev
+# RUN apk add python3 python3-dev build-base pkgconfig libunwind-dev
 
 ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x,linux-musl-arm64-openssl-3.0.x
 
@@ -56,9 +56,9 @@ ARG BRANCH=main
 # Install jemalloc
 # RUN apk add --no-cache jemalloc curl
 # ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
-
+# libunwind
 # Install mimalloc
-RUN apk add --no-cache mimalloc libunwind
+RUN apk add --no-cache mimalloc 
 ENV LD_PRELOAD=/usr/lib/libmimalloc.so
 
 ENV REMNAWAVE_BRANCH=${BRANCH}
