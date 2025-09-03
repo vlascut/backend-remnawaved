@@ -5,6 +5,8 @@ import { DocumentBuilder } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
 
+import { CONTROLLERS_INFO } from '@libs/contracts/api/controllers-info';
+
 const description = `
 Remnawave is a powerful proxy managment tool, built on top of Xray-core, with a focus on simplicity and ease of use.
 
@@ -40,10 +42,15 @@ export async function ghActionsDocs(app: INestApplication<unknown>) {
         )
         .setDescription(description)
         .setVersion(pkg.version!)
-        .setLicense('AGPL-3.0', 'https://github.com/remnawave/panel?tab=AGPL-3.0-1-ov-file')
-        .build();
+        .setLicense('AGPL-3.0', 'https://github.com/remnawave/panel?tab=AGPL-3.0-1-ov-file');
 
-    const documentFactory = () => SwaggerModule.createDocument(app, configSwagger);
+    Object.values(CONTROLLERS_INFO).reduce((builder, { tag, description }) => {
+        return builder.addTag(tag, description);
+    }, configSwagger);
+
+    const builtConfigSwagger = configSwagger.build();
+
+    const documentFactory = () => SwaggerModule.createDocument(app, builtConfigSwagger);
 
     const document = documentFactory();
 
