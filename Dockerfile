@@ -54,11 +54,11 @@ WORKDIR /opt/app
 ARG BRANCH=main
 
 # Install jemalloc
-# RUN apk add --no-cache jemalloc curl
+# RUN apk add --no-cache jemalloc
 # ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 # libunwind
 # Install mimalloc
-RUN apk add --no-cache mimalloc 
+RUN apk add --no-cache mimalloc curl
 ENV LD_PRELOAD=/usr/lib/libmimalloc.so
 
 ENV REMNAWAVE_BRANCH=${BRANCH}
