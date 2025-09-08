@@ -116,6 +116,8 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
         }
 
         if (!isConnected) {
+            await this.startNodeService.startNode({ nodeUuid });
+
             this.eventEmitter.emit(
                 EVENTS.NODE.CONNECTION_RESTORED,
                 new NodeEvent(nodeUpdatedResponse.response, EVENTS.NODE.CONNECTION_RESTORED),
