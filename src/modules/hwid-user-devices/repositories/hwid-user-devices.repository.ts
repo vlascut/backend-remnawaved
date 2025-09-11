@@ -64,4 +64,11 @@ export class HwidUserDevicesRepository
         });
         return !!result;
     }
+
+    public async deleteByUserUuid(userUuid: string): Promise<boolean> {
+        const result = await this.prisma.tx.hwidUserDevices.deleteMany({
+            where: { userUuid },
+        });
+        return !!result;
+    }
 }

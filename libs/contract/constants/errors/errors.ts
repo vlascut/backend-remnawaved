@@ -769,4 +769,9 @@ export const ERRORS = {
         message: 'Get internal squad accessible nodes error',
         httpCode: 500,
     },
+    DELETE_HWID_USER_DEVICES_ERROR: {
+        code: 'A155',
+        message: 'Delete hwid user devices error',
+        httpCode: 500,
+    },
 } as const;

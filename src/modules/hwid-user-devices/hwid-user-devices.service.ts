@@ -178,4 +178,46 @@ export class HwidUserDevicesService {
             };
         }
     }
+
+    public async deleteAllUserHwidDevices(
+        userUuid: string,
+    ): Promise<ICommandResponse<HwidUserDeviceEntity[]>> {
+        try {
+            const user = await this.queryBus.execute(
+                new GetUserByUniqueFieldQuery(
+                    {
+                        uuid: userUuid,
+                    },
+                    {
+                        activeInternalSquads: false,
+                        lastConnectedNode: false,
+                    },
+                ),
+            );
+
+            if (!user.isOk || !user.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            await this.hwidUserDevicesRepository.deleteByUserUuid(userUuid);
+
+            const userHwidDevices = await this.hwidUserDevicesRepository.findByCriteria({
+                userUuid,
+            });
+
+            return {
+                isOk: true,
+                response: userHwidDevices,
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.DELETE_HWID_USER_DEVICES_ERROR,
+            };
+        }
+    }
 }
