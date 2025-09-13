@@ -774,4 +774,14 @@ export const ERRORS = {
         message: 'Delete hwid user devices error',
         httpCode: 500,
     },
+    CREATE_USER_SUBSCRIPTION_REQUEST_HISTORY_ERROR: {
+        code: 'A156',
+        message: 'Create user subscription request history error',
+        httpCode: 500,
+    },
+    GET_USER_SUBSCRIPTION_REQUEST_HISTORY_ERROR: {
+        code: 'A157',
+        message: 'Get user subscription request history error',
+        httpCode: 500,
+    },
 } as const;

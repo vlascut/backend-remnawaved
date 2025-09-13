@@ -73,7 +73,8 @@ model Users {
   hwidUserDevices       HwidUserDevices[]
   lastConnectedNode     Nodes?                  @relation("UserLastConnectedNode", fields: [lastConnectedNodeUuid], references: [uuid], onDelete: SetNull)
 
-  activeInternalSquads InternalSquadMembers[]
+  activeInternalSquads           InternalSquadMembers[]
+  userSubscriptionRequestHistory UserSubscriptionRequestHistory[]
 
   @@index([tag])
   @@index([status], type: Hash)
@@ -447,4 +448,18 @@ model InfraBillingHistory {
   provider InfraProviders @relation(fields: [providerUuid], references: [uuid], onDelete: Cascade)
 
   @@map("infra_billing_history")
+}
+
+model UserSubscriptionRequestHistory {
+  id        BigInt   @id @default(autoincrement())
+  userUuid  String   @map("user_uuid") @db.Uuid
+  requestIp String?  @map("request_ip")
+  userAgent String?  @map("user_agent")
+  requestAt DateTime @default(dbgenerated("now()")) @map("request_at")
+
+  user Users @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([userUuid])
+  @@index([requestAt(sort: Asc)])
+  @@map("user_subscription_request_history")
 }

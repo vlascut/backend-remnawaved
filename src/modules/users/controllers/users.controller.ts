@@ -30,6 +30,7 @@ import {
     GetUserByTelegramIdCommand,
     GetUserByUsernameCommand,
     GetUserByUuidCommand,
+    GetUserSubscriptionRequestHistoryCommand,
     ResetUserTrafficCommand,
     RevokeUserSubscriptionCommand,
     UpdateUserCommand,
@@ -59,6 +60,8 @@ import {
     GetUserByUsernameResponseDto,
     GetUserByUuidRequestDto,
     GetUserByUuidResponseDto,
+    GetUserSubscriptionRequestHistoryRequestDto,
+    GetUserSubscriptionRequestHistoryResponseDto,
     ResetUserTrafficRequestDto,
     ResetUserTrafficResponseDto,
     RevokeUserSubscriptionBodyDto,
@@ -231,6 +234,29 @@ export class UsersController {
         @Param() paramData: GetUserAccessibleNodesRequestDto,
     ): Promise<GetUserAccessibleNodesResponseDto> {
         const result = await this.usersService.getUserAccessibleNodes(paramData.uuid);
+
+        const data = errorHandler(result);
+        return {
+            response: data,
+        };
+    }
+
+    @ApiNotFoundResponse({
+        description: 'User not found',
+    })
+    @ApiOkResponse({
+        type: GetUserSubscriptionRequestHistoryResponseDto,
+        description: 'User subscription request history fetched successfully',
+    })
+    @ApiParam({ name: 'uuid', type: String, description: 'UUID of the user', required: true })
+    @Endpoint({
+        command: GetUserSubscriptionRequestHistoryCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getUserSubscriptionRequestHistory(
+        @Param() paramData: GetUserSubscriptionRequestHistoryRequestDto,
+    ): Promise<GetUserSubscriptionRequestHistoryResponseDto> {
+        const result = await this.usersService.getUserSubscriptionRequestHistory(paramData.uuid);
 
         const data = errorHandler(result);
         return {

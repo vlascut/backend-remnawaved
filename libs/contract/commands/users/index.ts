@@ -11,7 +11,9 @@ export * from './get-by';
 export * from './get-user-accessible-nodes.command';
 
 export * from './get-user-by-uuid.command';
-export * from './get-user-usage-by-range.command';
+export * from './get-user-subscription-request-history.command';
 
+export * from './get-user-usage-by-range.command';
 export * from './tags';
+
 export * from './update-user.command';

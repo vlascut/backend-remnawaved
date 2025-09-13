@@ -17,5 +17,6 @@ export enum QueueNames {
     updateUsersUsage = 'UPDATE_USERS_USAGE_QUEUE',
     userActions = 'USER_ACTIONS_QUEUE',
     userJobs = 'USER_JOBS_QUEUE',
+    userSubscriptionRequestHistory = 'USER_SUBSCRIPTION_REQUEST_HISTORY_QUEUE',
     webhookLogger = 'WEBHOOK_LOGGER_QUEUE',
 }

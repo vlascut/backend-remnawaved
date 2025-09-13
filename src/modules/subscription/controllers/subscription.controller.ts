@@ -18,6 +18,7 @@ import { extractHwidHeaders } from '@common/utils/extract-hwid-headers';
 import { GetOptionalAuth } from '@common/decorators/get-optional-auth';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Endpoint } from '@common/decorators/base-endpoint';
+import { IpAddress } from '@common/decorators/get-ip';
 import {
     CONTROLLERS_INFO,
     SUBSCRIPTION_CONTROLLER,
@@ -82,6 +83,7 @@ export class SubscriptionController {
     })
     @Get([SUBSCRIPTION_ROUTES.GET + '/:shortUuid'])
     async getSubscription(
+        @IpAddress() ip: string,
         @Param() { shortUuid }: GetSubscriptionByShortUuidRequestDto,
         @Req() request: Request,
         @Res() response: Response,
@@ -92,6 +94,7 @@ export class SubscriptionController {
             ((request.headers['accept'] as string) || '').includes('text/html'),
             undefined,
             extractHwidHeaders(request),
+            ip,
         );
 
         if (result instanceof SubscriptionNotFoundResponse) {
@@ -120,6 +123,7 @@ export class SubscriptionController {
     })
     @Get([SUBSCRIPTION_ROUTES.GET + '/:shortUuid' + '/:clientType'])
     async getSubscriptionByClientType(
+        @IpAddress() ip: string,
         @Param() { shortUuid, clientType }: GetSubscriptionByShortUuidByClientTypeRequestDto,
         @Req() request: Request,
         @Res() response: Response,
@@ -130,6 +134,7 @@ export class SubscriptionController {
             ((request.headers['accept'] as string) || '').includes('text/html'),
             clientType,
             extractHwidHeaders(request),
+            ip,
         );
 
         if (result instanceof SubscriptionNotFoundResponse) {

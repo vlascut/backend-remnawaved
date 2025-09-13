@@ -74,6 +74,10 @@ export const REST_API = {
             `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.GET_BY_UUID(uuid)}`,
         ACCESSIBLE_NODES: (uuid: string) =>
             `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.ACCESSIBLE_NODES(uuid)}`,
+        SUBSCRIPTION_REQUEST_HISTORY: (uuid: string) =>
+            `${ROOT}/${CONTROLLERS.USERS_CONTROLLER}/${CONTROLLERS.USERS_ROUTES.SUBSCRIPTION_REQUEST_HISTORY(
+                uuid,
+            )}`,
 
         ACTIONS: {
             DISABLE: (uuid: string) =>

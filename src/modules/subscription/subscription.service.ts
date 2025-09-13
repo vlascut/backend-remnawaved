@@ -38,6 +38,8 @@ import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-un
 import { UserEntity } from '@modules/users/entities/user.entity';
 import { GetUserResponseModel } from '@modules/users/models';
 
+import { UserSubscriptionRequestHistoryQueueService } from '@queue/user-subscription-request-history/user-subscription-request-history.service';
+
 import {
     RawSubscriptionWithHostsResponse,
     SubscriptionNotFoundResponse,
@@ -59,13 +61,14 @@ export class SubscriptionService {
     private readonly hwidFallbackDeviceLimit: number | undefined;
 
     constructor(
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
         private readonly renderTemplatesService: RenderTemplatesService,
         private readonly formatHostsService: FormatHostsService,
         private readonly xrayGeneratorService: XrayGeneratorService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly userSubscriptionRequestHistoryQueue: UserSubscriptionRequestHistoryQueueService,
     ) {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
@@ -81,6 +84,7 @@ export class SubscriptionService {
         isHtml: boolean,
         clientType: TRequestTemplateTypeKeys | undefined,
         hwidHeaders: HwidHeaders | null,
+        requestIp?: string,
     ): Promise<
         SubscriptionNotFoundResponse | SubscriptionRawResponse | SubscriptionWithConfigResponse
     > {
@@ -186,11 +190,7 @@ export class SubscriptionService {
                 hosts.response = _.shuffle(hosts.response);
             }
 
-            await this.updateSubLastOpenedAndUserAgent({
-                userUuid: user.response.uuid,
-                subLastOpenedAt: new Date(),
-                subLastUserAgent: userAgent,
-            });
+            await this.updateAndReportSubscriptionRequest(user.response.uuid, userAgent, requestIp);
 
             let subscription: { contentType: string; sub: string };
 
@@ -238,6 +238,7 @@ export class SubscriptionService {
         userAgent: string,
         withDisabledHosts: boolean,
         hwidHeaders: HwidHeaders | null,
+        requestIp?: string,
     ): Promise<ICommandResponse<RawSubscriptionWithHostsResponse>> {
         try {
             const user = await this.queryBus.execute(
@@ -312,11 +313,7 @@ export class SubscriptionService {
                 hosts.response = _.shuffle(hosts.response);
             }
 
-            await this.updateSubLastOpenedAndUserAgent({
-                userUuid: user.response.uuid,
-                subLastOpenedAt: new Date(),
-                subLastUserAgent: userAgent,
-            });
+            await this.updateAndReportSubscriptionRequest(user.response.uuid, userAgent, requestIp);
 
             let subscription: { rawHosts: IRawHost[] } | undefined;
 
@@ -945,5 +942,32 @@ export class SubscriptionService {
         }
 
         return `https://${this.subPublicDomain}/${shortUuid}`;
+    }
+
+    private async updateAndReportSubscriptionRequest(
+        userUuid: string,
+        userAgent: string,
+        requestIp?: string,
+    ): Promise<void> {
+        try {
+            await this.updateSubLastOpenedAndUserAgent({
+                userUuid,
+                subLastOpenedAt: new Date(),
+                subLastUserAgent: userAgent,
+            });
+
+            await this.userSubscriptionRequestHistoryQueue.addRecord({
+                userUuid,
+                requestAt: new Date(),
+                requestIp,
+                userAgent,
+            });
+
+            return;
+        } catch (error) {
+            this.logger.error(`Error updating and reporting subscription request: ${error}`);
+
+            return;
+        }
     }
 }

@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 
 import { isRestApi, isScheduler } from '@common/utils/startup-app';
 
+import { UserSubscriptionRequestHistoryModule } from './user-subscription-request-history/user-subscription-request-history.module';
 import { NodesTrafficUsageHistoryModule } from './nodes-traffic-usage-history/nodes-traffic-usage-history.module';
 import { NodesUserUsageHistoryModule } from './nodes-user-usage-history/nodes-user-usage-history.module';
 import { SubscriptionTemplateModule } from './subscription-template/subscription-template.module';
@@ -42,6 +43,7 @@ import { AuthModule } from './auth/auth.module';
         HwidUserDevicesModule,
         NodesUsageHistoryModule,
         InfraBillingModule,
+        UserSubscriptionRequestHistoryModule,
         ConditionalModule.registerWhen(SystemModule, () => isRestApi()),
         ConditionalModule.registerWhen(SubscriptionTemplateModule, () => isRestApi()),
         ConditionalModule.registerWhen(SubscriptionSettingsModule, () => isRestApi()),
