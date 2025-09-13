@@ -1,9 +1,12 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QueryBus } from '@nestjs/cqrs';
 
 import { ICommandResponse } from '@common/types/command-response.type';
-import { ERRORS } from '@libs/contracts/constants';
+import { ERRORS, EVENTS } from '@libs/contracts/constants';
+
+import { UserHwidDeviceEvent } from '@integration-modules/notifications/interfaces';
 
 import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 
@@ -18,6 +21,7 @@ export class HwidUserDevicesService {
     private readonly hwidGlobalDeviceLimit: number | undefined;
 
     constructor(
+        private readonly eventEmitter: EventEmitter2,
         private readonly hwidUserDevicesRepository: HwidUserDevicesRepository,
         private readonly configService: ConfigService,
         private readonly queryBus: QueryBus,
@@ -77,7 +81,14 @@ export class HwidUserDevicesService {
                 }
             }
 
-            await this.hwidUserDevicesRepository.create(new HwidUserDeviceEntity(dto));
+            const result = await this.hwidUserDevicesRepository.create(
+                new HwidUserDeviceEntity(dto),
+            );
+
+            this.eventEmitter.emit(
+                EVENTS.USER_HWID_DEVICES.ADDED,
+                new UserHwidDeviceEvent(user.response, result, EVENTS.USER_HWID_DEVICES.ADDED),
+            );
 
             const userHwidDevices = await this.hwidUserDevicesRepository.findByCriteria({
                 userUuid: dto.userUuid,
@@ -160,7 +171,23 @@ export class HwidUserDevicesService {
                 };
             }
 
+            const hwidDevice = await this.hwidUserDevicesRepository.findFirstByCriteria({
+                hwid,
+                userUuid,
+            });
+
             await this.hwidUserDevicesRepository.deleteByHwidAndUserUuid(hwid, userUuid);
+
+            if (hwidDevice) {
+                this.eventEmitter.emit(
+                    EVENTS.USER_HWID_DEVICES.DELETED,
+                    new UserHwidDeviceEvent(
+                        user.response,
+                        hwidDevice,
+                        EVENTS.USER_HWID_DEVICES.DELETED,
+                    ),
+                );
+            }
 
             const userHwidDevices = await this.hwidUserDevicesRepository.findByCriteria({
                 userUuid,

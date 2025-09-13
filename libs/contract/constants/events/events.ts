@@ -18,6 +18,17 @@ export const EVENTS = {
         FIRST_CONNECTED: 'user.first_connected',
         BANDWIDTH_USAGE_THRESHOLD_REACHED: 'user.bandwidth_usage_threshold_reached',
     },
+    /**
+     * HWID events are emitted only when HWID Device Limit feature is enabled in .env.
+     * Event payload contains user and HWID device entities.
+     * Note: Telegram notifications are skipped for this event.
+     * Note: For performance reasons, user entity's activeInternalSquads and lastConnectedNode fields are always empty.
+     * Returns: user and HWID device entities.
+     */
+    USER_HWID_DEVICES: {
+        ADDED: 'user_hwid_devices.added',
+        DELETED: 'user_hwid_devices.deleted',
+    },
     NODE: {
         CREATED: 'node.created',
         MODIFIED: 'node.modified',
@@ -48,6 +59,7 @@ export const EVENTS = {
         INFRA_BILLING_NODE_PAYMENT_OVERDUE_7_DAYS: 'crm.infra_billing_node_payment_overdue_7_days',
     },
     CATCH_ALL_USER_EVENTS: 'user.*',
+    CATCH_ALL_USER_HWID_DEVICES_EVENTS: 'user_hwid_devices.*',
     CATCH_ALL_NODE_EVENTS: 'node.*',
     CATCH_ALL_SERVICE_EVENTS: 'service.*',
     CATCH_ALL_ERRORS_EVENTS: 'errors.*',
@@ -59,3 +71,5 @@ export type TUserEvents = (typeof EVENTS.USER)[keyof typeof EVENTS.USER];
 export type TServiceEvents = (typeof EVENTS.SERVICE)[keyof typeof EVENTS.SERVICE];
 export type TErrorsEvents = (typeof EVENTS.ERRORS)[keyof typeof EVENTS.ERRORS];
 export type TCRMEvents = (typeof EVENTS.CRM)[keyof typeof EVENTS.CRM];
+export type TUserHwidDevicesEvents =
+    (typeof EVENTS.USER_HWID_DEVICES)[keyof typeof EVENTS.USER_HWID_DEVICES];

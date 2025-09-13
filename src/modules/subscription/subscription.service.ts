@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 
@@ -16,12 +17,15 @@ import { createHappCryptoLink } from '@common/utils';
 import {
     CACHE_KEYS,
     ERRORS,
+    EVENTS,
     REQUEST_TEMPLATE_TYPE,
     SUBSCRIPTION_TEMPLATE_TYPE,
     TRequestTemplateTypeKeys,
     TSubscriptionTemplateType,
     USERS_STATUS,
 } from '@libs/contracts/constants';
+
+import { UserHwidDeviceEvent } from '@integration-modules/notifications/interfaces';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
@@ -65,6 +69,7 @@ export class SubscriptionService {
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
+        private readonly eventEmitter: EventEmitter2,
         private readonly renderTemplatesService: RenderTemplatesService,
         private readonly formatHostsService: FormatHostsService,
         private readonly xrayGeneratorService: XrayGeneratorService,
@@ -721,7 +726,7 @@ export class SubscriptionService {
         }
 
         if (settings.isProfileWebpageUrlEnabled && !this.hwidDeviceLimitEnabled) {
-            headers['profile-web-page-url'] = `https://${this.subPublicDomain}/${user.shortUuid}`;
+            headers['profile-web-page-url'] = this.subPublicDomain;
         }
 
         const refillDate = getSubscriptionRefillDate(user.trafficLimitStrategy);
@@ -898,6 +903,11 @@ export class SubscriptionService {
                 this.logger.error(`Error creating Hwid user device, access forbidden.`);
                 return { isOk: false, response: { isSubscriptionAllowed: false } };
             }
+
+            this.eventEmitter.emit(
+                EVENTS.USER_HWID_DEVICES.ADDED,
+                new UserHwidDeviceEvent(user, result.response, EVENTS.USER_HWID_DEVICES.ADDED),
+            );
 
             return { isOk: true, response: { isSubscriptionAllowed: true } };
         } catch (error) {
