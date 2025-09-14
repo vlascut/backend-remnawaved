@@ -8,7 +8,7 @@ import { CountAndDeleteSubscriptionRequestHistoryCommand } from './count-and-del
 export class CountAndDeleteSubscriptionRequestHistoryHandler
     implements ICommandHandler<CountAndDeleteSubscriptionRequestHistoryCommand, void>
 {
-    public readonly logger = new Logger(CountAndDeleteSubscriptionRequestHistoryCommand.name);
+    public readonly logger = new Logger(CountAndDeleteSubscriptionRequestHistoryHandler.name);
 
     constructor(
         private readonly userSubscriptionRequestHistoryRepository: UserSubscriptionRequestHistoryRepository,

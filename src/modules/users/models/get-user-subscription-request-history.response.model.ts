@@ -2,8 +2,8 @@ interface IUserSubscriptionRequestHistoryRecord {
     id: number;
     userUuid: string;
     requestAt: Date;
-    requestIp: string | null | undefined;
-    userAgent: string | null | undefined;
+    requestIp: string | null;
+    userAgent: string | null;
 }
 export class GetUserSubscriptionRequestHistoryResponseModel {
     public readonly total: number;

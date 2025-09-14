@@ -98,7 +98,7 @@ export class HwidUserDevicesController {
     })
     async deleteAllUserHwidDevices(
         @Body() body: DeleteAllUserHwidDevicesRequestDto,
-    ): Promise<DeleteUserHwidDeviceResponseDto> {
+    ): Promise<DeleteAllUserHwidDevicesResponseDto> {
         const result = await this.hwidUserDevicesService.deleteAllUserHwidDevices(body.userUuid);
 
         const data = errorHandler(result);

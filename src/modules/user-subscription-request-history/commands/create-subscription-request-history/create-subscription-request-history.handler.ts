@@ -20,7 +20,7 @@ export class CreateSubscriptionRequestHistoryHandler
             }>
         >
 {
-    public readonly logger = new Logger(CreateSubscriptionRequestHistoryCommand.name);
+    public readonly logger = new Logger(CreateSubscriptionRequestHistoryHandler.name);
 
     constructor(
         private readonly userSubscriptionRequestHistoryRepository: UserSubscriptionRequestHistoryRepository,
