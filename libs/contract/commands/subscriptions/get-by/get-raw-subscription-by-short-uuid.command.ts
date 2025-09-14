@@ -76,6 +76,7 @@ export namespace GetRawSubscriptionByShortUuidCommand {
                     sockoptParams: z.optional(z.nullable(z.object({}))),
                     serverDescription: z.optional(z.nullable(z.string())),
                     flow: z.optional(z.nullable(z.string())),
+                    allowInsecure: z.optional(z.nullable(z.boolean())),
                     protocolOptions: z.optional(
                         z.nullable(
                             z.object({

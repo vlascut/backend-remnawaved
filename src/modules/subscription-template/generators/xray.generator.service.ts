@@ -161,6 +161,11 @@ export class XrayGeneratorService {
                 fp: params.fingerprint,
                 ...(params.alpn && { alpn: params.alpn }),
             });
+            if (params.allowInsecure) {
+                Object.assign(tlsParams, {
+                    allowInsecure: params.allowInsecure,
+                });
+            }
         } else if (params.tls === 'reality') {
             Object.assign(tlsParams, {
                 sni: params.sni,
@@ -232,6 +237,11 @@ export class XrayGeneratorService {
                 fp: params.fingerprint,
                 ...(params.alpn && { alpn: params.alpn }),
             });
+            if (params.allowInsecure) {
+                Object.assign(tlsParams, {
+                    allowInsecure: params.allowInsecure,
+                });
+            }
         } else if (params.tls === 'reality') {
             Object.assign(tlsParams, {
                 sni: params.sni,

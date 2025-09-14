@@ -205,6 +205,7 @@ export class MihomoGeneratorService {
             publicKey: host.publicKey,
             shortId: host.shortId,
             clientFingerprint: host.fingerprint,
+            allowInsecure: host.allowInsecure,
         });
 
         switch (host.protocol) {
@@ -260,6 +261,7 @@ export class MihomoGeneratorService {
         publicKey?: string;
         shortId?: string;
         clientFingerprint?: string;
+        allowInsecure?: boolean;
     }): ProxyNode {
         const {
             server,
@@ -275,6 +277,7 @@ export class MihomoGeneratorService {
             publicKey,
             shortId,
             clientFingerprint,
+            allowInsecure,
         } = params;
         let { type, network } = params;
 
@@ -321,6 +324,9 @@ export class MihomoGeneratorService {
             }
             if (alpn) {
                 node.alpn = alpn.split(',');
+            }
+            if (allowInsecure) {
+                node['skip-cert-verify'] = allowInsecure;
             }
         }
 

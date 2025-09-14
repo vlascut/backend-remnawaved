@@ -31,5 +31,6 @@ export interface IFormattedHost {
     muxParams?: null | object;
     sockoptParams?: null | object;
     serverDescription?: string;
+    allowInsecure?: boolean;
     dbData?: IDbHostData;
 }

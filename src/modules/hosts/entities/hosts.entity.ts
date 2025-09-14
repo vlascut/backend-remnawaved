@@ -19,6 +19,7 @@ export class HostsEntity implements Hosts {
     sockoptParams: null | object;
     isDisabled: boolean;
     serverDescription: null | string;
+    allowInsecure: boolean;
 
     tag: null | string;
     isHidden: boolean;

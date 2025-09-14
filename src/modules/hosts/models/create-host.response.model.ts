@@ -21,6 +21,7 @@ export class CreateHostResponseModel {
     public sockoptParams: null | object;
 
     public serverDescription: null | string;
+    public allowInsecure: boolean;
 
     public tag: null | string;
     public isHidden: boolean;
@@ -52,6 +53,7 @@ export class CreateHostResponseModel {
         this.muxParams = data.muxParams;
         this.sockoptParams = data.sockoptParams;
         this.serverDescription = data.serverDescription;
+        this.allowInsecure = data.allowInsecure;
 
         this.tag = data.tag;
         this.isHidden = data.isHidden;
