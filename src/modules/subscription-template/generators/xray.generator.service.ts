@@ -162,9 +162,7 @@ export class XrayGeneratorService {
                 ...(params.alpn && { alpn: params.alpn }),
             });
             if (params.allowInsecure) {
-                Object.assign(tlsParams, {
-                    allowInsecure: params.allowInsecure,
-                });
+                tlsParams.allowInsecure = params.allowInsecure;
             }
         } else if (params.tls === 'reality') {
             Object.assign(tlsParams, {
@@ -238,9 +236,7 @@ export class XrayGeneratorService {
                 ...(params.alpn && { alpn: params.alpn }),
             });
             if (params.allowInsecure) {
-                Object.assign(tlsParams, {
-                    allowInsecure: params.allowInsecure,
-                });
+                tlsParams.allowInsecure = params.allowInsecure;
             }
         } else if (params.tls === 'reality') {
             Object.assign(tlsParams, {
