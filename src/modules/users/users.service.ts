@@ -17,6 +17,7 @@ import { GetAllUsersCommand } from '@libs/contracts/commands';
 
 import { UserEvent } from '@integration-modules/notifications/interfaces';
 
+import { GetUserSubscriptionRequestHistoryQuery } from '@modules/user-subscription-request-history/queries/get-user-subscription-request-history';
 import { CreateUserTrafficHistoryCommand } from '@modules/user-traffic-history/commands/create-user-traffic-history';
 import { GetUserUsageByRangeQuery } from '@modules/nodes-user-usage-history/queries/get-user-usage-by-range';
 import { RemoveUserFromNodeEvent } from '@modules/nodes/events/remove-user-from-node';
@@ -34,6 +35,7 @@ import {
     BulkOperationResponseModel,
     BulkAllResponseModel,
     GetUserAccessibleNodesResponseModel,
+    GetUserSubscriptionRequestHistoryResponseModel,
 } from './models';
 import {
     CreateUserRequestDto,
@@ -1049,6 +1051,51 @@ export class UsersService {
         } catch (error) {
             this.logger.error(error);
             return { isOk: false, ...ERRORS.GET_USER_ACCESSIBLE_NODES_ERROR };
+        }
+    }
+
+    public async getUserSubscriptionRequestHistory(
+        userUuid: string,
+    ): Promise<ICommandResponse<GetUserSubscriptionRequestHistoryResponseModel>> {
+        try {
+            const user = await this.userRepository.getPartialUserByUniqueFields(
+                { uuid: userUuid },
+                ['uuid'],
+            );
+
+            if (!user) {
+                return {
+                    isOk: false,
+                    ...ERRORS.USER_NOT_FOUND,
+                };
+            }
+
+            const requestHistory = await this.queryBus.execute(
+                new GetUserSubscriptionRequestHistoryQuery(user.uuid),
+            );
+
+            if (!requestHistory.isOk || !requestHistory.response) {
+                return {
+                    isOk: false,
+                    ...ERRORS.GET_USER_SUBSCRIPTION_REQUEST_HISTORY_ERROR,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: new GetUserSubscriptionRequestHistoryResponseModel(
+                    requestHistory.response.map((history) => ({
+                        id: Number(history.id),
+                        userUuid: history.userUuid,
+                        requestAt: history.requestAt,
+                        requestIp: history.requestIp,
+                        userAgent: history.userAgent,
+                    })),
+                ),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return { isOk: false, ...ERRORS.GET_USER_SUBSCRIPTION_REQUEST_HISTORY_ERROR };
         }
     }
 

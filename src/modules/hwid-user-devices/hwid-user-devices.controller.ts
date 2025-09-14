@@ -9,6 +9,7 @@ import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
     CreateUserHwidDeviceCommand,
+    DeleteAllUserHwidDevicesCommand,
     DeleteUserHwidDeviceCommand,
     GetUserHwidDevicesCommand,
 } from '@libs/contracts/commands';
@@ -18,6 +19,8 @@ import { ROLE } from '@libs/contracts/constants';
 import {
     CreateUserHwidDeviceRequestDto,
     CreateUserHwidDeviceResponseDto,
+    DeleteAllUserHwidDevicesRequestDto,
+    DeleteAllUserHwidDevicesResponseDto,
     DeleteUserHwidDeviceRequestDto,
     DeleteUserHwidDeviceResponseDto,
     GetUserHwidDevicesRequestDto,
@@ -74,6 +77,29 @@ export class HwidUserDevicesController {
             body.hwid,
             body.userUuid,
         );
+
+        const data = errorHandler(result);
+        return {
+            response: {
+                total: data.length,
+                devices: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            },
+        };
+    }
+
+    @ApiOkResponse({
+        type: DeleteAllUserHwidDevicesResponseDto,
+        description: 'User HWID devices deleted successfully',
+    })
+    @Endpoint({
+        command: DeleteAllUserHwidDevicesCommand,
+        httpCode: HttpStatus.OK,
+        apiBody: DeleteAllUserHwidDevicesRequestDto,
+    })
+    async deleteAllUserHwidDevices(
+        @Body() body: DeleteAllUserHwidDevicesRequestDto,
+    ): Promise<DeleteAllUserHwidDevicesResponseDto> {
+        const result = await this.hwidUserDevicesService.deleteAllUserHwidDevices(body.userUuid);
 
         const data = errorHandler(result);
         return {

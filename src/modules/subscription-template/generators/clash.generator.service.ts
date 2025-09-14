@@ -176,6 +176,7 @@ export class ClashGeneratorService {
             udp: true,
             alpn: host.alpn,
             clientFingerprint: host.fingerprint,
+            allowInsecure: host.allowInsecure,
         });
 
         switch (host.protocol) {
@@ -209,6 +210,7 @@ export class ClashGeneratorService {
         udp: boolean;
         alpn?: string;
         clientFingerprint?: string;
+        allowInsecure?: boolean;
     }): ProxyNode {
         const {
             server,
@@ -222,6 +224,7 @@ export class ClashGeneratorService {
             path,
             headers,
             clientFingerprint,
+            allowInsecure,
         } = params;
         let { type, network } = params;
 
@@ -269,6 +272,9 @@ export class ClashGeneratorService {
             }
             if (alpn) {
                 node.alpn = alpn.split(',');
+            }
+            if (allowInsecure) {
+                node['skip-cert-verify'] = allowInsecure;
             }
         }
 

@@ -29,4 +29,5 @@ export const HostsSchema = z.object({
     isHidden: z.boolean().default(false),
     overrideSniFromAddress: z.boolean().default(false),
     vlessRouteId: z.number().int().nullable(),
+    allowInsecure: z.boolean().default(false),
 });

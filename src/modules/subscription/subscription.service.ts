@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ConfigService } from '@nestjs/config';
 
@@ -16,12 +17,15 @@ import { createHappCryptoLink } from '@common/utils';
 import {
     CACHE_KEYS,
     ERRORS,
+    EVENTS,
     REQUEST_TEMPLATE_TYPE,
     SUBSCRIPTION_TEMPLATE_TYPE,
     TRequestTemplateTypeKeys,
     TSubscriptionTemplateType,
     USERS_STATUS,
 } from '@libs/contracts/constants';
+
+import { UserHwidDeviceEvent } from '@integration-modules/notifications/interfaces';
 
 import { SubscriptionSettingsEntity } from '@modules/subscription-settings/entities/subscription-settings.entity';
 import { GetSubscriptionSettingsQuery } from '@modules/subscription-settings/queries/get-subscription-settings';
@@ -37,6 +41,8 @@ import { CheckHwidExistsQuery } from '@modules/hwid-user-devices/queries/check-h
 import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-unique-field';
 import { UserEntity } from '@modules/users/entities/user.entity';
 import { GetUserResponseModel } from '@modules/users/models';
+
+import { UserSubscriptionRequestHistoryQueueService } from '@queue/user-subscription-request-history/user-subscription-request-history.service';
 
 import {
     RawSubscriptionWithHostsResponse,
@@ -59,13 +65,15 @@ export class SubscriptionService {
     private readonly hwidFallbackDeviceLimit: number | undefined;
 
     constructor(
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly queryBus: QueryBus,
         private readonly configService: ConfigService,
         private readonly commandBus: CommandBus,
+        private readonly eventEmitter: EventEmitter2,
         private readonly renderTemplatesService: RenderTemplatesService,
         private readonly formatHostsService: FormatHostsService,
         private readonly xrayGeneratorService: XrayGeneratorService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly userSubscriptionRequestHistoryQueue: UserSubscriptionRequestHistoryQueueService,
     ) {
         this.hwidDeviceLimitEnabled =
             this.configService.getOrThrow<string>('HWID_DEVICE_LIMIT_ENABLED') === 'true';
@@ -81,6 +89,7 @@ export class SubscriptionService {
         isHtml: boolean,
         clientType: TRequestTemplateTypeKeys | undefined,
         hwidHeaders: HwidHeaders | null,
+        requestIp?: string,
     ): Promise<
         SubscriptionNotFoundResponse | SubscriptionRawResponse | SubscriptionWithConfigResponse
     > {
@@ -186,11 +195,7 @@ export class SubscriptionService {
                 hosts.response = _.shuffle(hosts.response);
             }
 
-            await this.updateSubLastOpenedAndUserAgent({
-                userUuid: user.response.uuid,
-                subLastOpenedAt: new Date(),
-                subLastUserAgent: userAgent,
-            });
+            await this.updateAndReportSubscriptionRequest(user.response.uuid, userAgent, requestIp);
 
             let subscription: { contentType: string; sub: string };
 
@@ -238,6 +243,7 @@ export class SubscriptionService {
         userAgent: string,
         withDisabledHosts: boolean,
         hwidHeaders: HwidHeaders | null,
+        requestIp?: string,
     ): Promise<ICommandResponse<RawSubscriptionWithHostsResponse>> {
         try {
             const user = await this.queryBus.execute(
@@ -312,11 +318,7 @@ export class SubscriptionService {
                 hosts.response = _.shuffle(hosts.response);
             }
 
-            await this.updateSubLastOpenedAndUserAgent({
-                userUuid: user.response.uuid,
-                subLastOpenedAt: new Date(),
-                subLastUserAgent: userAgent,
-            });
+            await this.updateAndReportSubscriptionRequest(user.response.uuid, userAgent, requestIp);
 
             let subscription: { rawHosts: IRawHost[] } | undefined;
 
@@ -724,7 +726,7 @@ export class SubscriptionService {
         }
 
         if (settings.isProfileWebpageUrlEnabled && !this.hwidDeviceLimitEnabled) {
-            headers['profile-web-page-url'] = `https://${this.subPublicDomain}/${user.shortUuid}`;
+            headers['profile-web-page-url'] = this.subPublicDomain;
         }
 
         const refillDate = getSubscriptionRefillDate(user.trafficLimitStrategy);
@@ -902,6 +904,11 @@ export class SubscriptionService {
                 return { isOk: false, response: { isSubscriptionAllowed: false } };
             }
 
+            this.eventEmitter.emit(
+                EVENTS.USER_HWID_DEVICES.ADDED,
+                new UserHwidDeviceEvent(user, result.response, EVENTS.USER_HWID_DEVICES.ADDED),
+            );
+
             return { isOk: true, response: { isSubscriptionAllowed: true } };
         } catch (error) {
             this.logger.error(`Error checking hwid device limit: ${error}`);
@@ -945,5 +952,32 @@ export class SubscriptionService {
         }
 
         return `https://${this.subPublicDomain}/${shortUuid}`;
+    }
+
+    private async updateAndReportSubscriptionRequest(
+        userUuid: string,
+        userAgent: string,
+        requestIp?: string,
+    ): Promise<void> {
+        try {
+            await this.updateSubLastOpenedAndUserAgent({
+                userUuid,
+                subLastOpenedAt: new Date(),
+                subLastUserAgent: userAgent,
+            });
+
+            await this.userSubscriptionRequestHistoryQueue.addRecord({
+                userUuid,
+                requestAt: new Date(),
+                requestIp,
+                userAgent,
+            });
+
+            return;
+        } catch (error) {
+            this.logger.error(`Error updating and reporting subscription request: ${error}`);
+
+            return;
+        }
     }
 }

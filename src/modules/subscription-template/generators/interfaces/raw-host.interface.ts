@@ -43,6 +43,7 @@ export interface IRawHost {
     xHttpExtraParams?: null | object;
     serverDescription?: string;
     flow?: string;
+    allowInsecure?: boolean;
     protocolOptions?: {
         ss?: {
             method: string;

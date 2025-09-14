@@ -18,6 +18,7 @@ export class GetOneHostResponseModel {
     public xHttpExtraParams: null | object;
     public muxParams: null | object;
     public sockoptParams: null | object;
+    public allowInsecure: boolean;
 
     public tag: null | string;
     public isHidden: boolean;
@@ -50,6 +51,7 @@ export class GetOneHostResponseModel {
         this.xHttpExtraParams = data.xHttpExtraParams;
         this.muxParams = data.muxParams;
         this.sockoptParams = data.sockoptParams;
+        this.allowInsecure = data.allowInsecure;
 
         this.tag = data.tag;
         this.isHidden = data.isHidden;

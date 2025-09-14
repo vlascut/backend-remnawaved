@@ -169,6 +169,7 @@ export class SingBoxGeneratorService {
         pbk?: string,
         sid?: string,
         alpn?: string | string[],
+        allowInsecure?: boolean,
     ): TlsConfig {
         const config: TlsConfig = {};
 
@@ -195,6 +196,10 @@ export class SingBoxGeneratorService {
                 enabled: Boolean(fp),
                 fingerprint: fp,
             };
+        }
+
+        if (allowInsecure) {
+            config.insecure = allowInsecure;
         }
 
         if (!fp && tls === 'reality') {
@@ -347,6 +352,7 @@ export class SingBoxGeneratorService {
                 params.publicKey,
                 params.shortId,
                 params.alpn,
+                params.allowInsecure,
             );
         }
         return config;

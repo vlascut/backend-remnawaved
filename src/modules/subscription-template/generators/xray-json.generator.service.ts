@@ -328,6 +328,10 @@ export class XrayJsonGeneratorService {
             settings.alpn = Array.isArray(host.alpn) ? host.alpn : [host.alpn];
         }
 
+        if (host.allowInsecure) {
+            settings.allowInsecure = host.allowInsecure;
+        }
+
         return settings;
     }
 

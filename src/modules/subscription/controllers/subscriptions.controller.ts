@@ -16,6 +16,7 @@ import { extractHwidHeaders } from '@common/utils/extract-hwid-headers';
 import { errorHandler } from '@common/helpers/error-handler.helper';
 import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
+import { IpAddress } from '@common/decorators/get-ip';
 import { RolesGuard } from '@common/guards/roles';
 import {
     GetAllSubscriptionsCommand,
@@ -236,6 +237,7 @@ export class SubscriptionsController {
         httpCode: HttpStatus.OK,
     })
     async getRawSubscriptionByShortUuid(
+        @IpAddress() ip: string,
         @Param() { shortUuid }: GetRawSubscriptionByShortUuidRequestDto,
         @Query() { withDisabledHosts }: GetRawSubscriptionByShortUuidRequestQueryDto,
         @Req() request: Request,
@@ -245,6 +247,7 @@ export class SubscriptionsController {
             request.headers['user-agent'] as string,
             withDisabledHosts,
             extractHwidHeaders(request),
+            ip,
         );
 
         const data = errorHandler(result);

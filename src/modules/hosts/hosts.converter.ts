@@ -29,6 +29,7 @@ const entityToModel = (entity: HostsEntity): Hosts => {
         muxParams: entity.muxParams,
         sockoptParams: entity.sockoptParams,
         serverDescription: entity.serverDescription,
+        allowInsecure: entity.allowInsecure,
 
         tag: entity.tag,
         isHidden: entity.isHidden,

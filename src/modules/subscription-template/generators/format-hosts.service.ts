@@ -394,6 +394,7 @@ export class FormatHostsService {
                 serverDescription,
                 muxParams,
                 sockoptParams,
+                allowInsecure: inputHost.allowInsecure,
                 dbData,
             });
         }

@@ -45,6 +45,20 @@ export class HwidUserDevicesRepository
         return this.converter.fromPrismaModelsToEntities(list);
     }
 
+    public async findFirstByCriteria(
+        dto: Partial<HwidUserDeviceEntity>,
+    ): Promise<HwidUserDeviceEntity | null> {
+        const result = await this.prisma.tx.hwidUserDevices.findFirst({
+            where: dto,
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return this.converter.fromPrismaModelToEntity(result);
+    }
+
     public async countByUserUuid(userUuid: string): Promise<number> {
         return await this.prisma.tx.hwidUserDevices.count({
             where: { userUuid },
@@ -61,6 +75,13 @@ export class HwidUserDevicesRepository
     public async deleteByHwidAndUserUuid(hwid: string, userUuid: string): Promise<boolean> {
         const result = await this.prisma.tx.hwidUserDevices.delete({
             where: { hwid_userUuid: { hwid, userUuid } },
+        });
+        return !!result;
+    }
+
+    public async deleteByUserUuid(userUuid: string): Promise<boolean> {
+        const result = await this.prisma.tx.hwidUserDevices.deleteMany({
+            where: { userUuid },
         });
         return !!result;
     }
