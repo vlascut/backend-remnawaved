@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { QueryBus } from '@nestjs/cqrs';
 
 import { ICommandResponse } from '@common/types/command-response.type';
+import { GetAllHwidDevicesCommand } from '@libs/contracts/commands';
 import { ERRORS, EVENTS } from '@libs/contracts/constants';
 
 import { UserHwidDeviceEvent } from '@integration-modules/notifications/interfaces';
@@ -12,6 +13,7 @@ import { GetUserByUniqueFieldQuery } from '@modules/users/queries/get-user-by-un
 
 import { HwidUserDevicesRepository } from './repositories/hwid-user-devices.repository';
 import { HwidUserDeviceEntity } from './entities/hwid-user-device.entity';
+import { GetHwidDevicesStatsResponseModel } from './models';
 import { CreateUserHwidDeviceRequestDto } from './dtos';
 
 @Injectable()
@@ -244,6 +246,54 @@ export class HwidUserDevicesService {
             return {
                 isOk: false,
                 ...ERRORS.DELETE_HWID_USER_DEVICES_ERROR,
+            };
+        }
+    }
+
+    public async getAllHwidDevices(dto: GetAllHwidDevicesCommand.RequestQuery): Promise<
+        ICommandResponse<{
+            total: number;
+            devices: HwidUserDeviceEntity[];
+        }>
+    > {
+        try {
+            const [devices, total] = await this.hwidUserDevicesRepository.getAllHwidDevices(dto);
+
+            return {
+                isOk: true,
+                response: {
+                    devices,
+                    total,
+                },
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.GET_ALL_HWID_DEVICES_ERROR,
+            };
+        }
+    }
+
+    public async getHwidDevicesStats(): Promise<
+        ICommandResponse<GetHwidDevicesStatsResponseModel>
+    > {
+        try {
+            const stats = await this.hwidUserDevicesRepository.getHwidDevicesStats();
+
+            return {
+                isOk: true,
+                response: new GetHwidDevicesStatsResponseModel({
+                    byPlatform: stats.byPlatform,
+                    byApp: stats.byApp,
+                    stats: stats.stats,
+                }),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.GET_HWID_DEVICES_STATS_ERROR,
             };
         }
     }
