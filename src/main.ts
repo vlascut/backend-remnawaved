@@ -3,7 +3,6 @@ import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod';
 import { createLogger } from 'winston';
 import compression from 'compression';
 import * as winston from 'winston';
-import requestIp from 'request-ip';
 import { json } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -13,12 +12,7 @@ import { ROOT } from '@contract/api';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
-import {
-    getDocs,
-    isCrowdinEditorEnabled,
-    isDevelopment,
-    isProduction,
-} from '@common/utils/startup-app';
+import { getDocs, isCrowdinEditorEnabled, isDevelopment } from '@common/utils/startup-app';
 import { proxyCheckMiddleware, getRealIp, noRobotsMiddleware } from '@common/middlewares';
 import { getStartMessage } from '@common/utils/startup-app/get-start-message';
 import { customLogFilter } from '@common/utils/filter-logs';
@@ -68,8 +62,6 @@ async function bootstrap(): Promise<void> {
 
     app.use(json({ limit: '100mb' }));
 
-    app.use(requestIp.mw());
-
     const config = app.get(ConfigService);
 
     if (!isCrowdinEditorEnabled()) {
@@ -101,19 +93,17 @@ async function bootstrap(): Promise<void> {
     app.use(getRealIp);
 
     if (config.getOrThrow<string>('IS_HTTP_LOGGING_ENABLED') === 'true') {
-        if (isProduction()) {
-            app.use(
-                morgan(
-                    ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-                    // {
-                    //     skip: (req) => req.url === ROOT + METRICS_ROOT,
-                    //     stream: {
-                    //         write: (message) => logger.http(message.trim()),
-                    //     },
-                    // },
-                ),
-            );
-        }
+        app.use(
+            morgan(
+                ':remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+                // {
+                //     skip: (req) => req.url === ROOT + METRICS_ROOT,
+                //     stream: {
+                //         write: (message) => logger.http(message.trim()),
+                //     },
+                // },
+            ),
+        );
     }
 
     app.use(noRobotsMiddleware, proxyCheckMiddleware);
