@@ -39,7 +39,7 @@ export class NodeUsersQueueProcessor extends WorkerHost {
 
             if (!result.isOk) {
                 this.logger.error(
-                    `Error adding users to node ${node.address}:${node.port}: ${result.message}`,
+                    `Failed to add users to Node ${node.address}:${node.port}: ${result.message}`,
                 );
             }
 
@@ -58,7 +58,7 @@ export class NodeUsersQueueProcessor extends WorkerHost {
 
             if (!result.isOk) {
                 this.logger.error(
-                    `Error removing user from node ${node.address}:${node.port}: ${result.message}`,
+                    `Failed to remove user from Node ${node.address}:${node.port}: ${result.message}`,
                 );
             }
 

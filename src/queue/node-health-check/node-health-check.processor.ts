@@ -41,7 +41,9 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
             const { nodeAddress, nodePort, nodeUuid, isConnected, isConnecting } = job.data;
 
             if (isConnecting) {
-                this.logger.warn(`Node ${nodeUuid} is connecting, skipping health check`);
+                this.logger.warn(
+                    `Node ${nodeUuid}, ${nodeAddress}:${nodePort} – is connecting, skipping health check`,
+                );
                 return;
             }
 
@@ -65,14 +67,14 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
                         attempts++;
 
                         this.logger.warn(
-                            `Node ${nodeUuid} health check attempt ${attempts} of ${attemptsLimit}, message: ${message}`,
+                            `Node ${nodeUuid}, ${nodeAddress}:${nodePort} – health check attempt ${attempts} of ${attemptsLimit}, message: ${message}`,
                         );
 
                         continue;
                     default:
                         message = 'Unknown error';
                         this.logger.error(
-                            `Node ${nodeUuid} health check attempt ${attempts} of ${attemptsLimit}, message: ${message}`,
+                            `Node ${nodeUuid}, ${nodeAddress}:${nodePort} – health check attempt ${attempts} of ${attemptsLimit}, message: ${message}`,
                         );
 
                         attempts++;
@@ -95,7 +97,7 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
         response: GetSystemStatsCommand.Response,
     ) {
         if (typeof response.response.uptime !== 'number') {
-            this.logger.error(`Node ${nodeUuid} uptime is not a number`);
+            this.logger.error(`Node ${nodeUuid} – uptime is not a number`);
             return;
         }
 
@@ -157,6 +159,10 @@ export class NodeHealthCheckQueueProcessor extends WorkerHost {
                 new NodeEvent(newNodeEntity.response, EVENTS.NODE.CONNECTION_LOST),
             );
         }
+
+        this.logger.warn(
+            `Lost connection to Node ${nodeUuid}, ${newNodeEntity.response.address}:${newNodeEntity.response.port}, message: ${message}`,
+        );
 
         return;
     }
