@@ -1,5 +1,5 @@
-import { Body, Controller, HttpStatus, Param, UseFilters, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpStatus, Param, Query, UseFilters, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -11,6 +11,8 @@ import {
     CreateUserHwidDeviceCommand,
     DeleteAllUserHwidDevicesCommand,
     DeleteUserHwidDeviceCommand,
+    GetAllHwidDevicesCommand,
+    GetHwidDevicesStatsCommand,
     GetUserHwidDevicesCommand,
 } from '@libs/contracts/commands';
 import { CONTROLLERS_INFO, HWID_CONTROLLER } from '@libs/contracts/api';
@@ -23,11 +25,14 @@ import {
     DeleteAllUserHwidDevicesResponseDto,
     DeleteUserHwidDeviceRequestDto,
     DeleteUserHwidDeviceResponseDto,
+    GetAllHwidDevicesRequestQueryDto,
+    GetAllHwidDevicesResponseDto,
+    GetHwidDevicesStatsResponseDto,
     GetUserHwidDevicesRequestDto,
     GetUserHwidDevicesResponseDto,
 } from './dtos';
+import { BaseUserHwidDevicesResponseModel, GetAllHwidDevicesResponseModel } from './models';
 import { HwidUserDevicesService } from './hwid-user-devices.service';
-import { BaseUserHwidDevicesResponseModel } from './models';
 
 @ApiBearerAuth('Authorization')
 @ApiTags(CONTROLLERS_INFO.HWID_USER_DEVICES.tag)
@@ -37,6 +42,48 @@ import { BaseUserHwidDevicesResponseModel } from './models';
 @Controller(HWID_CONTROLLER)
 export class HwidUserDevicesController {
     constructor(private readonly hwidUserDevicesService: HwidUserDevicesService) {}
+
+    @ApiOkResponse({
+        type: GetAllHwidDevicesResponseDto,
+        description: 'Hwid devices fetched successfully',
+    })
+    @ApiQuery({
+        name: 'start',
+        type: 'number',
+        required: false,
+        description: 'Offset for pagination',
+    })
+    @ApiQuery({
+        name: 'size',
+        type: 'number',
+        required: false,
+        description: 'Page size for pagination',
+    })
+    @Endpoint({
+        command: GetAllHwidDevicesCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getAllUsers(
+        @Query() query: GetAllHwidDevicesRequestQueryDto,
+    ): Promise<GetAllHwidDevicesResponseDto> {
+        const { start, size, filters, filterModes, globalFilterMode, sorting } = query;
+        const result = await this.hwidUserDevicesService.getAllHwidDevices({
+            start,
+            size,
+            filters,
+            filterModes,
+            globalFilterMode,
+            sorting,
+        });
+
+        const data = errorHandler(result);
+        return {
+            response: new GetAllHwidDevicesResponseModel({
+                total: data.total,
+                devices: data.devices.map((item) => new BaseUserHwidDevicesResponseModel(item)),
+            }),
+        };
+    }
 
     @ApiOkResponse({
         type: CreateUserHwidDeviceResponseDto,
@@ -107,6 +154,23 @@ export class HwidUserDevicesController {
                 total: data.length,
                 devices: data.map((item) => new BaseUserHwidDevicesResponseModel(item)),
             },
+        };
+    }
+
+    @ApiOkResponse({
+        type: GetHwidDevicesStatsResponseDto,
+        description: 'Hwid devices stats fetched successfully',
+    })
+    @Endpoint({
+        command: GetHwidDevicesStatsCommand,
+        httpCode: HttpStatus.OK,
+    })
+    async getHwidDevicesStats(): Promise<GetHwidDevicesStatsResponseDto> {
+        const result = await this.hwidUserDevicesService.getHwidDevicesStats();
+
+        const data = errorHandler(result);
+        return {
+            response: data,
         };
     }
 

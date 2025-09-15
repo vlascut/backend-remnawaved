@@ -784,4 +784,14 @@ export const ERRORS = {
         message: 'Get user subscription request history error',
         httpCode: 500,
     },
+    GET_ALL_HWID_DEVICES_ERROR: {
+        code: 'A158',
+        message: 'Get all hwid devices error',
+        httpCode: 500,
+    },
+    GET_HWID_DEVICES_STATS_ERROR: {
+        code: 'A159',
+        message: 'Get hwid devices stats error',
+        httpCode: 500,
+    },
 } as const;

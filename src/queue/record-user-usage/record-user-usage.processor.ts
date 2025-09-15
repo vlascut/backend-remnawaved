@@ -62,10 +62,11 @@ export class RecordUserUsageQueueProcessor extends WorkerHost {
                     });
 
                     this.logger.error(
-                        `Can't get users stats, node: ${nodeUuid}, error: ${JSON.stringify(
+                        `Failed to get users stats, node: ${nodeUuid} – ${nodeAddress}:${nodePort}, error: ${JSON.stringify(
                             response,
                         )}`,
                     );
+
                     return;
             }
         } catch (error) {
