@@ -221,29 +221,11 @@ export class HwidUserDevicesRepository
         const appStats = await this.qb.kysely
             .selectFrom('hwidUserDevices')
             .select([
-                sql<string>`
-            CASE 
-                WHEN LOWER("user_agent") ~ '^(flclash|flclash x)' THEN 'FlClashX'
-                WHEN LOWER("user_agent") ~ '^koala-clash' THEN 'KoalaClash'
-                WHEN LOWER("user_agent") ~ '^v2raytun' THEN 'v2rayTUN'
-                WHEN LOWER("user_agent") ~ '^happ' THEN 'Happ'    
-                ELSE 'Unknown'
-            END
-        `.as('app'),
+                sql<string>`SPLIT_PART("user_agent", '/', 1)`.as('app'),
                 (eb) => eb.fn.count('hwid').as('count'),
             ])
             .where('userAgent', 'is not', null)
-            .groupBy(
-                sql`
-                CASE 
-                    WHEN LOWER("user_agent") ~ '^(flclash|flclash x)' THEN 'FlClashX'
-                    WHEN LOWER("user_agent") ~ '^koala-clash' THEN 'KoalaClash'
-                    WHEN LOWER("user_agent") ~ '^v2raytun' THEN 'v2rayTUN'
-                    WHEN LOWER("user_agent") ~ '^happ' THEN 'Happ'    
-                    ELSE 'Unknown'
-                END
-                `,
-            )
+            .groupBy(sql`SPLIT_PART("user_agent", '/', 1)`)
             .orderBy('count', 'desc')
             .execute();
 
@@ -267,10 +249,12 @@ export class HwidUserDevicesRepository
                 platform: stat.platform || 'Unknown',
                 count: Number(stat.count),
             })),
-            byApp: appStats.map((stat) => ({
-                app: stat.app,
-                count: Number(stat.count),
-            })),
+            byApp: appStats
+                .filter((stat) => !stat.app.startsWith('https:'))
+                .map((stat) => ({
+                    app: stat.app,
+                    count: Number(stat.count),
+                })),
             stats: {
                 totalUniqueDevices: Number(totalStats.totalUniqueDevices),
                 totalHwidDevices: Number(totalStats.totalHwidDevices),
