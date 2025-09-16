@@ -726,7 +726,11 @@ export class SubscriptionService {
         }
 
         if (settings.isProfileWebpageUrlEnabled && !this.hwidDeviceLimitEnabled) {
-            headers['profile-web-page-url'] = this.subPublicDomain;
+            headers['profile-web-page-url'] = this.resolveSubscriptionUrl(
+                user.shortUuid,
+                user.username,
+                settings.addUsernameToBaseSubscription,
+            );
         }
 
         const refillDate = getSubscriptionRefillDate(user.trafficLimitStrategy);
