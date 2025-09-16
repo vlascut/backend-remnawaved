@@ -21,6 +21,7 @@ import {
 } from '@common/utils/get-date-ranges.uti';
 import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 import { ICommandResponse } from '@common/types/command-response.type';
+import { createHappCryptoLink } from '@common/utils/happ-crypto-link';
 import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
 
@@ -39,6 +40,7 @@ import {
     IBaseStat,
 } from './models';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
+import { EncryptHappCryptoLinkRequestDto } from './dtos/encrypt-happ-cryptolink.dto';
 import { InboundStats, Metric, NodeMetrics, OutboundStats } from './interfaces';
 import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
@@ -279,6 +281,24 @@ export class SystemService {
             };
         } catch (error) {
             this.logger.error('Error getting x25519 keypairs:', error);
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
+        }
+    }
+
+    public async encryptHappCryptoLink(
+        body: EncryptHappCryptoLinkRequestDto,
+    ): Promise<ICommandResponse<string>> {
+        try {
+            const encryptedLink = createHappCryptoLink(body.linkToEncrypt);
+            return {
+                isOk: true,
+                response: encryptedLink,
+            };
+        } catch (error) {
+            this.logger.error('Error encrypting happ crypto link:', error);
             return {
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,

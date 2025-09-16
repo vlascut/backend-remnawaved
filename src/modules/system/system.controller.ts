@@ -1,5 +1,5 @@
-import { Controller, HttpStatus, Query, UseFilters, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpStatus, Query, UseFilters, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from '@common/exception/httpException.filter';
 import { JwtDefaultGuard } from '@common/guards/jwt-guards/def-jwt-guard';
@@ -8,6 +8,7 @@ import { Endpoint } from '@common/decorators/base-endpoint';
 import { Roles } from '@common/decorators/roles/roles';
 import { RolesGuard } from '@common/guards/roles';
 import {
+    EncryptHappCryptoLinkCommand,
     GenerateX25519Command,
     GetBandwidthStatsCommand,
     GetNodesMetricsCommand,
@@ -26,7 +27,10 @@ import {
     GetRemnawaveHealthResponseDto,
     GetStatsResponseDto,
     GenerateX25519ResponseDto,
+    EncryptHappCryptoLinkResponseDto,
+    EncryptHappCryptoLinkRequestDto,
 } from './dtos';
+import { EncryptHappCryptoLinkResponseModel } from './models';
 import { SystemService } from './system.service';
 
 @ApiBearerAuth('Authorization')
@@ -145,6 +149,26 @@ export class SystemController {
         const data = errorHandler(result);
         return {
             response: data,
+        };
+    }
+
+    @ApiCreatedResponse({
+        type: EncryptHappCryptoLinkResponseDto,
+        description: 'Happ crypto link encrypted successfully',
+    })
+    @Endpoint({
+        command: EncryptHappCryptoLinkCommand,
+        httpCode: HttpStatus.OK,
+        apiBody: EncryptHappCryptoLinkRequestDto,
+    })
+    async encryptHappCryptoLink(
+        @Body() body: EncryptHappCryptoLinkRequestDto,
+    ): Promise<EncryptHappCryptoLinkResponseDto> {
+        const result = await this.systemService.encryptHappCryptoLink(body);
+
+        const data = errorHandler(result);
+        return {
+            response: new EncryptHappCryptoLinkResponseModel(data),
         };
     }
 }

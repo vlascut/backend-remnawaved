@@ -1,3 +1,4 @@
+export * from './encrypt-happ-cryptolink.dto';
 export * from './generate-x25519.dto';
 export * from './get-bandwidth-stats.dto';
 export * from './get-nodes-metrics.dto';
