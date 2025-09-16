@@ -164,7 +164,7 @@ export class SystemController {
     async encryptHappCryptoLink(
         @Body() body: EncryptHappCryptoLinkRequestDto,
     ): Promise<EncryptHappCryptoLinkResponseDto> {
-        const result = await this.systemService.encryptHappCryptoLink(body);
+        const result = await this.systemService.encryptHappCryptoLink(body.linkToEncrypt);
 
         const data = errorHandler(result);
         return {

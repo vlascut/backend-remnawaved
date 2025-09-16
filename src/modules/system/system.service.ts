@@ -40,7 +40,6 @@ import {
     IBaseStat,
 } from './models';
 import { GetSumByDtRangeQuery } from '../nodes-usage-history/queries/get-sum-by-dt-range';
-import { EncryptHappCryptoLinkRequestDto } from './dtos/encrypt-happ-cryptolink.dto';
 import { InboundStats, Metric, NodeMetrics, OutboundStats } from './interfaces';
 import { GetShortUserStatsQuery } from '../users/queries/get-short-user-stats';
 import { GetStatsResponseModel } from './models/get-stats.response.model';
@@ -288,11 +287,9 @@ export class SystemService {
         }
     }
 
-    public async encryptHappCryptoLink(
-        body: EncryptHappCryptoLinkRequestDto,
-    ): Promise<ICommandResponse<string>> {
+    public async encryptHappCryptoLink(linkToEncrypt: string): Promise<ICommandResponse<string>> {
         try {
-            const encryptedLink = createHappCryptoLink(body.linkToEncrypt);
+            const encryptedLink = createHappCryptoLink(linkToEncrypt);
             return {
                 isOk: true,
                 response: encryptedLink,
