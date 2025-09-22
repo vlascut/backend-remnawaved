@@ -328,6 +328,7 @@ export class UsersService {
                 hwidDeviceLimit,
                 tag,
                 activeInternalSquads,
+                uuid,
             } = dto;
 
             const userEntity = new BaseUserEntity({
@@ -348,6 +349,7 @@ export class UsersService {
                 description: description || undefined,
                 hwidDeviceLimit: hwidDeviceLimit,
                 tag: tag,
+                uuid: uuid || undefined,
             });
 
             const result = await this.userRepository.create(userEntity);
