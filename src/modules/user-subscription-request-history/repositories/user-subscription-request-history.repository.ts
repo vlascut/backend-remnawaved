@@ -8,6 +8,7 @@ import { Injectable } from '@nestjs/common';
 
 import { ICrudWithId } from '@common/types/crud-port';
 import { TxKyselyService } from '@common/database';
+import { getKyselyUuid } from '@common/helpers';
 import { GetSubscriptionRequestHistoryCommand } from '@libs/contracts/commands';
 
 import { UserSubscriptionRequestHistoryEntity } from '../entities/user-subscription-request-history.entity';
@@ -235,5 +236,22 @@ export class UserSubscriptionRequestHistoryRepository
                 count: Number(stat.count),
             })),
         };
+    }
+
+    public async cleanupUserRecords(userUuid: string, keepLatest: number): Promise<number> {
+        const result = await this.qb.kysely
+            .deleteFrom('userSubscriptionRequestHistory')
+            .where('userUuid', '=', getKyselyUuid(userUuid))
+            .where('id', 'not in', (eb) =>
+                eb
+                    .selectFrom('userSubscriptionRequestHistory')
+                    .select('id')
+                    .where('userUuid', '=', getKyselyUuid(userUuid))
+                    .orderBy('requestAt', 'desc')
+                    .limit(keepLatest),
+            )
+            .execute();
+
+        return result.length;
     }
 }
