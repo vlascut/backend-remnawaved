@@ -79,6 +79,8 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
             config.getOrThrow<string>('SCALAR_PATH'),
 
             apiReference({
+                orderSchemaPropertiesBy: 'preserve',
+                orderRequiredPropertiesFirst: true,
                 showSidebar: true,
                 layout: 'modern',
                 hideModels: false,
@@ -92,6 +94,7 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
                 theme: 'purple',
                 hideClientButton: false,
                 darkMode: true,
+                persistAuth: true,
                 hiddenClients: [
                     'asynchttp',
                     'nethttp',
@@ -112,6 +115,7 @@ export async function getDocs(app: INestApplication<unknown>, config: ConfigServ
                     targetKey: 'js',
                     clientKey: 'axios',
                 },
+                telemetry: false,
 
                 content: documentFactory,
             }),

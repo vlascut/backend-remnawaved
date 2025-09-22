@@ -174,6 +174,7 @@ export class UsersService {
         try {
             const {
                 uuid,
+                username,
                 expireAt,
                 trafficLimitBytes,
                 trafficLimitStrategy,
@@ -186,13 +187,12 @@ export class UsersService {
                 activeInternalSquads,
             } = dto;
 
-            const user = await this.userRepository.findUniqueByCriteria(
-                { uuid: uuid },
-                {
-                    activeInternalSquads: true,
-                    lastConnectedNode: false,
-                },
-            );
+            const userCriteria = uuid ? { uuid } : { username };
+
+            const user = await this.userRepository.findUniqueByCriteria(userCriteria, {
+                activeInternalSquads: true,
+                lastConnectedNode: false,
+            });
 
             if (!user) {
                 throw new Error(ERRORS.USER_NOT_FOUND.message);

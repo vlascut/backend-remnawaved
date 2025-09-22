@@ -480,7 +480,6 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             lastConnectedNode: true,
         },
     ): Promise<UserEntity | null> {
-        // TODO: check this
         const result = await this.qb.kysely
             .selectFrom('users')
             .selectAll()
