@@ -1,8 +1,15 @@
+import { sql } from 'kysely';
+
+import { DB } from 'prisma/generated/types';
+
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { ICrudWithId } from '@common/types/crud-port';
+import { TxKyselyService } from '@common/database';
+import { getKyselyUuid } from '@common/helpers';
+import { GetSubscriptionRequestHistoryCommand } from '@libs/contracts/commands';
 
 import { UserSubscriptionRequestHistoryEntity } from '../entities/user-subscription-request-history.entity';
 import { UserSubscriptionRequestHistoryConverter } from '../user-subscription-request-history.converter';
@@ -14,6 +21,7 @@ export class UserSubscriptionRequestHistoryRepository
     constructor(
         private readonly prisma: TransactionHost<TransactionalAdapterPrisma>,
         private readonly converter: UserSubscriptionRequestHistoryConverter,
+        private readonly qb: TxKyselyService,
     ) {}
 
     public async create(
@@ -90,5 +98,160 @@ export class UserSubscriptionRequestHistoryRepository
             orderBy: { requestAt: 'desc' },
         });
         return this.converter.fromPrismaModelsToEntities(result);
+    }
+
+    public async getAllSubscriptionRequestHistory({
+        start,
+        size,
+        filters,
+        filterModes,
+        sorting,
+    }: GetSubscriptionRequestHistoryCommand.RequestQuery): Promise<
+        [UserSubscriptionRequestHistoryEntity[], number]
+    > {
+        const qb = this.qb.kysely.selectFrom('userSubscriptionRequestHistory');
+
+        let isFiltersEmpty = true;
+
+        let whereBuilder = qb;
+
+        if (filters?.length) {
+            isFiltersEmpty = false;
+            for (const filter of filters) {
+                const mode = filterModes?.[filter.id] || 'contains';
+
+                if (['requestAt'].includes(filter.id)) {
+                    whereBuilder = whereBuilder.where(
+                        filter.id as any,
+                        '=',
+                        new Date(filter.value as string),
+                    );
+                    continue;
+                }
+
+                const field = filter.id as keyof DB['userSubscriptionRequestHistory'];
+
+                switch (mode) {
+                    default: // 'contains'
+                        if (field === 'userUuid') {
+                            whereBuilder = whereBuilder.where(
+                                sql`"user_uuid"::text`,
+                                'ilike',
+                                `%${filter.value}%`,
+                            );
+                        } else {
+                            whereBuilder = whereBuilder.where(field, 'ilike', `%${filter.value}%`);
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        let sortBuilder = whereBuilder;
+
+        if (sorting?.length) {
+            for (const sort of sorting) {
+                sortBuilder = sortBuilder.orderBy(sql.ref(sort.id), (ob) => {
+                    const orderBy = sort.desc ? ob.desc() : ob.asc();
+                    return orderBy.nullsLast();
+                });
+            }
+        } else {
+            sortBuilder = sortBuilder.orderBy('requestAt', 'desc');
+        }
+
+        const query = sortBuilder.selectAll().offset(start).limit(size);
+
+        const { count } = await this.qb.kysely
+            .selectFrom('userSubscriptionRequestHistory')
+            .select((eb) => eb.fn.countAll().as('count'))
+            .$if(!isFiltersEmpty, (qb) => {
+                let countBuilder = qb;
+                for (const filter of filters!) {
+                    const mode = filterModes?.[filter.id] || 'contains';
+
+                    if (['requestAt'].includes(filter.id)) {
+                        countBuilder = countBuilder.where(
+                            filter.id as keyof DB['userSubscriptionRequestHistory'],
+                            '=',
+                            new Date(filter.value as string),
+                        );
+                        continue;
+                    }
+
+                    const field = filter.id as keyof DB['userSubscriptionRequestHistory'];
+
+                    switch (mode) {
+                        default:
+                            if (field === 'userUuid') {
+                                countBuilder = countBuilder.where(
+                                    sql`"user_uuid"::text`,
+                                    'ilike',
+                                    `%${filter.value}%`,
+                                );
+                            } else {
+                                countBuilder = countBuilder.where(
+                                    field,
+                                    'ilike',
+                                    `%${filter.value}%`,
+                                );
+                            }
+                            break;
+                    }
+                }
+                return countBuilder;
+            })
+            .executeTakeFirstOrThrow();
+
+        const users = await query.execute();
+
+        const result = users.map((u) => new UserSubscriptionRequestHistoryEntity(u));
+        return [result, Number(count)];
+    }
+
+    public async getSubscriptionRequestHistoryStats(): Promise<{
+        byParsedApp: { app: string; count: number }[];
+    }> {
+        const appExtraction = sql<string>`
+        CASE 
+            WHEN POSITION('/' IN user_agent) > 0 THEN 
+                SPLIT_PART(user_agent, '/', 1)
+            ELSE 
+                SPLIT_PART(user_agent, ' ', 1)
+        END
+    `;
+
+        const appStats = await this.qb.kysely
+            .selectFrom('userSubscriptionRequestHistory')
+            .select([appExtraction.as('app'), (eb) => eb.fn.count('id').as('count')])
+            .where('userAgent', 'is not', null)
+            .groupBy(appExtraction)
+            .orderBy('count', 'desc')
+            .execute();
+
+        return {
+            byParsedApp: appStats.map((stat) => ({
+                app: stat.app,
+                count: Number(stat.count),
+            })),
+        };
+    }
+
+    public async cleanupUserRecords(userUuid: string, keepLatest: number): Promise<number> {
+        const result = await this.qb.kysely
+            .deleteFrom('userSubscriptionRequestHistory')
+            .where('userUuid', '=', getKyselyUuid(userUuid))
+            .where('id', 'not in', (eb) =>
+                eb
+                    .selectFrom('userSubscriptionRequestHistory')
+                    .select('id')
+                    .where('userUuid', '=', getKyselyUuid(userUuid))
+                    .orderBy('requestAt', 'desc')
+                    .limit(keepLatest),
+            )
+            .execute();
+
+        return result.length;
     }
 }

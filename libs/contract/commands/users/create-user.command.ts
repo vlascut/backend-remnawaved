@@ -150,6 +150,14 @@ export namespace CreateUserCommand {
             })
             .optional()
             .describe('Optional. Array of UUIDs representing enabled internal squads.'),
+        uuid: z.optional(
+            z
+                .string()
+                .uuid()
+                .describe(
+                    'Optional. Pass UUID to create user with specific UUID, otherwise it will be generated automatically.',
+                ),
+        ),
     });
 
     export type Request = z.infer<typeof RequestSchema>;

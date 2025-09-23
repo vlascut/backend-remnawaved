@@ -239,8 +239,14 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
 
                 if (filter.id === 'telegramId') {
                     try {
-                        const numValue = BigInt(filter.value as string);
-                        whereBuilder = whereBuilder.where('telegramId', '=', numValue);
+                        const searchValue = filter.value as string;
+                        BigInt(searchValue);
+
+                        whereBuilder = whereBuilder.where(
+                            sql`CAST(telegram_id AS TEXT)`,
+                            'like',
+                            `%${searchValue}%`,
+                        );
                     } catch {
                         whereBuilder = whereBuilder.where('telegramId', 'is', null);
                     }
@@ -336,8 +342,14 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
 
                     if (filter.id === 'telegramId') {
                         try {
-                            const numValue = BigInt(filter.value as string);
-                            countBuilder = countBuilder.where('telegramId', '=', numValue);
+                            const searchValue = filter.value as string;
+                            BigInt(searchValue);
+
+                            countBuilder = countBuilder.where(
+                                sql`CAST(telegram_id AS TEXT)`,
+                                'like',
+                                `%${searchValue}%`,
+                            );
                         } catch {
                             countBuilder = countBuilder.where('telegramId', 'is', null);
                         }
@@ -468,7 +480,6 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
             lastConnectedNode: true,
         },
     ): Promise<UserEntity | null> {
-        // TODO: check this
         const result = await this.qb.kysely
             .selectFrom('users')
             .selectAll()

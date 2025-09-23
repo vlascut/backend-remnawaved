@@ -16,5 +16,7 @@ export * from './internal-squad.schema';
 export * from './last-connected-node.schema';
 export * from './nodes.schema';
 export * from './subscription-info.schema';
+export * from './subscription-request-history.schema';
 export * from './subscription-settings.schema';
+export * from './tanstack-query';
 export * from './users.schema';

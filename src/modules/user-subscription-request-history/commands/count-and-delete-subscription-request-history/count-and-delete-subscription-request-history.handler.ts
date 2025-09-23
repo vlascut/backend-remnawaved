@@ -18,18 +18,7 @@ export class CountAndDeleteSubscriptionRequestHistoryHandler
         try {
             const { userUuid } = command;
 
-            const count =
-                await this.userSubscriptionRequestHistoryRepository.countByUserUuid(userUuid);
-
-            if (count > 24) {
-                const oldest =
-                    await this.userSubscriptionRequestHistoryRepository.findOldestByUserUuid(
-                        userUuid,
-                    );
-                if (oldest) {
-                    await this.userSubscriptionRequestHistoryRepository.deleteById(oldest.id);
-                }
-            }
+            await this.userSubscriptionRequestHistoryRepository.cleanupUserRecords(userUuid, 24);
 
             return;
         } catch (error: unknown) {

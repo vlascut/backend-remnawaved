@@ -174,6 +174,7 @@ export class UsersService {
         try {
             const {
                 uuid,
+                username,
                 expireAt,
                 trafficLimitBytes,
                 trafficLimitStrategy,
@@ -186,13 +187,12 @@ export class UsersService {
                 activeInternalSquads,
             } = dto;
 
-            const user = await this.userRepository.findUniqueByCriteria(
-                { uuid: uuid },
-                {
-                    activeInternalSquads: true,
-                    lastConnectedNode: false,
-                },
-            );
+            const userCriteria = uuid ? { uuid } : { username };
+
+            const user = await this.userRepository.findUniqueByCriteria(userCriteria, {
+                activeInternalSquads: true,
+                lastConnectedNode: false,
+            });
 
             if (!user) {
                 throw new Error(ERRORS.USER_NOT_FOUND.message);
@@ -328,6 +328,7 @@ export class UsersService {
                 hwidDeviceLimit,
                 tag,
                 activeInternalSquads,
+                uuid,
             } = dto;
 
             const userEntity = new BaseUserEntity({
@@ -348,6 +349,7 @@ export class UsersService {
                 description: description || undefined,
                 hwidDeviceLimit: hwidDeviceLimit,
                 tag: tag,
+                uuid: uuid || undefined,
             });
 
             const result = await this.userRepository.create(userEntity);

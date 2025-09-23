@@ -21,6 +21,7 @@ import {
 } from '@common/utils/get-date-ranges.uti';
 import { resolveCountryEmoji } from '@common/utils/resolve-country-emoji';
 import { ICommandResponse } from '@common/types/command-response.type';
+import { createHappCryptoLink } from '@common/utils/happ-crypto-link';
 import { calcDiff } from '@common/utils/calc-percent-diff.util';
 import { prettyBytesUtil } from '@common/utils/bytes';
 
@@ -279,6 +280,22 @@ export class SystemService {
             };
         } catch (error) {
             this.logger.error('Error getting x25519 keypairs:', error);
+            return {
+                isOk: false,
+                ...ERRORS.INTERNAL_SERVER_ERROR,
+            };
+        }
+    }
+
+    public async encryptHappCryptoLink(linkToEncrypt: string): Promise<ICommandResponse<string>> {
+        try {
+            const encryptedLink = createHappCryptoLink(linkToEncrypt);
+            return {
+                isOk: true,
+                response: encryptedLink,
+            };
+        } catch (error) {
+            this.logger.error('Error encrypting happ crypto link:', error);
             return {
                 isOk: false,
                 ...ERRORS.INTERNAL_SERVER_ERROR,

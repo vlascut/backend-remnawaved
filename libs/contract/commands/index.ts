@@ -8,6 +8,7 @@ export * from './internal-squads';
 export * from './keygen';
 export * from './nodes';
 export * from './subscription';
+export * from './subscription-request-history';
 export * from './subscription-settings';
 export * from './subscription-template';
 export * from './subscriptions';

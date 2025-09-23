@@ -9,6 +9,7 @@ export const SYSTEM_ROUTES = {
     },
     TOOLS: {
         GENERATE_X25519: 'tools/x25519/generate',
+        ENCRYPT_HAPP_CRYPTO_LINK: 'tools/happ/encrypt',
     },
     HEALTH: 'health',
 } as const;
