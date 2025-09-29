@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { filter, shuffle } from 'lodash';
 import { customAlphabet } from 'nanoid';
 
 import { ConfigService } from '@nestjs/config';
@@ -82,7 +83,7 @@ export class FormatHostsService {
             formattedHosts.push(
                 ...this.createFallbackHosts([
                     '→ Remnawave',
-                    '→ Did you forget to add hosts?',
+                    'Did you forget to add hosts?',
                     '→ No hosts found',
                     '→ Check Hosts tab',
                 ]),
@@ -95,9 +96,9 @@ export class FormatHostsService {
             formattedHosts.push(
                 ...this.createFallbackHosts([
                     '→ Remnawave',
-                    '→ Did you forget to add internal squads?',
+                    'Did you forget to add internal squads?',
                     '→ No internal squads found',
-                    '→ User has no internal squads',
+                    'User has no internal squads',
                 ]),
             );
 
@@ -107,6 +108,13 @@ export class FormatHostsService {
         const publicKeyMap = await resolveInboundAndPublicKey(hosts.map((host) => host.rawInbound));
 
         const knownRemarks = new Map<string, number>();
+
+        if (hosts.some((h) => h.shuffleHost)) {
+            hosts = [
+                ...shuffle(filter(hosts, 'shuffleHost')),
+                ...filter(hosts, (h) => !h.shuffleHost),
+            ];
+        }
 
         for (const inputHost of hosts) {
             const remark = TemplateEngine.formatWithUser(
@@ -395,6 +403,8 @@ export class FormatHostsService {
                 muxParams,
                 sockoptParams,
                 allowInsecure: inputHost.allowInsecure,
+                shuffleHost: inputHost.shuffleHost,
+                mihomoX25519: inputHost.mihomoX25519,
                 dbData,
             });
         }
