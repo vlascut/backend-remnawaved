@@ -136,6 +136,7 @@ export class SubscriptionService {
                     response.headers.announce = `base64:${Buffer.from(
                         this.configService.getOrThrow<string>('HWID_MAX_DEVICES_ANNOUNCE'),
                     ).toString('base64')}`;
+                    response.headers['x-hwid-limit'] = 'true'; // v2rayTUN
 
                     return response;
                 }
@@ -292,6 +293,7 @@ export class SubscriptionService {
                     headers.announce = `base64:${Buffer.from(
                         this.configService.getOrThrow<string>('HWID_MAX_DEVICES_ANNOUNCE'),
                     ).toString('base64')}`;
+                    headers['x-hwid-limit'] = 'true'; // v2rayTUN
 
                     isHwidLimited = true;
                 }
