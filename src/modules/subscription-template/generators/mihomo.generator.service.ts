@@ -328,9 +328,6 @@ export class MihomoGeneratorService {
             if (alpn) {
                 node.alpn = alpn.split(',');
             }
-            if (allowInsecure) {
-                node['skip-cert-verify'] = allowInsecure;
-            }
         }
 
         let netOpts: NetworkConfig = {};
@@ -364,6 +361,10 @@ export class MihomoGeneratorService {
             if (mihomoX25519) {
                 node['reality-opts']['support-x25519mlkem768'] = true;
             }
+        }
+
+        if (allowInsecure && type !== 'ss') {
+            node['skip-cert-verify'] = allowInsecure;
         }
 
         node['client-fingerprint'] = clientFingerprint || 'chrome';
