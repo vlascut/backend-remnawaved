@@ -170,6 +170,7 @@ export class XrayGeneratorService {
                 fp: params.fingerprint,
                 pbk: params.publicKey,
                 sid: params.shortId,
+                pqv: params.mldsa65Verify,
                 ...(params.spiderX && { spx: params.spiderX }),
             });
         }
@@ -244,6 +245,7 @@ export class XrayGeneratorService {
                 fp: params.fingerprint,
                 pbk: params.publicKey,
                 sid: params.shortId,
+                pqv: params.mldsa65Verify,
                 ...(params.spiderX && { spx: params.spiderX }),
             });
         }

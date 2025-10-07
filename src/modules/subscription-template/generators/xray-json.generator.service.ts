@@ -345,6 +345,10 @@ export class XrayJsonGeneratorService {
             settings.publicKey = host.publicKey;
         }
 
+        if (host.mldsa65Verify) {
+            settings.mldsa65Verify = host.mldsa65Verify;
+        }
+
         if (host.shortId) {
             settings.shortId = host.shortId;
         }

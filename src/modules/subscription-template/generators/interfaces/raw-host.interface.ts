@@ -46,6 +46,7 @@ export interface IRawHost {
     allowInsecure?: boolean;
     shuffleHost?: boolean;
     mihomoX25519?: boolean;
+    mldsa65Verify?: string;
     protocolOptions?: {
         ss?: {
             method: string;

@@ -13,9 +13,12 @@ import {
     WebSocketObject,
     xHttpObject,
 } from '@common/helpers/xray-config/interfaces/transport.config';
+import {
+    resolveInboundAndMlDsa65PublicKey,
+    resolveInboundAndPublicKey,
+} from '@common/helpers/xray-config';
 import { RawObject } from '@common/helpers/xray-config/interfaces/transport.config';
 import { TemplateEngine } from '@common/utils/templates/replace-templates-values';
-import { resolveInboundAndPublicKey } from '@common/helpers/xray-config';
 import { ICommandResponse } from '@common/types/command-response.type';
 import { InboundObject } from '@common/helpers/xray-config/interfaces';
 import { setVlessRouteForUuid } from '@common/utils/vless-route';
@@ -106,6 +109,9 @@ export class FormatHostsService {
         }
 
         const publicKeyMap = await resolveInboundAndPublicKey(hosts.map((host) => host.rawInbound));
+        const mldsa65PublicKeyMap = await resolveInboundAndMlDsa65PublicKey(
+            hosts.map((host) => host.rawInbound),
+        );
 
         const knownRemarks = new Map<string, number>();
 
@@ -228,6 +234,7 @@ export class FormatHostsService {
             let publicKeyFromConfig: string | undefined;
             let shortIdFromConfig: string | undefined;
             let spiderXFromConfig: string | undefined;
+            let mldsa65PublicKeyFromConfig: string | undefined;
 
             switch (inbound.streamSettings?.security) {
                 case 'tls':
@@ -252,6 +259,7 @@ export class FormatHostsService {
                     fingerprintFromConfig = realitySettings?.fingerprint;
 
                     publicKeyFromConfig = publicKeyMap.get(inbound.tag);
+                    mldsa65PublicKeyFromConfig = mldsa65PublicKeyMap.get(inbound.tag);
 
                     spiderXFromConfig = realitySettings?.spiderX;
                     const shortIds = inbound.streamSettings?.realitySettings?.shortIds || [];
@@ -406,6 +414,7 @@ export class FormatHostsService {
                 shuffleHost: inputHost.shuffleHost,
                 mihomoX25519: inputHost.mihomoX25519,
                 dbData,
+                mldsa65Verify: mldsa65PublicKeyFromConfig,
             });
         }
 

@@ -35,4 +35,5 @@ export interface IFormattedHost {
     shuffleHost?: boolean;
     mihomoX25519?: boolean;
     dbData?: IDbHostData;
+    mldsa65Verify?: string;
 }
