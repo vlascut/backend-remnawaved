@@ -75,25 +75,33 @@ export async function resolveEncryptionFromDecryption(
     const encryptionMap = new Map<string, string>();
 
     for (const inbound of inbounds) {
-        if (inbound.protocol !== 'vless') {
+        try {
+            if (inbound.protocol !== 'vless') {
+                continue;
+            }
+
+            if (!inbound.settings) {
+                continue;
+            }
+
+            if (!inbound.settings.decryption) {
+                continue;
+            }
+
+            if (inbound.settings.decryption === 'none') {
+                continue;
+            }
+
+            if (encryptionMap.has(inbound.tag)) {
+                continue;
+            }
+
+            const encryption = await generateEncryptionFromDecryption(inbound.settings.decryption);
+
+            encryptionMap.set(inbound.tag, encryption.encryption);
+        } catch {
             continue;
         }
-
-        if (!inbound.settings) {
-            continue;
-        }
-
-        if (!inbound.settings.decryption) {
-            continue;
-        }
-
-        if (inbound.settings.decryption === 'none') {
-            continue;
-        }
-
-        const encryption = await generateEncryptionFromDecryption(inbound.settings.decryption);
-
-        encryptionMap.set(inbound.tag, encryption.encryption);
     }
 
     return encryptionMap;
