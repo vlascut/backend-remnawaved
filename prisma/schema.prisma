@@ -172,6 +172,8 @@ model Nodes {
   activeConfigProfile ConfigProfiles? @relation(fields: [activeConfigProfileUuid], references: [uuid], onDelete: SetNull)
   provider            InfraProviders? @relation(fields: [providerUuid], references: [uuid], onDelete: SetNull)
 
+  hosts HostsToNodes[]
+
   @@map("nodes")
 }
 
@@ -265,6 +267,8 @@ model Hosts {
 
   configProfileInbounds ConfigProfileInbounds? @relation(fields: [configProfileInboundUuid], references: [uuid], onDelete: SetNull)
   configProfiles        ConfigProfiles?        @relation(fields: [configProfileUuid], references: [uuid], onDelete: SetNull)
+
+  nodes HostsToNodes[]
 
   @@map("hosts")
 }
@@ -465,4 +469,15 @@ model UserSubscriptionRequestHistory {
   @@index([userUuid])
   @@index([requestAt(sort: Asc)])
   @@map("user_subscription_request_history")
+}
+
+model HostsToNodes {
+  hostUuid String @map("host_uuid") @db.Uuid
+  nodeUuid String @map("node_uuid") @db.Uuid
+
+  host Hosts @relation(fields: [hostUuid], references: [uuid], onDelete: Cascade)
+  node Nodes @relation(fields: [nodeUuid], references: [uuid], onDelete: Cascade)
+
+  @@id([hostUuid, nodeUuid])
+  @@map("hosts_to_nodes")
 }
