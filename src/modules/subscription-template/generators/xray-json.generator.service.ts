@@ -325,7 +325,7 @@ export class XrayJsonGeneratorService {
         }
 
         if (host.alpn) {
-            settings.alpn = Array.isArray(host.alpn) ? host.alpn : [host.alpn];
+            settings.alpn = host.alpn.split(',');
         }
 
         if (host.allowInsecure) {
