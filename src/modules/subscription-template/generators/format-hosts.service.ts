@@ -14,6 +14,7 @@ import {
     xHttpObject,
 } from '@common/helpers/xray-config/interfaces/transport.config';
 import {
+    resolveEncryptionFromDecryption,
     resolveInboundAndMlDsa65PublicKey,
     resolveInboundAndPublicKey,
 } from '@common/helpers/xray-config';
@@ -110,6 +111,9 @@ export class FormatHostsService {
 
         const publicKeyMap = await resolveInboundAndPublicKey(hosts.map((host) => host.rawInbound));
         const mldsa65PublicKeyMap = await resolveInboundAndMlDsa65PublicKey(
+            hosts.map((host) => host.rawInbound),
+        );
+        const encryptionMap = await resolveEncryptionFromDecryption(
             hosts.map((host) => host.rawInbound),
         );
 
@@ -415,6 +419,7 @@ export class FormatHostsService {
                 mihomoX25519: inputHost.mihomoX25519,
                 dbData,
                 mldsa65Verify: mldsa65PublicKeyFromConfig,
+                encryption: encryptionMap.get(inputHost.inboundTag),
             });
         }
 

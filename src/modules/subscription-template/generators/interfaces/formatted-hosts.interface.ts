@@ -36,4 +36,5 @@ export interface IFormattedHost {
     mihomoX25519?: boolean;
     dbData?: IDbHostData;
     mldsa65Verify?: string;
+    encryption?: string;
 }

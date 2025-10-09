@@ -252,6 +252,12 @@ export class XrayGeneratorService {
 
         Object.assign(payload, tlsParams);
 
+        if (params.encryption) {
+            Object.assign(payload, {
+                encryption: params.encryption,
+            });
+        }
+
         const stringPayload = this.convertPayloadToString(payload);
         return `vless://${params.password.vlessPassword}@${params.address}:${params.port}?${new URLSearchParams(stringPayload).toString()}#${encodeURIComponent(params.remark)}`;
     }

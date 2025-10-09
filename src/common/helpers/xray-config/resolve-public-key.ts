@@ -1,6 +1,8 @@
 import { createPrivateKey, createPublicKey, KeyObject } from 'node:crypto';
 import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js';
 
+import { generateEncryptionFromDecryption } from '../vless-encryption/generate-encryption-from-decryption';
+
 export async function resolveInboundAndPublicKey(inbounds: any[]): Promise<Map<string, string>> {
     const publicKeyMap = new Map<string, string>();
 
@@ -65,6 +67,36 @@ export async function resolveInboundAndMlDsa65PublicKey(
     }
 
     return mldsa65PublicKeyMap;
+}
+
+export async function resolveEncryptionFromDecryption(
+    inbounds: any[],
+): Promise<Map<string, string>> {
+    const encryptionMap = new Map<string, string>();
+
+    for (const inbound of inbounds) {
+        if (inbound.protocol !== 'vless') {
+            continue;
+        }
+
+        if (!inbound.settings) {
+            continue;
+        }
+
+        if (!inbound.settings.decryption) {
+            continue;
+        }
+
+        if (inbound.settings.decryption === 'none') {
+            continue;
+        }
+
+        const encryption = await generateEncryptionFromDecryption(inbound.settings.decryption);
+
+        encryptionMap.set(inbound.tag, encryption.encryption);
+    }
+
+    return encryptionMap;
 }
 
 async function createX25519KeyPairFromBase64(base64PrivateKey: string): Promise<{

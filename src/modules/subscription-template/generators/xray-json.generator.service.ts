@@ -148,7 +148,7 @@ export class XrayJsonGeneratorService {
                             users: [
                                 {
                                     id: host.password.vlessPassword,
-                                    encryption: 'none',
+                                    encryption: host.encryption || 'none',
                                     flow: 'xtls-rprx-vision' as string | undefined,
                                 },
                             ],

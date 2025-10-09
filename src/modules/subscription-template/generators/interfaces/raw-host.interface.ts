@@ -52,4 +52,5 @@ export interface IRawHost {
             method: string;
         };
     };
+    encryption?: string;
 }

@@ -239,6 +239,11 @@ export class MihomoGeneratorService {
                 // ) {
                 //     node.flow = settings.flow || '';
                 // }
+
+                if (host.encryption && host.encryption !== 'none') {
+                    node.encryption = host.encryption;
+                }
+
                 break;
             case 'trojan':
                 node.password = host.password.trojanPassword;
