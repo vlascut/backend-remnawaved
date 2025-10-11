@@ -48,6 +48,7 @@ interface ProxyNode {
     type: string;
     udp: boolean;
     uuid?: string;
+    serverDescription?: string;
 }
 
 @Injectable()
@@ -56,7 +57,11 @@ export class MihomoGeneratorService {
 
     constructor(private readonly subscriptionTemplateService: SubscriptionTemplateService) {}
 
-    async generateConfig(hosts: IFormattedHost[], isStash = false): Promise<string> {
+    async generateConfig(
+        hosts: IFormattedHost[],
+        isStash = false,
+        isFlClashX = false,
+    ): Promise<string> {
         try {
             const data: ClashData = {
                 proxies: [],
@@ -68,7 +73,7 @@ export class MihomoGeneratorService {
                 if (!host) {
                     continue;
                 }
-                this.addProxy(host, data, proxyRemarks);
+                this.addProxy(host, data, proxyRemarks, isFlClashX);
             }
 
             return await this.renderConfig(data, proxyRemarks, isStash);
@@ -181,7 +186,12 @@ export class MihomoGeneratorService {
         }
     }
 
-    private addProxy(host: IFormattedHost, data: ClashData, proxyRemarks: string[]): void {
+    private addProxy(
+        host: IFormattedHost,
+        data: ClashData,
+        proxyRemarks: string[],
+        isFlClashX: boolean,
+    ): void {
         if (host.network === 'xhttp') {
             return;
         }
@@ -229,6 +239,11 @@ export class MihomoGeneratorService {
                 // ) {
                 //     node.flow = settings.flow || '';
                 // }
+
+                if (host.encryption && host.encryption !== 'none') {
+                    node.encryption = host.encryption;
+                }
+
                 break;
             case 'trojan':
                 node.password = host.password.trojanPassword;
@@ -239,6 +254,11 @@ export class MihomoGeneratorService {
                 break;
             default:
                 return;
+        }
+
+        if (host.serverDescription && isFlClashX) {
+            // supported in FlClashX, custom field
+            node.serverDescription = Buffer.from(host.serverDescription, 'base64').toString();
         }
 
         data.proxies.push(node);
@@ -328,9 +348,6 @@ export class MihomoGeneratorService {
             if (alpn) {
                 node.alpn = alpn.split(',');
             }
-            if (allowInsecure) {
-                node['skip-cert-verify'] = allowInsecure;
-            }
         }
 
         let netOpts: NetworkConfig = {};
@@ -364,6 +381,10 @@ export class MihomoGeneratorService {
             if (mihomoX25519) {
                 node['reality-opts']['support-x25519mlkem768'] = true;
             }
+        }
+
+        if (allowInsecure && type !== 'ss') {
+            node['skip-cert-verify'] = allowInsecure;
         }
 
         node['client-fingerprint'] = clientFingerprint || 'chrome';

@@ -262,6 +262,24 @@ export class XRayConfig {
             }));
     }
 
+    public cleanClients(): void {
+        for (const inbound of this.config.inbounds) {
+            switch (inbound.protocol) {
+                case 'trojan':
+                    (inbound.settings as TrojanSettings).clients = [];
+                    break;
+                case 'vless':
+                    (inbound.settings as VLessSettings).clients = [];
+                    break;
+                case 'shadowsocks':
+                    (inbound.settings as ShadowsocksSettings).clients = [];
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     public getSortedConfig(): IXrayConfig {
         return this.sortObjectByKeys<IXrayConfig>(this.config);
     }

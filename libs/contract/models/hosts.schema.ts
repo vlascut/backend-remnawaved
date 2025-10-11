@@ -32,4 +32,6 @@ export const HostsSchema = z.object({
     allowInsecure: z.boolean().default(false),
     shuffleHost: z.boolean(),
     mihomoX25519: z.boolean(),
+
+    nodes: z.array(z.string().uuid()),
 });

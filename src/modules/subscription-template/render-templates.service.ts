@@ -71,7 +71,11 @@ export class RenderTemplatesService {
 
             case 'MIHOMO':
                 return {
-                    sub: await this.mihomoGeneratorService.generateConfig(formattedHosts, false),
+                    sub: await this.mihomoGeneratorService.generateConfig(
+                        formattedHosts,
+                        false,
+                        /^FlClash X\//.test(userAgent),
+                    ),
                     contentType: configParams.CONTENT_TYPE,
                 };
 
@@ -144,7 +148,11 @@ export class RenderTemplatesService {
         switch (clientType) {
             case 'MIHOMO':
                 return {
-                    sub: await this.mihomoGeneratorService.generateConfig(formattedHosts, false),
+                    sub: await this.mihomoGeneratorService.generateConfig(
+                        formattedHosts,
+                        false,
+                        /^FlClash X\//.test(userAgent),
+                    ),
                     contentType: SUBSCRIPTION_CONFIG_TYPES.MIHOMO.CONTENT_TYPE,
                 };
 

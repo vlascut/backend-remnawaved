@@ -148,7 +148,7 @@ export class XrayJsonGeneratorService {
                             users: [
                                 {
                                     id: host.password.vlessPassword,
-                                    encryption: 'none',
+                                    encryption: host.encryption || 'none',
                                     flow: 'xtls-rprx-vision' as string | undefined,
                                 },
                             ],
@@ -325,7 +325,7 @@ export class XrayJsonGeneratorService {
         }
 
         if (host.alpn) {
-            settings.alpn = Array.isArray(host.alpn) ? host.alpn : [host.alpn];
+            settings.alpn = host.alpn.split(',');
         }
 
         if (host.allowInsecure) {
@@ -343,6 +343,10 @@ export class XrayJsonGeneratorService {
 
         if (host.publicKey) {
             settings.publicKey = host.publicKey;
+        }
+
+        if (host.mldsa65Verify) {
+            settings.mldsa65Verify = host.mldsa65Verify;
         }
 
         if (host.shortId) {

@@ -1196,6 +1196,20 @@ export class UsersRepository implements ICrud<BaseUserEntity> {
         ).as('activeInternalSquads');
     }
 
+    public async getUserUuidByUsername(username: string): Promise<string | null> {
+        const result = await this.qb.kysely
+            .selectFrom('users')
+            .select('uuid')
+            .where('username', '=', username)
+            .executeTakeFirst();
+
+        if (!result) {
+            return null;
+        }
+
+        return result.uuid;
+    }
+
     private includeLastConnectedNode(eb: ExpressionBuilder<DB, 'users'>) {
         return jsonObjectFrom(
             eb
