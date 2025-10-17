@@ -86,10 +86,9 @@ export class FormatHostsService {
         if (hosts.length === 0 && user.activeInternalSquads.length !== 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
-                    '→ Remnawave',
-                    'Did you forget to add hosts?',
+                    '→ Enterlance VPN',
+                    'В подписке нет серверов',
                     '→ No hosts found',
-                    '→ Check Hosts tab',
                 ]),
             );
 
@@ -99,10 +98,9 @@ export class FormatHostsService {
         if (hosts.length === 0 && user.activeInternalSquads.length === 0) {
             formattedHosts.push(
                 ...this.createFallbackHosts([
-                    '→ Remnawave',
-                    'Did you forget to add internal squads?',
+                    '→ Enterlance VPN',
+                    'В подписке нет сквадов',
                     '→ No internal squads found',
-                    'User has no internal squads',
                 ]),
             );
 
