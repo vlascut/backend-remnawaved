@@ -132,16 +132,46 @@ export class FormatHostsService {
         }
 
         if (hosts.length === 0) {
-            return this.createFallbackHosts(
-                subscriptionSettings.customRemarks.emptyHosts.map((remark) =>
-                    TemplateEngine.formatWithUser(
-                        remark,
-                        user,
-                        subscriptionSettings,
-                        this.subPublicDomain,
+            const emptyHostsRemarks = subscriptionSettings.customRemarks.emptyHosts;
+
+            if (emptyHostsRemarks.length > 0) {
+                formattedHosts.push(
+                    ...this.createFallbackHosts(
+                        emptyHostsRemarks.map((remark) =>
+                            TemplateEngine.formatWithUser(
+                                remark,
+                                user,
+                                subscriptionSettings,
+                                this.subPublicDomain,
+                            ),
+                        ),
                     ),
-                ),
+                );
+
+                return formattedHosts;
+            }
+
+            if (user.activeInternalSquads.length !== 0) {
+                formattedHosts.push(
+                    ...this.createFallbackHosts([
+                        '→ Enterlance VPN',
+                        'В подписке нет серверов',
+                        '→ No hosts found',
+                    ]),
+                );
+
+                return formattedHosts;
+            }
+
+            formattedHosts.push(
+                ...this.createFallbackHosts([
+                    '→ Enterlance VPN',
+                    'В подписке нет сквадов',
+                    '→ No internal squads found',
+                ]),
             );
+
+            return formattedHosts;
         }
 
         const publicKeyMap = await resolveInboundAndPublicKey(hosts.map((host) => host.rawInbound));
